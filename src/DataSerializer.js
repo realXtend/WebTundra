@@ -27,6 +27,17 @@ DataSerializer.prototype = {
         this.addU8((value >> 24) & 255);
     },
 
+    addFloat : function(value) {
+        var floatBuf = new ArrayBuffer(4);
+        var floatView = new Float32Array(floatBuf);
+        var byteView = new Uint8Array(floatBuf);
+        floatView[0] = value;
+        this.addU8(byteView[0]);
+        this.addU8(byteView[1]);
+        this.addU8(byteView[2]);
+        this.addU8(byteView[3]);
+    },
+
     addVLE : function(value) {
         if (value < 128)
             this.addU8(value);

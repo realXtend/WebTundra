@@ -28,6 +28,17 @@ DataDeserializer.prototype = {
     readU32 : function() {
         return this.readU8() | (this.readU8() << 8) | (this.readU8() << 16) | (this.readU8() << 24);
     },
+    
+    readFloat : function() {
+        var floatBuf = new ArrayBuffer(4);
+        var floatView = new Float32Array(floatBuf);
+        var byteView = new Uint8Array(floatBuf);
+        byteView[0] = this.readU8();
+        byteView[1] = this.readU8();
+        byteView[2] = this.readU8();
+        byteView[3] = this.readU8();
+        return floatView[0];
+    },
 
     readVLE : function() {
         var low = readU8();
