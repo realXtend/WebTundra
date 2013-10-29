@@ -1,8 +1,10 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
+// For writing non-aligned floats
+var floatWriteDataView = new DataView(new ArrayBuffer(4));
+
 function DataSerializer(lengthBytes) {
-    this.arrayBuffer = new ArrayBuffer(lengthBytes);
-    this.bytes = new Uint8Array(this.arrayBuffer);
+    this.dataView = new DataView(new ArrayBuffer(lengthBytes));
     this.bitPos = 0;
     this.bytePos = 0;
 }
@@ -10,32 +12,45 @@ function DataSerializer(lengthBytes) {
 DataSerializer.prototype = {
     addU8 : function(value) {
         if (this.bitPos == 0)
-            this.bytes[this.bytePos++] = value;
+        {
+            this.dataView.setUint8(this.bytePos, value);
+            this.bytePos++;
+        }
         else
             this.addBits(8, value);
     },
 
     addU16 : function(value) {
-        this.addU8(value & 255);
-        this.addU8(value >> 8);
+        if (this.bitPos == 0)
+        {
+            this.dataView.setUint16(this.bytePos, value, true);
+            this.bytePos += 2;
+        }
+        else
+            this.addBits(16, value);
     },
 
     addU32 : function(value) {
-        this.addU8(value & 255);
-        this.addU8((value >> 8) & 255);
-        this.addU8((value >> 16) & 255);
-        this.addU8((value >> 24) & 255);
+        if (this.bitPos == 0)
+        {
+            this.dataView.setUint32(this.bytePos, value, true);
+            this.bytePos += 4;
+        }
+        else
+            this.addBits(32, value);
     },
 
     addFloat : function(value) {
-        var floatBuf = new ArrayBuffer(4);
-        var floatView = new Float32Array(floatBuf);
-        var byteView = new Uint8Array(floatBuf);
-        floatView[0] = value;
-        this.addU8(byteView[0]);
-        this.addU8(byteView[1]);
-        this.addU8(byteView[2]);
-        this.addU8(byteView[3]);
+        if (this.bitPos == 0)
+        {
+            this.dataView.setFloat32(this.bytePos, value, true);
+            this.bytePos += 4;
+        }
+        else
+        {
+            floatWriteDataView.setFloat32(0, value, true);
+            this.addBits(32, floatWriteDataView.getUint32(0, true));
+        }
     },
 
     addVLE : function(value) {
@@ -52,21 +67,35 @@ DataSerializer.prototype = {
         }
     },
 
+    addBit : function(value) {
+        this.addBits(1, value);
+    },
+
     addBits : function(bitCount, value) {
         var shift = 0;
+        var currentByte = this.dataView.getUint8(this.bytePos);
+
         while (bitCount > 0) {
             if (value & (1 << shift))
-                this.bytes[this.bytePos] = this.bytes[this.bytePos] | (1 << this.bitPos);
+                currentByte |= (1 << this.bitPos);
             else
-                this.bytes[this.bytePos] = this.bytes[this.bytePos] & (255 - (1 << this.bitPos));
-            this.bitPos++;
-            if (this.bitPos > 7) {
-                this.bitPos = 0;
-                this.bytePos++;
-            }
+                currentByte &= (255 - (1 << this.bitPos));
+
             shift++;
             bitCount--;
+            this.bitPos++;
+
+            if (this.bitPos > 7) {
+                this.bitPos = 0;
+                this.dataView.setUint8(this.bytePos, currentByte);
+                this.bytePos++;
+                if (bitCount > 0)
+                    currentByte = this.dataView.getUint8(this.bytePos);
+            }
         }
+        
+        if (this.bitPos != 0)
+            this.dataView.setUint8(this.bytePos, currentByte);
     },
     
     countUtf8ByteSize : function(value) {
@@ -125,6 +154,7 @@ DataSerializer.prototype = {
     },
 
     addUtf8String : function(value) {
+        var len = this.countUtf8ByteSize(value);
         this.addU16(this.countUtf8ByteSize(value));
         for (var i = 0; i < value.length; i++)
             this.addUtf8Char(value.charCodeAt(i));
@@ -139,7 +169,11 @@ DataSerializer.prototype = {
     
     truncate : function() {
         var newLength = this.bytesFilled();
-        this.arrayBuffer = this.arrayBuffer.slice(0, newLength);
-        this.bytes = new Uint8Array(this.arrayBuffer);
+        if (newLength != this.dataView.byteLength)
+            this.dataView = new DataView(this.dataView.buffer.slice(0, newLength));
+    },
+
+    get arrayBuffer(){
+        return this.dataView.buffer;
     }
 }

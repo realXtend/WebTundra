@@ -1,11 +1,13 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
+// For reading non-aligned floats
+var floatReadDataView = new DataView(new ArrayBuffer(4));
+
 function DataDeserializer(arrayBuffer) {
-    this.arrayBuffer = arrayBuffer;
-    this.bytes = new Uint8Array(arrayBuffer);
+    this.dataView = new DataView(arrayBuffer);
     this.bitPos = 0;
     this.bytePos = 0;
-    this.size = this.bytes.length;
+    this.size = arrayBuffer.byteLength;
 }
 
 DataDeserializer.prototype = {
@@ -16,56 +18,85 @@ DataDeserializer.prototype = {
 
     readU8 : function() {
         if (this.bitPos == 0)
-            return this.bytes[this.bytePos++];
+            return this.dataView.getUint8(this.bytePos++);
         else
             return this.readBits(8);
     },
 
     readU16 : function() {
-        return this.readU8() | (this.readU8() << 8);
+        if (this.bitPos == 0)
+        {
+            var ret = this.dataView.getUint16(this.bytePos, true);
+            this.bytePos += 2;
+            return ret;
+        }
+        else
+            return this.readBits(16);
     },
 
     readU32 : function() {
-        return this.readU8() | (this.readU8() << 8) | (this.readU8() << 16) | (this.readU8() << 24);
+        if (this.bitPos == 0)
+        {
+            var ret = this.dataView.getUint32(this.bytePos, true);
+            this.bytePos += 4;
+            return ret;
+        }
+        else
+            return this.readBits(32);
     },
     
     readFloat : function() {
-        var floatBuf = new ArrayBuffer(4);
-        var floatView = new Float32Array(floatBuf);
-        var byteView = new Uint8Array(floatBuf);
-        byteView[0] = this.readU8();
-        byteView[1] = this.readU8();
-        byteView[2] = this.readU8();
-        byteView[3] = this.readU8();
-        return floatView[0];
+        if (this.bitPos == 0)
+        {
+            var ret = this.dataView.getFloat32(this.bytePos, true);
+            this.bytePos += 4;
+            return ret;
+        }
+        else
+        {
+            floatReadDataView.setUint32(0, this.readBits(32), true);
+            return floatReadDataView.getFloat32(0, true);
+        }
     },
 
     readVLE : function() {
         var low = readU8();
         if ((low & 128) == 0)
             return low;
+
         low = low & 127;
         var med = readU8();
         if ((med & 128) == 0)
             return low | (med << 7);
+
         med = med & 127;
         var high = readU16();
         return low | (med << 7) | (high << 14);
     },
 
+    readBit : function() {
+        return this.readBits(1);
+    },
+
     readBits : function(bitCount) {
         var ret = 0;
         var shift = 0;
+        var currentByte = this.dataView.getUint8(this.bytePos);
+
         while (bitCount > 0) {
-            if (this.bytes[this.bytePos] & (1 << this.bitPos))
-                ret = ret | (1 << shift);
+            if (currentByte & (1 << this.bitPos))
+                ret |= (1 << shift);
+        
+            shift++;
+            bitCount--;
             this.bitPos++;
+
             if (this.bitPos > 7) {
                 this.bitPos = 0;
                 this.bytePos++;
+                if (bitCount > 0)
+                    currentByte = this.dataView.getUint8(this.bytePos);
             }
-            shift++;
-            bitCount--;
         }
 
         return ret;
@@ -110,16 +141,18 @@ DataDeserializer.prototype = {
     },
 
     readUtf8String : function() {
-        var endPos = this.bytePos + this.readU16();
+        var byteLength = this.readU16();
+        var endPos = this.bytePos + byteLength;
         var ret = "";
         while (this.bytePos < endPos)
             ret += String.fromCharCode(this.readUtf8Char());
+        return ret;
     },
 
     bytesLeft : function() {
         return this.bytePos >= this.size ? 0 : this.size - this.bytePos;
     },
-    
+
     bitsLeft : function() {
         return this.bytePos >= this.size ? 0 : (this.size - this.bytePos) * 8 - this.bitPos;
     }
