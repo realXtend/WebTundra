@@ -2,8 +2,8 @@
 
 var client = new WebSocketClient();
 
-client.addCallback("Connect", onConnect);
-client.addCallback("Message", onMessageReceived);
+client.connected.add(onConnect);
+client.messageReceived.add(onMessageReceived);
 client.connect("localhost", 2345);
 
 function onConnect() {

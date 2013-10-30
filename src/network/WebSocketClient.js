@@ -5,7 +5,9 @@ var cLoginMessage = 100;
 function WebSocketClient() {
     this.webSocket = null;
     this.url = "";
-    this.callbacks = [];
+    this.connected = new signals.Signal();
+    this.disconnected = new signals.Signal();
+    this.messageReceived = new signals.Signal();
 }
 
 WebSocketClient.prototype = {
@@ -30,21 +32,21 @@ WebSocketClient.prototype = {
         }
 
         this.webSocket.onopen = function(evt) {
-            this.triggerCallbacks("Connect");
+            this.connected.dispatch();
         }.bind(this);
 
         this.webSocket.onclose = function(evt) {
-            this.triggerCallbacks("Disconnect");
+            this.disconnected.dispatch();
             this.webSocket = null;
         }.bind(this);
 
         this.webSocket.onmessage = function(evt) {
             var dd = new DataDeserializer(evt.data);
-            this.triggerCallbacks("Message", dd);
+            this.messageReceived.dispatch(dd);
         }.bind(this);
 
         this.webSocket.onerror = function(evt) {
-            this.triggerCallbacks("Error");
+            /// \todo Error reporting
         }.bind(this);
         
         /// \todo use keepalive-timer to avoid disconnection if connection idle for a long time
@@ -74,38 +76,5 @@ WebSocketClient.prototype = {
         }
         else
             console.error("No connection, can not send message");
-    },
-
-    // Add networking callback. Eventname is "Connect", "Disconnect", "Message" or "Error"
-    addCallback : function(eventName, callback) {
-        if (this.callbacks[eventName] === undefined)
-            this.callbacks[eventName] = [];
-        this.callbacks[eventName].push(callback);
-    },
-
-    // Remove networking callback.
-    removeCallback : function(eventName, callback) {
-        if (this.callbacks[eventName] !== undefined)
-        {
-            var callbacks = this.callbacks[eventName];
-            for (var i = 0; i < callbacks.length; ++i)
-            {
-                if (callbacks[i] === callback)
-                {
-                    callbacks.splice(i, 1);
-                    break;
-                }
-            }
-        }
-    },
-    
-    // Internal function to trigger networking callbacks
-    triggerCallbacks : function(eventName, data) {
-        if (this.callbacks[eventName] !== undefined)
-        {
-            var callbacks = this.callbacks[eventName];
-            for (var i = 0; i < callbacks.length; ++i)
-                callbacks[i](data);
-        }
     }
 }
