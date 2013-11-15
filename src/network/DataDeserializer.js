@@ -45,6 +45,13 @@ DataDeserializer.prototype = {
             return this.readBits(32);
     },
     
+    readS32 : function() {
+        var valueS32 = this.readU32();
+        if (valueS32 >= 32768*65536)
+            valueS32 -= 32768*65536;
+        return valueS32;
+    },
+
     readFloat : function() {
         if (this.bitPos == 0)
         {
@@ -146,6 +153,15 @@ DataDeserializer.prototype = {
         var ret = "";
         while (this.bytePos < endPos)
             ret += String.fromCharCode(this.readUtf8Char());
+        return ret;
+    },
+    
+    readString : function() {
+        // Strings stored in this format should be avoided, as it is limited to max. 255 chars long Latin/ASCII strings
+        var byteLength = this.readU8();
+        var ret = "";
+        while (byteLength--)
+            ret += String.fromCharCode(this.readU8());
         return ret;
     },
 

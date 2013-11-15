@@ -40,6 +40,13 @@ DataSerializer.prototype = {
             this.addBits(32, value);
     },
 
+    addS32 : function(value) {
+        var valueU32 = value;
+        if (valueU32 < 0)
+            valueU32 += 32768*65536;
+        this.addU32(valueU32)
+    },
+
     addFloat : function(value) {
         if (this.bitPos == 0)
         {
@@ -159,18 +166,25 @@ DataSerializer.prototype = {
         for (var i = 0; i < value.length; i++)
             this.addUtf8Char(value.charCodeAt(i));
     },
+    
+    addString : function(value) {
+        // Strings stored in this format should be avoided, as it is limited to max. 255 chars long Latin/ASCII strings
+        this.addU8(value.length);
+        for (var i = 0; i < value.length; i++)
+            this.addU8(value.charCodeAt(i));
+    },
 
-    bytesFilled : function() {
+    truncate : function() {
+        var newLength = this.bytesFilled;
+        if (newLength != this.dataView.byteLength)
+            this.dataView = new DataView(this.dataView.buffer.slice(0, newLength));
+    },
+
+    get bytesFilled(){
         if (this.bitPos == 0)
             return this.bytePos;
         else
             return this.bytePos + 1;
-    },
-    
-    truncate : function() {
-        var newLength = this.bytesFilled();
-        if (newLength != this.dataView.byteLength)
-            this.dataView = new DataView(this.dataView.buffer.slice(0, newLength));
     },
 
     get arrayBuffer(){
