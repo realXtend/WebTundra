@@ -83,6 +83,8 @@ var attributeTypeIds = {
 
 function Attribute(typeId) {
     this.owner = null;
+    this.name = "";
+    this.id = "";
     this.value = null;
     this.typeId = typeId;
     this.typeName = attributeTypeNames[typeId];
@@ -446,6 +448,10 @@ AttributeQPoint.prototype.toBinary = function(ds){
 };
 
 function createAttribute(typeId) {
+    // Convert typename to numeric ID if necessary
+    if (typeof typeId == 'string' || typeId instanceof String)
+        typeId = attributeTypeIds[typeId];
+
     switch (typeId)
     {
     case cAttributeString:

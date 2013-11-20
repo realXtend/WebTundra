@@ -146,6 +146,14 @@ DataDeserializer.prototype = {
                 ((char1 & 0x1) << 30);
         }
     },
+    
+    readArrayBuffer : function(size) {
+        var buffer = new ArrayBuffer(size);
+        var bufferDataView = new DataView(buffer);
+        for (var i = 0; i < size; ++i)
+            bufferDataView.setUint8(i, this.readU8());
+        return buffer;
+    },
 
     readUtf8String : function() {
         var byteLength = this.readU16();
@@ -165,11 +173,11 @@ DataDeserializer.prototype = {
         return ret;
     },
 
-    bytesLeft : function() {
+    get bytesLeft(){
         return this.bytePos >= this.size ? 0 : this.size - this.bytePos;
     },
 
-    bitsLeft : function() {
+    get bitsLeft(){
         return this.bytePos >= this.size ? 0 : (this.size - this.bytePos) * 8 - this.bitPos;
     }
 }

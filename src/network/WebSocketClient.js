@@ -8,12 +8,15 @@ function WebSocketClient() {
     this.connected = new signals.Signal();
     this.disconnected = new signals.Signal();
     this.messageReceived = new signals.Signal();
+    this.loginData = null;
 }
 
 WebSocketClient.prototype = {
-    // Connect to a Tundra server
-    connect : function(host, port) {
+    // Connect to a Tundra server. Specify optional login data map which will be sent after connect
+    connect : function(host, port, loginData) {
         this.url = "ws://" + host + ":" + port;
+        if (loginData != null)
+            this.loginData = loginData;
 
         try {
             if (window.WebSocket)
@@ -42,13 +45,16 @@ WebSocketClient.prototype = {
 
         this.webSocket.onmessage = function(evt) {
             var dd = new DataDeserializer(evt.data);
-            this.messageReceived.dispatch(dd);
+            var msgId = dd.readU16();
+            this.messageReceived.dispatch(msgId, dd);
         }.bind(this);
 
         this.webSocket.onerror = function(evt) {
             /// \todo Error reporting
         }.bind(this);
         
+        this.connected.add(this.onConnect, this);
+
         /// \todo use keepalive-timer to avoid disconnection if connection idle for a long time
         return true;
     },
@@ -76,5 +82,16 @@ WebSocketClient.prototype = {
         }
         else
             console.error("No connection, can not send message");
+    },
+
+    // If login data has been specified, automatically send it on connect
+    onConnect : function() {
+        if (this.loginData != null) {
+            console.log("Sending login message");
+            var ds = this.startNewMessage(cLoginMessage, 1024);
+            var loginText = JSON.stringify(this.loginData);
+            ds.addUtf8String(loginText);
+            this.endAndQueueMessage(ds);
+        }
     }
 }
