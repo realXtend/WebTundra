@@ -14,11 +14,11 @@ function EC_RigidBody() {
     this.addAttribute(cAttributeReal, "angularDamping", "Angular damping", 0.0);
     this.addAttribute(cAttributeFloat3, "linearFactor", "Linear factor");
     this.addAttribute(cAttributeFloat3, "angularFactor", "Angular factor");
-    this.addAttribute(cAttributeFloat3, "linearVelocity", "Linear velocity");
-    this.addAttribute(cAttributeFloat3, "angularVelocity", "Angular velocity");
     this.addAttribute(cAttributeBool, "phantom", "Phantom", false);
     this.addAttribute(cAttributeBool, "kinematic", "Kinematic", false);
     this.addAttribute(cAttributeBool, "drawDebug", "Draw Debug", false);
+    this.addAttribute(cAttributeFloat3, "linearVelocity", "Linear velocity");
+    this.addAttribute(cAttributeFloat3, "angularVelocity", "Angular velocity");
     this.addAttribute(cAttributeInt, "collisionLayer", "Collision Layer", -1);
     this.addAttribute(cAttributeInt, "collisionMask", "Collision Mask", -1);
     this.addAttribute(cAttributeReal, "rollingFriction", "Rolling Friction", 0.5)

@@ -16,6 +16,7 @@ function SyncManager(client, scene) {
     this.client = client;
     this.scene = scene;
     this.client.messageReceived.add(this.onMessageReceived, this);
+    this.logDebug = true;
     /// \todo Connect to scene change signals
 }
 
@@ -49,7 +50,8 @@ SyncManager.prototype = {
         var entity = scene.createEntity(entityId);
         if (entity == null)
             return;
-        console.log("Created entity id " + entity.id);
+        if (this.logDebug)
+            console.log("Created entity id " + entity.id);
 
         for (var i = 0; i < numComponents; i++) {
             this.readComponentFullUpdate(entity, dd);
@@ -94,7 +96,8 @@ SyncManager.prototype = {
                 for (var i = 0; i < numAttr; i++) {
                     var attr = component.attributes[compDd.readU8()];
                     attr.fromBinary(compDd);
-                    //console.log("Attribute " + attr.name + " in component " + component.typeName + " entity " + entityId + " updated with index method");
+                    if (this.logDebug)
+                        console.log("Updated attribute " + attr.name + " in component " + component.typeName + " entity id " + entityId);
                 }
             }
             // Bitmask method
@@ -104,7 +107,8 @@ SyncManager.prototype = {
                     if (changeBit) {
                         var attr = component.attributes[i];
                         attr.fromBinary(compDd);
-                        //console.log("Attribute " + attr.name + " in component " + component.typeName + " entity " + entityId + " updated with bitmask method");
+                        if (this.logDebug)
+                            console.log("Updated attribute " + attr.name + " in component " + component.typeName + " entity id " + entityId);
                     }
                 }
             }
@@ -112,7 +116,6 @@ SyncManager.prototype = {
     },
 
     handleRemoveComponents : function(dd) {
-        console.log("RemoveComponents");
         var sceneId = dd.readU8(); // Dummy sceneID for multi-scene support, yet unused /// \todo Should be VLE as in native client protocol
         var entityId = dd.readU16(); /// \todo Should be VLE as in native client protocol
         var entity = scene.entityById(entityId);
@@ -123,7 +126,8 @@ SyncManager.prototype = {
         while (dd.bytesLeft > 0) {
             var compId = dd.readU16(); /// \todo Should be VLE as in native client protocol
             entity.removeComponent(compId);
-            console.log("Removed component id " + compId + " in entity id " + entityId);
+            if (this.logDebug)
+                console.log("Removed component id " + compId + " in entity id " + entityId);
         }
     },
 
@@ -131,7 +135,8 @@ SyncManager.prototype = {
         var sceneId = dd.readU8(); // Dummy sceneID for multi-scene support, yet unused /// \todo Should be VLE as in native client protocol
         var entityId = dd.readU16(); /// \todo Should be VLE as in native client protocol
         scene.removeEntity(entityId);
-        console.log("Removed entity id " + entityId);
+        if (this.logDebug)
+            console.log("Removed entity id " + entityId);
     },
     
     readComponentFullUpdate : function(entity, dd) {
@@ -150,7 +155,8 @@ SyncManager.prototype = {
             for (var j = 0; j < component.attributes.length; j++) {
                 if (compDd.bytesLeft > 0) {
                     component.attributes[j].fromBinary(compDd);
-                    //console.log("Read attribute " + component.attributes[j].name);
+                    if (this.logDebug)
+                        console.log("Read attribute " + component.attributes[j].name);
                 }
             }
         }
