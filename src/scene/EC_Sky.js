@@ -3,6 +3,7 @@
 var cComponentTypeSky = 10;
 
 function EC_Sky() {
+    Component.call(this, cComponentTypeSky);
     this.addAttribute(cAttributeAssetReference, "materialRef", "Material");
     this.addAttribute(cAttributeAssetReferenceList, "textureRefs", "Texture");
     this.addAttribute(cAttributeQuat, "orientation", "Orientation");

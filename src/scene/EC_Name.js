@@ -3,6 +3,7 @@
 var cComponentTypeName = 26;
 
 function EC_Name() {
+    Component.call(this, cComponentTypeName);
     this.addAttribute(cAttributeString, "name", "Name");
     this.addAttribute(cAttributeString, "description", "Description");
     this.addAttribute(cAttributeString, "group", "Group");

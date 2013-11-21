@@ -3,6 +3,7 @@
 var cComponentTypePlaceable = 20;
 
 function EC_Placeable() {
+    Component.call(this, cComponentTypePlaceable);
     this.addAttribute(cAttributeTransform, "transform", "Transform");
     this.addAttribute(cAttributeBool, "drawDebug", "Show bounding box", false);
     this.addAttribute(cAttributeBool, "visible", "Visible", true);

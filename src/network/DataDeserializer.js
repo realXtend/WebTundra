@@ -93,7 +93,7 @@ DataDeserializer.prototype = {
         while (bitCount > 0) {
             if (currentByte & (1 << this.bitPos))
                 ret |= (1 << shift);
-        
+
             shift++;
             bitCount--;
             this.bitPos++;

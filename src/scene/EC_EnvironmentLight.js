@@ -3,6 +3,7 @@
 var cComponentTypeEnvironmentLight = 8;
 
 function EC_EnvironmentLight() {
+    Component.call(this, cComponentTypeEnvironmentLight);
     this.addAttribute(cAttributeColor, "sunColor", "Sunlight color");
     this.addAttribute(cAttributeColor, "ambientColor", "Ambient light color");
     this.addAttribute(cAttributeFloat3, "sunDirection", "Sunlight direction vector");

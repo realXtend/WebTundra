@@ -93,6 +93,7 @@ function Attribute(typeId) {
 // String
 
 function AttributeString() {
+    Attribute.call(this, cAttributeString);
     this.value = "";
 }
 AttributeString.prototype = new Attribute(cAttributeString);
@@ -108,6 +109,7 @@ AttributeString.prototype.toBinary = function(ds){
 // Int
 
 function AttributeInt() {
+    Attribute.call(this, cAttributeInt);
     this.value = 0;
 }
 AttributeInt.prototype = new Attribute(cAttributeInt);
@@ -123,6 +125,7 @@ AttributeInt.prototype.toBinary = function(ds){
 // Real
 
 function AttributeReal() {
+    Attribute.call(this, cAttributeReal);
     this.value = 0.0;
 }
 
@@ -139,6 +142,7 @@ AttributeReal.prototype.toBinary = function(ds){
 // Color
 
 function AttributeColor() {
+    Attribute.call(this, cAttributeColor);
     this.value = {};
     this.value.r = 0.0;
     this.value.g = 0.0;
@@ -165,6 +169,7 @@ AttributeColor.prototype.toBinary = function(ds){
 // Float2
 
 function AttributeFloat2() {
+    Attribute.call(this, cAttributeFloat2);
     this.value = {};
     this.value.x = 0.0;
     this.value.y = 0.0;
@@ -185,6 +190,7 @@ AttributeFloat2.prototype.toBinary = function(ds){
 // Float3
 
 function AttributeFloat3() {
+    Attribute.call(this, cAttributeFloat3);
     this.value = {};
     this.value.x = 0.0;
     this.value.y = 0.0;
@@ -208,6 +214,7 @@ AttributeFloat3.prototype.toBinary = function(ds){
 // Float4
 
 function AttributeFloat4() {
+    Attribute.call(this, cAttributeFloat4);
     this.value = {};
     this.value.x = 0.0;
     this.value.y = 0.0;
@@ -234,6 +241,7 @@ AttributeFloat4.prototype.toBinary = function(ds){
 // Bool
 
 function AttributeBool() {
+    Attribute.call(this, cAttributeBool);
     this.value = false;
 }
 
@@ -250,6 +258,7 @@ AttributeBool.prototype.toBinary = function(ds){
 // UInt
 
 function AttributeUInt() {
+    Attribute.call(this, cAttributeUInt);
     this.value = 0;
 }
 AttributeUInt.prototype = new Attribute(cAttributeUInt);
@@ -265,6 +274,7 @@ AttributeUInt.prototype.toBinary = function(ds){
 // Quat
 
 function AttributeQuat() {
+    Attribute.call(this, cAttributeQuat);
     this.value = {};
     this.value.x = 0.0;
     this.value.y = 0.0;
@@ -291,6 +301,7 @@ AttributeQuat.prototype.toBinary = function(ds){
 // AssetReference
 
 function AttributeAssetReference() {
+    Attribute.call(this, cAttributeAssetReference);
     this.value = {}
     this.value.ref = "";
     this.value.type = "";
@@ -308,6 +319,7 @@ AttributeAssetReference.prototype.toBinary = function(ds){
 // AssetReferenceList
 
 function AttributeAssetReferenceList() {
+    Attribute.call(this, cAttributeAssetReferenceList);
     this.value = []
 }
 
@@ -336,6 +348,7 @@ AttributeAssetReferenceList.prototype.toBinary = function(ds){
 // EntityReference
 
 function AttributeEntityReference() {
+    Attribute.call(this, cAttributeEntityReference);
     this.value = "";
 }
 AttributeEntityReference.prototype = new Attribute(cAttributeEntityReference);
@@ -351,6 +364,7 @@ AttributeEntityReference.prototype.toBinary = function(ds){
 // QVariant
 
 function AttributeQVariant() {
+    Attribute.call(this, cAttributeQVariant);
     this.value = "";
 }
 AttributeQVariant.prototype = new Attribute(cAttributeQVariant);
@@ -366,6 +380,7 @@ AttributeQVariant.prototype.toBinary = function(ds){
 // QVariantList
 
 function AttributeQVariantList() {
+    Attribute.call(this, cAttributeQVariantList);
     this.value = [];
 }
 AttributeQVariantList.prototype = new Attribute(cAttributeQVariantList);
@@ -386,6 +401,7 @@ AttributeQVariantList.prototype.toBinary = function(ds){
 // Transform
 
 function AttributeTransform() {
+    Attribute.call(this, cAttributeTransform);
     this.value = {};
     this.value.pos = {};
     this.value.rot = {};
@@ -430,6 +446,7 @@ AttributeTransform.prototype.toBinary = function(ds){
 // QPoint
 
 function AttributeQPoint() {
+    Attribute.call(this, cAttributeQPoint);
     this.value = {};
     this.value.x = 0;
     this.value.y = 0;

@@ -3,6 +3,7 @@
 var cComponentTypeRigidBody = 23;
 
 function EC_RigidBody() {
+    Component.call(this, cComponentTypeRigidBody);
     this.addAttribute(cAttributeReal, "mass", "Mass", 0.0);
     this.addAttribute(cAttributeInt, "shapeType", "Shape type");
     this.addAttribute(cAttributeFloat3, "size", "Size");

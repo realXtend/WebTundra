@@ -3,6 +3,7 @@
 var cComponentTypeScript = 5;
 
 function EC_Script() {
+    Component.call(this, cComponentTypeScript);
     this.addAttribute(cAttributeAssetReferenceList, "scriptRef", "Script ref");
     this.addAttribute(cAttributeBool, "runOnLoad", "Run on load", false);
     this.addAttribute(cAttributeInt, "runMode", "Run mode");

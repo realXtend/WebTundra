@@ -3,6 +3,7 @@
 var cComponentTypeMesh = 17;
 
 function EC_Mesh() {
+    Component.call(this, cComponentTypeMesh);
     this.addAttribute(cAttributeTransform, "nodeTransformation", "Transform");
     this.addAttribute(cAttributeAssetReference, "meshRef", "Mesh ref");
     this.addAttribute(cAttributeAssetReference, "skeletonRef", "Skeleton ref");
