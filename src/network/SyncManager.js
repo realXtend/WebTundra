@@ -29,8 +29,14 @@ SyncManager.prototype = {
         case cCreateComponents:
             this.handleCreateComponents(dd);
             break;
+        case cCreateAttributes:
+            this.handleCreateAttributes(dd);
+            break;
         case cEditAttributes:
             this.handleEditAttributes(dd);
+            break;
+        case cRemoveAttributes:
+            this.handleRemoveAttributes(dd);
             break;
         case cRemoveComponents:
             this.handleRemoveComponents(dd);
@@ -68,6 +74,34 @@ SyncManager.prototype = {
         }
         while (dd.bytesLeft > 0) {
             this.readComponentFullUpdate(entity, dd);
+        }
+    },
+    
+    handleCreateAttributes : function(dd) {
+        var sceneId = dd.readU8(); // Dummy sceneID for multi-scene support, yet unused /// \todo Should be VLE as in native client protocol
+        var entityId = dd.readU16(); /// \todo Should be VLE as in native client protocol
+        var entity = scene.entityById(entityId);
+        if (entity == null) {
+            console.log("Entity id " + entityId + " not found when handling CreateAttributes message");
+            return;
+        }
+        while (dd.bytesLeft > 0) {
+            var compId = dd.readU16(); /// \todo Should be VLE as in native client protocol
+            var component = entity.componentById(compId);
+            if (component == null) {
+                console.log("Component id " + compId + " not found in entity id " + entityId + " when handling CreateAttributes message");
+                return;
+            }
+            var attrIndex = dd.readU8();
+            var attrTypeId = dd.readU8();
+            var attrName = dd.readString();
+            var attr = component.createAttribute(attrIndex, attrTypeId, attrName);
+            if (attr != null)
+            {
+                attr.fromBinary(dd);
+                if (this.logDebug)
+                    console.log("Created attribute " + attr.name + " in component " + component.typeName + " entity id " + entityId);
+            }
         }
     },
 
@@ -114,6 +148,29 @@ SyncManager.prototype = {
             }
         }
     },
+    
+    handleRemoveAttributes : function(dd) {
+        var sceneId = dd.readU8(); // Dummy sceneID for multi-scene support, yet unused /// \todo Should be VLE as in native client protocol
+        var entityId = dd.readU16(); /// \todo Should be VLE as in native client protocol
+        var entity = scene.entityById(entityId);
+        if (entity == null) {
+            console.log("Entity id " + entityId + " not found when handling RemoveAttributes message");
+            return;
+        }
+        while (dd.bytesLeft > 0) {
+            var compId = dd.readU16(); /// \todo Should be VLE as in native client protocol
+            var component = entity.componentById(compId);
+                        var attrIndex = dd.readU8();
+            if (component == null) {
+                console.log("Component id " + compId + " not found in entity id " + entityId + " when handling CreateAttributes message");
+                return;
+            }
+            var attrIndex = dd.readU8();
+            component.removeAttribute(attrIndex);
+            if (this.logDebug)
+                console.log("Removed attribute index " + attrIndex + " in component " + component.typeName + " entity id " + entityId);
+        }
+    },
 
     handleRemoveComponents : function(dd) {
         var sceneId = dd.readU8(); // Dummy sceneID for multi-scene support, yet unused /// \todo Should be VLE as in native client protocol
@@ -151,12 +208,26 @@ SyncManager.prototype = {
         var component = entity.createComponent(compId, compTypeId, compName);
         if (component) {
             console.log("Created component type " + component.typeName + " id " + component.id);
-            /// \todo Handle dynamic attributes, now only loops through static
+
+            // Fill static attributes
             for (var j = 0; j < component.attributes.length; j++) {
                 if (compDd.bytesLeft > 0) {
                     component.attributes[j].fromBinary(compDd);
                     if (this.logDebug)
                         console.log("Read attribute " + component.attributes[j].name);
+                }
+            }
+            // Create dynamic attributes
+            while (compDd.bitsLeft > 2*8) {
+                var attrIndex = compDd.readU8();
+                var attrTypeId = compDd.readU8();
+                var attrName = compDd.readString();
+                var attr = component.createAttribute(attrIndex, attrTypeId, attrName);
+                if (attr != null)
+                {
+                    attr.fromBinary(compDd);
+                    if (this.logDebug)
+                        console.log("Created attribute " + attr.name + " in component " + component.typeName + " entity id " + entity.id);
                 }
             }
         }
