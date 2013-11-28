@@ -160,7 +160,6 @@ SyncManager.prototype = {
         while (dd.bytesLeft > 0) {
             var compId = dd.readU16(); /// \todo Should be VLE as in native client protocol
             var component = entity.componentById(compId);
-                        var attrIndex = dd.readU8();
             if (component == null) {
                 console.log("Component id " + compId + " not found in entity id " + entityId + " when handling CreateAttributes message");
                 return;
