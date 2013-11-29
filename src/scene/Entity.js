@@ -37,5 +37,17 @@ Entity.prototype = {
             return this.components[id];
         else
             return null;
+    },
+    
+    componentByType: function(typeId) {
+        // Convert typename to numeric ID if necessary
+        if (typeof typeId == 'string' || typeId instanceof String)
+            typeId = componentTypeIds[typeId];
+        for (var compId in this.components) {
+            if (this.components.hasOwnProperty(compId) && this.components[compId].typeId == typeId) {
+                return this.components[compId];
+            }
+        }
+        return null;
     }
 }
