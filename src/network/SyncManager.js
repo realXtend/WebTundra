@@ -48,10 +48,10 @@ SyncManager.prototype = {
     },
     
     handleCreateEntity : function(dd) {
-        var sceneId = dd.readU8(); // Dummy sceneID for multi-scene support, yet unused /// \todo Should be VLE as in native client protocol
-        var entityId = dd.readU16(); /// \todo Should be VLE as in native client protocol
+        var sceneId = dd.readVLE(); // Dummy sceneID for multi-scene support, yet unused
+        var entityId = dd.readVLE();
         var tempFlag = dd.readU8(); /// \todo Handle
-        var numComponents = dd.readU16(); /// \todo Should be VLE as in native client protocol
+        var numComponents = dd.readVLE();
 
         var entity = scene.createEntity(entityId);
         if (entity == null)
@@ -65,8 +65,8 @@ SyncManager.prototype = {
     },
 
     handleCreateComponents : function(dd) {
-        var sceneId = dd.readU8(); // Dummy sceneID for multi-scene support, yet unused /// \todo Should be VLE as in native client protocol
-        var entityId = dd.readU16(); /// \todo Should be VLE as in native client protocol
+        var sceneId = dd.readVLE(); // Dummy sceneID for multi-scene support, yet unused
+        var entityId = dd.readVLE();
         var entity = scene.entityById(entityId);
         if (entity == null) {
             console.log("Entity id " + entityId + " not found when handling CreateComponents message");
@@ -78,15 +78,15 @@ SyncManager.prototype = {
     },
     
     handleCreateAttributes : function(dd) {
-        var sceneId = dd.readU8(); // Dummy sceneID for multi-scene support, yet unused /// \todo Should be VLE as in native client protocol
-        var entityId = dd.readU16(); /// \todo Should be VLE as in native client protocol
+        var sceneId = dd.readVLE(); // Dummy sceneID for multi-scene support, yet unused
+        var entityId = dd.readVLE();
         var entity = scene.entityById(entityId);
         if (entity == null) {
             console.log("Entity id " + entityId + " not found when handling CreateAttributes message");
             return;
         }
         while (dd.bytesLeft > 0) {
-            var compId = dd.readU16(); /// \todo Should be VLE as in native client protocol
+            var compId = dd.readVLE();
             var component = entity.componentById(compId);
             if (component == null) {
                 console.log("Component id " + compId + " not found in entity id " + entityId + " when handling CreateAttributes message");
@@ -106,21 +106,21 @@ SyncManager.prototype = {
     },
 
     handleEditAttributes : function(dd) {
-        var sceneId = dd.readU8(); // Dummy sceneID for multi-scene support, yet unused /// \todo Should be VLE as in native client protocol
-        var entityId = dd.readU16(); /// \todo Should be VLE as in native client protocol
+        var sceneId = dd.readVLE(); // Dummy sceneID for multi-scene support, yet unused
+        var entityId = dd.readVLE();
         var entity = scene.entityById(entityId);
         if (entity == null) {
             console.log("Entity id " + entityId + " not found when handling EditAttributes message");
             return;
         }
         while (dd.bytesLeft > 0) {
-            var compId = dd.readU16(); /// \todo Should be VLE as in native client protocol
+            var compId = dd.readVLE();
             var component = entity.componentById(compId);
             if (component == null) {
                 console.log("Component id " + compId + " not found in entity id " + entityId + " when handling EditAttributes message");
                 return;
             }
-            var compDataSize = dd.readU16(); /// \todo Should be VLE as in native client protocol
+            var compDataSize = dd.readVLE();
             var compDd = new DataDeserializer(dd.readArrayBuffer(compDataSize));
             // Choose index or bitmask method
             var methodBit = compDd.readBit();
@@ -150,15 +150,15 @@ SyncManager.prototype = {
     },
     
     handleRemoveAttributes : function(dd) {
-        var sceneId = dd.readU8(); // Dummy sceneID for multi-scene support, yet unused /// \todo Should be VLE as in native client protocol
-        var entityId = dd.readU16(); /// \todo Should be VLE as in native client protocol
+        var sceneId = dd.readVLE(); // Dummy sceneID for multi-scene support, yet unused
+        var entityId = dd.readVLE();
         var entity = scene.entityById(entityId);
         if (entity == null) {
             console.log("Entity id " + entityId + " not found when handling RemoveAttributes message");
             return;
         }
         while (dd.bytesLeft > 0) {
-            var compId = dd.readU16(); /// \todo Should be VLE as in native client protocol
+            var compId = dd.readVLE();
             var component = entity.componentById(compId);
             if (component == null) {
                 console.log("Component id " + compId + " not found in entity id " + entityId + " when handling CreateAttributes message");
@@ -172,15 +172,15 @@ SyncManager.prototype = {
     },
 
     handleRemoveComponents : function(dd) {
-        var sceneId = dd.readU8(); // Dummy sceneID for multi-scene support, yet unused /// \todo Should be VLE as in native client protocol
-        var entityId = dd.readU16(); /// \todo Should be VLE as in native client protocol
+        var sceneId = dd.readVLE(); // Dummy sceneID for multi-scene support, yet unused
+        var entityId = dd.readVLE();
         var entity = scene.entityById(entityId);
         if (entity == null) {
             console.log("Entity id " + entityId + " not found when handling EditAttributes message");
             return;
         }
         while (dd.bytesLeft > 0) {
-            var compId = dd.readU16(); /// \todo Should be VLE as in native client protocol
+            var compId = dd.readVLE();
             entity.removeComponent(compId);
             if (this.logDebug)
                 console.log("Removed component id " + compId + " in entity id " + entityId);
@@ -188,20 +188,20 @@ SyncManager.prototype = {
     },
 
     handleRemoveEntity : function(dd) {
-        var sceneId = dd.readU8(); // Dummy sceneID for multi-scene support, yet unused /// \todo Should be VLE as in native client protocol
-        var entityId = dd.readU16(); /// \todo Should be VLE as in native client protocol
+        var sceneId = dd.readVLE(); // Dummy sceneID for multi-scene support, yet unused
+        var entityId = dd.readVLE();
         scene.removeEntity(entityId);
         if (this.logDebug)
             console.log("Removed entity id " + entityId);
     },
     
     readComponentFullUpdate : function(entity, dd) {
-        var compId = dd.readU16(); /// \todo Should be VLE as in native client protocol
-        var compTypeId = dd.readU16(); /// \todo Should be VLE as in native client protocol
+        var compId = dd.readVLE();
+        var compTypeId = dd.readVLE();
         var compName = dd.readString();
 
         // Get the nested serializer for component data
-        var compDataSize = dd.readU32(); /// \todo Should be VLE as in native client protocol
+        var compDataSize = dd.readVLE();
         var compDd = new DataDeserializer(dd.readArrayBuffer(compDataSize));
 
         var component = entity.createComponent(compId, compTypeId, compName);

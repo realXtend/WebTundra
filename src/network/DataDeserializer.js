@@ -67,17 +67,17 @@ DataDeserializer.prototype = {
     },
 
     readVLE : function() {
-        var low = readU8();
+        var low = this.readU8();
         if ((low & 0x80) == 0)
             return low;
 
         low = low & 0x7f;
-        var med = readU8();
+        var med = this.readU8();
         if ((med & 0x80) == 0)
             return low | (med << 7);
 
         med = med & 0x7f;
-        var high = readU16();
+        var high = this.readU16();
         return low | (med << 7) | (high << 14);
     },
 
