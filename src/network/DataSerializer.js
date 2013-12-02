@@ -43,7 +43,7 @@ DataSerializer.prototype = {
     addS32 : function(value) {
         var valueU32 = value;
         if (valueU32 < 0)
-            valueU32 += 32768*65536;
+            valueU32 += 0x80000000;
         this.addU32(valueU32)
     },
 
@@ -61,15 +61,15 @@ DataSerializer.prototype = {
     },
 
     addVLE : function(value) {
-        if (value < 128)
+        if (value < 0x80)
             this.addU8(value);
-        else if (value < 16384) {
-            this.addU8((value & 127) | 128);
+        else if (value < 0x4000) {
+            this.addU8((value & 0x7f) | 0x80);
             this.addU8(value >> 7);
         }
         else {
-            this.addU8((value & 127) | 128);
-            this.addU8(((value >> 7) & 127) | 128);
+            this.addU8((value & 0x7f) | 0x80);
+            this.addU8(((value >> 7) & 0x7f) | 0x80);
             this.addU16(value >> 14);
         }
     },
@@ -86,7 +86,7 @@ DataSerializer.prototype = {
             if (value & (1 << shift))
                 currentByte |= (1 << this.bitPos);
             else
-                currentByte &= (255 - (1 << this.bitPos));
+                currentByte &= (0xff - (1 << this.bitPos));
 
             shift++;
             bitCount--;

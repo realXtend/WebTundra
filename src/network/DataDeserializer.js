@@ -47,8 +47,8 @@ DataDeserializer.prototype = {
     
     readS32 : function() {
         var valueS32 = this.readU32();
-        if (valueS32 >= 32768*65536)
-            valueS32 -= 32768*65536;
+        if (valueS32 >= 0x80000000)
+            valueS32 -= 0x80000000;
         return valueS32;
     },
 
@@ -68,15 +68,15 @@ DataDeserializer.prototype = {
 
     readVLE : function() {
         var low = readU8();
-        if ((low & 128) == 0)
+        if ((low & 0x80) == 0)
             return low;
 
-        low = low & 127;
+        low = low & 0x7f;
         var med = readU8();
-        if ((med & 128) == 0)
+        if ((med & 0x80) == 0)
             return low | (med << 7);
 
-        med = med & 127;
+        med = med & 0x7f;
         var high = readU16();
         return low | (med << 7) | (high << 14);
     },

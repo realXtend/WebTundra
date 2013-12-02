@@ -510,3 +510,7 @@ function createAttribute(typeId) {
         return null;
     }
 }
+
+function sanitatePropertyName(name) {
+    return (name.substring(0, 1).toLowerCase() + name.substring(1)).trim();
+}

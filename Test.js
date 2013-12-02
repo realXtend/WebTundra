@@ -6,3 +6,14 @@ var syncManager = new SyncManager(client, scene);
 var loginData = {"name": "Test User"};
 
 client.connect("localhost", 2345, loginData);
+
+/*
+setTimeout(printEntityNames, 2000);
+
+function printEntityNames() {
+    for (var entityId in scene.entities) {
+        var entity = scene.entities[entityId];
+        console.log(entity.name);
+    }
+}
+*/

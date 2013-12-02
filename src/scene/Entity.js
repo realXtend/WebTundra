@@ -18,16 +18,27 @@ Entity.prototype = {
         {
             newComp.id = id;
             newComp.parentEntity = this;
-            this.components[id] = newComp;
             if (name != null)
                 newComp.name = name;
+            this.components[id] = newComp;
+            // Register direct access by type
+            var propName = sanitatePropertyName(newComp.typeName);
+            if (this[propName] === undefined)
+                this[propName] = newComp;
         }
         return newComp;
     },
 
     removeComponent: function(id) {
         if (this.components.hasOwnProperty(id))
+        {
+            var comp = this.components[id];
             delete this.components[id];
+            // Remove direct access by type
+            var propName = sanitatePropertyName(comp.typeName);
+            if (this[propName] === comp)
+                delete this[propName];
+        }
         else
             console.log("Component id " + id + " in entity " + this.id + " does not exist, can not remove");
     },
@@ -49,5 +60,24 @@ Entity.prototype = {
             }
         }
         return null;
+    },
+    
+    get local(){
+        return this.id >= cFirstLocalId;
+    },
+
+    get unacked(){
+        return this.id >= cFirstUnackedId && this.id < cFirstLocalId;
+    },
+
+    get name()
+    {
+        var nameComp = this.componentByType(cComponentTypeName);
+        if (nameComp) {
+            var nameAttr = nameComp.attributeById("name");
+            return nameAttr.value;
+        }
+        else
+            return "";
     }
 }

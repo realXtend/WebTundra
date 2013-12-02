@@ -23,8 +23,10 @@ Component.prototype = {
             if (value != null)
                 newAttr.value = value;
             this.attributes.push(newAttr);
-            // Also register direct named access
-            this[id] = newAttr;
+            // Register direct named access
+            var propName = sanitatePropertyName(id);
+            if (this[propName] === undefined)
+                this[propName] = newAttr;
             return newAttr;
         }
         else
@@ -47,9 +49,10 @@ Component.prototype = {
                 this.attributes.push(newAttr)
             else
                 this.attributes[index] = newAttr;
-            // Also register direct named access
-            /// \todo Sanitate case to match native Tundra
-            this[newAttr.id] = newAttr;
+            // Register direct named access
+            var propName = sanitatePropertyName(newAttr.id);
+            if (this[propName] === undefined)
+                this[propName] = newAttr;
             return newAttr;
         }
         else
@@ -60,16 +63,44 @@ Component.prototype = {
     removeAttribute : function(index) {
         if (index < this.attributes.length && this.attributes[index] != null) {
             var attr = this.attributes[index];
-            delete this[attr.id]; // Remove direct access
+            // Remove direct named access
+            var propName = sanitatePropertyName(attr.id);
+            if (this[propName] === attr)
+                delete this[propName];
             if (index == this.attributes.length - 1)
                 this.attributes.splice(index, 1);
             else
                 this.attributes[index] = null; // Leave hole if necessary
         }
     },
+    
+
+    attributeById : function(id) {
+        for (var i = 0; i < this.attributes.length; ++i) {
+            if (this.attributes[i] != null && this.attributes[i].id == id)
+                return this.attributes[i];
+        }
+        return null;
+    },
+
+    attributeByName : function(name) {
+        for (var i = 0; i < this.attributes.length; ++i) {
+            if (this.attributes[i] != null && this.attributes[i].name == name)
+                return this.attributes[i];
+        }
+        return null;
+    },
 
     get typeName(){
         return componentTypeNames[this.typeId];
+    },
+
+    get local(){
+        return this.id >= cFirstLocalId;
+    },
+
+    get unacked(){
+        return this.id >= cFirstUnackedId && this.id < cFirstLocalId;
     }
 }
 
