@@ -81,6 +81,13 @@ var attributeTypeIds = {
     cAttributeQPointTypeName : cAttributeQPoint
 };
 
+var AttributeChange = {
+    Default : 0,
+    Disconnected : 1,
+    LocalOnly : 2,
+    Replicate : 3
+};
+
 function Attribute(typeId) {
     this.owner = null;
     this.name = "";
@@ -88,6 +95,16 @@ function Attribute(typeId) {
     this.value = null;
     this.typeId = typeId;
     this.typeName = attributeTypeNames[typeId];
+}
+
+Attribute.prototype = {
+    set: function(newValue, changeType) {
+        if (newValue != null) {
+            this.value = newValue;
+            if (this.owner)
+                this.owner.emitAttributeChanged(this, changeType);
+        }
+    }
 }
 
 // String
@@ -98,8 +115,8 @@ function AttributeString() {
 }
 AttributeString.prototype = new Attribute(cAttributeString);
 
-AttributeString.prototype.fromBinary = function(dd){
-    this.value = dd.readUtf8String();
+AttributeString.prototype.fromBinary = function(dd, changeType){
+    this.set(dd.readUtf8String(), changeType);
 };
 
 AttributeString.prototype.toBinary = function(ds){
@@ -114,8 +131,8 @@ function AttributeInt() {
 }
 AttributeInt.prototype = new Attribute(cAttributeInt);
 
-AttributeInt.prototype.fromBinary = function(dd){
-    this.value = dd.readS32();
+AttributeInt.prototype.fromBinary = function(dd, changeType){
+    this.set(dd.readS32(), changeType);
 };
 
 AttributeInt.prototype.toBinary = function(ds){
@@ -131,8 +148,8 @@ function AttributeReal() {
 
 AttributeReal.prototype = new Attribute(cAttributeReal);
 
-AttributeReal.prototype.fromBinary = function(dd){
-    this.value = dd.readFloat();
+AttributeReal.prototype.fromBinary = function(dd, changeType){
+    this.set(dd.readFloat(), changeType);
 };
 
 AttributeReal.prototype.toBinary = function(ds){
@@ -152,11 +169,13 @@ function AttributeColor() {
 
 AttributeColor.prototype = new Attribute(cAttributeColor);
 
-AttributeColor.prototype.fromBinary = function(dd){
-    this.value.r = dd.readFloat();
-    this.value.g = dd.readFloat();
-    this.value.b = dd.readFloat();
-    this.value.a = dd.readFloat();
+AttributeColor.prototype.fromBinary = function(dd, changeType){
+    var newValue = {};
+    newValue.r = dd.readFloat();
+    newValue.g = dd.readFloat();
+    newValue.b = dd.readFloat();
+    newValue.a = dd.readFloat();
+    this.set(newValue, changeType);
 };
 
 AttributeColor.prototype.toBinary = function(ds){
@@ -177,9 +196,11 @@ function AttributeFloat2() {
 
 AttributeFloat2.prototype = new Attribute(cAttributeFloat2);
 
-AttributeFloat2.prototype.fromBinary = function(dd){
-    this.value.x = dd.readFloat();
-    this.value.y = dd.readFloat();
+AttributeFloat2.prototype.fromBinary = function(dd, changeType){
+    var newValue = {};
+    newValue.x = dd.readFloat();
+    newValue.y = dd.readFloat();
+    this.set(newValue, changeType);
 };
 
 AttributeFloat2.prototype.toBinary = function(ds){
@@ -199,10 +220,12 @@ function AttributeFloat3() {
 
 AttributeFloat3.prototype = new Attribute(cAttributeFloat3);
 
-AttributeFloat3.prototype.fromBinary = function(dd){
-    this.value.x = dd.readFloat();
-    this.value.y = dd.readFloat();
-    this.value.z = dd.readFloat();
+AttributeFloat3.prototype.fromBinary = function(dd, changeType){
+    var newValue = {};
+    newValue.x = dd.readFloat();
+    newValue.y = dd.readFloat();
+    newValue.z = dd.readFloat();
+    this.set(newValue, changeType);
 };
 
 AttributeFloat3.prototype.toBinary = function(ds){
@@ -224,11 +247,13 @@ function AttributeFloat4() {
 
 AttributeFloat4.prototype = new Attribute(cAttributeFloat4);
 
-AttributeFloat4.prototype.fromBinary = function(dd){
-    this.value.x = dd.readFloat();
-    this.value.y = dd.readFloat();
-    this.value.z = dd.readFloat();
-    this.value.w = dd.readFloat();
+AttributeFloat4.prototype.fromBinary = function(dd, changeType){
+    var newValue = {};
+    newValue.x = dd.readFloat();
+    newValue.y = dd.readFloat();
+    newValue.z = dd.readFloat();
+    newValue.w = dd.readFloat();
+    this.set(newValue, changeType);
 };
 
 AttributeFloat4.prototype.toBinary = function(ds){
@@ -247,8 +272,8 @@ function AttributeBool() {
 
 AttributeBool.prototype = new Attribute(cAttributeBool);
 
-AttributeBool.prototype.fromBinary = function(dd){
-    this.value = dd.readU8() > 0 ? true : false;
+AttributeBool.prototype.fromBinary = function(dd, changeType){
+    this.set(dd.readU8() > 0 ? true : false, changeType);
 };
 
 AttributeBool.prototype.toBinary = function(ds){
@@ -263,8 +288,8 @@ function AttributeUInt() {
 }
 AttributeUInt.prototype = new Attribute(cAttributeUInt);
 
-AttributeUInt.prototype.fromBinary = function(dd){
-    this.value = dd.readU32();
+AttributeUInt.prototype.fromBinary = function(dd, changeType){
+    this.set(dd.readU32(), changeType);
 };
 
 AttributeUInt.prototype.toBinary = function(ds){
@@ -284,11 +309,13 @@ function AttributeQuat() {
 
 AttributeQuat.prototype = new Attribute(cAttributeQuat);
 
-AttributeQuat.prototype.fromBinary = function(dd){
-    this.value.x = dd.readFloat();
-    this.value.y = dd.readFloat();
-    this.value.z = dd.readFloat();
-    this.value.w = dd.readFloat();
+AttributeQuat.prototype.fromBinary = function(dd, changeType){
+    var newValue = {};
+    newValue.x = dd.readFloat();
+    newValue.y = dd.readFloat();
+    newValue.z = dd.readFloat();
+    newValue.w = dd.readFloat();
+    this.set(newValue, changeType);
 };
 
 AttributeQuat.prototype.toBinary = function(ds){
@@ -308,8 +335,10 @@ function AttributeAssetReference() {
 }
 AttributeAssetReference.prototype = new Attribute(cAttributeAssetReference);
 
-AttributeAssetReference.prototype.fromBinary = function(dd){
-    this.value.ref = dd.readString(); // Todo: migrate to Utf8String in the protocol
+AttributeAssetReference.prototype.fromBinary = function(dd, changeType){
+    var oldValue = this.value;
+    oldValue.ref = dd.readString(); // Todo: migrate to Utf8String in the protocol
+    this.set(oldValue, changeType);
 };
 
 AttributeAssetReference.prototype.toBinary = function(ds){
@@ -325,16 +354,17 @@ function AttributeAssetReferenceList() {
 
 AttributeAssetReferenceList.prototype = new Attribute(cAttributeAssetReference);
 
-AttributeAssetReferenceList.prototype.fromBinary = function(dd){
-    this.value = [];
+AttributeAssetReferenceList.prototype.fromBinary = function(dd, changeType){
+    var newValue = [];
     var numRefs = dd.readU8();
     for (var i = 0; i < numRefs; i++)
     {
         var newRef = {};
         newRef.ref = dd.readString(); // Todo: migrate to Utf8String in the protocol
         newRef.type = "";
-        this.value.push(newRef);
+        newValue.push(newRef);
     }
+    this.set(newValue, changeType);
 };
 
 AttributeAssetReferenceList.prototype.toBinary = function(ds){
@@ -353,8 +383,8 @@ function AttributeEntityReference() {
 }
 AttributeEntityReference.prototype = new Attribute(cAttributeEntityReference);
 
-AttributeEntityReference.prototype.fromBinary = function(dd){
-    this.value = dd.readString(); // Todo: migrate to Utf8String in the protocol
+AttributeEntityReference.prototype.fromBinary = function(dd, changeType){
+    this.set(dd.readString(), changeType); // Todo: migrate to Utf8String in the protocol
 };
 
 AttributeEntityReference.prototype.toBinary = function(ds){
@@ -369,8 +399,8 @@ function AttributeQVariant() {
 }
 AttributeQVariant.prototype = new Attribute(cAttributeQVariant);
 
-AttributeQVariant.prototype.fromBinary = function(dd){
-    this.value = dd.readString(); // Todo: migrate to Utf8String in the protocol
+AttributeQVariant.prototype.fromBinary = function(dd, changeType){
+    this.set(dd.readString(), changeType); // Todo: migrate to Utf8String in the protocol
 };
 
 AttributeQVariant.prototype.toBinary = function(ds){
@@ -385,11 +415,12 @@ function AttributeQVariantList() {
 }
 AttributeQVariantList.prototype = new Attribute(cAttributeQVariantList);
 
-AttributeQVariantList.prototype.fromBinary = function(dd){
-    this.value = [];
+AttributeQVariantList.prototype.fromBinary = function(dd, changeType){
+    var newValue = [];
     var numItems = dd.readU8();
     for (var i = 0; i < numItems; i++)
-        this.value.push(dd.readString()); // Todo: migrate to Utf8String in the protocol
+        newValue.push(dd.readString()); // Todo: migrate to Utf8String in the protocol
+    this.set(newValue);
 };
 
 AttributeQVariantList.prototype.toBinary = function(ds){
@@ -419,16 +450,21 @@ function AttributeTransform() {
 
 AttributeTransform.prototype = new Attribute(cAttributeTransform);
 
-AttributeTransform.prototype.fromBinary = function(dd){
-    this.value.pos.x = dd.readFloat();
-    this.value.pos.y = dd.readFloat();
-    this.value.pos.z = dd.readFloat();
-    this.value.rot.x = dd.readFloat();
-    this.value.rot.y = dd.readFloat();
-    this.value.rot.z = dd.readFloat();
-    this.value.scale.x = dd.readFloat();
-    this.value.scale.y = dd.readFloat();
-    this.value.scale.z = dd.readFloat();
+AttributeTransform.prototype.fromBinary = function(dd, changeType){
+    var newValue = {};
+    newValue.pos = {};
+    newValue.rot = {};
+    newValue.scale = {};
+    newValue.pos.x = dd.readFloat();
+    newValue.pos.y = dd.readFloat();
+    newValue.pos.z = dd.readFloat();
+    newValue.rot.x = dd.readFloat();
+    newValue.rot.y = dd.readFloat();
+    newValue.rot.z = dd.readFloat();
+    newValue.scale.x = dd.readFloat();
+    newValue.scale.y = dd.readFloat();
+    newValue.scale.z = dd.readFloat();
+    this.set(newValue, changeType);
 };
 
 AttributeTransform.prototype.toBinary = function(ds){
@@ -454,9 +490,11 @@ function AttributeQPoint() {
 
 AttributeQPoint.prototype = new Attribute(cAttributeQPoint);
 
-AttributeQPoint.prototype.fromBinary = function(dd){
-    this.value.x = dd.readS32();
-    this.value.y = dd.readS32();
+AttributeQPoint.prototype.fromBinary = function(dd, changeType){
+    var newValue = {};
+    newValue.x = dd.readS32();
+    newValue.y = dd.readS32();
+    this.set(newValue);
 };
 
 AttributeQPoint.prototype.toBinary = function(ds){

@@ -98,7 +98,8 @@ SyncManager.prototype = {
             var attr = component.createAttribute(attrIndex, attrTypeId, attrName);
             if (attr != null)
             {
-                attr.fromBinary(dd);
+                // Changes from the server are local only to not trigger further replication back
+                attr.fromBinary(dd, AttributeChange.LocalOnly);
                 if (this.logDebug)
                     console.log("Created attribute " + attr.name + " in component " + component.typeName + " entity id " + entityId);
             }
@@ -129,7 +130,7 @@ SyncManager.prototype = {
                 var numAttr = compDd.readU8();
                 for (var i = 0; i < numAttr; i++) {
                     var attr = component.attributes[compDd.readU8()];
-                    attr.fromBinary(compDd);
+                    attr.fromBinary(compDd, AttributeChange.LocalOnly);
                     if (this.logDebug)
                         console.log("Updated attribute " + attr.name + " in component " + component.typeName + " entity id " + entityId);
                 }
@@ -140,7 +141,7 @@ SyncManager.prototype = {
                     var changeBit = compDd.readBit();
                     if (changeBit) {
                         var attr = component.attributes[i];
-                        attr.fromBinary(compDd);
+                        attr.fromBinary(compDd, AttributeChange.LocalOnly);
                         if (this.logDebug)
                             console.log("Updated attribute " + attr.name + " in component " + component.typeName + " entity id " + entityId);
                     }
@@ -211,7 +212,7 @@ SyncManager.prototype = {
             // Fill static attributes
             for (var j = 0; j < component.attributes.length; j++) {
                 if (compDd.bytesLeft > 0) {
-                    component.attributes[j].fromBinary(compDd);
+                    component.attributes[j].fromBinary(compDd, AttributeChange.LocalOnly);
                     if (this.logDebug)
                         console.log("Read attribute " + component.attributes[j].name);
                 }
@@ -224,7 +225,7 @@ SyncManager.prototype = {
                 var attr = component.createAttribute(attrIndex, attrTypeId, attrName);
                 if (attr != null)
                 {
-                    attr.fromBinary(compDd);
+                    attr.fromBinary(compDd, AttributeChange.LocalOnly);
                     if (this.logDebug)
                         console.log("Created attribute " + attr.name + " in component " + component.typeName + " entity id " + entity.id);
                 }

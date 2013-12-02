@@ -10,6 +10,7 @@ function Component(typeId) {
     this.name = "";
     this.id = 0;
     this.attributes = [];
+    this.attributeChanged = new signals.Signal();
 }
 
 Component.prototype = {
@@ -75,6 +76,7 @@ Component.prototype = {
     },
     
 
+    // Look up and return attribute by id
     attributeById : function(id) {
         for (var i = 0; i < this.attributes.length; ++i) {
             if (this.attributes[i] != null && this.attributes[i].id == id)
@@ -83,6 +85,7 @@ Component.prototype = {
         return null;
     },
 
+    // Look up and return attribute by name
     attributeByName : function(name) {
         for (var i = 0; i < this.attributes.length; ++i) {
             if (this.attributes[i] != null && this.attributes[i].name == name)
@@ -101,6 +104,21 @@ Component.prototype = {
 
     get unacked(){
         return this.id >= cFirstUnackedId && this.id < cFirstLocalId;
+    },
+    
+    // Trigger attribute change signal. Called by Attribute
+    emitAttributeChanged : function(attr, changeType) {
+        if (changeType == null || changeType == AttributeChange.Default)
+            changeType = this.local ? AttributeChange.LocalOnly : AttributeChange.Replicate;
+        if (changeType == AttributeChange.Disconnected)
+            return;
+
+        // Trigger scene level signal
+        if (this.parentEntity && this.parentEntity.parentScene)
+            this.parentEntity.parentScene.emitAttributeChanged(this, attr, changeType);
+
+        // Trigger component level signal
+        this.attributeChanged.dispatch(attr, changeType);
     }
 }
 
