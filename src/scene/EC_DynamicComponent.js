@@ -4,6 +4,7 @@ var cComponentTypeDynamicComponent = 25;
 
 function EC_DynamicComponent() {
     Component.call(this, cComponentTypeDynamicComponent);
+    this.supportsDynamicAttributes = true;
 }
 
 EC_DynamicComponent.prototype = new Component(cComponentTypeDynamicComponent);

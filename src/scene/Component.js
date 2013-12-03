@@ -9,8 +9,11 @@ function Component(typeId) {
     this.typeId = typeId;
     this.name = "";
     this.id = 0;
+    this.supportsDynamicAttributes = false;
     this.attributes = [];
     this.attributeChanged = new signals.Signal();
+    this.attributeAdded = new signals.Signal();
+    this.attributeRemoved = new signals.Signal();
 }
 
 Component.prototype = {
@@ -23,6 +26,7 @@ Component.prototype = {
             newAttr.owner = this;
             if (value != null)
                 newAttr.value = value;
+            newAttr.index = this.attributes.length;
             this.attributes.push(newAttr);
             // Register direct named access
             var propName = sanitatePropertyName(id);
@@ -35,7 +39,11 @@ Component.prototype = {
     },
     
     // Create a dynamic attribute during runtime
-    createAttribute: function(index, typeId, name, value) {
+    createAttribute: function(index, typeId, name, value, changeType) {
+        if (!this.supportsDynamicAttributes) {
+            console.log("Component " + this.typeName + " does not support adding dynamic attributes");
+            return null;
+        }
         var newAttr = createAttribute(typeId);
         if (newAttr != null) {
             newAttr.name = name;
@@ -43,6 +51,8 @@ Component.prototype = {
             newAttr.owner = this;
             if (value != null)
                 newAttr.value = value;
+            newAttr.index = index;
+
             // If needed, make "holes" to the attribute list
             while (this.attributes.length < index)
                 this.attributes.push(null);
@@ -54,6 +64,18 @@ Component.prototype = {
             var propName = sanitatePropertyName(newAttr.id);
             if (this[propName] === undefined)
                 this[propName] = newAttr;
+
+            if (changeType == null || changeType == AttributeChange.Default)
+                changeType = this.local ? AttributeChange.LocalOnly : AttributeChange.Replicate;
+            if (changeType != AttributeChange.Disconnected)
+            {
+                // Trigger scene level signal
+                if (this.parentEntity && this.parentEntity.parentScene)
+                    this.parentEntity.parentScene.emitAttributeAdded(this, newAttr, changeType);
+                // Trigger component level signal
+                this.attributeAdded.dispatch(newAttr, changeType);
+            }
+            
             return newAttr;
         }
         else
@@ -61,9 +83,14 @@ Component.prototype = {
     },
 
     // Remove a dynamic attribute during runtime
-    removeAttribute : function(index) {
+    removeAttribute : function(index, changeType) {
+        if (!this.supportsDynamicAttributes) {
+            console.log("Component " + this.typeName + " does not support dynamic attributes");
+            return null;
+        }
         if (index < this.attributes.length && this.attributes[index] != null) {
             var attr = this.attributes[index];
+
             // Remove direct named access
             var propName = sanitatePropertyName(attr.id);
             if (this[propName] === attr)
@@ -72,6 +99,17 @@ Component.prototype = {
                 this.attributes.splice(index, 1);
             else
                 this.attributes[index] = null; // Leave hole if necessary
+
+            if (changeType == null || changeType == AttributeChange.Default)
+                changeType = this.local ? AttributeChange.LocalOnly : AttributeChange.Replicate;
+            if (changeType != AttributeChange.Disconnected)
+            {
+                // Trigger scene level signal
+                if (this.parentEntity && this.parentEntity.parentScene)
+                    this.parentEntity.parentScene.emitAttributeRemoved(this, attr, changeType);
+                // Trigger component level signal
+                this.attributeRemoved.dispatch(attr, changeType);
+            }
         }
     },
     

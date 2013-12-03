@@ -53,7 +53,8 @@ SyncManager.prototype = {
         var tempFlag = dd.readU8(); /// \todo Handle
         var numComponents = dd.readVLE();
 
-        var entity = scene.createEntity(entityId);
+        // Changes from the server are localonly on the client to not trigger further replication back
+        var entity = scene.createEntity(entityId, AttributeChange.LocalOnly);
         if (entity == null)
             return;
         if (this.logDebug)
@@ -95,10 +96,11 @@ SyncManager.prototype = {
             var attrIndex = dd.readU8();
             var attrTypeId = dd.readU8();
             var attrName = dd.readString();
-            var attr = component.createAttribute(attrIndex, attrTypeId, attrName);
+            // Changes from the server are localonly on the client to not trigger further replication back
+            var attr = component.createAttribute(attrIndex, attrTypeId, attrName, null, AttributeChange.LocalOnly);
             if (attr != null)
             {
-                // Changes from the server are local only to not trigger further replication back
+                // Changes from the server are localonly on the client to not trigger further replication back
                 attr.fromBinary(dd, AttributeChange.LocalOnly);
                 if (this.logDebug)
                     console.log("Created attribute " + attr.name + " in component " + component.typeName + " entity id " + entityId);
@@ -130,6 +132,7 @@ SyncManager.prototype = {
                 var numAttr = compDd.readU8();
                 for (var i = 0; i < numAttr; i++) {
                     var attr = component.attributes[compDd.readU8()];
+                    // Changes from the server are localonly on the client to not trigger further replication back
                     attr.fromBinary(compDd, AttributeChange.LocalOnly);
                     if (this.logDebug)
                         console.log("Updated attribute " + attr.name + " in component " + component.typeName + " entity id " + entityId);
@@ -166,7 +169,8 @@ SyncManager.prototype = {
                 return;
             }
             var attrIndex = dd.readU8();
-            component.removeAttribute(attrIndex);
+            // Changes from the server are localonly on the client to not trigger further replication back
+            component.removeAttribute(attrIndex, AttributeChange.LocalOnly);
             if (this.logDebug)
                 console.log("Removed attribute index " + attrIndex + " in component " + component.typeName + " entity id " + entityId);
         }
@@ -182,7 +186,8 @@ SyncManager.prototype = {
         }
         while (dd.bytesLeft > 0) {
             var compId = dd.readVLE();
-            entity.removeComponent(compId);
+            // Changes from the server are localonly on the client to not trigger further replication back
+            entity.removeComponent(compId, AttributeChange.LocalOnly);
             if (this.logDebug)
                 console.log("Removed component id " + compId + " in entity id " + entityId);
         }
@@ -205,9 +210,11 @@ SyncManager.prototype = {
         var compDataSize = dd.readVLE();
         var compDd = new DataDeserializer(dd.readArrayBuffer(compDataSize));
 
-        var component = entity.createComponent(compId, compTypeId, compName);
+        // Changes from the server are localonly on the client to not trigger further replication back
+        var component = entity.createComponent(compId, compTypeId, compName, AttributeChange.LocalOnly);
         if (component) {
-            console.log("Created component type " + component.typeName + " id " + component.id);
+            if (this.logDebug)
+                console.log("Created component type " + component.typeName + " id " + component.id);
 
             // Fill static attributes
             for (var j = 0; j < component.attributes.length; j++) {
@@ -222,7 +229,7 @@ SyncManager.prototype = {
                 var attrIndex = compDd.readU8();
                 var attrTypeId = compDd.readU8();
                 var attrName = compDd.readString();
-                var attr = component.createAttribute(attrIndex, attrTypeId, attrName);
+                var attr = component.createAttribute(attrIndex, attrTypeId, attrName, null, AttributeChange.LocalOnly);
                 if (attr != null)
                 {
                     attr.fromBinary(compDd, AttributeChange.LocalOnly);

@@ -93,6 +93,7 @@ function Attribute(typeId) {
     this.name = "";
     this.id = "";
     this.value = null;
+    this.index = 0;
     this.typeId = typeId;
     this.typeName = attributeTypeNames[typeId];
 }

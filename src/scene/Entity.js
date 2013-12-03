@@ -4,10 +4,13 @@ function Entity() {
     this.components = {};
     this.parentScene = null;
     this.id = 0;
+    this.componentIdGenerator = new UniqueIdGenerator();
+    this.componentAdded = new signals.Signal();
+    this.componentRemoved = new signals.Signal();
 }
 
 Entity.prototype = {
-    createComponent: function(id, typeId, name) {
+    createComponent: function(id, typeId, name, changeType) {
         if (this.componentById(id))
         {
             console.log("Component id " + id + " in entity " + this.id + " already exists, can not create");
@@ -26,10 +29,22 @@ Entity.prototype = {
             if (this[propName] === undefined)
                 this[propName] = newComp;
         }
+
+        if (changeType == null || changeType == AttributeChange.Default)
+            changeType = newComp.local ? AttributeChange.LocalOnly : AttributeChange.Replicate;
+        if (changeType != AttributeChange.Disconnected)
+        {
+            // Trigger scene level signal
+            if (this.parentScene)
+                this.parentScene.emitComponentAdded(this, newComp, changeType);
+            // Trigger entity level signal
+            this.componentAdded.dispatch(newComp, changeType);
+        }
+
         return newComp;
     },
 
-    removeComponent: function(id) {
+    removeComponent: function(id, changeType) {
         if (this.components.hasOwnProperty(id))
         {
             var comp = this.components[id];
@@ -38,6 +53,17 @@ Entity.prototype = {
             var propName = sanitatePropertyName(comp.typeName);
             if (this[propName] === comp)
                 delete this[propName];
+                
+            if (changeType == null || changeType == AttributeChange.Default)
+                changeType = comp.local ? AttributeChange.LocalOnly : AttributeChange.Replicate;
+            if (changeType != AttributeChange.Disconnected)
+            {
+                // Trigger scene level signal
+                if (this.parentScene)
+                    this.parentScene.emitComponentRemoved(this, comp, changeType);
+                // Trigger entity level signal
+                this.componentRemoved.dispatch(comp, changeType);
+            }
         }
         else
             console.log("Component id " + id + " in entity " + this.id + " does not exist, can not remove");
