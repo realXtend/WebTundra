@@ -15,6 +15,15 @@ function Scene() {
 Scene.prototype = {
     // Create an entity to the scene by id
     createEntity: function(id, changeType) {
+        // If zero ID, assign ID now
+        if (id == 0)
+        {
+            if (changeType == AttributeChange.LocalOnly)
+                id = this.entityIdGenerator.allocateLocal();
+            else
+                id = this.entityIdGenerator.allocateUnacked();
+        }
+
         if (this.entityById(id))
         {
             console.log("Entity id " + id + " already exists in scene, can not create");

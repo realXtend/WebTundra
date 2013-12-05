@@ -92,7 +92,7 @@ function Attribute(typeId) {
     this.owner = null;
     this.name = "";
     this.id = "";
-    this.value = null;
+    this.valueInternal = null;
     this.index = 0;
     this.typeId = typeId;
     this.typeName = attributeTypeNames[typeId];
@@ -101,10 +101,18 @@ function Attribute(typeId) {
 Attribute.prototype = {
     set: function(newValue, changeType) {
         if (newValue != null) {
-            this.value = newValue;
+            this.valueInternal = newValue;
             if (this.owner)
                 this.owner.emitAttributeChanged(this, changeType);
         }
+    },
+
+    get value(){
+        return this.valueInternal;
+    },
+
+    set value(newValue){
+        this.set(newValue, AttributeChange.Default);
     }
 }
 
@@ -112,7 +120,7 @@ Attribute.prototype = {
 
 function AttributeString() {
     Attribute.call(this, cAttributeString);
-    this.value = "";
+    this.valueInternal = "";
 }
 AttributeString.prototype = new Attribute(cAttributeString);
 
@@ -128,7 +136,7 @@ AttributeString.prototype.toBinary = function(ds){
 
 function AttributeInt() {
     Attribute.call(this, cAttributeInt);
-    this.value = 0;
+    this.valueInternal = 0;
 }
 AttributeInt.prototype = new Attribute(cAttributeInt);
 
@@ -144,7 +152,7 @@ AttributeInt.prototype.toBinary = function(ds){
 
 function AttributeReal() {
     Attribute.call(this, cAttributeReal);
-    this.value = 0.0;
+    this.valueInternal = 0.0;
 }
 
 AttributeReal.prototype = new Attribute(cAttributeReal);
@@ -161,11 +169,11 @@ AttributeReal.prototype.toBinary = function(ds){
 
 function AttributeColor() {
     Attribute.call(this, cAttributeColor);
-    this.value = {};
-    this.value.r = 0.0;
-    this.value.g = 0.0;
-    this.value.b = 0.0;
-    this.value.a = 0.0;
+    this.valueInternal = {};
+    this.valueInternal.r = 0.0;
+    this.valueInternal.g = 0.0;
+    this.valueInternal.b = 0.0;
+    this.valueInternal.a = 0.0;
 }
 
 AttributeColor.prototype = new Attribute(cAttributeColor);
@@ -190,9 +198,9 @@ AttributeColor.prototype.toBinary = function(ds){
 
 function AttributeFloat2() {
     Attribute.call(this, cAttributeFloat2);
-    this.value = {};
-    this.value.x = 0.0;
-    this.value.y = 0.0;
+    this.valueInternal = {};
+    this.valueInternal.x = 0.0;
+    this.valueInternal.y = 0.0;
 }
 
 AttributeFloat2.prototype = new Attribute(cAttributeFloat2);
@@ -213,10 +221,10 @@ AttributeFloat2.prototype.toBinary = function(ds){
 
 function AttributeFloat3() {
     Attribute.call(this, cAttributeFloat3);
-    this.value = {};
-    this.value.x = 0.0;
-    this.value.y = 0.0;
-    this.value.z = 0.0;
+    this.valueInternal = {};
+    this.valueInternal.x = 0.0;
+    this.valueInternal.y = 0.0;
+    this.valueInternal.z = 0.0;
 }
 
 AttributeFloat3.prototype = new Attribute(cAttributeFloat3);
@@ -239,11 +247,11 @@ AttributeFloat3.prototype.toBinary = function(ds){
 
 function AttributeFloat4() {
     Attribute.call(this, cAttributeFloat4);
-    this.value = {};
-    this.value.x = 0.0;
-    this.value.y = 0.0;
-    this.value.z = 0.0;
-    this.value.w = 0.0;
+    this.valueInternal = {};
+    this.valueInternal.x = 0.0;
+    this.valueInternal.y = 0.0;
+    this.valueInternal.z = 0.0;
+    this.valueInternal.w = 0.0;
 }
 
 AttributeFloat4.prototype = new Attribute(cAttributeFloat4);
@@ -268,7 +276,7 @@ AttributeFloat4.prototype.toBinary = function(ds){
 
 function AttributeBool() {
     Attribute.call(this, cAttributeBool);
-    this.value = false;
+    this.valueInternal = false;
 }
 
 AttributeBool.prototype = new Attribute(cAttributeBool);
@@ -285,7 +293,7 @@ AttributeBool.prototype.toBinary = function(ds){
 
 function AttributeUInt() {
     Attribute.call(this, cAttributeUInt);
-    this.value = 0;
+    this.valueInternal = 0;
 }
 AttributeUInt.prototype = new Attribute(cAttributeUInt);
 
@@ -301,11 +309,11 @@ AttributeUInt.prototype.toBinary = function(ds){
 
 function AttributeQuat() {
     Attribute.call(this, cAttributeQuat);
-    this.value = {};
-    this.value.x = 0.0;
-    this.value.y = 0.0;
-    this.value.z = 0.0;
-    this.value.w = 0.0;
+    this.valueInternal = {};
+    this.valueInternal.x = 0.0;
+    this.valueInternal.y = 0.0;
+    this.valueInternal.z = 0.0;
+    this.valueInternal.w = 0.0;
 }
 
 AttributeQuat.prototype = new Attribute(cAttributeQuat);
@@ -330,9 +338,9 @@ AttributeQuat.prototype.toBinary = function(ds){
 
 function AttributeAssetReference() {
     Attribute.call(this, cAttributeAssetReference);
-    this.value = {}
-    this.value.ref = "";
-    this.value.type = "";
+    this.valueInternal = {}
+    this.valueInternal.ref = "";
+    this.valueInternal.type = "";
 }
 AttributeAssetReference.prototype = new Attribute(cAttributeAssetReference);
 
@@ -350,7 +358,7 @@ AttributeAssetReference.prototype.toBinary = function(ds){
 
 function AttributeAssetReferenceList() {
     Attribute.call(this, cAttributeAssetReferenceList);
-    this.value = []
+    this.valueInternal = []
 }
 
 AttributeAssetReferenceList.prototype = new Attribute(cAttributeAssetReference);
@@ -380,7 +388,7 @@ AttributeAssetReferenceList.prototype.toBinary = function(ds){
 
 function AttributeEntityReference() {
     Attribute.call(this, cAttributeEntityReference);
-    this.value = "";
+    this.valueInternal = "";
 }
 AttributeEntityReference.prototype = new Attribute(cAttributeEntityReference);
 
@@ -396,7 +404,7 @@ AttributeEntityReference.prototype.toBinary = function(ds){
 
 function AttributeQVariant() {
     Attribute.call(this, cAttributeQVariant);
-    this.value = "";
+    this.valueInternal = "";
 }
 AttributeQVariant.prototype = new Attribute(cAttributeQVariant);
 
@@ -412,7 +420,7 @@ AttributeQVariant.prototype.toBinary = function(ds){
 
 function AttributeQVariantList() {
     Attribute.call(this, cAttributeQVariantList);
-    this.value = [];
+    this.valueInternal = [];
 }
 AttributeQVariantList.prototype = new Attribute(cAttributeQVariantList);
 
@@ -434,19 +442,19 @@ AttributeQVariantList.prototype.toBinary = function(ds){
 
 function AttributeTransform() {
     Attribute.call(this, cAttributeTransform);
-    this.value = {};
-    this.value.pos = {};
-    this.value.rot = {};
-    this.value.scale = {};
-    this.value.pos.x = 0.0;
-    this.value.pos.y = 0.0;
-    this.value.pos.z = 0.0;
-    this.value.rot.x = 0.0;
-    this.value.rot.y = 0.0;
-    this.value.rot.z = 0.0;
-    this.value.scale.x = 0.0;
-    this.value.scale.y = 0.0;
-    this.value.scale.z = 0.0;
+    this.valueInternal = {};
+    this.valueInternal.pos = {};
+    this.valueInternal.rot = {};
+    this.valueInternal.scale = {};
+    this.valueInternal.pos.x = 0.0;
+    this.valueInternal.pos.y = 0.0;
+    this.valueInternal.pos.z = 0.0;
+    this.valueInternal.rot.x = 0.0;
+    this.valueInternal.rot.y = 0.0;
+    this.valueInternal.rot.z = 0.0;
+    this.valueInternal.scale.x = 0.0;
+    this.valueInternal.scale.y = 0.0;
+    this.valueInternal.scale.z = 0.0;
 }
 
 AttributeTransform.prototype = new Attribute(cAttributeTransform);
@@ -484,9 +492,9 @@ AttributeTransform.prototype.toBinary = function(ds){
 
 function AttributeQPoint() {
     Attribute.call(this, cAttributeQPoint);
-    this.value = {};
-    this.value.x = 0;
-    this.value.y = 0;
+    this.valueInternal = {};
+    this.valueInternal.x = 0;
+    this.valueInternal.y = 0;
 }
 
 AttributeQPoint.prototype = new Attribute(cAttributeQPoint);

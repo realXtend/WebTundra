@@ -11,6 +11,16 @@ function Entity() {
 
 Entity.prototype = {
     createComponent: function(id, typeId, name, changeType) {
+        // If zero ID, assign ID now
+        if (id == 0)
+        {
+            // If entity itself is local, create only local components
+            if (local == true || changeType == AttributeChange.LocalOnly)
+                id = this.componentIdGenerator.allocateLocal();
+            else
+                id = this.componentIdGenerator.allocateUnacked();
+        }
+
         if (this.componentById(id))
         {
             console.log("Component id " + id + " in entity " + this.id + " already exists, can not create");
