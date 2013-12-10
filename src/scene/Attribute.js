@@ -96,6 +96,7 @@ function Attribute(typeId) {
     this.index = 0;
     this.typeId = typeId;
     this.typeName = attributeTypeNames[typeId];
+    this.dynamic = false;
 }
 
 Attribute.prototype = {

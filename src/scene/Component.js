@@ -52,6 +52,7 @@ Component.prototype = {
             if (value != null)
                 newAttr.value = value;
             newAttr.index = index;
+            newAttr.dynamic = true;
 
             // If needed, make "holes" to the attribute list
             while (this.attributes.length < index)

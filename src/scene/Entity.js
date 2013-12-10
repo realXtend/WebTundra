@@ -4,6 +4,7 @@ function Entity() {
     this.components = {};
     this.parentScene = null;
     this.id = 0;
+    this.temporary = false;
     this.componentIdGenerator = new UniqueIdGenerator();
     this.componentAdded = new signals.Signal();
     this.componentRemoved = new signals.Signal();
@@ -15,7 +16,7 @@ Entity.prototype = {
         if (id == 0)
         {
             // If entity itself is local, create only local components
-            if (local == true || changeType == AttributeChange.LocalOnly)
+            if (this.local == true || changeType == AttributeChange.LocalOnly)
                 id = this.componentIdGenerator.allocateLocal();
             else
                 id = this.componentIdGenerator.allocateUnacked();
@@ -77,6 +78,22 @@ Entity.prototype = {
         }
         else
             console.log("Component id " + id + " in entity " + this.id + " does not exist, can not remove");
+    },
+
+    // Change a component's id. Done in response to server sending back an authoritative id corresponding to an unacked id
+    changeComponentId: function(oldId, newId) {
+        if (oldId != newId)
+        {
+            var comp = this.components[oldId];
+            if (comp == null)
+            {
+                console.log("Component id " + oldId + " not found, can not assign new id");
+                return;
+            }
+            delete this.components[oldId];
+            comp.id = newId;
+            this.components[newId] = comp;
+        }
     },
 
     componentById: function(id) {

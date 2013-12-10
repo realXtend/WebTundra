@@ -173,6 +173,13 @@ DataSerializer.prototype = {
         for (var i = 0; i < value.length; i++)
             this.addU8(value.charCodeAt(i));
     },
+    
+    addArrayBuffer : function(value) {
+        var view = new DataView(value);
+        for (var i = 0; i < value.byteLength; ++i) {
+            this.addU8(view.getUint8(i));
+        }
+    },
 
     truncate : function() {
         var newLength = this.bytesFilled;

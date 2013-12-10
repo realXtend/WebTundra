@@ -57,6 +57,22 @@ Scene.prototype = {
         else
             console.log("Entity id " + id + " does not exist in scene, can not remove");
     },
+    
+    // Change an entity's id. Done in response to server sending back an authoritative id corresponding to an unacked id
+    changeEntityId: function(oldId, newId) {
+        if (oldId != newId)
+        {
+            var entity = this.entities[oldId];
+            if (entity == null)
+            {
+                console.log("Entity id " + oldId + " not found, can not assign new id");
+                return;
+            }
+            delete this.entities[oldId];
+            entity.id = newId;
+            this.entities[newId] = entity;
+        }
+    },
 
     // Lookup entity by id
     entityById: function(id) {
