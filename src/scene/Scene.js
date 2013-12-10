@@ -10,6 +10,7 @@ function Scene() {
     this.componentRemoved = new signals.Signal();
     this.entityCreated = new signals.Signal();
     this.entityRemoved = new signals.Signal();
+    this.actionTriggered = new signals.Signal();
 }
 
 Scene.prototype = {
@@ -115,5 +116,10 @@ Scene.prototype = {
         if (changeType == AttributeChange.Disconnected)
             return;
         this.componentRemoved.dispatch(entity, comp, changeType);
+    },
+    
+    // Trigger scene-level entity-action signal. Called by Entity
+    emitActionTriggered: function(entity, name, params, execType) {
+        this.actionTriggered.dispatch(entity, name, params, execType);
     }
 }

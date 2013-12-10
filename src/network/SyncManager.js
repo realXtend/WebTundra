@@ -26,6 +26,7 @@ function SyncManager(client, scene) {
     scene.componentRemoved.add(this.onComponentRemoved, this);
     scene.entityCreated.add(this.onEntityCreated, this);
     scene.entityRemoved.add(this.onEntityRemoved, this);
+    scene.actionTriggered.add(this.onActionTriggered, this);
 }
 
 SyncManager.prototype = {
@@ -244,6 +245,10 @@ SyncManager.prototype = {
             break;
         case cCreateComponentsReply:
             this.handleCreateComponentsReply(dd);
+            break;
+        case cEntityAction:
+            this.handleEntityAction(dd);
+            break;
         }
     },
 
@@ -414,7 +419,7 @@ SyncManager.prototype = {
             console.log("Server sent authoritative entity id " + serverEntityId + " for pending entity id " + entityId + ", reassigning");
         scene.changeEntityId(entityId, serverEntityId);
         var numComponentIdRewrites = dd.readVLE();
-        for (var i = 0; i < numComponentIdRewrites; ++i)
+        for (var i = 0; i < numComponentIdRewrites; i++)
         {
             var compId = dd.readVLE() + cFirstUnackedId;
             var serverCompId = dd.readVLE();
@@ -433,7 +438,7 @@ SyncManager.prototype = {
             return;
         }
         var numComponentIdRewrites = dd.readVLE();
-        for (var i = 0; i < numComponentIdRewrites; ++i)
+        for (var i = 0; i < numComponentIdRewrites; i++)
         {
             var compId = dd.readVLE() + cFirstUnackedId;
             var serverCompId = dd.readVLE();
@@ -441,6 +446,26 @@ SyncManager.prototype = {
                 console.log("Server sent authoritative component id " + serverCompId + " for pending component id " + compId + ", reassigning");
             entity.changeComponentId(compId, serverCompId);
         }
+    },
+    
+    handleEntityAction : function(dd) {
+        var entityId = dd.readU32();
+        var name = dd.readString();
+        var execType = dd.readU8();
+        var numParams = dd.readU8();
+        var params = [];
+        for (var i = 0; i < numParams; i++)
+            params.push(dd.readStringVLE());
+        // Make sure the exectype is local so that we do not circulate the action back to server
+        execType = cExecTypeLocal;
+        var entity = scene.entityById(entityId);
+        if (entity == null) {
+            console.log("Entity id " + entityId + " not found when handling EntityAction message");
+            return;
+        }
+        entity.triggerAction(name, params, execType);
+        if (this.logDebug)
+            console.log("Triggered action " + name + " on entity id " + entityId);
     },
 
     readComponentFullUpdate : function(entity, dd) {
@@ -590,6 +615,25 @@ SyncManager.prototype = {
             entity.syncState.addModified(comp.id);
             this.ensureSyncState(comp);
             comp.syncState.addRemoved(attr.index);
+        }
+    },
+
+    onActionTriggered : function(entity, name, params, execType) {
+        if (entity != null && execType > cExecTypeLocal) {
+            var ds = this.client.startNewMessage(cEntityAction, 4096);
+            ds.addU32(entity.id);
+            ds.addString(name);
+            ds.addU8(execType & (cExecTypeServer | cExecTypePeers));
+            if (params != null) {
+                ds.addU8(params.length);
+                for (var i = 0; i < params.length; i++)
+                    ds.addStringVLE(params[i].toString());
+            }
+            else
+                ds.addU8(0); // No parameters
+            this.client.endAndQueueMessage(ds);
+            if (this.logDebug)
+                console.log("Sent entity action " + name + " on entity id " + entity.id + " to server");
         }
     }
 }

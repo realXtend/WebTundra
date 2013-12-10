@@ -172,6 +172,15 @@ DataDeserializer.prototype = {
             ret += String.fromCharCode(this.readU8());
         return ret;
     },
+    
+    readStringVLE : function() {
+        // Strings stored in this format should be avoided, as it is limited to Latin/ASCII strings
+        var byteLength = this.readVLE();
+        var ret = "";
+        while (byteLength--)
+            ret += String.fromCharCode(this.readU8());
+        return ret;
+    },
 
     get bytesLeft(){
         return this.bytePos >= this.size ? 0 : this.size - this.bytePos;

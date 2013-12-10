@@ -166,7 +166,7 @@ DataSerializer.prototype = {
         for (var i = 0; i < value.length; i++)
             this.addUtf8Char(value.charCodeAt(i));
     },
-    
+
     addString : function(value) {
         // Strings stored in this format should be avoided, as it is limited to max. 255 chars long Latin/ASCII strings
         this.addU8(value.length);
@@ -174,6 +174,13 @@ DataSerializer.prototype = {
             this.addU8(value.charCodeAt(i));
     },
     
+    addStringVLE : function(value) {
+        // Strings stored in this format should be avoided, as it is limited to Latin/ASCII strings
+        this.addVLE(value.length);
+        for (var i = 0; i < value.length; i++)
+            this.addU8(value.charCodeAt(i));
+    },
+
     addArrayBuffer : function(value) {
         var view = new DataView(value);
         for (var i = 0; i < value.byteLength; ++i) {

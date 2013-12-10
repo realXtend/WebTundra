@@ -1,5 +1,9 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
+var cExecTypeLocal = 1;
+var cExecTypeServer = 2;
+var cExecTypePeers = 4;
+
 function Entity() {
     this.components = {};
     this.parentScene = null;
@@ -8,6 +12,7 @@ function Entity() {
     this.componentIdGenerator = new UniqueIdGenerator();
     this.componentAdded = new signals.Signal();
     this.componentRemoved = new signals.Signal();
+    this.actionTriggered = new signals.Signal();
 }
 
 Entity.prototype = {
@@ -78,6 +83,15 @@ Entity.prototype = {
         }
         else
             console.log("Component id " + id + " in entity " + this.id + " does not exist, can not remove");
+    },
+
+    triggerAction: function(name, params, execType) {
+        if (execType == null)
+            execType = cExecTypeLocal;
+        this.actionTriggered.dispatch(name, params, execType);
+        // Trigger scene level signal
+        if (this.parentScene)
+            this.parentScene.emitActionTriggered(this, name, params, execType);
     },
 
     // Change a component's id. Done in response to server sending back an authoritative id corresponding to an unacked id
