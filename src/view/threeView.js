@@ -44,7 +44,7 @@ function ThreeView(scene, camera) {
 	document.body.appendChild(this.container);
 
 	// GEOMETRY AND MATERIAL
-	this.cubeGeometry = new THREE.CubeGeometry( 20, 20, 20 );
+	this.cubeGeometry = new THREE.CubeGeometry( 2,2, 2 );
 	this.wireframeMaterial = new THREE.MeshBasicMaterial({
 		color: 0x00ee00,
 		wireframe: true,
