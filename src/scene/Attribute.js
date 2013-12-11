@@ -453,9 +453,9 @@ function AttributeTransform() {
     this.valueInternal.rot.x = 0.0;
     this.valueInternal.rot.y = 0.0;
     this.valueInternal.rot.z = 0.0;
-    this.valueInternal.scale.x = 0.0;
-    this.valueInternal.scale.y = 0.0;
-    this.valueInternal.scale.z = 0.0;
+    this.valueInternal.scale.x = 1.0;
+    this.valueInternal.scale.y = 1.0;
+    this.valueInternal.scale.z = 1.0;
 }
 
 AttributeTransform.prototype = new Attribute(cAttributeTransform);

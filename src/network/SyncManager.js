@@ -525,7 +525,6 @@ SyncManager.prototype = {
             }
             // For dynamic attributes write all info
             else {
-                consol.log("Dynamic attribute");
                 compDs.addU8(attr.index);
                 compDs.addU8(attr.typeId);
                 compDs.addString(attr.name);
@@ -534,8 +533,7 @@ SyncManager.prototype = {
         }
 
         ds.addVLE(compDs.bytesFilled);
-        ds.addArrayBuffer(compDs.arrayBuffer);
-        console.log("Wrote componentfullupdate. Data size " + compDs.bytesFilled);
+        ds.addArrayBuffer(compDs.arrayBuffer, compDs.bytesFilled);
     },
 
     ensureSyncState : function(object) {

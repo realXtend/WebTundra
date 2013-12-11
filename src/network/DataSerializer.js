@@ -181,9 +181,11 @@ DataSerializer.prototype = {
             this.addU8(value.charCodeAt(i));
     },
 
-    addArrayBuffer : function(value) {
+    addArrayBuffer : function(value, maxLength) {
         var view = new DataView(value);
-        for (var i = 0; i < value.byteLength; ++i) {
+        if (maxLength == null)
+            maxLength = value.byteLength;
+        for (var i = 0; i < maxLength; ++i) {
             this.addU8(view.getUint8(i));
         }
     },
