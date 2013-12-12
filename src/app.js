@@ -6,7 +6,7 @@
  *      Date: 2013
  */
 
-var useSignals = false;
+var useSignals = true;
 
 function Application(dataConnection, viewer) {
     this.keyboard = new THREEx.KeyboardState();
@@ -33,6 +33,8 @@ function Application(dataConnection, viewer) {
     // MODEL
     this.dataConnection = new WebTundraModel(this);
 
+    this.dataConnection.meshComponentReady.add(this.viewer.addOrUpdate.bind(this.viewer));
+
     // CONTROLS
     this.controls = new THREE.OrbitControls(this.camera, this.viewer.renderer.domElement);
     this.controls.userZoom = true;
@@ -53,7 +55,8 @@ Application.prototype = {
         var delta = this.clock.getDelta(); // seconds
 
         this.logicUpdate();
-        this.dataToViewerUpdate();
+        if (!useSignals)
+            this.dataToViewerUpdate();
 
         this.controls.update();
         this.viewer.stats.update();
@@ -90,10 +93,6 @@ Application.prototype = {
                 continue;
             var entity = sceneData.entities[i];
             checkDefined(entity);
-            // if (entity.registeredWithViewer === true)
-            //     continue;
-            // else
-            //     entity.registeredWithViewer = true;
             var placeable = entity.componentByType("Placeable");
             var meshes = [];
             var j;

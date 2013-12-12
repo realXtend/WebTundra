@@ -88,7 +88,6 @@ ThreeView.prototype = {
         var threeObject = this.objectsByEntityId[entity.id];
         var url = meshComp.meshRef.value.ref;
         if (threeObject === undefined) {
-            console.log("in addOrUpdate, adding url \"" + url + "\"");
             if (useCubes) {
                 threeObject = new THREE.Mesh(this.cubeGeometry, this.wireframeMaterial);
                 this.objectsByEntityId[entity.id] = threeObject;
@@ -98,7 +97,7 @@ ThreeView.prototype = {
                 this.scene.add(this.pointLight);
                 this.updateFromTransform(this.pointLight, placeable);
                 if (useSignals)
-                    this.connectToPlaceable(this.pointLight, placeable);
+                    this.connectToPlaceable(this, this.pointLight, placeable);
             } else {
                 url = url.replace(/\.mesh$/i, ".json")
                 var entitiesForUrl = this.meshCache[url];
@@ -129,9 +128,13 @@ ThreeView.prototype = {
         for (var i = 0; i < entities.length; i++) {
             var ent = entities[i];
             check(ent instanceof Entity);
-            var pl = ent.componentByType("Placeable");
+            var pl = ent.componentByType(cComponentTypePlaceable);
             var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(material));
-            this.updateFromTransform(mesh, pl);
+            if (useSignals) {
+                this.connectToPlaceable(this, mesh, pl);
+            } else {
+                this.updateFromTransform(mesh, pl);
+            }
             this.scene.add(mesh);
             this.objectsByEntityId[ent.id] = mesh;
             mesh.userData.entityId = ent.id;
@@ -170,10 +173,10 @@ ThreeView.prototype = {
         threeMesh.needsUpdate = true;
     },
 
-    connectToPlaceable: function(threeObject, placeable) {
-        updateFromTransform(threeObject, placeable);
+    connectToPlaceable: function(thisIsThis, threeObject, placeable) {
+        thisIsThis.updateFromTransform(threeObject, placeable);
         placeable.attributeChanged.add(function(attr, changeType) {
-            updateFromTransform(threeObject, placeable);
+            thisIsThis.updateFromTransform(threeObject, placeable);
         });
     },
 };
