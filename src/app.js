@@ -23,23 +23,25 @@ function Application(dataConnection, viewer) {
 	this.scene = new THREE.Scene();
 
 	// Camera
-	var SCREEN_WIDTH = window.innerWidth;
-	var SCREEN_HEIGHT = window.innerHeight;
-	var NEAR = -20000;
-	var FAR = 20000;
-	this.camera = new THREE.OrthographicCamera(-SCREEN_WIDTH / 2, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, -SCREEN_HEIGHT / 2, NEAR, FAR);
+	// var SCREEN_WIDTH = window.innerWidth;
+	// var SCREEN_HEIGHT = window.innerHeight;
+	// var NEAR = -20000;
+	// var FAR = 20000;
+	// this.camera = new THREE.OrthographicCamera(-SCREEN_WIDTH / 2, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, -SCREEN_HEIGHT / 2, NEAR, FAR);
+	// this.scene.add(this.camera);
+	// this.camera.position.set(0, 300, 100); // (0, 1000, -375);
+	// this.camera.lookAt(this.scene.position);
+
+	var SCREEN_WIDTH = window.innerWidth,
+		SCREEN_HEIGHT = window.innerHeight;
+	var VIEW_ANGLE = 45,
+		ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT,
+		NEAR = 0.1,
+		FAR = 20000;
+	this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
 	this.scene.add(this.camera);
 	this.camera.position.set(0, 300, 100); // (0, 1000, -375);
 	this.camera.lookAt(this.scene.position);
-
-	// var SCREEN_WIDTH = window.innerWidth,
-	// 	SCREEN_HEIGHT = window.innerHeight;
-	// var VIEW_ANGLE = 45,
-	// 	ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT,
-	// 	NEAR = 0.1,
-	// 	FAR = 20000;
-	// this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
-
 
 	// Light
 	var light;
@@ -61,7 +63,7 @@ function Application(dataConnection, viewer) {
 
 	// CONTROLS
 	this.orbitControls = new THREE.OrbitControls(this.camera, this.viewer.renderer.domElement);
-	this.orbitControls.userZoom = false;
+	this.orbitControls.userZoom = true;
 }
 
 Application.prototype = {
