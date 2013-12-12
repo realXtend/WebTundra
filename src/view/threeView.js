@@ -97,8 +97,7 @@ ThreeView.prototype = {
 			if (useCubes) {
 				cube = new THREE.Mesh(this.cubeGeometry, this.wireframeMaterial);
 				this.objectsByEntityId[entity.id] = cube;
-			        this.scene.add(cube);
-			}
+				this.scene.add(cube);
 			} else if (url === 'lightsphere.mesh') {
 				this.objectsByEntityId[entity.id] = this.pointLight;
 				this.scene.add(this.pointLight);
@@ -128,7 +127,6 @@ ThreeView.prototype = {
 	},
 
 	addMeshToEntities: function(geometry, material, url) {
-		console.log("..");
 		var entities = this.meshCache[url];
 		this.checkDefined(entities);
 		//material = new THREE.MeshBasicMaterial( { vertexColors: THREE.FaceColors, overdraw: 0.5 } );
@@ -136,8 +134,8 @@ ThreeView.prototype = {
 			var ent = entities[i];
 			check(ent instanceof Entity);
 			var pl = ent.componentByType("Placeable");
-			var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(material));						
-                        this.updateFromTransform(mesh, pl);
+			var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(material));
+			this.updateFromTransform(mesh, pl);
 			this.scene.add(mesh);
 			this.objectsByEntityId[ent.id] = mesh;
 			mesh.userData.entityId = ent.id;
