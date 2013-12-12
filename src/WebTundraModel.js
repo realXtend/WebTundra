@@ -2,10 +2,10 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 /*
  *	@author Erno Kuusela
- * 	@author Tapani Jamsa
+ *      @author Tapani Jamsa
  */
 
-var scene = null;
+var scene = null; // for networking code
 
 function WebTundraModel() {
     this.client = new WebSocketClient();

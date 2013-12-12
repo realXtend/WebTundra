@@ -8,8 +8,7 @@
  *      @author Tapani Jamsa
  */
 
-var useCubes = true;
-var debugOnCheckFail = true;
+var useCubes = false;
 
 function ThreeView(scene, camera) {
     this.objectsByEntityId = {};
@@ -46,7 +45,7 @@ function ThreeView(scene, camera) {
     this.container.appendChild(this.renderer.domElement);
     document.body.appendChild(this.container);
 
-    // GEOMETRY AND MATERIAL
+    // LIGHT, GEOMETRY AND MATERIAL
     this.cubeGeometry = new THREE.CubeGeometry( 2,2, 2 );
     this.wireframeMaterial = new THREE.MeshBasicMaterial({
         color: 0x00ee00,
@@ -54,9 +53,24 @@ function ThreeView(scene, camera) {
         transparent: true
     });
 
-    // DEBUG
-    this.entitiesSeen = {};
-    this.entitiesWithMeshesSeen = {};
+    // PROJECTOR
+
+    this.projector = new THREE.Projector();
+    var thisIsThis = this;
+    document.addEventListener( 'mousedown', function(event) {
+        var camera = thisIsThis.camera;
+        var mouse = { x: ( event.clientX / window.innerWidth ) * 2 - 1,
+                      y: - ( event.clientY / window.innerHeight ) * 2 + 1, };
+        var vector = new THREE.Vector3( mouse.x, mouse.y, 1 );
+        var ray = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
+        var mouseVector = new THREE.Vector3( mouse.x, mouse.y, 1 );
+        thisIsThis.projector.unprojectVector( mouseVector, camera );
+        var intersects = ray.intersectObjects(attributeValues(thisIsThis.objectsByEntityId));
+    }, false );
+
+    // Hack for Physics2 scene
+    this.pointLight = new THREE.PointLight(0xffffff);
+    this.pointLight.position.set(-100,200,100);
 }
 
 ThreeView.prototype = {
@@ -64,15 +78,15 @@ ThreeView.prototype = {
     constructor: ThreeView,
 
     render: function() {
-        // this.checkDefined(this.scene, this.camera);
+        // checkDefined(this.scene, this.camera);
         this.renderer.render(this.scene, this.camera);
     },
 
     addOrUpdate: function(entity, placeable, meshComp) {
         // console.log(placeable.parentRef.index);
 
-        // this.checkDefined(entity, placeable, meshComp);
-        // this.checkDefined(entity.id);
+        // checkDefined(entity, placeable, meshComp);
+        // checkDefined(entity.id);
 
         // var url = meshComp.meshRef.value.ref;
         // if (url === 'Sphere.mesh') {
@@ -92,8 +106,8 @@ ThreeView.prototype = {
         //      }
         // }
 
-        this.checkDefined(entity, placeable, meshComp);
-        this.checkDefined(entity.id);
+        checkDefined(entity, placeable, meshComp);
+        checkDefined(entity.id);
         var cube = this.objectsByEntityId[entity.id];
         var url = meshComp.meshRef.value.ref;
         if (cube === undefined) {
@@ -118,7 +132,7 @@ ThreeView.prototype = {
                     return;
                 console.log("new mesh ref:", url);
                 var thisIsThis = this;
-                jsonLoad(url, function(geometry, material) {
+                this.jsonLoad(url, function(geometry, material) {
                     thisIsThis.addMeshToEntities(geometry, material, url);
                     //this.updateFromTransform(threeMesh, placeable);
                     console.log("loaded & updated to scene:", url);
@@ -131,7 +145,7 @@ ThreeView.prototype = {
 
     addMeshToEntities: function(geometry, material, url) {
         var entities = this.meshCache[url];
-        this.checkDefined(entities);
+        checkDefined(entities);
         //material = new THREE.MeshBasicMaterial( { vertexColors: THREE.FaceColors, overdraw: 0.5 } );
         for (var i = 0; i < entities.length; i++) {
             var ent = entities[i];
@@ -144,18 +158,6 @@ ThreeView.prototype = {
             mesh.userData.entityId = ent.id;
         }
         entities.length = 0;
-    },
-
-    checkDefined: function() {
-        for (var i = 0; i < arguments.length; i++) {
-            if (arguments[i] === undefined) {
-                if (debugOnCheckFail) {
-                    debugger;
-                } else {
-                    throw ("undefined value, arg #" + i);
-                }
-            }
-        }
     },
 
     jsonLoad: function(url, addCallback) {
@@ -182,10 +184,11 @@ ThreeView.prototype = {
     },
 
     updateFromTransform: function(threeMesh, placeable) {
-        this.checkDefined(placeable, threeMesh);
+        checkDefined(placeable, threeMesh);
         this.copyXyz(placeable.transform.value.pos, threeMesh.position);
         this.copyXyz(placeable.transform.value.scale, threeMesh.scale);
         this.copyXyzMapped(placeable.transform.value.rot, threeMesh.rotation, this.degToRad);
         threeMesh.needsUpdate = true;
     }
-}
+};
+

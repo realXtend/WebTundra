@@ -87,7 +87,6 @@ Application.prototype = {
             if (!sceneData.entities.hasOwnProperty(i))
                 continue;
             var entity = sceneData.entities[i];
-            this.viewer.entitiesSeen[i] = true;
             this.viewer.checkDefined(entity);
             // if (entity.registeredWithViewer === true)
             //     continue;
@@ -108,7 +107,6 @@ Application.prototype = {
             }
             if (placeable !== null)
                 for (j in Object.keys(meshes)) {
-                    this.viewer.entitiesWithMeshesSeen[i] = true;
                     this.viewer.addOrUpdate(entity, placeable, meshes[j]);
                 }
         }
@@ -131,4 +129,39 @@ Application.prototype = {
             mesh.meshRef.ref = "http://kek";
         }
     }
+};
+
+var debugOnCheckFail = true;
+
+function checkDefined() {
+    for (var i = 0; i < arguments.length; i++) {
+        if (arguments[i] === undefined) {
+            if (debugOnCheckFail) {
+                debugger;
+            } else {
+                throw("undefined value, arg #" + i);
+            }
+        }
+    }
+}
+
+function check() {
+    for (var i = 0; i < arguments.length; i++)
+        if (arguments[i] !== true)
+            if (debugOnCheckFail) {
+                debugger;
+            } else {
+                throw("untrue value" + arguments[i] + ", arg #" + i);
+            }
+ }
+
+
+function attributeValues(o) {
+    var out = [];
+    for (var key in o) {
+        if (!o.hasOwnProperty(key))
+            continue;
+        out.push(o[key]);
+    }
+    return out;
 }
