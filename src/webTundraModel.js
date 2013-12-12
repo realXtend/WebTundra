@@ -5,14 +5,26 @@
  * 	@author Tapani Jamsa
  */
 
- var scene = null;
+var scene = null;
 
 function WebTundraModel() {
-    this.client = new WebSocketClient();
-    this.scene = new Scene();
-    scene = this.scene;
-    this.syncManager = new SyncManager(this.client, this.scene);
-    this.syncManager.logDebug = false;
-    this.loginData = {"name": "Test User"};
-    this.client.connect("10.10.2.13", 2345, this.loginData);
+	this.client = new WebSocketClient();
+	this.scene = new Scene();
+	scene = this.scene;
+	this.syncManager = new SyncManager(this.client, this.scene);
+	this.syncManager.logDebug = false;
+	this.loginData = {
+		"name": "Test User"
+	};
+	this.ip = "localhost";
+	this.port = 2345;
+}
+
+WebTundraModel.prototype = {
+
+	constructor: WebTundraModel,
+
+	connectClient: function() {
+		this.client.connect(this.ip, this.port, this.loginData);
+	}
 }

@@ -1,3 +1,5 @@
+"use strict";
+
 // For conditions of distribution and use, see copyright notice in LICENSE
 /*
  * 	@author Tapani Jamsa
@@ -5,15 +7,6 @@
  *	@author Toni Alatalo
  *	Date: 2013
  */
-
-// "use strict";
-
-var app;
-
-function init() {
-	app = new Application();
-	app.start();
-}
 
 function Application(dataConnection, viewer) {
 	this.keyboard = new THREEx.KeyboardState();
@@ -23,15 +16,6 @@ function Application(dataConnection, viewer) {
 	this.scene = new THREE.Scene();
 
 	// Camera
-	// var SCREEN_WIDTH = window.innerWidth;
-	// var SCREEN_HEIGHT = window.innerHeight;
-	// var NEAR = -20000;
-	// var FAR = 20000;
-	// this.camera = new THREE.OrthographicCamera(-SCREEN_WIDTH / 2, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, -SCREEN_HEIGHT / 2, NEAR, FAR);
-	// this.scene.add(this.camera);
-	// this.camera.position.set(0, 300, 100); // (0, 1000, -375);
-	// this.camera.lookAt(this.scene.position);
-
 	var SCREEN_WIDTH = window.innerWidth,
 		SCREEN_HEIGHT = window.innerHeight;
 	var VIEW_ANGLE = 45,
@@ -43,18 +27,6 @@ function Application(dataConnection, viewer) {
 	this.camera.position.set(0, 300, 100); // (0, 1000, -375);
 	this.camera.lookAt(this.scene.position);
 
-	// Light
-	var light;
-
-	light = new THREE.PointLight(0xffffff);
-	light.position.set(-300, 300, -300);
-	this.scene.add(light);
-
-	// White directional light at half intensity shining from the top.
-	light = new THREE.DirectionalLight(0xffffff, 1);
-	light.position.set(300, 300, 300);
-	this.scene.add(light);
-
 	// VIEWER
 	this.viewer = new ThreeView(this.scene, this.camera);
 
@@ -62,8 +34,8 @@ function Application(dataConnection, viewer) {
 	this.dataConnection = new WebTundraModel(this);
 
 	// CONTROLS
-	this.orbitControls = new THREE.OrbitControls(this.camera, this.viewer.renderer.domElement);
-	this.orbitControls.userZoom = true;
+	this.controls = new THREE.OrbitControls(this.camera, this.viewer.renderer.domElement);
+	this.controls.userZoom = true;
 }
 
 Application.prototype = {
@@ -71,6 +43,7 @@ Application.prototype = {
 	constructor: Application,
 
 	start: function() {
+		this.dataConnection.connectClient();
 		this.logicInit();
 		this.frameCount = 0;
 		this.update();
@@ -82,7 +55,7 @@ Application.prototype = {
 		this.logicUpdate();
 		this.dataToViewerUpdate();
 
-		this.orbitControls.update();
+		this.controls.update();
 		this.viewer.stats.update();
 
 		var scope = this;
@@ -161,5 +134,3 @@ Application.prototype = {
 		}
 	}
 }
-
-init();
