@@ -16,7 +16,7 @@ function WebTundraModel() {
     this.loginData = {
 	"name": "Test User"
     };
-    this.ip = "localhost";
+    this.host = "localhost";
     this.port = 2345;
 }
 
@@ -24,6 +24,6 @@ WebTundraModel.prototype = {
     constructor: WebTundraModel,
 
     connectClient: function() {
-	this.client.connect(this.ip, this.port, this.loginData);
+	this.client.connect(this.host, this.port, this.loginData);
     }
 }

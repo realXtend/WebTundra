@@ -9,6 +9,6 @@
  */
 
 var app = new Application();
-app.dataConnection.ip = "10.10.2.13";
+app.dataConnection.host = "10.10.2.13";
 
 app.start();
