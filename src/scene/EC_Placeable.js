@@ -21,18 +21,24 @@ EC_Placeable.prototype.checkParent = function(attr, changeType) {
         var parentRefVal = placeable.parentRef.value;
         console.log("parentRef: " + parentRefVal);
         if (parentRefVal) {
-            var parentEnt = this.parentScene.entityById[parentRefVal];
-            if (parentEnt) {
+            var parentEnt = this.parentScene.entityById(parentRefVal);
+            if (parentEnt && parentEnt.componentByType(cComponentTypePlaceable)) {
                 this.componentReady.dispatch();
+                //XXX TODO: may break if the parent placeable is not ready yet
+                //if there is a deeper hierarchy with multiple levels of parents
+                //an ugly way to fix would be to add a 'ready' boolean.
+                //same problem is in the waitParent case below
             } else {
                 this.parentEntity.parentScene.entityCreated.add(this.waitParent);
             }
+        } else {
+            this.componentReady.dispatch();
         }
     }
 }               
 
 EC_Placeable.prototype.waitParent = function(addedEntity, changeType) {
-    if (addedEntity.id === this.parentRef.value) {
+    if (addedEntity.id === this.parentRef.id) {        
         this.componentReady.dispatch();
         this.parentEntity.parentScene.entityCreated.remove(this.waitParent);
     }
