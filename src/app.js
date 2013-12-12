@@ -6,6 +6,8 @@
  *      Date: 2013
  */
 
+var useSignals = false;
+
 function Application(dataConnection, viewer) {
     this.keyboard = new THREEx.KeyboardState();
     this.clock = new THREE.Clock();
@@ -67,7 +69,7 @@ Application.prototype = {
 
     logicUpdate: function() {
         var posIncrement;
-        this.viewer.checkDefined(this.frameCount);
+        checkDefined(this.frameCount);
         if (this.frameCount % 100 === 0) {
             posIncrement = 50;
         } else {
@@ -75,7 +77,7 @@ Application.prototype = {
         }
         for (var i = 0; i < this.testEntities.length; i++) {
             var ent = this.testEntities[i];
-            this.viewer.checkDefined(ent);
+            checkDefined(ent);
             ent.components.placeable.transform.value.pos.y += posIncrement;
             ent.components.placeable.transform.value.rot.y += 0.01;
         }
@@ -87,7 +89,7 @@ Application.prototype = {
             if (!sceneData.entities.hasOwnProperty(i))
                 continue;
             var entity = sceneData.entities[i];
-            this.viewer.checkDefined(entity);
+            checkDefined(entity);
             // if (entity.registeredWithViewer === true)
             //     continue;
             // else
@@ -99,7 +101,7 @@ Application.prototype = {
                 if (!entity.components.hasOwnProperty(j))
                     continue;
                 var comp = entity.components[j];
-                this.viewer.checkDefined(comp);
+                checkDefined(comp);
                 if (comp instanceof EC_Mesh)
                     meshes.push(comp);
                 else if (comp instanceof EC_Placeable)

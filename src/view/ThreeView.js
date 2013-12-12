@@ -83,42 +83,22 @@ ThreeView.prototype = {
     },
 
     addOrUpdate: function(entity, placeable, meshComp) {
-        // console.log(placeable.parentRef.index);
-
-        // checkDefined(entity, placeable, meshComp);
-        // checkDefined(entity.id);
-
-        // var url = meshComp.meshRef.value.ref;
-        // if (url === 'Sphere.mesh') {
-        //      this.updateFromTransform(this.ball.sphereMesh, placeable);
-        // } else if (url === 'local://newRacket.mesh') {
-        //      // console.clear();
-        //      // console.log(entity);
-        //      // console.log(placeable);
-        //      // console.log(meshComp);
-
-
-        //      if(placeable.parentRef.valueInternal === '3'){
-        //              console.log(placeable.parentRef.valueInternal);
-        //              this.updateFromTransform(this.playerAreas[0].racketMesh, placeable);
-        //      } else if(placeable.parentRef.valueInternal === '4'){
-        //              this.updateFromTransform(this.playerAreas[1].racketMesh, placeable);
-        //      }
-        // }
-
         checkDefined(entity, placeable, meshComp);
         checkDefined(entity.id);
-        var cube = this.objectsByEntityId[entity.id];
+        var threeObject = this.objectsByEntityId[entity.id];
         var url = meshComp.meshRef.value.ref;
-        if (cube === undefined) {
+        if (threeObject === undefined) {
+            console.log("in addOrUpdate, adding url \"" + url + "\"");
             if (useCubes) {
-                cube = new THREE.Mesh(this.cubeGeometry, this.wireframeMaterial);
-                this.objectsByEntityId[entity.id] = cube;
-                this.scene.add(cube);
+                threeObject = new THREE.Mesh(this.cubeGeometry, this.wireframeMaterial);
+                this.objectsByEntityId[entity.id] = threeObject;
+                this.scene.add(threeObject);
             } else if (url === 'lightsphere.mesh') {
                 this.objectsByEntityId[entity.id] = this.pointLight;
                 this.scene.add(this.pointLight);
                 this.updateFromTransform(this.pointLight, placeable);
+                if (useSignals)
+                    this.connectToPlaceable(this.pointLight, placeable);
             } else {
                 url = url.replace(/\.mesh$/i, ".json")
                 var entitiesForUrl = this.meshCache[url];
@@ -130,16 +110,15 @@ ThreeView.prototype = {
                 entitiesForUrl.push(entity);
                 if (!firstRef)
                     return;
-                console.log("new mesh ref:", url);
+                console.log("new mesh ref:", url);          
                 var thisIsThis = this;
-                this.jsonLoad(url, function(geometry, material) {
+                this.jsonLoad(url, function (geometry, material) {
                     thisIsThis.addMeshToEntities(geometry, material, url);
-                    //this.updateFromTransform(threeMesh, placeable);
                     console.log("loaded & updated to scene:", url);
                 });
             }
         } else {
-            this.updateFromTransform(cube, placeable);
+            this.updateFromTransform(threeObject, placeable);
         }
     },
 
@@ -189,6 +168,13 @@ ThreeView.prototype = {
         this.copyXyz(placeable.transform.value.scale, threeMesh.scale);
         this.copyXyzMapped(placeable.transform.value.rot, threeMesh.rotation, this.degToRad);
         threeMesh.needsUpdate = true;
-    }
+    },
+
+    connectToPlaceable: function(threeObject, placeable) {
+        updateFromTransform(threeObject, placeable);
+        placeable.attributeChanged.add(function(attr, changeType) {
+            updateFromTransform(threeObject, placeable);
+        });
+    },
 };
 
