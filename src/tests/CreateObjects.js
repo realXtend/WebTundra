@@ -58,14 +58,14 @@ function manipulateEntities() {
 function manipulateEntities2() {
     // Remove attribute index 1 from the dynamic component. This leaves a hole (null attribute), then modify the rest
     var ent = scene.entityByName("Entity3");
-    var dc = ent.componentByType(cComponentTypeDynamicComponent);
+    var dc = ent.dynamicComponent;
     dc.removeAttribute(1);
     dc.attributes[0].value = "testmodified";
     dc.attributes[2].value = true;
     
     // Manipulate the rigidbody component in Entity2
     ent = scene.entityByName("Entity2");
-    var rigidBody = ent.componentByType(cComponentTypeRigidBody);
+    var rigidBody = ent.rigidBody;
     rigidBody.size.value = { x: 2.0, y: 2.0, z: 2.0 };
 
     ent = scene.entityByName("Entity4");
