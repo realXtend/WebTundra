@@ -85,6 +85,8 @@ ThreeView.prototype = {
     addOrUpdate: function(entity, placeable, meshComp) {
         checkDefined(entity, placeable, meshComp);
         checkDefined(entity.id);
+        /* todo: handle change of mesh ref in entity,
+           store url in userdata and check against meshref */
         var threeObject = this.objectsByEntityId[entity.id];
         var url = meshComp.meshRef.value.ref;
         if (threeObject === undefined) {

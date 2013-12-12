@@ -10,7 +10,7 @@
 /* global cComponentTypePlaceable, cComponentTypeMesh, componentTypeIds */
 
 var scene = null; // for networking code
-
+var watchEntity = 562;
 function WebTundraModel() {
     this.client = new WebSocketClient();
     this.scene = new Scene();
@@ -40,27 +40,32 @@ WebTundraModel.prototype = {
         var haveGoodMeshAssetRef = new signals.Signal();
         var meshGood = new signals.CompoundSignal(haveGoodMeshAssetRef, havePlaceable);
         var thisIsThis = this;
+        /* Todo: check case of multiple meshes per entity */
         meshGood.add(function(meshInfo, placeableInfo) {
-            thisIsThis.meshComponentReady.dispatch(placeableInfo[0], placeableInfo[1],
-                                                   meshInfo[0]);
+            thisIsThis.meshComponentReady.dispatch(
+                placeableInfo[0], placeableInfo[1], meshInfo[0]);
         });  
         signalWhenComponentTypePresent(newEntity, cComponentTypePlaceable, havePlaceable);
         
         var meshRefOk = function(assetref) {
             return assetref.value.ref !== "";
         };
-        signalWhenAttributePreconditionOk(newEntity, cComponentTypeMesh, "meshRef",
-                                          meshRefOk, haveGoodMeshAssetRef);
+        signalWhenAttributePreconditionOk(newEntity,
+               cComponentTypeMesh, "meshRef", meshRefOk, haveGoodMeshAssetRef);
     },
     
 };
 
 
-
-function signalWhenAttributePreconditionOk(entity, componentTypeId, targetAttributeId, condFunc, mySignal) {
+function signalWhenAttributePreconditionOk(
+    /* Notes:
+       - this can be used even when the component is not present yet
+       - this is multi-shot (subsequent attribute changes)
+    */
+    entity, componentTypeId, targetAttributeId, condFunc, mySignal) {
     var onGotComponent = function(entity, component) {
-        if (entity.id == 55)
-            console.log("55 precond 2");
+        if (entity.id == watchEntity)
+            console.log("watchEntity precond 2");
 
         var currentAttribute = component.attributeById(targetAttributeId);
         if (currentAttribute !== null) {
@@ -71,22 +76,21 @@ function signalWhenAttributePreconditionOk(entity, componentTypeId, targetAttrib
             }
         }
         var onAttributeChanged = function(changedAttribute, changeType) {
-            if (entity.id == 55)
-                console.log("55 precond 3.1", changedAttribute);
+            if (entity.id == watchEntity)
+                console.log("watchEntity precond 3.1", changedAttribute);
             if (targetAttributeId !== changedAttribute.id)
                 return;
             var status = condFunc(changedAttribute);
             if (!status)
                 return;
             mySignal.dispatch(changedAttribute.owner, changedAttribute);
-            component.attributeChanged.remove(onAttributeChanged);
         };
         
         component.attributeChanged.add(onAttributeChanged);
 
         var onAttributeAdded = function(changedComponent, changedAttribute, changeType) {
-            if (entity.id == 55)
-                console.log("55 precond 3.2");
+            if (entity.id == watchEntity)
+                console.log("watchEntity precond 3.2");
             if (targetAttributeId !== changedAttribute.id)
                 return;
             var status = condFunc(changedAttribute);
@@ -98,10 +102,12 @@ function signalWhenAttributePreconditionOk(entity, componentTypeId, targetAttrib
         
         component.attributeAdded.add(onAttributeAdded);
     };
-    if (entity.id == 55)
-        console.log("55 precond 1", entity.componentByType(componentTypeId));
+    if (entity.id == watchEntity)
+        console.log("watchEntity precond 1", entity.componentByType(componentTypeId));
     var gotComponentSig = new signals.Signal();
     gotComponentSig.add(onGotComponent);
+    /* rely on signalWhenComponenTypePresent to handle the case where
+       component already exists */
     signalWhenComponentTypePresent(entity, componentTypeId, gotComponentSig);
 }
 
@@ -119,15 +125,15 @@ function signalWhenComponentTypePresent(entity, typeId, mySignal) {
             // can happen with unknown component type from server
             return;
         }
-        if (entity.id == 55)
-            console.log("55 present 2");
+        if (entity.id == watchEntity)
+            console.log("watchEntity present 2");
         if (newComponent.typeId === typeId) {
             mySignal.dispatch(entity, newComponent);
             entity.componentAdded.remove(onComponentAdded);
         }
     };
-    if (entity.id == 55)
-        console.log("55 present 1");
+    if (entity.id == watchEntity)
+        console.log("watchEntity present 1");
     entity.componentAdded.add(onComponentAdded);
 }
 
