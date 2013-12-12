@@ -92,6 +92,8 @@ ThreeView.prototype = {
                 threeObject = new THREE.Mesh(this.cubeGeometry, this.wireframeMaterial);
                 this.objectsByEntityId[entity.id] = threeObject;
                 this.scene.add(threeObject);
+                if (useSignals)
+                    this.connectToPlaceable(this, threeObject, placeable);
             } else if (url === 'lightsphere.mesh') {
                 this.objectsByEntityId[entity.id] = this.pointLight;
                 this.scene.add(this.pointLight);
