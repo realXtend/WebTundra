@@ -14,6 +14,10 @@ function Component(typeId) {
     this.attributeChanged = new signals.Signal();
     this.attributeAdded = new signals.Signal();
     this.attributeRemoved = new signals.Signal();
+
+    /* for Placeable parentRef parent waiting now.
+       possibly useful as generic for example for mesh with material deps etc? */
+    this.componentReady = new signals.Signal(); 
 }
 
 Component.prototype = {

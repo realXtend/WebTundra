@@ -97,33 +97,8 @@ ThreeView.prototype = {
 			if (useCubes) {
 				cube = new THREE.Mesh(this.cubeGeometry, this.wireframeMaterial);
 				this.objectsByEntityId[entity.id] = cube;
-				
-				//tundra parenting - should be somewhere else for all cases but devving here first
-				var container = null; //either the scene or a parent mesh - or should be parent but that's not available yet
-				var parentRefVal = placeable.parentRef.value;
-				console.log("parentRef: " + parentRefVal);
-				if (parentRefVal) {
-                    			var parentEnt = this.objectsByEntityId[parentRefVal];
-					if (parentEnt) {
-						container = parentEnt;
-					} else {
-						container = null;
-						var applyParent = function(addedEntity, changeType) {
-							if (addedEntity.id === parentRefVal) {
-								addedEntity.add(cube);
-							}
-							this.scene.entityCreated.remove(applyParent);
-						}
-						this.scene.entityCreated.add(applyParent);
-					}
-				} else {
-					container = this.scene;
-				}
-
-				debugger;
-				if (container) {
-					container.add(cube);
-				}
+			        this.scene.add(cube);
+			}
 			} else if (url === 'lightsphere.mesh') {
 				this.objectsByEntityId[entity.id] = this.pointLight;
 				this.scene.add(this.pointLight);
