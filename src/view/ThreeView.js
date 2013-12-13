@@ -89,16 +89,18 @@ ThreeView.prototype = {
            store url in userdata and check against meshref */
         var threeObject = this.objectsByEntityId[entity.id];
         var url = meshComp.meshRef.value.ref;
+        
+        var container = this.containerForPlaceable(placeable);
         if (threeObject === undefined) {
             if (useCubes) {
                 threeObject = new THREE.Mesh(this.cubeGeometry, this.wireframeMaterial);
                 this.objectsByEntityId[entity.id] = threeObject;
-                this.scene.add(threeObject);
+                container.add(threeObject);
                 if (useSignals)
                     this.connectToPlaceable(this, threeObject, placeable);
             } else if (url === 'lightsphere.mesh') {
                 this.objectsByEntityId[entity.id] = this.pointLight;
-                this.scene.add(this.pointLight);
+                container.add(this.pointLight);
                 this.updateFromTransform(this.pointLight, placeable);
                 if (useSignals)
                     this.connectToPlaceable(this, this.pointLight, placeable);
@@ -125,6 +127,19 @@ ThreeView.prototype = {
         }
     },
 
+    containerForPlaceable: function(placeable) {
+        if (placeable.parentRef.value) {
+            var parentOb = this.objectsByEntityId[placeable.parentRef.value];
+            if (!parentOb) {
+                console.log("ThreeView addOrUpdate ERROR: adding object but parent not there yet -- even though this is called only after the parent was reported being there in the EC scene data. Falling back to add to scene.");
+                container = this.scene;
+            }
+            container = parentOb;
+        } else {
+            container = this.scene;
+        }   
+    }
+        
     addMeshToEntities: function(geometry, material, url) {
         var entities = this.meshCache[url];
         checkDefined(entities);
@@ -139,7 +154,8 @@ ThreeView.prototype = {
             } else {
                 this.updateFromTransform(mesh, pl);
             }
-            this.scene.add(mesh);
+            var container = this.containerForPlaceable(pl);
+            container.add(mesh);
             this.objectsByEntityId[ent.id] = mesh;
             mesh.userData.entityId = ent.id;
         }
@@ -175,6 +191,7 @@ ThreeView.prototype = {
         this.copyXyz(placeable.transform.value.scale, threeMesh.scale);
         this.copyXyzMapped(placeable.transform.value.rot, threeMesh.rotation, this.degToRad);
         threeMesh.needsUpdate = true;
+        /* Todo: add parentRef changes (and rename to updateFromPlaceable) */
     },
 
     connectToPlaceable: function(thisIsThis, threeObject, placeable) {

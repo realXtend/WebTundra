@@ -37,21 +37,28 @@ WebTundraModel.prototype = {
     },
     onEntityCreated: function(newEntity, changeType) {
         var havePlaceable = new signals.Signal();
+        var haveGoodPlaceableParentRef = new signals.Signal();
         var haveGoodMeshAssetRef = new signals.Signal();
-        var meshGood = new signals.CompoundSignal(haveGoodMeshAssetRef, havePlaceable);
+        var meshGood = new signals.CompoundSignal(haveGoodMeshAssetRef, haveGoodPlaceable);
         var thisIsThis = this;
         /* Todo: check case of multiple meshes per entity */
         meshGood.add(function(meshInfo, placeableInfo) {
             thisIsThis.meshComponentReady.dispatch(
                 placeableInfo[0], placeableInfo[1], meshInfo[0]);
-        });  
-        signalWhenComponentTypePresent(newEntity, cComponentTypePlaceable, havePlaceable);
-        
+        });
+
         var meshRefOk = function(assetref) {
             return assetref.value.ref !== "";
         };
         signalWhenAttributePreconditionOk(newEntity,
                cComponentTypeMesh, "meshRef", meshRefOk, haveGoodMeshAssetRef);
+
+        havePlaceable.add(function(entity, placeable) {
+            placeable.componentReady.add(function() {
+                haveGoodPlaceable.dispatch();
+            });
+        });                                        
+        signalWhenComponentTypePresent(newEntity, cComponentTypePlaceable, havePlaceable);
     },
     
 };
