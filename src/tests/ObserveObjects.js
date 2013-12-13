@@ -4,7 +4,6 @@ var syncManager = new SyncManager(client, scene);
 var loginData = {"name": "Test User"};
 var gotEntityAction = false;
 
-syncManager.logDebug = false;
 client.connect("localhost", 2345, loginData);
 console.log("Waiting for second client to start creating objects");
 scene.entityCreated.add(startTest);

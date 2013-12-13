@@ -16,7 +16,7 @@ function SyncManager(client, scene) {
     this.client = client;
     this.scene = scene;
     this.client.messageReceived.add(this.onMessageReceived, this);
-    this.logDebug = true;
+    this.logDebug = false;
 
     // Attach to scene change signals for determining what changes to send to the server
     scene.attributeChanged.add(this.onAttributeChanged, this);
