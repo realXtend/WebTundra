@@ -10,7 +10,8 @@
 /* global cComponentTypePlaceable, cComponentTypeMesh, componentTypeIds */
 
 var scene = null; // for networking code
-var watchEntity = 562;
+var watchEntity = null;
+
 function WebTundraModel() {
     this.client = new WebSocketClient();
     this.scene = new Scene();
