@@ -1,6 +1,7 @@
 "use strict";
 /* jslint browser: true, globalstrict: true, devel: true, debug: true */
 /* global THREE, THREEx, signals, Stats, Detector */
+/* global check, checkDefined, EC_Placeable, EC_Mesh, EC_Camera, EC_Light */
 
 // For conditions of distribution and use, see copyright notice in LICENSE
 /*
@@ -11,8 +12,8 @@
 var useCubes = false;
 
 function ThreeView(scene, camera) {
-    this.objectsByEntityId = {};
-    this.meshCache = {};
+    this.o3dByEntityId = {}; // Three.Object3d's that correspond to Placeables and have Meshes etc as children
+    this.pendingLoads = {};
 
     // SCENE
     this.scene = scene;
@@ -65,12 +66,13 @@ function ThreeView(scene, camera) {
         var ray = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
         var mouseVector = new THREE.Vector3( mouse.x, mouse.y, 1 );
         thisIsThis.projector.unprojectVector( mouseVector, camera );
-        var intersects = ray.intersectObjects(attributeValues(thisIsThis.objectsByEntityId));
+        var intersects = ray.intersectObjects(attributeValues(thisIsThis.o3dByEntityId));
     }, false );
 
     // Hack for Physics2 scene
     this.pointLight = new THREE.PointLight(0xffffff);
     this.pointLight.position.set(-100,200,100);
+    this.scene.add(this.pointLight);
 }
 
 ThreeView.prototype = {
@@ -82,75 +84,93 @@ ThreeView.prototype = {
         this.renderer.render(this.scene, this.camera);
     },
 
-    addOrUpdate: function(entity, placeable, meshComp) {
-        checkDefined(entity, placeable, meshComp);
-        checkDefined(entity.id);
-        /* todo: handle change of mesh ref in entity,
-           store url in userdata and check against meshref */
-        var threeObject = this.objectsByEntityId[entity.id];
+    onComponentAdded: function(entity, component) {
+        checkDefined(component, entity);
+        var threeObject = this.o3dByEntityId[entity.id];
+        var isNewEntity = false;
+        if(!threeObject) {
+            this.o3dByEntityId[entity.id] = threeObject = new THREE.Object3D();
+            this.scene.add(threeObject);
+            isNewEntity = true;
+            threeObject.userData.entityId = entity.id;
+        } 
+        
+        if (isNewEntity && component instanceof EC_Placeable)
+            this.connectToPlaceable(threeObject, component)
+        else if (component instanceof EC_Mesh)
+            this.onMeshAdded(threeObject, component);
+        else if (component instanceof EC_Camera)
+            this.onCameraAdded(threeObject, component);
+        else if (component instanceof EC_Light)
+            this.onLightAdded(threeObject, component);
+        else
+            2 > 1;
+    },
+
+    onMeshAdded: function(threeObject, meshComp) {
+      
         var url = meshComp.meshRef.value.ref;
-        if (threeObject === undefined) {
-            if (useCubes) {
-                threeObject = new THREE.Mesh(this.cubeGeometry, this.wireframeMaterial);
-                this.objectsByEntityId[entity.id] = threeObject;
-                this.scene.add(threeObject);
-                if (useSignals)
-                    this.connectToPlaceable(this, threeObject, placeable);
-            } else if (url === 'lightsphere.mesh') {
-                this.objectsByEntityId[entity.id] = this.pointLight;
-                this.scene.add(this.pointLight);
-                this.updateFromTransform(this.pointLight, placeable);
-                if (useSignals)
-                    this.connectToPlaceable(this, this.pointLight, placeable);
-            } else {
-                url = url.replace(/\.mesh$/i, ".json")
-                var entitiesForUrl = this.meshCache[url];
-                var firstRef = false;
-                if (entitiesForUrl === undefined) {
-                    this.meshCache[url] = entitiesForUrl = [];
-                    firstRef = true;
-                }
-                entitiesForUrl.push(entity);
-                if (!firstRef)
-                    return;
-                console.log("new mesh ref:", url);          
-                var thisIsThis = this;
-                this.jsonLoad(url, function (geometry, material) {
-                    thisIsThis.addMeshToEntities(geometry, material, url);
-                    console.log("loaded & updated to scene:", url);
-                });
-            }
-        } else {
-            this.updateFromTransform(threeObject, placeable);
-        }
-    },
+        url = url.replace(/\.mesh$/i, ".json");
+        var thisIsThis = this;
+        var loadedSig = this.pendingLoads[url];
+        if (loadedSig === undefined) {
+            loadedSig = new signals.Signal();
+            loadedSig.addOnce(this.onMeshLoaded);
+            this.pendingLoads[url] = loadedSig;
+            this.jsonLoad(url, loadedSig.dispatch.bind(this, threeObject, meshComp));
+        } else
+            loadedSig.addOnce(this.onMeshLoaded);       
 
-    addMeshToEntities: function(geometry, material, url) {
-        var entities = this.meshCache[url];
-        checkDefined(entities);
-        //material = new THREE.MeshBasicMaterial( { vertexColors: THREE.FaceColors, overdraw: 0.5 } );
-        for (var i = 0; i < entities.length; i++) {
-            var ent = entities[i];
-            check(ent instanceof Entity);
-            var pl = ent.componentByType(cComponentTypePlaceable);
-            var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(material));
-            if (useSignals) {
-                this.connectToPlaceable(this, mesh, pl);
-            } else {
-                this.updateFromTransform(mesh, pl);
+        var thisIsThis = this;
+        meshComp.attributeChanged.addOnce(function(changedAttr, changeType) {
+            if (meshComp.threeMesh) {
+                threeObject.remove(meshComp.threeMesh);
+                console.log("remove old mesh on mesh attr change", changedAttr);
+                /* todo: take care to unload everything so memory is actually freed */
             }
-            this.scene.add(mesh);
-            this.objectsByEntityId[ent.id] = mesh;
-            mesh.userData.entityId = ent.id;
-        }
-        entities.length = 0;
-    },
-
-    jsonLoad: function(url, addCallback) {
-        var loader = new THREE.JSONLoader();
-        loader.load(url, function(geometry, material) {
-            addCallback(geometry, material);
+            thisIsThis.onMeshAdded(threeObject, meshComp);
         });
+    },
+
+    onMeshLoaded: function(threeParent, meshComp, geometry, material) {
+        if (geometry === undefined) {
+            console.log("mesh load failed");
+            return;
+        }
+        checkDefined(geometry, material, meshComp, threeParent);
+        console.log("Mesh loaded:", meshComp.meshRef.value.ref);
+        checkDefined(threeParent, meshComp, geometry, material);
+        var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(material));
+        meshComp.threeMesh = mesh;
+        mesh.applyMatrix(threeParent.matrixWorld);
+        mesh.needsUpdate = 1;
+        threeParent.add(mesh);
+        threeParent.needsUpdate = 1;
+        // we need to set up signal that does mesh.applyMatrix(threeParent.matrixWorld) when
+        // placeable changes?
+    },
+    
+    jsonLoad: function(url, addedCallback) {
+        var loader = new THREE.JSONLoader();
+        check(typeof(url) == "string");
+        if (url === "") {
+            addedCallback(undefined, undefined);
+            return;
+        }
+        console.log("json load", url);
+        loader.load(url, function(geometry, material) {
+            console.log("call back");
+            checkDefined(geometry, material);
+            addedCallback(geometry, material);
+        });
+    },
+
+    onLightAdded: function(threeObject, meshComp) {
+        console.log("onLightAdded stub");
+    },
+
+    onCameraAdded: function(threeObject, meshComp) {
+        console.log("onLightAdded stub");
     },
 
     copyXyz: function(src, dst) {

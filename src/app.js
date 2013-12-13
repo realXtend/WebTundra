@@ -33,7 +33,7 @@ function Application(dataConnection, viewer) {
     // MODEL
     this.dataConnection = new WebTundraModel(this);
 
-    this.dataConnection.meshComponentReady.add(this.viewer.addOrUpdate.bind(this.viewer));
+    this.dataConnection.scene.componentAdded.add(this.viewer.onComponentAdded.bind(this.viewer));
 
     // CONTROLS
     this.controls = new THREE.OrbitControls(this.camera, this.viewer.renderer.domElement);

@@ -331,6 +331,7 @@ SyncManager.prototype = {
             var component = entity.componentById(compId);
             if (component == null) {
                 console.log("Component id " + compId + " not found in entity id " + entityId + " when handling EditAttributes message");
+                debugger;
                 return;
             }
             var compDataSize = dd.readVLE();
