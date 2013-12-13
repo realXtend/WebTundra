@@ -197,15 +197,20 @@ SyncManager.prototype = {
                     ds.addVLE(0); // Dummy scene ID
                     ds.addVLE(id);
                     ds.addVLE(compId);
-                    ds.addBit(0); // Always use the index method for simplicity
+                    
+                    // Attribute data is sent in separate databuffer
+                    var compDs = new DataSerializer(16384);
+                    compDs.addBit(0); // Always use the index method for simplicity
+                    compDs.addU8(numModifiedAttrs);
                     for (var attrIndex in comp.syncState.modified)
                     {
                         var attr = comp.attributes[attrIndex];
-                        if (attr == null)
-                            continue;
-                        ds.addU8(attrIndex);
-                        attr.toBinary(attrIndex);
+                        compDs.addU8(attrIndex);
+                        attr.toBinary(compDs);
                     }
+                    ds.addVLE(compDs.bytesFilled);
+                    ds.addArrayBuffer(compDs.arrayBuffer, compDs.bytesFilled);
+
                     this.client.endAndQueueMessage(ds);
                     if (this.logDebug)
                         console.log("Sent EditAttributes message for entity id " + id + " component id " + comp.id + " (" + numModifiedAttrs + " modified attributes)");
@@ -525,7 +530,6 @@ SyncManager.prototype = {
             }
             // For dynamic attributes write all info
             else {
-                consol.log("Dynamic attribute");
                 compDs.addU8(attr.index);
                 compDs.addU8(attr.typeId);
                 compDs.addString(attr.name);
@@ -534,8 +538,7 @@ SyncManager.prototype = {
         }
 
         ds.addVLE(compDs.bytesFilled);
-        ds.addArrayBuffer(compDs.arrayBuffer);
-        console.log("Wrote componentfullupdate. Data size " + compDs.bytesFilled);
+        ds.addArrayBuffer(compDs.arrayBuffer, compDs.bytesFilled);
     },
 
     ensureSyncState : function(object) {
