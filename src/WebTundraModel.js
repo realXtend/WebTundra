@@ -6,7 +6,8 @@
  */
 /* jslint browser: true, globalstrict: true, devel: true, debug: true */
 /* global THREE, THREEx, signals */
-/* global WebSocketClient, Scene, SyncManager, EC_Mesh, EC_Placeable */
+/* global WebSocketClient, Scene, SyncManager */
+/* global EC_Mesh, EC_Placeable, EC_Light, EC_Camera */
 /* global cComponentTypePlaceable, cComponentTypeMesh, componentTypeIds */
 
 var scene = null; // for networking code
@@ -23,11 +24,6 @@ function WebTundraModel() {
     };
     this.host = "localhost";
     this.port = 2345;
-
-    if (useSignals) {
-        this.meshComponentReady = new signals.Signal();
-        this.scene.entityCreated.add(this.onEntityCreated.bind(this));
-    }
 }
 
 WebTundraModel.prototype = {
@@ -36,27 +32,7 @@ WebTundraModel.prototype = {
     connectClient: function() {
 	this.client.connect(this.host, this.port, this.loginData);
     },
-    onEntityCreated: function(newEntity, changeType) {
-        var havePlaceable = new signals.Signal();
-        var haveGoodMeshAssetRef = new signals.Signal();
-        var meshGood = new signals.CompoundSignal(haveGoodMeshAssetRef, havePlaceable);
-        var thisIsThis = this;
-        /* Todo: check case of multiple meshes per entity */
-        meshGood.add(function(meshInfo, placeableInfo) {
-            thisIsThis.meshComponentReady.dispatch(
-                placeableInfo[0], placeableInfo[1], meshInfo[0]);
-        });  
-        signalWhenComponentTypePresent(newEntity, cComponentTypePlaceable, havePlaceable);
-        
-        var meshRefOk = function(assetref) {
-            return assetref.value.ref !== "";
-        };
-        signalWhenAttributePreconditionOk(newEntity,
-               cComponentTypeMesh, "meshRef", meshRefOk, haveGoodMeshAssetRef);
-    },
-    
 };
-
 
 function signalWhenAttributePreconditionOk(
     /* Notes:
