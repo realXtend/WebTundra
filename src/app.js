@@ -25,7 +25,7 @@ Application.prototype = {
     init: function() {
         this.keyboard = new THREEx.KeyboardState();
         this.clock = new THREE.Clock();
-        // 
+
         // SCENE
         this.scene = new THREE.Scene();
 
@@ -90,7 +90,7 @@ Application.prototype = {
     update: function() {
         var delta = this.clock.getDelta(); // seconds
 
-        this.logicUpdate();
+        this.logicUpdate(delta);
         if (!useSignals)
             this.dataToViewerUpdate();
 
