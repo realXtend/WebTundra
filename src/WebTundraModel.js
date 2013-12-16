@@ -19,10 +19,8 @@ function WebTundraModel() {
     this.syncManager = new SyncManager(this.client, this.scene);
     this.syncManager.logDebug = false;
     this.loginData = {
-	"name": "Test User"
+        "name": "Test User"
     };
-    this.host = "localhost";
-    this.port = 2345;
 
     if (useSignals) {
         this.meshComponentReady = new signals.Signal();
@@ -33,8 +31,8 @@ function WebTundraModel() {
 WebTundraModel.prototype = {
     constructor: WebTundraModel,
 
-    connectClient: function() {
-	this.client.connect(this.host, this.port, this.loginData);
+    connectClient: function(host, port) {
+        this.client.connect(host, port, this.loginData);
     },
     onEntityCreated: function(newEntity, changeType) {
         var havePlaceable = new signals.Signal();
@@ -45,25 +43,25 @@ WebTundraModel.prototype = {
         meshGood.add(function(meshInfo, placeableInfo) {
             thisIsThis.meshComponentReady.dispatch(
                 placeableInfo[0], placeableInfo[1], meshInfo[0]);
-        });  
+        });
         signalWhenComponentTypePresent(newEntity, cComponentTypePlaceable, havePlaceable);
-        
+
         var meshRefOk = function(assetref) {
             return assetref.value.ref !== "";
         };
         signalWhenAttributePreconditionOk(newEntity,
-               cComponentTypeMesh, "meshRef", meshRefOk, haveGoodMeshAssetRef);
+            cComponentTypeMesh, "meshRef", meshRefOk, haveGoodMeshAssetRef);
     },
-    
+
 };
 
 
 function signalWhenAttributePreconditionOk(
-    /* Notes:
+/* Notes:
        - this can be used even when the component is not present yet
        - this is multi-shot (subsequent attribute changes)
     */
-    entity, componentTypeId, targetAttributeId, condFunc, mySignal) {
+entity, componentTypeId, targetAttributeId, condFunc, mySignal) {
     var onGotComponent = function(entity, component) {
         if (entity.id == watchEntity)
             console.log("watchEntity precond 2");
@@ -86,7 +84,7 @@ function signalWhenAttributePreconditionOk(
                 return;
             mySignal.dispatch(changedAttribute.owner, changedAttribute);
         };
-        
+
         component.attributeChanged.add(onAttributeChanged);
 
         var onAttributeAdded = function(changedComponent, changedAttribute, changeType) {
@@ -100,7 +98,7 @@ function signalWhenAttributePreconditionOk(
             mySignal.dispatch(changedComponent, changedAttribute);
             component.attributeAdded.remove(onAttributeAdded);
         };
-        
+
         component.attributeAdded.add(onAttributeAdded);
     };
     if (entity.id == watchEntity)
@@ -137,6 +135,3 @@ function signalWhenComponentTypePresent(entity, typeId, mySignal) {
         console.log("watchEntity present 1");
     entity.componentAdded.add(onComponentAdded);
 }
-
-
-

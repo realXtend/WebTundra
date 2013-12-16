@@ -16,9 +16,6 @@ function Application(dataConnection, viewer) {
     this.ASPECT = this.SCREEN_WIDTH / this.SCREEN_HEIGHT;
     this.NEAR = 0.1;
     this.FAR = 20000;
-
-    // MODEL
-    this.dataConnection = new WebTundraModel(this);
 }
 
 Application.prototype = {
@@ -42,6 +39,10 @@ Application.prototype = {
         this.viewer = new ThreeView(this.scene, this.camera);
 
         // MODEL
+        this.connected = false;
+        this.dataConnection = new WebTundraModel(this);
+        this.dataConnection.client.connected.add(this.onConnected.bind(this));
+        this.dataConnection.client.disconnected.add(this.onDisconnected.bind(this));
         this.dataConnection.meshComponentReady.add(this.viewer.addOrUpdate.bind(this.viewer));
 
         // CONTROLS
@@ -52,7 +53,6 @@ Application.prototype = {
     start: function() {
         this.init();
         this.logicInit();
-        this.dataConnection.connectClient();
         this.frameCount = 0;
         this.update();
     },
@@ -73,6 +73,18 @@ Application.prototype = {
             setXyz(placeable.transform.value.scale, 1, 1, 1);
             mesh.meshRef.ref = "http://kek";
         }
+    },
+
+    connect: function(host, port) {
+        this.dataConnection.connectClient(host, port);
+    },
+
+    onConnected: function() {
+        this.connected = true;
+    },
+
+    onDisconnected: function() {
+        this.connected = false;
     },
 
     update: function() {

@@ -8,11 +8,11 @@
  *      @author Tapani Jamsa
  */
 
-var useCubes = false;
-
 function ThreeView(scene, camera) {
     this.objectsByEntityId = {};
     this.meshCache = {};
+
+    this.useCubes = false;
 
     // SCENE
     this.scene = scene;
@@ -90,7 +90,7 @@ ThreeView.prototype = {
         var threeObject = this.objectsByEntityId[entity.id];
         var url = meshComp.meshRef.value.ref;
         if (threeObject === undefined) {
-            if (useCubes) {
+            if (this.useCubes) {
                 threeObject = new THREE.Mesh(this.cubeGeometry, this.wireframeMaterial);
                 this.objectsByEntityId[entity.id] = threeObject;
                 this.scene.add(threeObject);
