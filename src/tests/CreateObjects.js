@@ -8,6 +8,8 @@ client.connect("localhost", 2345, loginData);
 client.connected.add(createEntities);
 
 function createEntities() {
+    console.log("Create entities");
+
     for (var i = 1; i <= 5; i++)
     {
         // ID 0 = let scene assign
@@ -24,6 +26,8 @@ function createEntities() {
 }
 
 function manipulateEntities() {
+    console.log("Manipulate entities, part 1");
+
     // In the meanwhile the server has assigned an authoritative ID for the entities. Remove the first of them
     var ent = scene.entityByName("Entity1");
     scene.removeEntity(ent.id);
@@ -56,6 +60,8 @@ function manipulateEntities() {
 }
 
 function manipulateEntities2() {
+    console.log("Manipulate entities, part 2");
+
     // Remove attribute index 1 from the dynamic component. This leaves a hole (null attribute), then modify the rest
     var ent = scene.entityByName("Entity3");
     var dc = ent.dynamicComponent;
@@ -73,6 +79,8 @@ function manipulateEntities2() {
 
     syncManager.sendChanges();
 
+    console.log("Send EntityAction");
+    
     // Trigger a remote entity action on the fifth entity
     var params = ["Param1", "Param2", "Param3"];
     ent = scene.entityByName("Entity5");
