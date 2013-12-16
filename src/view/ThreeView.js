@@ -101,7 +101,6 @@ ThreeView.prototype = {
             this.connectToPlaceable(threeObject, component);
         else if (component instanceof EC_Mesh) {
             //console.log("mesh added for o3d", threeObject.userData.entityId);
-            check(this.meshCounter.add(entity.id) <= 1);
             this.onMeshAddedOrChanged(threeObject, component);
         } else if (component instanceof EC_Camera)
             this.onCameraAdded(threeObject, component);
@@ -135,7 +134,6 @@ ThreeView.prototype = {
         } else {
             //console.log("will call onMeshLoaded with threeObject for eid=", threeObject.userData.entityId);
             loadedSig.addOnce(this.onMeshLoaded.bind(this, threeObject, meshComp));
-            check(this.meshCounter.add(url + "-to-" + meshComp.parentEntity.id) <= 1);
         }
         var onMeshAttributeChanged = function(changedAttr, changeType) {
             if (changedAttr.id != "meshRef")
