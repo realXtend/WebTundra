@@ -34,6 +34,7 @@ function Application(dataConnection, viewer) {
     this.dataConnection = new WebTundraModel(this);
 
     this.dataConnection.scene.componentAdded.add(this.viewer.onComponentAdded.bind(this.viewer));
+    this.dataConnection.scene.attributeChanged.add(this.viewer.onComponentAdded.bind(this.viewer));
 
     // CONTROLS
     this.controls = new THREE.OrbitControls(this.camera, this.viewer.renderer.domElement);
@@ -154,8 +155,7 @@ function check() {
             } else {
                 throw("untrue value" + arguments[i] + ", arg #" + i);
             }
- }
-
+}
 
 function attributeValues(o) {
     var out = [];
@@ -166,3 +166,16 @@ function attributeValues(o) {
     }
     return out;
 }
+
+function EventCounter() {
+    this.events = {};
+}
+
+EventCounter.prototype.add = function(key) {
+    var count = this.events[key];
+    if (count === undefined)
+        count = 0;
+    count++;
+    this.events[key] = count;
+    return count;
+};

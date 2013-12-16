@@ -73,6 +73,7 @@ function ThreeView(scene, camera) {
     this.pointLight = new THREE.PointLight(0xffffff);
     this.pointLight.position.set(-100,200,100);
     this.scene.add(this.pointLight);
+
 }
 
 ThreeView.prototype = {
@@ -93,13 +94,16 @@ ThreeView.prototype = {
             this.scene.add(threeObject);
             isNewEntity = true;
             threeObject.userData.entityId = entity.id;
+            //console.log("registered o3d for entity", entity.id);
         } 
         
-        if (isNewEntity && component instanceof EC_Placeable)
-            this.connectToPlaceable(threeObject, component)
-        else if (component instanceof EC_Mesh)
-            this.onMeshAdded(threeObject, component);
-        else if (component instanceof EC_Camera)
+        if (component instanceof EC_Placeable)
+            this.connectToPlaceable(threeObject, component);
+        else if (component instanceof EC_Mesh) {
+            //console.log("mesh added for o3d", threeObject.userData.entityId);
+            check(this.meshCounter.add(entity.id) <= 1);
+            this.onMeshAddedOrChanged(threeObject, component);
+        } else if (component instanceof EC_Camera)
             this.onCameraAdded(threeObject, component);
         else if (component instanceof EC_Light)
             this.onLightAdded(threeObject, component);
@@ -107,29 +111,42 @@ ThreeView.prototype = {
             2 > 1;
     },
 
-    onMeshAdded: function(threeObject, meshComp) {
-      
+    onMeshAddedOrChanged: function(threeObject, meshComp) {
+        if (meshComp.threeMesh) {
+            /* remove previous mesh if it existed */
+            /* async hazard: what if two changes for same mesh come in
+               order A, B and loads finish in order B, A */
+            threeObject.remove(meshComp.threeMesh);
+            //console.log("removed old mesh on mesh attr change", changedAttr);
+        }
+
         var url = meshComp.meshRef.value.ref;
+                 
         url = url.replace(/\.mesh$/i, ".json");
+        if (threeObject.children.length > 0)
+            debugger;
         var thisIsThis = this;
         var loadedSig = this.pendingLoads[url];
         if (loadedSig === undefined) {
             loadedSig = new signals.Signal();
-            loadedSig.addOnce(this.onMeshLoaded);
+            loadedSig.addOnce(this.onMeshLoaded.bind(this, threeObject, meshComp));
             this.pendingLoads[url] = loadedSig;
-            this.jsonLoad(url, loadedSig.dispatch.bind(this, threeObject, meshComp));
-        } else
-            loadedSig.addOnce(this.onMeshLoaded);       
-
-        var thisIsThis = this;
-        meshComp.attributeChanged.addOnce(function(changedAttr, changeType) {
-            if (meshComp.threeMesh) {
-                threeObject.remove(meshComp.threeMesh);
-                console.log("remove old mesh on mesh attr change", changedAttr);
-                /* todo: take care to unload everything so memory is actually freed */
-            }
-            thisIsThis.onMeshAdded(threeObject, meshComp);
-        });
+            this.jsonLoad(url, loadedSig.dispatch.bind(this));
+        } else {
+            //console.log("will call onMeshLoaded with threeObject for eid=", threeObject.userData.entityId);
+            loadedSig.addOnce(this.onMeshLoaded.bind(this, threeObject, meshComp));
+            check(this.meshCounter.add(url + "-to-" + meshComp.parentEntity.id) <= 1);
+        }
+        var onMeshAttributeChanged = function(changedAttr, changeType) {
+            if (changedAttr.id != "meshRef")
+                return;
+            //console.log("onMeshAddedOrChanged due to attributeChanged ->", changedAttr.value.ref);
+            thisIsThis.onMeshAddedOrChanged(threeObject, meshComp);
+        };
+        var removed = meshComp.attributeChanged.remove(onMeshAttributeChanged);
+        if (removed)
+            console.log("removed old mesh attr change hook");
+        meshComp.attributeChanged.add(onMeshAttributeChanged);
     },
 
     onMeshLoaded: function(threeParent, meshComp, geometry, material) {
@@ -138,13 +155,20 @@ ThreeView.prototype = {
             return;
         }
         checkDefined(geometry, material, meshComp, threeParent);
-        console.log("Mesh loaded:", meshComp.meshRef.value.ref);
+        checkDefined(meshComp.parentEntity);
+        check(threeParent.userData.entityId === meshComp.parentEntity.id);
+        if (threeParent.children.length > 0) {
+            console.log("adding mesh #" + (threeParent.children.length+1) + " to entity #" +threeParent.userData.entityId);
+        }
+        console.log("Mesh loaded:", meshComp.meshRef.value.ref, "- adding to o3d of entity "+ threeParent.userData.entityId);
         checkDefined(threeParent, meshComp, geometry, material);
         var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(material));
         meshComp.threeMesh = mesh;
-        mesh.applyMatrix(threeParent.matrixWorld);
+        //mesh.applyMatrix(threeParent.matrixWorld);
         mesh.needsUpdate = 1;
         threeParent.add(mesh);
+        if (threeParent.children.length > 1)
+            console.log("multiple meshes on entity", threeParent.userData.entityId);
         threeParent.needsUpdate = 1;
         // we need to set up signal that does mesh.applyMatrix(threeParent.matrixWorld) when
         // placeable changes?
@@ -158,10 +182,12 @@ ThreeView.prototype = {
             return;
         }
         console.log("json load", url);
+        var thisIsThis = this;
         loader.load(url, function(geometry, material) {
             console.log("call back");
             checkDefined(geometry, material);
             addedCallback(geometry, material);
+            delete thisIsThis.pendingLoads[url];
         });
     },
 
@@ -191,14 +217,17 @@ ThreeView.prototype = {
 
     updateFromTransform: function(threeMesh, placeable) {
         checkDefined(placeable, threeMesh);
-        this.copyXyz(placeable.transform.value.pos, threeMesh.position);
-        this.copyXyz(placeable.transform.value.scale, threeMesh.scale);
-        this.copyXyzMapped(placeable.transform.value.rot, threeMesh.rotation, this.degToRad);
+        var ptv = placeable.transform.value;
+        
+        this.copyXyz(ptv.pos, threeMesh.position);
+        this.copyXyz(ptv.scale, threeMesh.scale);
+        this.copyXyzMapped(ptv.rot, threeMesh.rotation, this.degToRad);
         threeMesh.needsUpdate = true;
     },
 
-    connectToPlaceable: function(thisIsThis, threeObject, placeable) {
-        thisIsThis.updateFromTransform(threeObject, placeable);
+    connectToPlaceable: function(threeObject, placeable) {
+        this.updateFromTransform(threeObject, placeable);
+        var thisIsThis = this;
         placeable.attributeChanged.add(function(attr, changeType) {
             thisIsThis.updateFromTransform(threeObject, placeable);
         });
