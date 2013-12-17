@@ -1,3 +1,5 @@
+// For conditions of distribution and use, see copyright notice in LICENSE
+
 var cComponentTypeLight = 16;
 
 var LT_Point = 0, LT_Spot = 1, LT_Directional = 2;

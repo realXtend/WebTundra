@@ -1,4 +1,7 @@
+// For conditions of distribution and use, see copyright notice in LICENSE
+
 var cComponentTypeCamera = 15;
+
 function EC_Camera() {
     Component.call(this, cComponentTypeCamera);
     this.addAttribute(cAttributeFloat3, "upVector", "Up vector", {x: 0.0, y: 1.0, z: 1.0});

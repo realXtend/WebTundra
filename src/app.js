@@ -179,3 +179,4 @@ EventCounter.prototype.add = function(key) {
     this.events[key] = count;
     return count;
 };
+
