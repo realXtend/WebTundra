@@ -1,4 +1,7 @@
+// For conditions of distribution and use, see copyright notice in LICENSE
+
 var cComponentTypeSound = 6;
+
 function EC_Sound() {
     Component.call(this, cComponentTypeSound);
     this.addAttribute(cAttributeAssetReference, "soundRef", "Sound ref");
