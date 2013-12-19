@@ -48,8 +48,10 @@
 <div id="ThreeJS" style="z-index: 1; position: absolute; left:0px; top:0px"></div>
 <script>
 var app = new Application();
-app.dataConnection.host = "localhost";
-app.dataConnection.port = "2346";
+app.camera.position.set(0, 8.50, 28.50);
+app.controls.center.y = 10; //OrbitControls is there by default
+//app.dataConnection.host = "10.10.2.13";
+//app.dataConnection.port = "2346";
 app.start();
 </script>
 
