@@ -44,7 +44,8 @@ Application.prototype = {
         this.dataConnection = new WebTundraModel(this);
         this.dataConnection.client.connected.add(this.onConnected.bind(this));
         this.dataConnection.client.disconnected.add(this.onDisconnected.bind(this));
-        this.dataConnection.meshComponentReady.add(this.viewer.addOrUpdate.bind(this.viewer));
+        this.dataConnection.scene.componentAdded.add(this.viewer.onComponentAdded.bind(this.viewer));
+        this.dataConnection.scene.attributeChanged.add(this.viewer.onComponentAdded.bind(this.viewer));
 
         // CONTROLS
         this.controls = new THREE.OrbitControls(this.camera, this.viewer.renderer.domElement);
@@ -202,4 +203,3 @@ EventCounter.prototype.add = function(key) {
     this.events[key] = count;
     return count;
 };
-

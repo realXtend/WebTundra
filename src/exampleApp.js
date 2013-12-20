@@ -15,7 +15,7 @@ var port = 2345; // and port to the server
 
 app.start();
 
-// app.viewer.useCubes = true; // Use wireframe cube material for all objects
+app.connect(host,port)
 
 function checkSceneCondition(condition) {
     var range = condition.entityRangePresent;
@@ -36,7 +36,6 @@ function checkSceneCondition(condition) {
             check(o3d.children.length > 0);
         }
     }
-
 }
 
 function checkPhysics2() {
