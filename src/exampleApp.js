@@ -10,8 +10,14 @@
 
 var app = new Application();
 app.dataConnection.host = "localhost";
-
+loadXml3d();
 app.start();
+
+function loadXml3d() {
+    var url = "xml3d-suzanne.html";
+    var parser = new SceneParser(app.dataConnection);
+    parser.parseFromUrlXml3D(url);
+}
 
 function checkSceneCondition(condition) {
     var range = condition.entityRangePresent;
