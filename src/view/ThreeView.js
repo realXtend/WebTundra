@@ -103,7 +103,7 @@ ThreeView.prototype = {
                 if (useSignals)
                     this.connectToPlaceable(this, this.pointLight, placeable);
             } else {
-                url = url.replace(/\.mesh$/i, ".json")
+                url = url.replace(/\.mesh$/i, ".json");
                 var entitiesForUrl = this.meshCache[url];
                 var firstRef = false;
                 if (entitiesForUrl === undefined) {

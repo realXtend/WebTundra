@@ -1,3 +1,4 @@
+"use strict";
 // For conditions of distribution and use, see copyright notice in LICENSE
 /*
  *      @author Tapani Jamsa
@@ -8,7 +9,7 @@
 
 var useSignals = true;
 
-function Application(dataConnection, viewer) {
+function Application() {
     // CAMERA
     this.SCREEN_WIDTH = window.innerWidth;
     this.SCREEN_HEIGHT = window.innerHeight;
@@ -76,14 +77,17 @@ Application.prototype = {
     },
 
     connect: function(host, port) {
+        console.log("connect");
         this.dataConnection.connectClient(host, port);
     },
 
     onConnected: function() {
+        console.log("connected");
         this.connected = true;
     },
 
     onDisconnected: function() {
+        console.log("disconnected");
         this.connected = false;
     },
 
