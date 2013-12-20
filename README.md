@@ -1,6 +1,7 @@
-Binary networking protocol (currently with WebSocket) for a Web Tundra client.
+WebSocket binary networking protocol, scene model and three.js -based
+rendering functionality for a Web Tundra client.
 
-Requires the Tundra server to be running WebSocketServerModule, initially 
+Requires the Tundra server to be running WebSocketServerModule, initially
 contributed to open source by AdminoTech.
 
 Both the server code and this client code will be subject to heavy development

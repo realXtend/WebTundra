@@ -181,6 +181,13 @@ DataSerializer.prototype = {
             this.addU8(value.charCodeAt(i));
     },
 
+    addStringU16 : function(value) {
+        // Strings stored in this format should be avoided, as it is limited to Latin/ASCII strings
+        this.addU16(value.length);
+        for (var i = 0; i < value.length; i++)
+            this.addU8(value.charCodeAt(i));
+    },
+
     addArrayBuffer : function(value, maxLength) {
         var view = new DataView(value);
         if (maxLength == null)
