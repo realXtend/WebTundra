@@ -6,8 +6,6 @@
  */
 /* jslint browser: true, globalstrict: true, devel: true, debug: true */
 /* global THREE, THREEx, signals */
-/* global WebSocketClient, Scene, SyncManager */
-/* global EC_Mesh, EC_Placeable, EC_Light, EC_Camera */
 /* global cComponentTypePlaceable, cComponentTypeMesh, componentTypeIds */
 
 var scene = null; // for networking code
@@ -20,26 +18,24 @@ function WebTundraModel() {
     this.syncManager = new SyncManager(this.client, this.scene);
     this.syncManager.logDebug = false;
     this.loginData = {
-	"name": "Test User"
+        "name": "Test User"
     };
-    this.host = "localhost";
-    this.port = 2345;
 }
 
 WebTundraModel.prototype = {
     constructor: WebTundraModel,
 
-    connectClient: function() {
-	this.client.connect(this.host, this.port, this.loginData);
+    connectClient: function(host, port) {
+        this.client.connect(host, port, this.loginData);
     },
 };
 
 function signalWhenAttributePreconditionOk(
-    /* Notes:
+/* Notes:
        - this can be used even when the component is not present yet
        - this is multi-shot (subsequent attribute changes)
     */
-    entity, componentTypeId, targetAttributeId, condFunc, mySignal) {
+entity, componentTypeId, targetAttributeId, condFunc, mySignal) {
     var onGotComponent = function(entity, component) {
         if (entity.id == watchEntity)
             console.log("watchEntity precond 2");
@@ -62,7 +58,7 @@ function signalWhenAttributePreconditionOk(
                 return;
             mySignal.dispatch(changedAttribute.owner, changedAttribute);
         };
-        
+
         component.attributeChanged.add(onAttributeChanged);
 
         var onAttributeAdded = function(changedComponent, changedAttribute, changeType) {
@@ -76,7 +72,7 @@ function signalWhenAttributePreconditionOk(
             mySignal.dispatch(changedComponent, changedAttribute);
             component.attributeAdded.remove(onAttributeAdded);
         };
-        
+
         component.attributeAdded.add(onAttributeAdded);
     };
     if (entity.id == watchEntity)
@@ -113,6 +109,3 @@ function signalWhenComponentTypePresent(entity, typeId, mySignal) {
         console.log("watchEntity present 1");
     entity.componentAdded.add(onComponentAdded);
 }
-
-
-

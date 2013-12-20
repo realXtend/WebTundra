@@ -15,3 +15,4 @@ function EC_Placeable() {
 EC_Placeable.prototype = new Component(cComponentTypePlaceable);
 
 registerComponent(cComponentTypePlaceable, "Placeable", function(){ return new EC_Placeable(); });
+        

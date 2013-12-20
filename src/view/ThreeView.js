@@ -10,8 +10,6 @@
  *      @author Tapani Jamsa
  */
 
-var useCubes = false;
-
 function ThreeView(scene, camera) {
     this.o3dByEntityId = {}; // Three.Object3d's that correspond to Placeables and have Meshes etc as children
     this.pendingLoads = {};
@@ -47,16 +45,7 @@ function ThreeView(scene, camera) {
     this.container.appendChild(this.renderer.domElement);
     document.body.appendChild(this.container);
 
-    // LIGHT, GEOMETRY AND MATERIAL
-    this.cubeGeometry = new THREE.CubeGeometry( 2,2, 2 );
-    this.wireframeMaterial = new THREE.MeshBasicMaterial({
-        color: 0x00ee00,
-        wireframe: true,
-        transparent: true
-    });
-
     // PROJECTOR
-
     this.projector = new THREE.Projector();
     var thisIsThis = this;
     document.addEventListener( 'mousedown', function(event) {
@@ -103,7 +92,7 @@ ThreeView.prototype = {
             isNewEntity = true;
             threeGroup.userData.entityId = entity.id;
             //console.log("registered o3d for entity", entity.id);
-        } 
+        }
         
         if (component instanceof EC_Placeable)
             this.connectToPlaceable(threeGroup, component);
