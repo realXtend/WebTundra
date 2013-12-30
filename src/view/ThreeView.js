@@ -88,7 +88,6 @@ ThreeView.prototype = {
         var isNewEntity = false;
         if(!threeGroup) {
             this.o3dByEntityId[entity.id] = threeGroup = new THREE.Object3D();
-            this.scene.add(threeGroup);
             isNewEntity = true;
             threeGroup.userData.entityId = entity.id;
             //console.log("registered o3d for entity", entity.id);
@@ -262,14 +261,35 @@ ThreeView.prototype = {
         this.copyXyz(ptv.scale, threeMesh.scale);
         this.copyXyzMapped(ptv.rot, threeMesh.rotation, this.degToRad);
         threeMesh.needsUpdate = true;
-        /* Todo: add parentRef changes (and rename to updateFromPlaceable) */
     },
 
     connectToPlaceable: function(threeObject, placeable) {
-        this.updateFromTransform(threeObject, placeable);
+        //NOTE: this depends on component handling being done here before the componentReady signal fires
         var thisIsThis = this;
-        placeable.attributeChanged.add(function(attr, changeType) {
+        placeable.componentReady.add(function() { 
+            var parent = thisIsThis.parentForPlaceable(placeable);
+            parent.add(threeObject);
             thisIsThis.updateFromTransform(threeObject, placeable);
+            placeable.attributeChanged.add(function(attr, changeType) {
+                thisIsThis.updateFromTransform(threeObject, placeable); //Todo: pass attr to know when parentRef changed
+            });
         });
     },
+
+    parentForPlaceable: function(placeable) {
+        var parent;
+        if (placeable.parentRef.value) {
+            var parentOb = this.o3dByEntityId[placeable.parentRef.value];
+            if (!parentOb) {
+                console.log("ThreeView parentForPlaceable ERROR: adding object but parent not there yet -- even though this is called only after the parent was reported being there in the EC scene data. Falling back to add to scene.");
+                parent = this.scene;
+            } else {
+                parent = parentOb;
+            }
+        } else {
+            parent = this.scene;
+        }
+
+        return parent;
+    }
 };
