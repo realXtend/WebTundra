@@ -13,6 +13,7 @@ function Entity() {
     this.componentAdded = new signals.Signal();
     this.componentRemoved = new signals.Signal();
     this.actionTriggered = new signals.Signal();
+    this.componentIdChanged = new signals.Signal();
 }
 
 Entity.prototype = {
@@ -107,6 +108,11 @@ Entity.prototype = {
             delete this.components[oldId];
             comp.id = newId;
             this.components[newId] = comp;
+
+            this.componentIdChanged.dispatch(oldId, newId);
+            // Trigger scene level signal
+            if (this.parentScene)
+                this.parentScene.emitComponentIdChanged(this, oldId, newId);
         }
     },
 
@@ -117,18 +123,19 @@ Entity.prototype = {
             return null;
     },
     
-    componentByType: function(typeId) {
+    componentByType: function(typeId, name) {
         // Convert typename to numeric ID if necessary
         if (typeof typeId == 'string' || typeId instanceof String)
             typeId = componentTypeIds[typeId];
         for (var compId in this.components) {
             if (this.components.hasOwnProperty(compId) && this.components[compId].typeId == typeId) {
-                return this.components[compId];
+                if (name == null || this.components[compId].name == name)
+                    return this.components[compId];
             }
         }
         return null;
     },
-    
+
     get local(){
         return this.id >= cFirstLocalId;
     },
@@ -146,5 +153,15 @@ Entity.prototype = {
         }
         else
             return "";
+    },
+
+    set name(value)
+    {
+        // Name exists in its own component, create if doesn't exist
+        var nameComp = this.componentByType(cComponentTypeName);
+        if (nameComp == null)
+            nameComp = this.createComponent(0, cComponentTypeName, "");
+        var nameAttr = nameComp.attributeById("name");
+        nameAttr.value = value;
     }
 }

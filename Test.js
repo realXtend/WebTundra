@@ -5,6 +5,7 @@ var scene = new Scene();
 var syncManager = new SyncManager(client, scene);
 var loginData = {"name": "Test User"};
 
+syncManager.logDebug = true;
 client.connect("localhost", 2345, loginData);
 
 /*

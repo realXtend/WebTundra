@@ -6,11 +6,11 @@
  */
 /* jslint browser: true, globalstrict: true, devel: true, debug: true */
 /* global THREE, THREEx, signals */
-/* global WebSocketClient, Scene, SyncManager, EC_Mesh, EC_Placeable */
 /* global cComponentTypePlaceable, cComponentTypeMesh, componentTypeIds */
 
 var scene = null; // for networking code
-var watchEntity = 562;
+var watchEntity = null;
+
 function WebTundraModel() {
     this.client = new WebSocketClient();
     this.scene = new Scene();
@@ -18,58 +18,24 @@ function WebTundraModel() {
     this.syncManager = new SyncManager(this.client, this.scene);
     this.syncManager.logDebug = false;
     this.loginData = {
-	"name": "Test User"
+        "name": "Test User"
     };
-    this.host = "localhost";
-    this.port = 2345;
-
-    if (useSignals) {
-        this.meshComponentReady = new signals.Signal();
-        this.scene.entityCreated.add(this.onEntityCreated.bind(this));
-    }
 }
 
 WebTundraModel.prototype = {
     constructor: WebTundraModel,
 
-    connectClient: function() {
-	this.client.connect(this.host, this.port, this.loginData);
-    },
-    onEntityCreated: function(newEntity, changeType) {
-        var havePlaceable = new signals.Signal();
-        var haveGoodPlaceableParentRef = new signals.Signal();
-        var haveGoodMeshAssetRef = new signals.Signal();
-        var meshGood = new signals.CompoundSignal(haveGoodMeshAssetRef, haveGoodPlaceable);
-        var thisIsThis = this;
-        /* Todo: check case of multiple meshes per entity */
-        meshGood.add(function(meshInfo, placeableInfo) {
-            thisIsThis.meshComponentReady.dispatch(
-                placeableInfo[0], placeableInfo[1], meshInfo[0]);
-        });
-
-        var meshRefOk = function(assetref) {
-            return assetref.value.ref !== "";
-        };
-        signalWhenAttributePreconditionOk(newEntity,
-               cComponentTypeMesh, "meshRef", meshRefOk, haveGoodMeshAssetRef);
-
-        havePlaceable.add(function(entity, placeable) {
-            placeable.componentReady.add(function() {
-                haveGoodPlaceable.dispatch();
-            });
-        });                                        
-        signalWhenComponentTypePresent(newEntity, cComponentTypePlaceable, havePlaceable);
-    },
-    
+    connectClient: function(host, port) {
+        this.client.connect(host, port, this.loginData);
+    }
 };
 
-
 function signalWhenAttributePreconditionOk(
-    /* Notes:
+/* Notes:
        - this can be used even when the component is not present yet
        - this is multi-shot (subsequent attribute changes)
     */
-    entity, componentTypeId, targetAttributeId, condFunc, mySignal) {
+entity, componentTypeId, targetAttributeId, condFunc, mySignal) {
     var onGotComponent = function(entity, component) {
         if (entity.id == watchEntity)
             console.log("watchEntity precond 2");
@@ -92,7 +58,7 @@ function signalWhenAttributePreconditionOk(
                 return;
             mySignal.dispatch(changedAttribute.owner, changedAttribute);
         };
-        
+
         component.attributeChanged.add(onAttributeChanged);
 
         var onAttributeAdded = function(changedComponent, changedAttribute, changeType) {
@@ -106,7 +72,7 @@ function signalWhenAttributePreconditionOk(
             mySignal.dispatch(changedComponent, changedAttribute);
             component.attributeAdded.remove(onAttributeAdded);
         };
-        
+
         component.attributeAdded.add(onAttributeAdded);
     };
     if (entity.id == watchEntity)
@@ -143,6 +109,3 @@ function signalWhenComponentTypePresent(entity, typeId, mySignal) {
         console.log("watchEntity present 1");
     entity.componentAdded.add(onComponentAdded);
 }
-
-
-

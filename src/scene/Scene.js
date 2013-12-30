@@ -11,6 +11,8 @@ function Scene() {
     this.entityCreated = new signals.Signal();
     this.entityRemoved = new signals.Signal();
     this.actionTriggered = new signals.Signal();
+    this.entityIdChanged = new signals.Signal();
+    this.componentIdChanged = new signals.Signal();
 }
 
 Scene.prototype = {
@@ -72,6 +74,8 @@ Scene.prototype = {
             delete this.entities[oldId];
             entity.id = newId;
             this.entities[newId] = entity;
+            
+            this.entityIdChanged.dispatch(oldId, newId);
         }
     },
 
@@ -81,6 +85,17 @@ Scene.prototype = {
             return this.entities[id];
         else
             return null;
+    },
+    
+    // Lookup entity by name
+    entityByName: function(name) {
+        for (var entityId in this.entities) {
+            if (this.entities.hasOwnProperty(entityId)) {
+                if (this.entities[entityId].name == name)
+                    return this.entities[entityId];
+            }
+        }
+        return null;
     },
     
     // Trigger scene-level attribute change signal. Called by Component
@@ -121,5 +136,10 @@ Scene.prototype = {
     // Trigger scene-level entity-action signal. Called by Entity
     emitActionTriggered: function(entity, name, params, execType) {
         this.actionTriggered.dispatch(entity, name, params, execType);
+    },
+    
+    // Trigger scene-level component id change signal. Called by Entity
+    emitComponentIdChanged: function(entity, oldId, newId) {
+        this.componentIdChanged.dispatch(entity, oldId, newId);
     }
 }

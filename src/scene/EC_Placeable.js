@@ -48,3 +48,4 @@ EC_Placeable.prototype.waitParent = function(addedEntity, changeType) {
 }
 
 registerComponent(cComponentTypePlaceable, "Placeable", function(){ return new EC_Placeable(); });
+        
