@@ -1,0 +1,57 @@
+{
+
+	"metadata" :
+	{
+		"formatVersion" : 3.1,
+		"generatedBy"   : "Blender 2.66 Exporter",
+		"vertices"      : 12,
+		"faces"         : 10,
+		"normals"       : 0,
+		"colors"        : 0,
+		"uvs"           : [],
+		"materials"     : 1,
+		"morphTargets"  : 0,
+		"bones"         : 0
+	},
+
+	"scale" : 1.000000,
+
+	"materials" : [	{
+		"DbgColor" : 15658734,
+		"DbgIndex" : 0,
+		"DbgName" : "a.001",
+		"blending" : "NormalBlending",
+		"colorAmbient" : [0.7450285545740805, 0.053357560237609736, 0.053357560237609736],
+		"colorDiffuse" : [0.7450285545740805, 0.053357560237609736, 0.053357560237609736],
+		"colorSpecular" : [0.4656428396701813, 0.04674556106328964, 0.04674556106328964],
+		"depthTest" : true,
+		"depthWrite" : true,
+		"shading" : "Lambert",
+		"specularCoef" : 50,
+		"transparency" : 1.0,
+		"transparent" : false,
+		"vertexColors" : false
+	}],
+
+	"vertices" : [1.27952e-06,-1,1,-1.27951e-06,-1,-0.999999,0.999996,-1,-0.600001,1,-1,0.599999,8.02679e-07,1,1,-6.23865e-07,1,-1,0.999997,1,-0.600001,1,1,0.599999,-0.999996,-1,0.600001,-1,-1,-0.599998,-0.999997,1,0.600001,-1,1,-0.599999],
+
+	"morphTargets" : [],
+
+	"normals" : [],
+
+	"colors" : [],
+
+	"uvs" : [],
+
+	"faces" : [3,0,1,2,3,0,3,4,7,6,5,0,3,1,0,8,9,0,3,1,5,6,2,0,3,2,6,7,3,0,3,4,0,3,7,0,3,8,10,11,9,0,3,5,1,9,11,0,3,4,5,11,10,0,3,0,4,10,8,0],
+
+	"bones" : [],
+
+	"skinIndices" : [],
+
+	"skinWeights" : [],
+
+	"animation" : {}
+
+
+}
