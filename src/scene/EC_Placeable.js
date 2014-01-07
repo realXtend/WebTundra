@@ -22,11 +22,11 @@ EC_Placeable.prototype.checkParent = function(attr, changeType) {
     //console.log(this + " - " + this.parentRef + " : " + attr.id); // + " == " + this.parentRef.id);
     if (this.parentRef && attr.id == this.parentRef.id) {
         var parentRefVal = this.parentRef.value;
-        console.log("parentRefVal: " + parentRefVal);
+        //console.log("parentRefVal: " + parentRefVal);
         if (parentRefVal) {
             var parentEnt = this.parentEntity.parentScene.entityById(parentRefVal);
             if (parentEnt && parentEnt.componentByType(cComponentTypePlaceable)) {
-                console.log("placeable parent was there immediately");
+                //console.log("placeable parent was there immediately");
                 this.parentRefReady.dispatch();
                 //XXX TODO: may break if the parent placeable is not ready yet
                 //if there is a deeper hierarchy with multiple levels of parents
@@ -43,7 +43,7 @@ EC_Placeable.prototype.checkParent = function(attr, changeType) {
 
 EC_Placeable.prototype.waitParent = function(addedEntity, changeType) {
     if (addedEntity.id === this.parentRef.id) {        
-        console.log("placeable parent was there later");
+        //console.log("placeable parent was there later");
         this.parentRefReady.dispatch();
         this.parentEntity.parentScene.entityCreated.remove(this.waitParent);
     }
