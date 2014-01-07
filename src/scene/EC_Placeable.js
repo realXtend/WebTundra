@@ -12,6 +12,8 @@ function EC_Placeable() {
     this.addAttribute(cAttributeString, "parentBone", "Parent bone name");
     
     this.attributeChanged.add(this.checkParent.bind(this));
+
+    this.parentRefReady = new signals.Signal(); 
 }
 
 EC_Placeable.prototype = new Component(cComponentTypePlaceable);
@@ -25,7 +27,7 @@ EC_Placeable.prototype.checkParent = function(attr, changeType) {
             var parentEnt = this.parentEntity.parentScene.entityById(parentRefVal);
             if (parentEnt && parentEnt.componentByType(cComponentTypePlaceable)) {
                 console.log("placeable parent was there immediately");
-                this.componentReady.dispatch();
+                this.parentRefReady.dispatch();
                 //XXX TODO: may break if the parent placeable is not ready yet
                 //if there is a deeper hierarchy with multiple levels of parents
                 //an ugly way to fix would be to add a 'ready' boolean.
@@ -34,7 +36,7 @@ EC_Placeable.prototype.checkParent = function(attr, changeType) {
                 this.parentEntity.parentScene.entityCreated.add(this.waitParent);
             }
         } else {
-            this.componentReady.dispatch();
+            this.parentRefReady.dispatch();
         }
     }
 }               
@@ -42,7 +44,7 @@ EC_Placeable.prototype.checkParent = function(attr, changeType) {
 EC_Placeable.prototype.waitParent = function(addedEntity, changeType) {
     if (addedEntity.id === this.parentRef.id) {        
         console.log("placeable parent was there later");
-        this.componentReady.dispatch();
+        this.parentRefReady.dispatch();
         this.parentEntity.parentScene.entityCreated.remove(this.waitParent);
     }
 }

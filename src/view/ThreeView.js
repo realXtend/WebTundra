@@ -266,8 +266,9 @@ ThreeView.prototype = {
     connectToPlaceable: function(threeObject, placeable) {
         //NOTE: this depends on component handling being done here before the componentReady signal fires
         var thisIsThis = this;
-        placeable.componentReady.add(function() { 
+        placeable.parentRefReady.add(function() { 
             var parent = thisIsThis.parentForPlaceable(placeable);
+            //NOTE: assumes first call -- add removing from prev parent to support live changes! XXX
             parent.add(threeObject);
             thisIsThis.updateFromTransform(threeObject, placeable);
             placeable.attributeChanged.add(function(attr, changeType) {
