@@ -27,7 +27,7 @@ WebTundraModel.prototype = {
 
     connectClient: function(host, port) {
         this.client.connect(host, port, this.loginData);
-    },
+    }
 };
 
 function signalWhenAttributePreconditionOk(
