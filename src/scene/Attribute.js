@@ -102,7 +102,7 @@ function Attribute(typeId) {
 Attribute.prototype = {
     set: function(newValue, changeType) {
         if (newValue != null) {
-	    //TODO: would be good to validate here. as the attributes are typed and all..
+            //TODO: would be good to validate here. as the attributes are typed and all..
             this.valueInternal = newValue;
             if (this.owner)
                 this.owner.emitAttributeChanged(this, changeType);
