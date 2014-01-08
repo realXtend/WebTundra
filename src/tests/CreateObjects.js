@@ -37,9 +37,9 @@ function manipulateEntities() {
     ent.createComponent(0, cComponentTypePlaceable, "");
     var rigidBody = ent.createComponent(0, cComponentTypeRigidBody, "");
     // Modify the "mass" attribute of the rigidbody to make it movable on the server
-    rigidBody.mass.value = 1.0;
+    rigidBody.mass = 1.0;
     // Also give it a valid (nonzero) size
-    rigidBody.size.value = { x: 1.0, y: 1.0, z: 1.0 };
+    rigidBody.size = { x: 1.0, y: 1.0, z: 1.0 };
 
     // Create a dynamic component to the third entity
     ent = scene.entityByName("Entity3");
@@ -72,7 +72,7 @@ function manipulateEntities2() {
     // Manipulate the rigidbody component in Entity2
     ent = scene.entityByName("Entity2");
     var rigidBody = ent.rigidBody;
-    rigidBody.size.value = { x: 2.0, y: 2.0, z: 2.0 };
+    rigidBody.size = { x: 2.0, y: 2.0, z: 2.0 };
 
     ent = scene.entityByName("Entity4");
     ent.removeComponent(ent.componentByType(cComponentTypePlaceable).id);

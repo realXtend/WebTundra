@@ -115,7 +115,7 @@ ThreeView.prototype = {
             //console.log("removed old mesh on mesh attr change", changedAttr);
         }
 
-        var url = meshComp.meshRef.value.ref;
+        var url = meshComp.meshRef.ref;
                  
         url = url.replace(/\.mesh$/i, ".json");
 
@@ -133,7 +133,7 @@ ThreeView.prototype = {
         var onMeshAttributeChanged = function(changedAttr, changeType) {
             if (changedAttr.id != "meshRef")
                 return;
-            //console.log("onMeshAddedOrChanged due to attributeChanged ->", changedAttr.value.ref);
+            //console.log("onMeshAddedOrChanged due to attributeChanged ->", changedAttr.ref);
             thisIsThis.onMeshAddedOrChanged(threeGroup, meshComp);
         };
         meshComp.attributeChanged.remove(onMeshAttributeChanged);
@@ -148,7 +148,7 @@ ThreeView.prototype = {
         checkDefined(geometry, material, meshComp, threeParent);
         checkDefined(meshComp.parentEntity);
         check(threeParent.userData.entityId === meshComp.parentEntity.id);
-        // console.log("Mesh loaded:", meshComp.meshRef.value.ref, "- adding to o3d of entity "+ threeParent.userData.entityId);
+        // console.log("Mesh loaded:", meshComp.meshRef.ref, "- adding to o3d of entity "+ threeParent.userData.entityId);
         checkDefined(threeParent, meshComp, geometry, material);
         var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(material));
         meshComp.threeMesh = mesh;
@@ -184,20 +184,20 @@ ThreeView.prototype = {
             // console.log("removed existing light");
             threeGroup.remove(prevThreeLight);
         }
-        if (lightComp.type.value != LT_Point) {
-            console.log("not implemented: light type " + lightComp.type.value);
+        if (lightComp.type != LT_Point) {
+            console.log("not implemented: light type " + lightComp.type);
             return;
         }
         var threeColor = THREE.Color();
         /* for story about diffuse color and Three, see
            https://github.com/mrdoob/three.js/issues/1595 */
         lightComp.threeLight = new THREE.PointLight(threeColor,
-                                          lightComp.brightness.value,
-                                          lightComp.range.value);
+                                          lightComp.brightness,
+                                          lightComp.range);
         threeGroup.add(lightComp.threeLight);
         var thisIsThis = this;
         var onLightAttributeChanged = function(changedAttr, changeType) {
-            //console.log("onLightAddedOrChanged due to attributeChanged ->", changedAttr.value.ref);
+            //console.log("onLightAddedOrChanged due to attributeChanged ->", changedAttr.ref);
             var id = changedAttr.id;
             if (id === "range" || id === "brightness" ||
                 id === "diffuseColor" || id === "type")
@@ -214,18 +214,18 @@ ThreeView.prototype = {
             threeGroup.remove(prevThreeCamera);
         }
         console.log("make camera");
-        var threeAspectRatio = cameraComp.aspectRatio.value;
+        var threeAspectRatio = cameraComp.aspectRatio;
         if (threeAspectRatio === "")
             threeAspectRatio = 1.0;
         cameraComp.threeCamera = new THREE.PerspectiveCamera(
-            cameraComp.verticalFov.value, threeAspectRatio,
-            cameraComp.nearPlane.value, cameraComp.farPlane.value);
+            cameraComp.verticalFov, threeAspectRatio,
+            cameraComp.nearPlane, cameraComp.farPlane);
        
         this.camera = cameraComp.threeCamera;
         threeGroup.add(cameraComp.threeCamera);
         var thisIsThis = this;
         var onCameraAttributeChanged = function(changedAttr, changeType) {
-            //console.log("onCameraAddedOrChanged due to attributeChanged ->", changedAttr.value.ref);
+            //console.log("onCameraAddedOrChanged due to attributeChanged ->", changedAttr.ref);
             var id = changedAttr.id;
             if (id === "aspectRatio" || id === "verticalFov" ||
                 id === "nearPlane" || id === "farPlane")
@@ -255,7 +255,7 @@ ThreeView.prototype = {
 
     updateFromTransform: function(threeMesh, placeable) {
         checkDefined(placeable, threeMesh);
-        var ptv = placeable.transform.value;
+        var ptv = placeable.transform;
         
         this.copyXyz(ptv.pos, threeMesh.position);
         this.copyXyz(ptv.scale, threeMesh.scale);
@@ -279,8 +279,8 @@ ThreeView.prototype = {
 
     parentForPlaceable: function(placeable) {
         var parent;
-        if (placeable.parentRef.value) {
-            var parentOb = this.o3dByEntityId[placeable.parentRef.value];
+        if (placeable.parentRef) {
+            var parentOb = this.o3dByEntityId[placeable.parentRef];
             if (!parentOb) {
                 console.log("ThreeView parentForPlaceable ERROR: adding object but parent not there yet -- even though this is called only after the parent was reported being there in the EC scene data. Falling back to add to scene.");
                 parent = this.scene;

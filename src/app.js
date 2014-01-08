@@ -69,10 +69,10 @@ Application.prototype = {
             this.testEntities.push(ent);
             var placeable = ent.createComponent("placeable", "Placeable", "");
             var mesh = ent.createComponent("mesh", "Mesh", "placeable");
-            placeable.transform.value.pos.x = i * 150;
-            placeable.transform.value.pos.y = 150;
+            placeable.transform.pos.x = i * 150;
+            placeable.transform.pos.y = 150;
 
-            setXyz(placeable.transform.value.scale, 1, 1, 1);
+            setXyz(placeable.transform.scale, 1, 1, 1);
             mesh.meshRef.ref = "http://kek";
         }
     },
@@ -122,8 +122,8 @@ Application.prototype = {
         for (var i = 0; i < this.testEntities.length; i++) {
             var ent = this.testEntities[i];
             checkDefined(ent);
-            ent.components.placeable.transform.value.pos.y += posIncrement;
-            ent.components.placeable.transform.value.rot.y += 0.01;
+            ent.components.placeable.transform.pos.y += posIncrement;
+            ent.components.placeable.transform.rot.y += 0.01;
         }
     },
 

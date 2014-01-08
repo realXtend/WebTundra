@@ -30,8 +30,15 @@ Component.prototype = {
             this.attributes.push(newAttr);
             // Register direct named access
             var propName = sanitatePropertyName(id);
-            if (this[propName] === undefined)
-                this[propName] = newAttr;
+            //based on http://stackoverflow.com/questions/1894792/determining-if-a-javascript-object-has-a-given-property
+            //instead of hasOwnProperty to not create confusion if someone creates an EC called 'prototype' or so.
+            if (!(propName in this)) {
+                Object.defineProperty(this, propName, 
+                                      {get: function() { return newAttr.value; },
+                                       set: function(changedVal) { newAttr.value = changedVal; },
+                                       enumerable : true,
+                                       configurable : true}); //allows deleting the prop
+            }
             return newAttr;
         }
         else
