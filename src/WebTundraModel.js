@@ -6,6 +6,8 @@
  */
 /* jslint browser: true, globalstrict: true, devel: true, debug: true */
 /* global THREE, THREEx, signals */
+/* global WebSocketClient, Scene, SyncManager */
+/* global EC_Mesh, EC_Placeable, EC_Light, EC_Camera */
 /* global cComponentTypePlaceable, cComponentTypeMesh, componentTypeIds */
 
 var scene = null; // for networking code
