@@ -27,7 +27,7 @@ function finishTest() {
         var placeable = ent.placeable;
         if (rigidBody && placeable) {
             console.log("PASS: Entity2 has RigidBody and Placeable components");
-            if (rigidBody.size.value.x > 1.0 && rigidBody.size.value.y > 1.0 && rigidBody.size.value.z > 1.0)
+            if (rigidBody.size.x > 1.0 && rigidBody.size.y > 1.0 && rigidBody.size.z > 1.0)
                 console.log("PASS: RigidBody size has been modified to be larger than 1x1x1");
             else
                 console.log("FAIL: RigidBody size attribute is wrong");
