@@ -20,8 +20,8 @@ EC_Placeable.prototype = new Component(cComponentTypePlaceable);
 
 EC_Placeable.prototype.checkParent = function(attr, changeType) {
     //console.log(this + " - " + this.parentRef + " : " + attr.id); // + " == " + this.parentRef.id);
-    if (this.parentRef && attr.id == this.parentRef.id) {
-        //console.log("parentRef: " + parentRef);
+    if (attr.id == "parentRef") {
+        //console.log("parentRef: " + this.parentRef);
         if (this.parentRef) {
             var parentEnt = this.parentEntity.parentScene.entityById(this.parentRef);
             if (parentEnt && parentEnt.componentByType(cComponentTypePlaceable)) {
