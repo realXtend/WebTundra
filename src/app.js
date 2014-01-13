@@ -45,6 +45,7 @@ Application.prototype = {
         this.dataConnection.client.connected.add(this.onConnected.bind(this));
         this.dataConnection.client.disconnected.add(this.onDisconnected.bind(this));
         this.dataConnection.scene.componentAdded.add(this.viewer.onComponentAdded.bind(this.viewer));
+        this.dataConnection.scene.componentRemoved.add(this.viewer.onComponentRemoved.bind(this.viewer));
         this.dataConnection.scene.attributeChanged.add(this.viewer.onComponentAdded.bind(this.viewer));
 
         // CONTROLS

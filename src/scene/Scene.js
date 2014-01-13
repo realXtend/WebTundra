@@ -1,3 +1,4 @@
+"use strict";
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 function Scene() {
@@ -54,8 +55,10 @@ Scene.prototype = {
 
             if (changeType == null || changeType == AttributeChange.Default)
                 changeType = entity.local ? AttributeChange.LocalOnly : AttributeChange.Replicate;
-            if (changeType != AttributeChange.Disconnected)
+            if (changeType != AttributeChange.Disconnected) {
                 this.entityRemoved.dispatch(entity, changeType);
+                entity.removeAllComponents(changeType);
+            }
         }
         else
             console.log("Entity id " + id + " does not exist in scene, can not remove");
@@ -142,4 +145,4 @@ Scene.prototype = {
     emitComponentIdChanged: function(entity, oldId, newId) {
         this.componentIdChanged.dispatch(entity, oldId, newId);
     }
-}
+};

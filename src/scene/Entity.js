@@ -1,3 +1,5 @@
+"use strict";
+
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 var cExecTypeLocal = 1;
@@ -86,6 +88,12 @@ Entity.prototype = {
             console.log("Component id " + id + " in entity " + this.id + " does not exist, can not remove");
     },
 
+    removeAllComponents: function(changeType) {
+        for (var compId in this.components) {
+            this.removeComponent(compId, changeType);
+        }
+    },
+
     triggerAction: function(name, params, execType) {
         if (execType == null)
             execType = cExecTypeLocal;
@@ -164,4 +172,4 @@ Entity.prototype = {
         var nameAttr = nameComp.attributeById("name");
         nameAttr.value = value;
     }
-}
+};
