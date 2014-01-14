@@ -108,7 +108,7 @@ WebSocketClient.prototype = {
             this.messageReceived.remove(this.onMessageReceived, this);
             var success = dd.readU8();
             if (success > 0) {
-                this.userID = dd.readU32(); /// \todo Native client protocol uses VLE
+                this.userID = dd.readVLE();
                 this.loginReply = JSON.parse(dd.readStringU16()); /// \todo Should use UTF8-encoding
                 this.loginReplyReceived.dispatch();
             }
