@@ -7,6 +7,7 @@
  */
 
 var useSignals = true;
+var useOrbitalControls = false;
 
 function Application(dataConnection, viewer) {
     this.keyboard = new THREEx.KeyboardState();
@@ -15,30 +16,28 @@ function Application(dataConnection, viewer) {
     // SCENE
     this.scene = new THREE.Scene();
 
-    // Camera
-    var SCREEN_WIDTH = window.innerWidth,
-    SCREEN_HEIGHT = window.innerHeight;
-    var VIEW_ANGLE = 45,
-    ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT,
-    NEAR = 0.1,
-    FAR = 20000;
-    this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
-    this.scene.add(this.camera);
-    this.camera.position.set(0, 300, 100); // (0, 1000, -375);
-    this.camera.lookAt(this.scene.position);
-
     // VIEWER
-    this.viewer = new ThreeView(this.scene, this.camera);
+    this.viewer = new ThreeView(this.scene);
 
     // MODEL
     this.dataConnection = new WebTundraModel(this);
 
-    this.dataConnection.scene.componentAdded.add(this.viewer.onComponentAdded.bind(this.viewer));
-    this.dataConnection.scene.attributeChanged.add(this.viewer.onComponentAdded.bind(this.viewer));
+    this.dataConnection.scene.componentAdded.add(this.viewer.onComponentAddedOrChanged.bind(this.viewer));
 
-    // CONTROLS
-    this.controls = new THREE.OrbitControls(this.camera, this.viewer.renderer.domElement);
-    this.controls.userZoom = true;
+    // an alternative to hooking per component attributeChanged signals,
+    // would simplify business registering/unregistering handlers in
+    // component lifetime mgmt.
+
+    // this.dataConnection.scene.attributeChanged.add(function(comp, attr, ctype) {
+    //     console.log("attr change triggered onComponentAddedOrChanged call");
+    //     this.onComponentAddedOrChanged(comp.parentEntity, comp, ctype, attr);
+    // }.bind(this.viewer));
+
+    if (useOrbitalControls) {
+        // CONTROLS
+        this.controls = new THREE.OrbitControls(this.camera, this.viewer.renderer.domElement);
+        this.controls.userZoom = true;
+    }
 }
 
 Application.prototype = {
@@ -59,13 +58,13 @@ Application.prototype = {
         if (!useSignals)
             this.dataToViewerUpdate();
 
-        this.controls.update();
+        if (useOrbitalControls)
+            this.controls.update();
         this.viewer.stats.update();
 
-        var scope = this;
         requestAnimationFrame(function() {
-            scope.update();
-        });
+            this.update();
+        }.bind(this));
 
         this.viewer.render();
         this.frameCount++;
