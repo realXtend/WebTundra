@@ -32,6 +32,7 @@ SceneParser.prototype.parseFromUrlXml3D = function(url) {
     var xhttp = new XMLHttpRequest();
     //xhttp.overrideMimeType('text/xml');
     xhttp.responseType = "document";
+    check(typeof(url) === "string");
     xhttp.open("GET", url, false);
     xhttp.send(null);
     var doc = xhttp.response;
@@ -124,7 +125,7 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
         var q = xyzAngleToQuaternion(nums);
         euler.setFromQuaternion(q);
         copyXyzMapped(euler, xfrmRot, radToDeg);
-        console.log("quat:", q, "euler:", euler);
+        //console.log("quat:", q, "euler:", euler);
     }; 
 
     var x3Nodes = doc.getElementsByTagName("xml3d");
@@ -161,11 +162,11 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
                 console.log("incomplete transform " + transformId);
                 return;
             }
-            var px = placeable.transform.value;
+            var px = placeable.transform;
             splitToXyz(trans, px.pos);
             splitAxisAngleToEulerXyz(rot, px.rot);
             splitToXyz(scale, px.scale);
-            placeable.transform.value = px; // trigger signals
+            placeable.transform = px; // trigger signals
             console.log("pos for transform x=" + px.pos.x);
         }
     };
@@ -198,7 +199,7 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
             var meshName = xmesh.getAttribute("id") || groupId;
             var ecmesh = entity.createComponent(0, cComponentTypeMesh, meshName,
                                                 AttributeChange.LocalOnly);
-            ecmesh.meshRef.value = { ref: src };
+            ecmesh.meshRef = { ref: src };
             console.log("made mesh for id " + meshName);
         } else {
             console.log("no meshes in group " + i);
@@ -231,19 +232,19 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
         var placeable = camEntity.createComponent(0, cComponentTypePlaceable,
                                                "", AttributeChange.LocalOnly);
         ecCamera = camEntity.createComponent(0, cComponentTypeCamera, viewId || "camera", AttributeChange.LocalOnly);
-        var px = placeable.transform.value;
+        var px = placeable.transform;
         if (viewPosition) {
-            console.log("have view pos");
+            //console.log("have view pos");
             splitToXyz(viewPosition, px.pos);
          }
         if (viewOrientation) {
             console.log("viewOrientation conversion " + viewOrientation);
             splitAxisAngleToEulerXyz(viewOrientation, px.rot);
-            console.log("have view orientation, x=" + px.rot.x);
+            //console.log("have view orientation, x=" + px.rot.x);
         }
-        ecCamera.aspectRatio.value = ecCamera.aspectRatio.value;
+        ecCamera.aspectRatio = ecCamera.aspectRatio;
         placeable.debug = true;
-        placeable.transform.value = px; // trigger signal
+        placeable.transform = px; // trigger signal
         console.log("groupless camera added to entity " + entity.id);
         
     }

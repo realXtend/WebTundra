@@ -32,7 +32,6 @@ Application.prototype = {
 
         // CAMERA
         // moved to ThreeView
-        
 
         // VIEWER
         this.viewer = new ThreeView(this.scene);
@@ -42,7 +41,7 @@ Application.prototype = {
         this.dataConnection = new WebTundraModel(this);
         this.dataConnection.client.connected.add(this.onConnected.bind(this));
         this.dataConnection.client.disconnected.add(this.onDisconnected.bind(this));
-        this.dataConnection.scene.componentAdded.add(this.viewer.onComponentAdded.bind(this.viewer));
+        this.dataConnection.scene.componentAdded.add(this.viewer.onComponentAddedOrChanged.bind(this.viewer));
         this.dataConnection.scene.componentRemoved.add(this.viewer.onComponentRemoved.bind(this.viewer));
 
         // an alternative to hooking per component attributeChanged signals,
@@ -77,10 +76,10 @@ Application.prototype = {
             this.testEntities.push(ent);
             var placeable = ent.createComponent("placeable", "Placeable", "");
             var mesh = ent.createComponent("mesh", "Mesh", "placeable");
-            placeable.transform.value.pos.x = i * 150;
-            placeable.transform.value.pos.y = 150;
+            placeable.transform.pos.x = i * 150;
+            placeable.transform.pos.y = 150;
 
-            setXyz(placeable.transform.value.scale, 1, 1, 1);
+            setXyz(placeable.transform.scale, 1, 1, 1);
             mesh.meshRef.ref = "http://kek";
         }
     },
@@ -93,6 +92,11 @@ Application.prototype = {
     onConnected: function() {
         console.log("connected");
         this.connected = true;
+    },
+
+    onDisconnected: function() {
+        console.log("disconnected");
+        this.connected = false;
     },
 
     update: function() {

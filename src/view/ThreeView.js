@@ -277,22 +277,22 @@ ThreeView.prototype = {
         var prevThreeCamera = cameraComp.threeCamera;
         if (prevThreeCamera) {
             threeGroup.remove(prevThreeCamera);
-            //console.log("removed existing camera");
+            console.log("removing previous camera");
         }
         console.log("make camera");
         var threeAspectRatio = cameraComp.aspectRatio;
         if (threeAspectRatio === "")
             threeAspectRatio = 1.0;
-        var px = cameraComp.parentEntity.placeable.transform.value;
+        var px = cameraComp.parentEntity.placeable.transform;
         checkDefined(px);
         //console.log("camera rot from placeable x=" + px.rot.x);
-        this.camera = cameraComp.threeCamera;
-        //console.log("switched main camera to this one");
         cameraComp.threeCamera = new THREE.PerspectiveCamera(
             cameraComp.verticalFov, threeAspectRatio,
             cameraComp.nearPlane, cameraComp.farPlane);
         copyXyz(px.rot, cameraComp.threeCamera.rotation);
         copyXyz(px.pos, cameraComp.threeCamera.position);
+        this.camera = cameraComp.threeCamera;
+        //console.log("switched main camera to this one (o3d id" + cameraComp.threeCamera.id + ")");
         //console.log("copied camera pos/rot from placeable");
         if (parentCameraToScene)
             this.scene.add(cameraComp.threeCamera);
@@ -314,9 +314,10 @@ ThreeView.prototype = {
         cameraComp.attributeChanged.add(onCameraAttributeChanged);
 
         this.connectToPlaceable(cameraComp.threeCamera, cameraComp.parentEntity.placeable);
+        console.log("camera (o3d id " + cameraComp.threeCamera.id + ", entity id" + cameraComp.parentEntity.id + ") connected to placeable");
 
         // var onPlaceableAttributeChanged = function(changedAttr, changeType) {
-        //     //console.log("onPlaceableAddedOrChanged due to attributeChanged ->", changedAttr.value.ref);
+        //     //console.log("onPlaceableAddedOrChanged due to attributeChanged ->", changedAttr.ref);
         //     var id = changedAttr.id;
         //     if (id === "aspectRatio" || id === "verticalFov" ||
         //         id === "nearPlane" || id === "farPlane")
@@ -347,6 +348,9 @@ ThreeView.prototype = {
 
     connectToPlaceable: function(threeObject, placeable) {
         this.updateFromTransform(threeObject, placeable);
+        if (placeable.debug)
+            console.log("connect o3d " + threeObject.id + " to placeable - pl x " + placeable.transform.pos.x + " o3d x " + threeObject.position.x + " o3d parent x " + threeObject.parent.position.x);
+        
         //NOTE: this depends on component handling being done here before the componentReady signal fires
         var thisIsThis = this;
         placeable.parentRefReady.add(function() {
@@ -379,7 +383,7 @@ ThreeView.prototype = {
 };
 
 EC_Placeable.prototype.toString = function() {
-    var t = this.transform.value;
+    var t = this.transform;
     return "[Placeable pos:" + t.pos.x + " " + t.pos.y + " " + t.pos.z + ", rot:" + t.rot.x + " " + t.rot.y + " " + t.rot.z + ", scale:" + t.scale.x + " " + t.scale.y + " " + t.scale.z + "]";
 };
 

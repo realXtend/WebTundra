@@ -10,17 +10,11 @@
 
 var app = new Application();
 
-var host = "localhost"; // IP to the Tundra server
+var host = "localhost"; // hostname of the Tundra server
 var port = 2345; // and port to the server
 
 app.start();
 app.connect(host, port);
-
-function loadXml3d() {
-    var url = "xml3d-suzanne.html";
-    var parser = new SceneParser(app.dataConnection);
-    parser.parseFromUrlXml3D(url);
-}
 
 function checkSceneCondition(condition) {
     var range = condition.entityRangePresent;
