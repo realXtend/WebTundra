@@ -63,7 +63,6 @@ Application.prototype = {
     start: function() {
         this.init();
         this.logicInit();
-        this.dataConnection.connectClient();
         this.frameCount = 0;
         this.update();
     },
@@ -99,7 +98,7 @@ Application.prototype = {
     update: function() {
         var delta = this.clock.getDelta(); // seconds
 
-        this.logicUpdate();
+        this.logicUpdate(delta);
         if (!useSignals)
             this.dataToViewerUpdate();
 
@@ -126,8 +125,8 @@ Application.prototype = {
         for (var i = 0; i < this.testEntities.length; i++) {
             var ent = this.testEntities[i];
             checkDefined(ent);
-            ent.components.placeable.transform.value.pos.y += posIncrement;
-            ent.components.placeable.transform.value.rot.y += 0.01;
+            ent.components.placeable.transform.pos.y += posIncrement;
+            ent.components.placeable.transform.rot.y += 0.01;
         }
     },
 
@@ -168,7 +167,7 @@ function checkDefined() {
             if (debugOnCheckFail) {
                 debugger;
             } else {
-                throw("undefined value, arg #" + i);
+                throw ("undefined value, arg #" + i);
             }
         }
     }
@@ -180,7 +179,7 @@ function check() {
             if (debugOnCheckFail) {
                 debugger;
             } else {
-                throw("untrue value" + arguments[i] + ", arg #" + i);
+                throw ("untrue value" + arguments[i] + ", arg #" + i);
             }
 }
 

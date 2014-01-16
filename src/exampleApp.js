@@ -9,9 +9,12 @@
  */
 
 var app = new Application();
-app.dataConnection.host = "localhost";
-loadXml3d();
+
+var host = "localhost"; // IP to the Tundra server
+var port = 2345; // and port to the server
+
 app.start();
+app.connect(host, port);
 
 function loadXml3d() {
     var url = "xml3d-suzanne.html";
@@ -38,7 +41,6 @@ function checkSceneCondition(condition) {
             check(o3d.children.length > 0);
         }
     }
-
 }
 
 function checkPhysics2() {

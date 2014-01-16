@@ -1,6 +1,7 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 var cLoginMessage = 100;
+var cLoginReply = 101;
 
 function WebSocketClient() {
     this.webSocket = null;
@@ -8,7 +9,10 @@ function WebSocketClient() {
     this.connected = new signals.Signal();
     this.disconnected = new signals.Signal();
     this.messageReceived = new signals.Signal();
+    this.loginReplyReceived = new signals.Signal();
     this.loginData = null;
+    this.userID = 0;
+    this.loginReplyData = null;
 }
 
 WebSocketClient.prototype = {
@@ -17,6 +21,11 @@ WebSocketClient.prototype = {
         this.url = "ws://" + host + ":" + port;
         if (loginData != null)
             this.loginData = loginData;
+        this.userID = 0;
+        this.loginReplyData = null;
+
+        this.connected.add(this.onConnect, this);
+        this.messageReceived.add(this.onMessageReceived, this); // For handling LoginReply
 
         try {
             if (window.WebSocket)
@@ -52,8 +61,6 @@ WebSocketClient.prototype = {
         this.webSocket.onerror = function(evt) {
             /// \todo Error reporting
         }.bind(this);
-        
-        this.connected.add(this.onConnect, this);
 
         /// \todo use keepalive-timer to avoid disconnection if connection idle for a long time
         return true;
@@ -92,6 +99,24 @@ WebSocketClient.prototype = {
             var loginText = JSON.stringify(this.loginData);
             ds.addUtf8String(loginText);
             this.endAndQueueMessage(ds);
+        }
+    },
+
+    onMessageReceived : function(msgId, dd) {
+        if (msgId == cLoginReply) {
+            // Do not need to intercept further events
+            this.messageReceived.remove(this.onMessageReceived, this);
+            var success = dd.readU8();
+            if (success > 0) {
+                this.userID = dd.readVLE();
+                this.loginReply = JSON.parse(dd.readStringU16()); /// \todo Should use UTF8-encoding
+                this.loginReplyReceived.dispatch();
+            }
+            else {
+                console.log("Received login failure reply, disconnecting");
+                this.disconnect();
+            }
+            dd.resetTraversal(); // Reset deserializer in case others want to read the message
         }
     }
 }
