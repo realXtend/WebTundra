@@ -1,3 +1,10 @@
+"use strict";
+/* jslint browser: true, globalstrict: true, devel: true, debug: true */
+/* global requestAnimationFrame */
+/* global ThreeView, WebTundraModel */
+/* global EC_Mesh, EC_Placeable */
+/* global THREE, THREEx, signals, Stats, Detector */
+
 // For conditions of distribution and use, see copyright notice in LICENSE
 /*
  *      @author Tapani Jamsa
@@ -6,49 +13,87 @@
  *      Date: 2013
  */
 
-var useSignals = true;
+var useSignals = true; // todo: remove (along with EC_* refs in jslint settings)
 var useOrbitalControls = false;
 
-function Application(dataConnection, viewer) {
-    this.keyboard = new THREEx.KeyboardState();
-    this.clock = new THREE.Clock();
-
-    // SCENE
-    this.scene = new THREE.Scene();
-
-    // VIEWER
-    this.viewer = new ThreeView(this.scene);
-
-    // MODEL
-    this.dataConnection = new WebTundraModel(this);
-
-    this.dataConnection.scene.componentAdded.add(this.viewer.onComponentAddedOrChanged.bind(this.viewer));
-
-    // an alternative to hooking per component attributeChanged signals,
-    // would simplify business registering/unregistering handlers in
-    // component lifetime mgmt.
-
-    // this.dataConnection.scene.attributeChanged.add(function(comp, attr, ctype) {
-    //     console.log("attr change triggered onComponentAddedOrChanged call");
-    //     this.onComponentAddedOrChanged(comp.parentEntity, comp, ctype, attr);
-    // }.bind(this.viewer));
-
-    if (useOrbitalControls) {
-        // CONTROLS
-        this.controls = new THREE.OrbitControls(this.camera, this.viewer.renderer.domElement);
-        this.controls.userZoom = true;
-    }
+function Application() {
 }
 
 Application.prototype = {
 
     constructor: Application,
 
+    init: function() {
+        this.keyboard = new THREEx.KeyboardState();
+        this.clock = new THREE.Clock();
+
+        // SCENE
+        this.scene = new THREE.Scene();
+
+        // CAMERA
+        // moved to ThreeView
+        
+
+        // VIEWER
+        this.viewer = new ThreeView(this.scene);
+
+        // MODEL
+        this.connected = false;
+        this.dataConnection = new WebTundraModel(this);
+        this.dataConnection.client.connected.add(this.onConnected.bind(this));
+        this.dataConnection.client.disconnected.add(this.onDisconnected.bind(this));
+        this.dataConnection.scene.componentAdded.add(this.viewer.onComponentAdded.bind(this.viewer));
+        this.dataConnection.scene.componentRemoved.add(this.viewer.onComponentRemoved.bind(this.viewer));
+
+        // an alternative to hooking per component attributeChanged signals,
+        // would simplify business registering/unregistering handlers in
+        // component lifetime mgmt:
+        //
+        // this.dataConnection.scene.attributeChanged.add(function(comp, attr, ctype) {
+        //     this.onComponentAddedOrChanged(comp.parentEntity, comp, ctype, attr);
+        // }.bind(this.viewer));
+
+        if (useOrbitalControls) {
+            // CONTROLS
+            this.controls = new THREE.OrbitControls(this.camera, this.viewer.renderer.domElement);
+            this.controls.userZoom = true;
+        }
+    },
+
     start: function() {
-        this.dataConnection.connectClient();
+        this.init();
         this.logicInit();
+        this.dataConnection.connectClient();
         this.frameCount = 0;
         this.update();
+    },
+
+    logicInit: function() {
+        this.cubeCount = 0;
+        var scene = this.dataConnection.scene;
+        this.testEntities = [];
+        console.log("in makeEntities");
+        for (var i = 0; i < this.cubeCount; i++) {
+            var ent = scene.createEntity(i + 1000);
+            this.testEntities.push(ent);
+            var placeable = ent.createComponent("placeable", "Placeable", "");
+            var mesh = ent.createComponent("mesh", "Mesh", "placeable");
+            placeable.transform.value.pos.x = i * 150;
+            placeable.transform.value.pos.y = 150;
+
+            setXyz(placeable.transform.value.scale, 1, 1, 1);
+            mesh.meshRef.ref = "http://kek";
+        }
+    },
+
+    connect: function(host, port) {
+        console.log("connect");
+        this.dataConnection.connectClient(host, port);
+    },
+
+    onConnected: function() {
+        console.log("connected");
+        this.connected = true;
     },
 
     update: function() {
@@ -113,23 +158,6 @@ Application.prototype = {
         }
     },
 
-    logicInit: function() {
-        this.cubeCount = 0;
-        var scene = this.dataConnection.scene;
-        this.testEntities = [];
-        console.log("in makeEntities");
-        for (var i = 0; i < this.cubeCount; i++) {
-            var ent = scene.createEntity(i + 1000);
-            this.testEntities.push(ent);
-            var placeable = ent.createComponent("placeable", "Placeable", "");
-            var mesh = ent.createComponent("mesh", "Mesh", "placeable");
-            placeable.transform.value.pos.x = i * 150;
-            placeable.transform.value.pos.y = 150;
-
-            setXyz(placeable.transform.value.scale, 1, 1, 1);
-            mesh.meshRef.ref = "http://kek";
-        }
-    }
 };
 
 var debugOnCheckFail = true;
