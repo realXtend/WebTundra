@@ -31,7 +31,6 @@ SceneParser.prototype.parseFromUrlXml3D = function(url) {
     // console.log("________________________________________" );
     var xhttp = new XMLHttpRequest();
     //xhttp.overrideMimeType('text/xml');
-    xhttp.responseType = "document";
     check(typeof(url) === "string");
 
     xhttp.onreadystatechange = function() {
@@ -45,6 +44,7 @@ SceneParser.prototype.parseFromUrlXml3D = function(url) {
     }.bind(this);
 
     xhttp.open("GET", url, true);
+    xhttp.responseType = "document";
     xhttp.send(null);
 };
 
