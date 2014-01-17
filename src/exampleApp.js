@@ -10,12 +10,11 @@
 
 var app = new Application();
 
-var host = "localhost"; // IP to the Tundra server
+var host = "localhost"; // hostname of the Tundra server
 var port = 2345; // and port to the server
 
 app.start();
-
-app.connect(host,port)
+app.connect(host, port);
 
 function checkSceneCondition(condition) {
     var range = condition.entityRangePresent;
