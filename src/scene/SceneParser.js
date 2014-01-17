@@ -1,4 +1,4 @@
-/* jslint browser: true, globalstrict: true, devel: true, debug: true /
+/* jslint browser: true, globalstrict: true, devel: true, debug: true */
 
 // For conditions of distribution and use, see copyright notice in LICENSE
 
@@ -33,11 +33,19 @@ SceneParser.prototype.parseFromUrlXml3D = function(url) {
     //xhttp.overrideMimeType('text/xml');
     xhttp.responseType = "document";
     check(typeof(url) === "string");
-    xhttp.open("GET", url, false);
+
+    xhttp.onreadystatechange = function() {
+        if (xhttp.readyState == 4) {
+            if (xhttp.status == 200) {
+                var doc = xhttp.response;
+                check(doc !== null);
+                this.parseDocXml3D(doc);
+            }
+        }
+    }.bind(this);
+
+    xhttp.open("GET", url, true);
     xhttp.send(null);
-    var doc = xhttp.response;
-    check(doc !== null);
-    return this.parseDocXml3D(doc);
 };
 
 SceneParser.prototype.parseFromString = function(xmlstring) {
