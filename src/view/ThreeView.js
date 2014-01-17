@@ -10,13 +10,27 @@
  *      @author Tapani Jamsa
  */
 
-function ThreeView(scene, camera) {
+var useCubes = false;
+var parentCameraToScene = true;
+
+function ThreeView(scene) {
     this.o3dByEntityId = {}; // Three.Object3d's that correspond to Placeables and have Meshes etc as children
     this.pendingLoads = {};
 
     // SCENE
     this.scene = scene;
-    this.camera = camera;
+
+    // Default camera
+    var SCREEN_WIDTH = window.innerWidth,
+    SCREEN_HEIGHT = window.innerHeight;
+    var VIEW_ANGLE = 45,
+    ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT,
+    NEAR = 0.1,
+    FAR = 20000;
+    this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
+    this.scene.add(this.camera);
+    this.camera.position.set(0, 300, 100); // (0, 1000, -375);
+    this.camera.lookAt(this.scene.position);
 
     // STATS
     this.stats = new Stats();
@@ -44,6 +58,14 @@ function ThreeView(scene, camera) {
     this.container.appendChild(this.stats.domElement);
     this.container.appendChild(this.renderer.domElement);
     document.body.appendChild(this.container);
+
+    // LIGHT, GEOMETRY AND MATERIAL
+    this.cubeGeometry = new THREE.CubeGeometry( 2,2, 2 );
+    this.wireframeMaterial = new THREE.MeshBasicMaterial({
+        color: 0x00ee00,
+        wireframe: true,
+        transparent: true
+    });
 
     // PROJECTOR
     this.projector = new THREE.Projector();
@@ -76,35 +98,41 @@ ThreeView.prototype = {
         this.renderer.render(this.scene, this.camera);
     },
 
-    onComponentAdded: function(entity, component) {
+    onComponentAddedOrChanged: function(entity, component) {
         try {
-            return this.onComponentAddedInternal(entity, component);
+            return this.onComponentAddedOrChangedInternal(entity, component);
         } catch (e) {
             debugger;
         }
     },
-    onComponentAddedInternal: function(entity, component) {
-        checkDefined(component, entity);
+    onComponentAddedOrChangedInternal: function(entity, component, changeType, changedAttr) {
+        check(component instanceof Component);
+        check(entity instanceof Entity);
         var threeGroup = this.o3dByEntityId[entity.id];
         var isNewEntity = false;
-        if (!threeGroup) {
+        if(!threeGroup) {
+            check(entity.id > 0);
             this.o3dByEntityId[entity.id] = threeGroup = new THREE.Object3D();
+            //console.log("created new o3d group id=" + threeGroup.id);
+            this.scene.add(threeGroup);
             isNewEntity = true;
             threeGroup.userData.entityId = entity.id;
             //console.log("registered o3d for entity", entity.id);
+        } else {
+            //console.log("got cached o3d group " + threeGroup.id + " for entity " + entity.id);
         }
-
+        
         if (component instanceof EC_Placeable)
             this.connectToPlaceable(threeGroup, component);
         else if (component instanceof EC_Mesh) {
-            //console.log("mesh added for o3d", threeGroup.userData.entityId);
+            // console.log("mesh changed or added for o3d " + threeGroup.userData.entityId);
             this.onMeshAddedOrChanged(threeGroup, component);
         } else if (component instanceof EC_Camera)
             this.onCameraAddedOrChanged(threeGroup, component);
         else if (component instanceof EC_Light)
             this.onLightAddedOrChanged(threeGroup, component);
         else
-            2 > 1;
+            console.log("Component not handled by ThreeView:", entity, component);
     },
 
     onComponentRemoved: function(entity, component, changeType) {
@@ -139,7 +167,9 @@ ThreeView.prototype = {
             /* async hazard: what if two changes for same mesh come in
                order A, B and loads finish in order B, A */
             threeGroup.remove(meshComp.threeMesh);
-            //console.log("removed old mesh on mesh attr change", changedAttr);
+            //console.log("removing prev three mesh on ec_mesh attr change", changedAttr);
+        } else {
+            //console.log("adding first mesh for o3d id=" + threeGroup.id);
         }
 
         var url = meshComp.meshRef.ref;
@@ -148,6 +178,8 @@ ThreeView.prototype = {
 
         var thisIsThis = this;
         var loadedSig = this.pendingLoads[url];
+        //console.log("onMeshAddedOrChanged connecting onMeshLoaded for o3d id=" + threeGroup.id+  " url: '" + url + "'");
+
         if (loadedSig === undefined) {
             loadedSig = new signals.Signal();
             loadedSig.addOnce(this.onMeshLoaded.bind(this, threeGroup, meshComp));
@@ -156,6 +188,7 @@ ThreeView.prototype = {
         } else {
             //console.log("will call onMeshLoaded with threeGroup for eid=", threeGroup.userData.entityId);
             loadedSig.addOnce(this.onMeshLoaded.bind(this, threeGroup, meshComp));
+            //console.log("onMeshLoaded connected(2) for o3d id=" + threeGroup.id);
         }
         var onMeshAttributeChanged = function(changedAttr, changeType) {
             if (changedAttr.id != "meshRef")
@@ -177,18 +210,24 @@ ThreeView.prototype = {
         check(threeParent.userData.entityId === meshComp.parentEntity.id);
         // console.log("Mesh loaded:", meshComp.meshRef.ref, "- adding to o3d of entity "+ threeParent.userData.entityId);
         checkDefined(threeParent, meshComp, geometry, material);
-        var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(material));
+        var mesh;
+        if (useCubes)
+            mesh = new THREE.Mesh(this.cubeGeometry, this.wireframeMaterial);
+        else
+            mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(material));
         meshComp.threeMesh = mesh;
         //mesh.applyMatrix(threeParent.matrixWorld);
         mesh.needsUpdate = 1;
         threeParent.add(mesh);
+        console.log("added mesh to o3d id=" + threeParent.id);
+        check(threeParent.children.length == 1);
         // threeParent.needsUpdate = 1;
 
         // do we need to set up signal that does
         // mesh.applyMatrix(threeParent.matrixWorld) when placeable
         // changes?
     },
-
+    
     jsonLoad: function(url, addedCallback) {
         var loader = new THREE.JSONLoader();
         check(typeof(url) == "string");
@@ -237,19 +276,30 @@ ThreeView.prototype = {
     onCameraAddedOrChanged: function(threeGroup, cameraComp) {
         var prevThreeCamera = cameraComp.threeCamera;
         if (prevThreeCamera) {
-            console.log("removed existing camera");
             threeGroup.remove(prevThreeCamera);
+            console.log("removing previous camera");
         }
         console.log("make camera");
         var threeAspectRatio = cameraComp.aspectRatio;
         if (threeAspectRatio === "")
             threeAspectRatio = 1.0;
+        var px = cameraComp.parentEntity.placeable.transform;
+        checkDefined(px);
+        //console.log("camera rot from placeable x=" + px.rot.x);
         cameraComp.threeCamera = new THREE.PerspectiveCamera(
             cameraComp.verticalFov, threeAspectRatio,
             cameraComp.nearPlane, cameraComp.farPlane);
-
+        copyXyz(px.rot, cameraComp.threeCamera.rotation);
+        copyXyz(px.pos, cameraComp.threeCamera.position);
         this.camera = cameraComp.threeCamera;
-        threeGroup.add(cameraComp.threeCamera);
+        //console.log("switched main camera to this one (o3d id" + cameraComp.threeCamera.id + ")");
+        //console.log("copied camera pos/rot from placeable");
+        if (parentCameraToScene)
+            this.scene.add(cameraComp.threeCamera);
+        else
+            threeGroup.add(cameraComp.threeCamera);
+        //console.log("camera own pos: " + cameraComp.threeCamera.position);
+        //console.log("camera group pos: " + threeGroup.position);
         var thisIsThis = this;
         var onCameraAttributeChanged = function(changedAttr, changeType) {
             //console.log("onCameraAddedOrChanged due to attributeChanged ->", changedAttr.ref);
@@ -260,20 +310,24 @@ ThreeView.prototype = {
         };
         var removed = cameraComp.attributeChanged.remove(onCameraAttributeChanged);
         if (removed)
-            console.log("removed old camera attr change hook");
+            //console.log("removed old camera attr change hook");
         cameraComp.attributeChanged.add(onCameraAttributeChanged);
-    },
 
-    copyXyz: function(src, dst) {
-        dst.x = src.x;
-        dst.y = src.y;
-        dst.z = src.z;
-    },
+        this.connectToPlaceable(cameraComp.threeCamera, cameraComp.parentEntity.placeable);
+        console.log("camera (o3d id " + cameraComp.threeCamera.id + ", entity id" + cameraComp.parentEntity.id + ") connected to placeable");
 
-    copyXyzMapped: function(src, dst, mapfun) {
-        dst.x = mapfun(src.x);
-        dst.y = mapfun(src.y);
-        dst.z = mapfun(src.z);
+        // var onPlaceableAttributeChanged = function(changedAttr, changeType) {
+        //     //console.log("onPlaceableAddedOrChanged due to attributeChanged ->", changedAttr.ref);
+        //     var id = changedAttr.id;
+        //     if (id === "aspectRatio" || id === "verticalFov" ||
+        //         id === "nearPlane" || id === "farPlane")
+        //         thisIsThis.onPlaceableAddedOrChanged(threeGroup, cameraComp);
+        // };
+        // var removed = cameraComp.attributeChanged.remove(onPlaceableAttributeChanged);
+        // if (removed)
+        //     console.log("removed old camera attr change hook");
+        // cameraComp.attributeChanged.add(onPlaceableAttributeChanged);
+
     },
 
     degToRad: function(val) {
@@ -283,14 +337,20 @@ ThreeView.prototype = {
     updateFromTransform: function(threeMesh, placeable) {
         checkDefined(placeable, threeMesh);
         var ptv = placeable.transform;
-
-        this.copyXyz(ptv.pos, threeMesh.position);
-        this.copyXyz(ptv.scale, threeMesh.scale);
-        this.copyXyzMapped(ptv.rot, threeMesh.rotation, this.degToRad);
-        threeMesh.needsUpdate = true;
+        
+        copyXyz(ptv.pos, threeMesh.position);
+        copyXyz(ptv.scale, threeMesh.scale);
+        copyXyzMapped(ptv.rot, threeMesh.rotation, this.degToRad);
+        if (placeable.debug)
+            console.log("update placeable to "+ placeable);
+        threeMesh.needsUpdate = true; // is this needed?
     },
 
     connectToPlaceable: function(threeObject, placeable) {
+        this.updateFromTransform(threeObject, placeable);
+        if (placeable.debug)
+            console.log("connect o3d " + threeObject.id + " to placeable - pl x " + placeable.transform.pos.x + " o3d x " + threeObject.position.x + " o3d parent x " + threeObject.parent.position.x);
+        
         //NOTE: this depends on component handling being done here before the componentReady signal fires
         var thisIsThis = this;
         placeable.parentRefReady.add(function() {
@@ -321,3 +381,28 @@ ThreeView.prototype = {
         return parent;
     }
 };
+
+EC_Placeable.prototype.toString = function() {
+    var t = this.transform;
+    return "[Placeable pos:" + t.pos.x + " " + t.pos.y + " " + t.pos.z + ", rot:" + t.rot.x + " " + t.rot.y + " " + t.rot.z + ", scale:" + t.scale.x + " " + t.scale.y + " " + t.scale.z + "]";
+};
+
+THREE.Vector3.prototype.toString = function() {
+    return "[THREE.Vector3 " + this.x + " " + this.y + " " + this.z + "]";
+};
+THREE.Euler.prototype.toString = function() {
+    return "[THREE.Euler " + this.x + " " + this.y + " " + this.z + "]";
+};
+
+function copyXyz(src, dst) {
+    dst.x = src.x;
+    dst.y = src.y;
+    dst.z = src.z;
+}
+
+function copyXyzMapped(src, dst, mapfun) {
+    dst.x = mapfun(src.x);
+    dst.y = mapfun(src.y);
+    dst.z = mapfun(src.z);
+}
+

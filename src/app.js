@@ -1,4 +1,10 @@
 "use strict";
+/* jslint browser: true, globalstrict: true, devel: true, debug: true */
+/* global requestAnimationFrame */
+/* global ThreeView, WebTundraModel */
+/* global EC_Mesh, EC_Placeable */
+/* global THREE, THREEx, signals, Stats, Detector */
+
 // For conditions of distribution and use, see copyright notice in LICENSE
 /*
  *      @author Tapani Jamsa
@@ -7,16 +13,10 @@
  *      Date: 2013
  */
 
-var useSignals = true;
+var useSignals = true; // todo: remove (along with EC_* refs in jslint settings)
+var useOrbitalControls = false;
 
 function Application() {
-    // CAMERA
-    this.SCREEN_WIDTH = window.innerWidth;
-    this.SCREEN_HEIGHT = window.innerHeight;
-    this.VIEW_ANGLE = 45;
-    this.ASPECT = this.SCREEN_WIDTH / this.SCREEN_HEIGHT;
-    this.NEAR = 0.1;
-    this.FAR = 20000;
 }
 
 Application.prototype = {
@@ -31,26 +31,32 @@ Application.prototype = {
         this.scene = new THREE.Scene();
 
         // CAMERA
-        this.camera = new THREE.PerspectiveCamera(this.VIEW_ANGLE, this.ASPECT, this.NEAR, this.FAR);
-        this.scene.add(this.camera);
-        this.camera.position.set(0, 300, 100); // (0, 1000, -375);
-        this.camera.lookAt(this.scene.position);
+        // moved to ThreeView
 
         // VIEWER
-        this.viewer = new ThreeView(this.scene, this.camera);
+        this.viewer = new ThreeView(this.scene);
 
         // MODEL
         this.connected = false;
         this.dataConnection = new WebTundraModel(this);
         this.dataConnection.client.connected.add(this.onConnected.bind(this));
         this.dataConnection.client.disconnected.add(this.onDisconnected.bind(this));
-        this.dataConnection.scene.componentAdded.add(this.viewer.onComponentAdded.bind(this.viewer));
+        this.dataConnection.scene.componentAdded.add(this.viewer.onComponentAddedOrChanged.bind(this.viewer));
         this.dataConnection.scene.componentRemoved.add(this.viewer.onComponentRemoved.bind(this.viewer));
-        this.dataConnection.scene.attributeChanged.add(this.viewer.onComponentAdded.bind(this.viewer));
 
-        // CONTROLS
-        this.controls = new THREE.OrbitControls(this.camera, this.viewer.renderer.domElement);
-        this.controls.userZoom = true;
+        // an alternative to hooking per component attributeChanged signals,
+        // would simplify business registering/unregistering handlers in
+        // component lifetime mgmt:
+        //
+        // this.dataConnection.scene.attributeChanged.add(function(comp, attr, ctype) {
+        //     this.onComponentAddedOrChanged(comp.parentEntity, comp, ctype, attr);
+        // }.bind(this.viewer));
+
+        if (useOrbitalControls) {
+            // CONTROLS
+            this.controls = new THREE.OrbitControls(this.camera, this.viewer.renderer.domElement);
+            this.controls.userZoom = true;
+        }
     },
 
     start: function() {
@@ -100,13 +106,13 @@ Application.prototype = {
         if (!useSignals)
             this.dataToViewerUpdate();
 
-        this.controls.update();
+        if (useOrbitalControls)
+            this.controls.update();
         this.viewer.stats.update();
 
-        var scope = this;
         requestAnimationFrame(function() {
-            scope.update();
-        });
+            this.update();
+        }.bind(this));
 
         this.viewer.render();
         this.frameCount++;
@@ -151,10 +157,9 @@ Application.prototype = {
             if (placeable !== null)
                 for (j in Object.keys(meshes)) {
                     this.viewer.addOrUpdate(entity, placeable, meshes[j]);
-            }
+                }
         }
-    }
-
+    },
 
 };
 
@@ -204,3 +209,4 @@ EventCounter.prototype.add = function(key) {
     this.events[key] = count;
     return count;
 };
+
