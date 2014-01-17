@@ -175,6 +175,7 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
             splitAxisAngleToEulerXyz(rot, px.rot);
             splitToXyz(scale, px.scale);
             placeable.transform = px; // trigger signals
+            placeable.parentRef = 0;
             console.log("pos for transform x=" + px.pos.x);
         }
     };
@@ -253,6 +254,7 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
         ecCamera.aspectRatio = ecCamera.aspectRatio;
         placeable.debug = true;
         placeable.transform = px; // trigger signal
+        placeable.parentRef = 0;
         console.log("groupless camera added to entity " + entity.id);
         
     }

@@ -114,7 +114,6 @@ ThreeView.prototype = {
             check(entity.id > 0);
             this.o3dByEntityId[entity.id] = threeGroup = new THREE.Object3D();
             //console.log("created new o3d group id=" + threeGroup.id);
-            this.scene.add(threeGroup);
             isNewEntity = true;
             threeGroup.userData.entityId = entity.id;
             //console.log("registered o3d for entity", entity.id);
