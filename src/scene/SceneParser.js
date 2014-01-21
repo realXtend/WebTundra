@@ -167,6 +167,7 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
             splitAxisAngleToEulerXyz(rot, px.rot);
             splitToXyz(scale, px.scale);
             placeable.transform = px; // trigger signals
+            placeable.parentRef = 0; // - " -
             console.log("pos for transform x=" + px.pos.x);
         }
     };
@@ -185,8 +186,10 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
         if (groupTransformId && groupTransformId[0] === '#') {
             groupTransformId = groupTransformId.substring(1, groupTransformId.length);
             setPlaceableFromTransformId(placeable, doc, groupTransformId);
+        } else if (!groupTransformId) {
+            console.log("using default transform for group id" + groupId);
         } else {
-            console.log("group transform missing or not id ref: " + groupTransformId);
+            console.log("group transform not an id ref: " + groupTransformId);
         }
         var meshChildren = group.getElementsByTagName("mesh");
         if (meshChildren.length > 0) {
@@ -280,7 +283,3 @@ function xyzAngleToQuaternion(nums) {
     return new THREE.Quaternion(quatXyzw[0], quatXyzw[1], quatXyzw[2], quatXyzw[3])
 }
 
-function loadXml3d(model, docurl) {
-    var parser = new SceneParser(model);
-    parser.parseFromUrlXml3D(docurl);
-}

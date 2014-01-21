@@ -114,7 +114,7 @@ ThreeView.prototype = {
             check(entity.id > 0);
             this.o3dByEntityId[entity.id] = threeGroup = new THREE.Object3D();
             //console.log("created new o3d group id=" + threeGroup.id);
-            this.scene.add(threeGroup);
+            //this.scene.add(threeGroup);
             isNewEntity = true;
             threeGroup.userData.entityId = entity.id;
             //console.log("registered o3d for entity", entity.id);
@@ -205,6 +205,12 @@ ThreeView.prototype = {
             console.log("mesh load failed");
             return;
         }
+        if (material === null) {
+            console.log("mesh material null");
+        }
+        if (material === undefined) {
+            console.log("mesh material null");
+        }
         checkDefined(geometry, material, meshComp, threeParent);
         checkDefined(meshComp.parentEntity);
         check(threeParent.userData.entityId === meshComp.parentEntity.id);
@@ -229,19 +235,29 @@ ThreeView.prototype = {
     },
     
     jsonLoad: function(url, addedCallback) {
-        var loader = new THREE.JSONLoader();
         check(typeof(url) == "string");
         if (url === "") {
             addedCallback(undefined, undefined);
             return;
         }
+
+        function endsWith(str, suffix) {
+            return str.indexOf(suffix, str.length - suffix.length) !== -1;
+        }
+
+        var loader;
+        if (endsWith(url, ".ctm")) {
+            loader = new THREE.CTMLoader();           
+        } else {
+            loader = new THREE.JSONLoader();
+        }
         console.log("json load", url);
         var thisIsThis = this;
         loader.load(url, function(geometry, material) {
-            checkDefined(geometry, material);
+            checkDefined(geometry);
             addedCallback(geometry, material);
             delete thisIsThis.pendingLoads[url];
-        });
+        }, {});
     },
 
     onLightAddedOrChanged: function(threeGroup, lightComp) {
