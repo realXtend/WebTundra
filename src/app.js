@@ -16,8 +16,7 @@
 var useSignals = true; // todo: remove (along with EC_* refs in jslint settings)
 var useOrbitalControls = false;
 
-function Application() {
-}
+function Application() {}
 
 Application.prototype = {
 
@@ -35,6 +34,7 @@ Application.prototype = {
 
         // VIEWER
         this.viewer = new ThreeView(this.scene);
+        this.viewer.signal.add(this.onObjectClicked.bind(this));
 
         // MODEL
         this.connected = false;
@@ -157,8 +157,13 @@ Application.prototype = {
             if (placeable !== null)
                 for (j in Object.keys(meshes)) {
                     this.viewer.addOrUpdate(entity, placeable, meshes[j]);
-                }
+            }
         }
+    },
+
+    onObjectClicked: function(entID, params) {
+        var ent = this.dataConnection.scene.entityById(entID);
+        ent.triggerAction("MousePress", params, cExecTypeServer);
     },
 
 };
@@ -209,4 +214,3 @@ EventCounter.prototype.add = function(key) {
     this.events[key] = count;
     return count;
 };
-
