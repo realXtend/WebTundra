@@ -34,7 +34,7 @@ Application.prototype = {
 
         // VIEWER
         this.viewer = new ThreeView(this.scene);
-        this.viewer.signal.add(this.onObjectClicked.bind(this));
+        this.viewer.objectClicked.add(this.onObjectClicked.bind(this));
 
         // MODEL
         this.connected = false;

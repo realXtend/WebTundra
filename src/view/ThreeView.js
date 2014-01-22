@@ -71,52 +71,8 @@ function ThreeView(scene) {
     this.projector = new THREE.Projector();
 
     // MOUSE EVENTS
-    this.signal = new signals.Signal();
-    var thisIsThis = this;
-    document.addEventListener('mousedown', function(event) {
-        var camera = thisIsThis.camera;
-        var mouse = {
-            x: (event.clientX / window.innerWidth) * 2 - 1,
-            y: -(event.clientY / window.innerHeight) * 2 + 1,
-        };
-
-        // Raycast
-        var vector = new THREE.Vector3(mouse.x, mouse.y, 1);
-        thisIsThis.projector.unprojectVector(vector, camera);
-        var pLocal = new THREE.Vector3(0, 0, -1);
-        var pWorld = pLocal.applyMatrix4(camera.matrixWorld);
-        var ray = new THREE.Raycaster(pWorld, vector.sub(pWorld).normalize());
-
-        // Get meshes from all objects
-        var getMeshes = function(children) {
-            var meshes = [];
-            for (var i = 0; i < children.length; i++) {
-                if (children[i].children.length > 0) {
-                    meshes = meshes.concat(getMeshes(children[i].children));
-                } else if (children[i] instanceof THREE.Mesh) {
-                    meshes.push(children[i]);
-                }
-            }
-            return meshes;
-        };
-        var objects = attributeValues(thisIsThis.o3dByEntityId);
-        var meshes = getMeshes(objects);
-
-        // Intersect
-        var intersects = ray.intersectObjects(meshes);
-
-        // if there is one (or more) intersections
-        if (intersects.length > 0) {
-            var clickedObject = intersects[0].object;
-            var entID = clickedObject.parent.userData.entityId;
-            var intersectionPoint = "" + intersects[0].point.x + "," + intersects[0].point.y + "," + intersects[0].point.z;
-
-            // Trigger a remote entity action on the fifth entity
-            var params = [event.button, intersectionPoint, intersects[0].face.materialIndex];
-
-            thisIsThis.signal.dispatch(entID, params);
-        }
-    }, false);
+    this.objectClicked = new signals.Signal();
+    document.addEventListener('mousedown', this.onMouseDown.bind(this), false);
 
     // Hack for Physics2 scene
     this.pointLight = new THREE.PointLight(0xffffff);
@@ -413,6 +369,51 @@ ThreeView.prototype = {
         }
 
         return parent;
+    },
+
+    onMouseDown: function() {
+        var camera = this.camera;
+        var mouse = {
+            x: (event.clientX / window.innerWidth) * 2 - 1,
+            y: -(event.clientY / window.innerHeight) * 2 + 1,
+        };
+
+        // Raycast
+        var vector = new THREE.Vector3(mouse.x, mouse.y, 1);
+        this.projector.unprojectVector(vector, camera);
+        var pLocal = new THREE.Vector3(0, 0, -1);
+        var pWorld = pLocal.applyMatrix4(camera.matrixWorld);
+        var ray = new THREE.Raycaster(pWorld, vector.sub(pWorld).normalize());
+
+        // Get meshes from all objects
+        var getMeshes = function(children) {
+            var meshes = [];
+            for (var i = 0; i < children.length; i++) {
+                if (children[i].children.length > 0) {
+                    meshes = meshes.concat(getMeshes(children[i].children));
+                } else if (children[i] instanceof THREE.Mesh) {
+                    meshes.push(children[i]);
+                }
+            }
+            return meshes;
+        };
+        var objects = attributeValues(this.o3dByEntityId);
+        var meshes = getMeshes(objects);
+
+        // Intersect
+        var intersects = ray.intersectObjects(meshes);
+
+        // if there is one (or more) intersections
+        if (intersects.length > 0) {
+            var clickedObject = intersects[0].object;
+            var entID = clickedObject.parent.userData.entityId;
+            var intersectionPoint = "" + intersects[0].point.x + "," + intersects[0].point.y + "," + intersects[0].point.z;
+
+            // Trigger a remote entity action on the fifth entity
+            var params = [event.button, intersectionPoint, intersects[0].face.materialIndex];
+
+            this.objectClicked.dispatch(entID, params);
+        }
     }
 };
 
