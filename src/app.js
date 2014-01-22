@@ -154,9 +154,10 @@ Application.prototype = {
                 else if (comp instanceof EC_Placeable)
                     placeable = comp;
             }
-            if (placeable !== null)
+            if (placeable !== null) {
                 for (j in Object.keys(meshes)) {
                     this.viewer.addOrUpdate(entity, placeable, meshes[j]);
+                }
             }
         }
     },

@@ -409,7 +409,6 @@ ThreeView.prototype = {
             var entID = clickedObject.parent.userData.entityId;
             var intersectionPoint = "" + intersects[0].point.x + "," + intersects[0].point.y + "," + intersects[0].point.z;
 
-            // Trigger a remote entity action on the fifth entity
             var params = [event.button, intersectionPoint, intersects[0].face.materialIndex];
 
             this.objectClicked.dispatch(entID, params);
