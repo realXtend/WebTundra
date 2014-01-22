@@ -240,9 +240,6 @@ ThreeView.prototype = {
             return;
         }
 
-        function endsWith(str, suffix) {
-            return str.indexOf(suffix, str.length - suffix.length) !== -1;
-        }
 
         var loader;
         if (endsWith(url, ".ctm")) {
@@ -253,7 +250,9 @@ ThreeView.prototype = {
         console.log("json load", url);
         var thisIsThis = this;
         loader.load(url, function(geometry, material) {
-            checkDefined(geometry, material);
+            if (material === undefined)
+                material = null; // CTMLoader
+            checkDefined(geometry);
             addedCallback(geometry, material);
             delete thisIsThis.pendingLoads[url];
         }, {});
@@ -421,3 +420,28 @@ function copyXyzMapped(src, dst, mapfun) {
     dst.z = mapfun(src.z);
 }
 
+function ThreeAssetLoader() {
+    this.ctmOptions = { useWorker: true };
+    this.ctmLoaded = new signal.Signal();
+}
+
+ThreeAssetLoader.prototype.load = function(url) {
+    check(typeof url === "string");
+    if (endsWith(url, ".ctm"))
+        fn = this.loadCtm;
+    else if (endsWith(url, ".json") || endsWith(url, ".js"))
+        fn = this.loadJson;
+    else if (endsWith(url, ".dae"))
+        fn = this.loadCollada;
+    else
+        throw "don't know url suffix " + url;
+};
+
+ThreeAssetLoader.prototype.loadCtm = function(url) {
+    var loader = THREE.CTMLoader();
+    loader.load(url, this.ctmLoaded.dispatch, this.ctmOptions);
+};
+
+function endsWith(str, suffix) {
+    return str.indexOf(suffix, str.length - suffix.length) !== -1;
+}

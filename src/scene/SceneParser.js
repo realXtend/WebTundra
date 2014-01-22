@@ -32,14 +32,17 @@ SceneParser.prototype.parseFromUrlXml3D = function(url) {
     var xhttp = new XMLHttpRequest();
     //xhttp.overrideMimeType('text/xml');
     check(typeof(url) === "string");
-
+    console.log("xhr start");
     xhttp.onreadystatechange = function() {
+        console.log("xhr callback");
         if (xhttp.readyState == 4) {
             if (xhttp.status == 200) {
                 var doc = xhttp.response;
                 check(doc !== null);
                 this.parseDocXml3D(doc);
             }
+        } else {
+            console.log("unhandled xhr readystate " + xhttp.readyState);
         }
     }.bind(this);
 
