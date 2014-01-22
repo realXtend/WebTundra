@@ -51,10 +51,11 @@ var app = new Application();
 
 var host = "localhost";
 var port = 2345;
+useOrbitalControls = true; //TODO: proper system to have a dev / test free cam
 app.start();
 
 app.viewer.camera.position.set(0, 8.50, 28.50);
-//app.controls.center.y = 10; //OrbitControls is not there by default anymore - dev cam sys TODO
+app.controls.center.y = 10;
 
 app.connect(host,port);
 </script>
