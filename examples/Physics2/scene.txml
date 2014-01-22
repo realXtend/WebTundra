@@ -23063,7 +23063,7 @@
   <component type="EC_Placeable" sync="1">
    <attribute value="1" name="Selection layer"/>
    <attribute value="" name="Parent bone name"/>
-   <attribute value="0,5,5,0,0,0,1,1,1" name="Transform"/>
+   <attribute value="0,5,5,0,0,0,0.1,0.1,0.1" name="Transform"/>
    <attribute value="false" name="Show bounding box"/>
    <attribute value="true" name="Visible"/>
    <attribute value="" name="Parent entity ref"/>
@@ -23076,7 +23076,7 @@
    <attribute value="2" name="Run mode"/>
   </component>
   <component type="EC_Mesh" sync="1">
-   <attribute value="0,0,0,0,0,0,0.1,0.1,0.1" name="Transform"/>
+   <attribute value="0,0,0,0,0,0,1,1,1" name="Transform"/>
    <attribute value="0" name="Draw distance"/>
    <attribute value="true" name="Cast shadows"/>
    <attribute value="lightsphere.mesh" name="Mesh ref"/>
