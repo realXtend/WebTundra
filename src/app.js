@@ -54,7 +54,7 @@ Application.prototype = {
 
         if (useOrbitalControls) {
             // CONTROLS
-            this.controls = new THREE.OrbitControls(this.camera, this.viewer.renderer.domElement);
+            this.controls = new THREE.OrbitControls(this.viewer.camera, this.viewer.renderer.domElement);
             this.controls.userZoom = true;
         }
     },
