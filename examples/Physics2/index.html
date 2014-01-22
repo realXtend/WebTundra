@@ -53,8 +53,8 @@ var host = "localhost";
 var port = 2345;
 app.start();
 
-app.camera.position.set(0, 8.50, 28.50);
-app.controls.center.y = 10; //OrbitControls is there by default
+app.viewer.camera.position.set(0, 8.50, 28.50);
+//app.controls.center.y = 10; //OrbitControls is not there by default anymore - dev cam sys TODO
 
 app.connect(host,port);
 </script>
