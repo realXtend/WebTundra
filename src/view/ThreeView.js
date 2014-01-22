@@ -210,7 +210,6 @@ ThreeView.prototype = {
         mesh.needsUpdate = 1;
         threeParent.add(mesh);
         console.log("added mesh to o3d id=" + threeParent.id);
-        check(threeParent.children.length == 1);
         // threeParent.needsUpdate = 1;
 
         // do we need to set up signal that does
