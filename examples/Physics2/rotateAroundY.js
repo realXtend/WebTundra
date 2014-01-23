@@ -36,7 +36,7 @@ function HandleMouseLeftPressed(event)
     {
         if (raycastResult.entity.name == "Boulder")
         {
-            dropEntity();
+            dropBoulder();
         }
     }
 }
