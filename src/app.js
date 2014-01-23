@@ -51,12 +51,6 @@ Application.prototype = {
         // this.dataConnection.scene.attributeChanged.add(function(comp, attr, ctype) {
         //     this.onComponentAddedOrChanged(comp.parentEntity, comp, ctype, attr);
         // }.bind(this.viewer));
-
-        if (useOrbitalControls) {
-            // CONTROLS
-            this.controls = new THREE.OrbitControls(this.viewer.camera, this.viewer.renderer.domElement);
-            this.controls.userZoom = true;
-        }
     },
 
     start: function() {
