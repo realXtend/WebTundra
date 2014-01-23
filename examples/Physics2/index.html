@@ -7,6 +7,15 @@
 </head>
 <body>
 
+<!-- THREE.JS -->
+<script src="../../src/view/js/Three.js"></script>
+<script src="../../src/view/js/Detector.js"></script>
+<script src="../../src/view/js/Stats.js"></script>
+<script src="../../src/view/js/OrbitControls.js"></script>
+<script src="../../src/view/js/THREEx.KeyboardState.js"></script>
+<script src="../../src/view/js/THREEx.FullScreen.js"></script>
+<script src="../../src/view/js/THREEx.WindowResize.js"></script>
+
 <!-- EC -->
 <script src="../../src/util/Signals.js"></script>
 <script src="../../src/util/CompoundSignal.js"></script>
@@ -31,14 +40,7 @@
 <script src="../../src/scene/EC_Camera.js"></script>
 <script src="../../src/scene/EC_Sound.js"></script>
 
-<script src="../../src/view/js/Three.js"></script>
-<script src="../../src/view/js/Detector.js"></script>
-<script src="../../src/view/js/Stats.js"></script>
-<script src="../../src/view/js/OrbitControls.js"></script>
-<script src="../../src/view/js/THREEx.KeyboardState.js"></script>
-<script src="../../src/view/js/THREEx.FullScreen.js"></script>
-<script src="../../src/view/js/THREEx.WindowResize.js"></script>
-
+<!-- APP -->
 <script src="../../src/app.js"></script>
 <script src="../../src/WebTundraModel.js"></script>
 <script src="../../src/view/ThreeView.js"></script>
@@ -49,7 +51,7 @@
 <script>
 var app = new Application();
 
-var host = "localhost";
+var host = "10.10.3.28";
 var port = 2345;
 useOrbitalControls = true; //TODO: proper system to have a dev / test free cam
 app.start();
