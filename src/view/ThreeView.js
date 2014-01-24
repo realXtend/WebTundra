@@ -15,7 +15,6 @@ var parentCameraToScene = true;
 
 function ThreeView(scene) {
     this.o3dByEntityId = {}; // Three.Object3d's that correspond to Placeables and have Meshes etc as children
-    this.pendingLoads = {};
 
     // SCENE
     this.scene = scene;
@@ -89,6 +88,7 @@ function ThreeView(scene) {
     this.scene.add(this.pointLight);
 
     this.meshReadySig = new signals.Signal();
+    this.assetLoader = new ThreeAssetLoader();
 }
 
 ThreeView.prototype = {
@@ -160,7 +160,7 @@ ThreeView.prototype = {
         } else if (component instanceof EC_Light) {
             // this.onLightAddedOrChanged(threeGroup, component);
         } else
-            2 > 1;
+            console.log("view doesn't know about removed component " + component);
     },
 
     onMeshAddedOrChanged: function(threeGroup, meshComp) {
@@ -179,19 +179,10 @@ ThreeView.prototype = {
         url = url.replace(/\.mesh$/i, ".json");
 
         var thisIsThis = this;
-        var loadedSig = this.pendingLoads[url];
-        //console.log("onMeshAddedOrChanged connecting onMeshLoaded for o3d id=" + threeGroup.id+  " url: '" + url + "'");
+        this.assetLoader.cachedLoadAsset(url, function(geometry, material) {
+            thisIsThis.onMeshLoaded(threeGroup, meshComp, geometry, material);
+        });
 
-        if (loadedSig === undefined) {
-            loadedSig = new signals.Signal();
-            loadedSig.addOnce(this.onMeshLoaded.bind(this, threeGroup, meshComp));
-            this.pendingLoads[url] = loadedSig;
-            this.jsonLoad(url, loadedSig.dispatch.bind(this));
-        } else {
-            //console.log("will call onMeshLoaded with threeGroup for eid=", threeGroup.userData.entityId);
-            loadedSig.addOnce(this.onMeshLoaded.bind(this, threeGroup, meshComp));
-            //console.log("onMeshLoaded connected(2) for o3d id=" + threeGroup.id);
-        }
         var onMeshAttributeChanged = function(changedAttr, changeType) {
             if (changedAttr.id != "meshRef")
                 return;
@@ -238,32 +229,6 @@ ThreeView.prototype = {
         // do we need to set up signal that does
         // mesh.applyMatrix(threeParent.matrixWorld) when placeable
         // changes?
-    },
-    
-    jsonLoad: function(url, addedCallback) {
-        check(typeof(url) == "string");
-        if (url === "") {
-            addedCallback(undefined, undefined);
-            return;
-        }
-
-
-        var loader;
-        if (endsWith(url, ".ctm")) {
-            loader = new THREE.CTMLoader();           
-        } else {
-            loader = new THREE.JSONLoader();
-        }
-        console.log("json load", url);
-        var thisIsThis = this;
-        loader.load(url, function(geometry, material) {
-            if (material === undefined) {
-                material = new THREE.MeshBasicMaterial({color: 0x808080 });
-            }
-            checkDefined(geometry);
-            addedCallback(geometry, material);
-            delete thisIsThis.pendingLoads[url];
-        }, {});
     },
 
     onLightAddedOrChanged: function(threeGroup, lightComp) {
@@ -431,35 +396,66 @@ function copyXyzMapped(src, dst, mapfun) {
 }
 
 function ThreeAssetLoader() {
-    this.ctmOptions = { useWorker: true };
-    this.assetLoaded = new signal.Signal();
+    this.pendingLoads = {};
 }
 
-ThreeAssetLoader.prototype.load = function(url) {
+ThreeAssetLoader.prototype.cachedLoadAsset = function(url, loadedCallback) {
+    var loadedSig = this.pendingLoads[url];
+    if (loadedSig === undefined) {
+        loadedSig = new signals.Signal();
+        loadedSig.addOnce(loadedCallback);
+        this.pendingLoads[url] = loadedSig;
+    } else {
+        loadedSig.addOnce(loadedCallback);
+    }
+    
+    check(typeof(url) === "string");
+    if (url === "") {
+        loadedCallback();
+        return;
+    }
+
+    var thisIsThis = this;
+    this.load(url, function(geometry, material) {
+        if (material === undefined) {
+            material = new THREE.MeshBasicMaterial({color: 0x808080 });
+        }
+        checkDefined(geometry);
+        loadedCallback(geometry, material);
+        delete thisIsThis.pendingLoads[url];
+    }, {});
+};
+
+ThreeAssetLoader.prototype.load = function(url, completedCallback) {
     check(typeof url === "string");
     if (url === "") {
-        this.assetLoaded.dispatch(url, null);
+        completedCallback();
+        return;
     }
-    if (endsWith(url, ".ctm"))
+    var fn;
+    if (suffixMatch(url, ".ctm"))
         fn = this.loadCtm;
-    else if (endsWith(url, ".json") || endsWith(url, ".js"))
+    else if (suffixMatch(url, ".json") || suffixMatch(url, ".js"))
         fn = this.loadJson;
-    // else if (endsWith(url, ".dae"))
-    //     fn = this.loadCollada;
     else
         throw "don't know url suffix " + url;
+
+    fn(url, completedCallback);
 };
 
-ThreeAssetLoader.prototype.loadCtm = function(url) {
-    var loader = THREE.CTMLoader();
-    loader.load(url, this.ctmLoaded.dispatch, this.ctmOptions);
+ThreeAssetLoader.prototype.loadCtm = function(url, completedCallback) {
+    var loader = new THREE.CTMLoader();
+    loader.load(url, completedCallback, {useWorker: false});
 };
 
-ThreeAssetLoader.prototype.loadJson = function(url) {
-    var loader = THREE.JSONLoader();
-    loader.load(url, this.ctmLoaded.dispatch, this.ctmOptions);
+ThreeAssetLoader.prototype.loadJson = function(url, completedCallback) {
+    var loader = new THREE.JSONLoader();
+    loader.load(url, completedCallback);
 };
 
-function endsWith(str, suffix) {
+
+function suffixMatch(str, suffix) {
+    str = str.toLowerCase();
+    suffix = suffix.toLowerCase();
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
