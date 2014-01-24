@@ -14,7 +14,7 @@
  */
 
 var useSignals = true; // todo: remove (along with EC_* refs in jslint settings)
-var useOrbitalControls = false;
+var useOrbitalControls = true;
 
 function Application() {
 }
@@ -54,7 +54,7 @@ Application.prototype = {
 
         if (useOrbitalControls) {
             // CONTROLS
-            this.controls = new THREE.OrbitControls(this.camera, this.viewer.renderer.domElement);
+            this.controls = new THREE.OrbitControls(this.viewer.camera, this.viewer.renderer.domElement);
             this.controls.userZoom = true;
         }
     },

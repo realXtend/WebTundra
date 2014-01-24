@@ -124,7 +124,7 @@ ThreeView.prototype = {
         if (component instanceof EC_Placeable)
             this.connectToPlaceable(threeGroup, component);
         else if (component instanceof EC_Mesh) {
-            // console.log("mesh changed or added for o3d " + threeGroup.userData.entityId);
+            //console.log("mesh changed or added for o3d " + threeGroup.userData.entityId);
             this.onMeshAddedOrChanged(threeGroup, component);
         } else if (component instanceof EC_Camera)
             this.onCameraAddedOrChanged(threeGroup, component);
@@ -172,7 +172,7 @@ ThreeView.prototype = {
         }
 
         var url = meshComp.meshRef.ref;
-
+        console.log("mesh ref " + url + " entity id " + meshComp.parentEntity.id + " parent o3d id " + threeGroup.id);
         url = url.replace(/\.mesh$/i, ".json");
 
         var thisIsThis = this;
@@ -216,7 +216,7 @@ ThreeView.prototype = {
         // console.log("Mesh loaded:", meshComp.meshRef.ref, "- adding to o3d of entity "+ threeParent.userData.entityId);
         checkDefined(threeParent, meshComp, geometry, material);
         var mesh;
-        if (useCubes)
+        if (useCubes || material instanceof THREE.MeshBasicMaterial)
             mesh = new THREE.Mesh(this.cubeGeometry, this.wireframeMaterial);
         else
             mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(material));
@@ -250,8 +250,9 @@ ThreeView.prototype = {
         console.log("json load", url);
         var thisIsThis = this;
         loader.load(url, function(geometry, material) {
-            if (material === undefined)
-                material = null; // CTMLoader
+            if (material === undefined) {
+                material = new THREE.MeshBasicMaterial({color: 0x808080 });
+            }
             checkDefined(geometry);
             addedCallback(geometry, material);
             delete thisIsThis.pendingLoads[url];
