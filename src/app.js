@@ -187,6 +187,9 @@ function check() {
             }
 }
 
+
+// Todo: move or remove below 
+
 function attributeValues(o) {
     var out = [];
     for (var key in o) {

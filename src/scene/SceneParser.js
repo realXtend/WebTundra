@@ -15,6 +15,11 @@ function SceneParser(ecModel) {
     this.ecModel = ecModel;
 }
 
+var logParserDebug = true;
+function parserDebug(msg) {
+    logParserDebug && console.log(msg);
+}
+
 SceneParser.prototype.parseFromUrl = function(url) {
     // console.log("________________________________________" );
     var xhttp = new XMLHttpRequest();
@@ -112,6 +117,14 @@ SceneParser.prototype.parseDoc = function(doc) {
     return this.ecModel;
 };
 
+SceneParser.prototype.createEntityWithPlaceable = function() {
+    var entity = this.ecModel.scene.createEntity(0, AttributeChange.LocalOnly);
+    var placeable = entity.createComponent(0, cComponentTypePlaceable,
+                                           "", AttributeChange.LocalOnly);
+    placeable.parentRef = 0; // won't get added to three scene until this is initialized
+    return entity;
+};
+
 SceneParser.prototype.parseDocXml3D = function(doc) {
     var lightEnt = this.ecModel.scene.createEntity(0, name);
     lightEnt.createComponent(0, cComponentTypePlaceable,
@@ -154,16 +167,16 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
     };
 
     var viewsInGroups = [];
-    var viewId, viewPosition, viewOrientation, xview, entity, ecCamera;
+    var viewId, viewPosition, viewOrientation, xview,
+       entity, ecCamera, placeable;
     for (var i = 0; i < groups.length; i++) {
         // console.log("doing group " + i);
         var group = groups[i];
         var groupId = group.getAttribute("id");
 
-        entity = this.ecModel.scene.createEntity(0, AttributeChange.LocalOnly);
-        var placeable = entity.createComponent(0, cComponentTypePlaceable,
-                                               "", AttributeChange.LocalOnly);
-
+        entity = this.createEntityWithPlaceable();
+        placeable = entity.componentByType("Placeable");
+        check(!!placeable);
         var gotTransform = setPlaceableFromGroupNode(placeable, group);
         if (!gotTransform)
             console.log("using default transform for group", group);
@@ -204,8 +217,7 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
             ecCamera = entity.createComponent(0, cComponentTypeCamera, viewId || "camera", AttributeChange.LocalOnly);
           
             //console.log("in-group camera added to entity " + entity.id);
-            placeable.parentRef = 0; // won't get added to three scene until this is initialized
-            placeable.debug = true;
+            //placeable.debug = true;
         }
     }
 
