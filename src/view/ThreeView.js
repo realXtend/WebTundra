@@ -29,7 +29,7 @@ function ThreeView(scene) {
         FAR = 20000;
     this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
     this.scene.add(this.camera);
-    this.camera.position.set(0, 300, 100); // (0, 1000, -375);
+    this.camera.position.set(0, 0, 0);
     this.camera.lookAt(this.scene.position);
 
     // STATS
