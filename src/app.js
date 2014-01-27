@@ -35,6 +35,7 @@ Application.prototype = {
         // VIEWER
         this.viewer = new ThreeView(this.scene);
         this.viewer.objectClicked.add(this.onObjectClicked.bind(this));
+		this.viewer.renderer.setClearColor( 0x9999D6, 1 );
 
         // MODEL
         this.connected = false;
@@ -108,6 +109,7 @@ Application.prototype = {
             this.update();
         }.bind(this));
 
+		this.viewer.update();
         this.viewer.render();
         this.frameCount++;
     },

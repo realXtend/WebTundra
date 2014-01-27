@@ -29,7 +29,7 @@ function ThreeView(scene) {
         FAR = 20000;
     this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
     this.scene.add(this.camera);
-    this.camera.position.set(0, 0, 0);
+    this.camera.position.set(-100, 50, 0);
     this.camera.lookAt(this.scene.position);
 
     // STATS
@@ -37,6 +37,9 @@ function ThreeView(scene) {
     this.stats.domElement.style.position = 'absolute';
     this.stats.domElement.style.bottom = '0px';
     this.stats.domElement.style.zIndex = 100;
+	
+	// TIME
+	this.clock = new THREE.Clock();
 
     // RENDERER    
     if (Detector.webgl)
@@ -88,6 +91,11 @@ ThreeView.prototype = {
         // checkDefined(this.scene, this.camera);
         this.renderer.render(this.scene, this.camera);
     },
+	
+	update: function() {
+		var delta = this.clock.getDelta();
+		THREE.AnimationHandler.update(delta);
+	},
 
     onComponentAddedOrChanged: function(entity, component) {
         try {
@@ -121,6 +129,8 @@ ThreeView.prototype = {
             this.onCameraAddedOrChanged(threeGroup, component);
         else if (component instanceof EC_Light)
             this.onLightAddedOrChanged(threeGroup, component);
+		else if (component instanceof EC_AnimationController)
+			this.onAnimatorAddedOrChanged(threeGroup, component);
         else
             console.log("Component not handled by ThreeView:", entity, component);
     },
@@ -181,7 +191,7 @@ ThreeView.prototype = {
             //console.log("onMeshLoaded connected(2) for o3d id=" + threeGroup.id);
         }
         var onMeshAttributeChanged = function(changedAttr, changeType) {
-            if (changedAttr.id != "meshRef")
+            if (changedAttr.id !== "meshRef")
                 return;
             //console.log("onMeshAddedOrChanged due to attributeChanged ->", changedAttr.ref);
             thisIsThis.onMeshAddedOrChanged(threeGroup, meshComp);
@@ -203,6 +213,12 @@ ThreeView.prototype = {
         var mesh;
         if (useCubes)
             mesh = new THREE.Mesh(this.cubeGeometry, this.wireframeMaterial);
+		else if (geometry.bones !== undefined) {
+			var newMaterial = new THREE.MeshFaceMaterial(material);
+			newMaterial.materials[0].skinning = true;
+			mesh = new THREE.SkinnedMesh(geometry, newMaterial, false);
+			mesh.scale.set(0.1, 0.1, 0.1);
+		}
         else
             mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(material));
         meshComp.threeMesh = mesh;
@@ -215,11 +231,58 @@ ThreeView.prototype = {
         // do we need to set up signal that does
         // mesh.applyMatrix(threeParent.matrixWorld) when placeable
         // changes?
+		
+		var animation = meshComp.parentEntity.componentByType("AnimationController");
+		if (animation != null)
+			this.onAnimatorAddedOrChanged(threeParent, animation);
     },
+	
+	onAnimatorAddedOrChanged: function(threeParent, animComp){
+		var thisIsThis = this;
+		var onAnimationAttributeChanged = function(changedAttr, changeType) {
+			var id = changedAttr.id;
+			if (id === "animationState")
+				thisIsThis.onAnimatorAddedOrChanged(threeParent, animComp);
+		};
+		animComp.attributeChanged.remove(onAnimationAttributeChanged);
+		animComp.attributeChanged.add(onAnimationAttributeChanged);
+		
+		animComp.play = function(name)
+		{
+			console.log("Play animation " + name);
+			if (this.threeAnimation !== undefined && this.threeAnimation.data.name === name)
+				animComp.threeAnimation.play();
+		};
+		
+		var mesh = animComp.meshEntity();
+		if (mesh !== null && mesh.threeMesh !== undefined)
+		{
+			THREE.AnimationHandler.add(mesh.threeMesh.geometry.animation);
+			
+			checkDefined(mesh, threeParent, animComp);
+			if (animComp.animationState.length > 0) {
+				var animation = new THREE.Animation(mesh.threeMesh, animComp.animationState);
+				animComp.threeAnimation = animation;
+				
+				// Test the animation.
+				animComp.play(animComp.animationState);
+			}
+		}
+		else
+		{
+			// If no mesh is being added we wait until it gets ready to use.
+			var OnComponentAdded = function(newComp, changeType){
+				if (newComp instanceof EC_Mesh)
+					thisIsThis.onAnimatorAddedOrChanged(threeParent, animComp);
+			};
+			animComp.parentEntity.componentAdded.remove(OnComponentAdded);
+			animComp.parentEntity.componentAdded.add(OnComponentAdded);
+		}
+	},
 
     jsonLoad: function(url, addedCallback) {
         var loader = new THREE.JSONLoader();
-        check(typeof(url) == "string");
+        check(typeof(url) === "string");
         if (url === "") {
             addedCallback(undefined, undefined);
             return;
