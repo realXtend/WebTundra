@@ -25,10 +25,10 @@ app.viewer.meshReadySig.add(function(meshComp, threeMesh) {
 });
 
 loadXml3d(app.dataConnection, "xml3d-scene-ctm.html");
+setupCamera(app);
 
 function loadXml3d(model, docurl) {
     var parser = new SceneParser(model);
     parser.parseFromUrlXml3D(docurl);
     console.log("parse done");
 }
-

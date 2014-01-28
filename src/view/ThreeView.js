@@ -21,14 +21,14 @@ function ThreeView(scene) {
 
     // Default camera
     var SCREEN_WIDTH = window.innerWidth,
-    SCREEN_HEIGHT = window.innerHeight;
+        SCREEN_HEIGHT = window.innerHeight;
     var VIEW_ANGLE = 45,
-    ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT,
-    NEAR = 0.1,
-    FAR = 20000;
+        ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT,
+        NEAR = 0.1,
+        FAR = 20000;
     this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
     this.scene.add(this.camera);
-    this.camera.position.set(0, 300, 100); // (0, 1000, -375);
+    this.camera.position.set(0, 0, 0);
     this.camera.lookAt(this.scene.position);
 
     // STATS
@@ -59,7 +59,7 @@ function ThreeView(scene) {
     document.body.appendChild(this.container);
 
     // LIGHT, GEOMETRY AND MATERIAL
-    this.cubeGeometry = new THREE.CubeGeometry( 2,2, 2 );
+    this.cubeGeometry = new THREE.CubeGeometry(2, 2, 2);
     this.wireframeMaterial = new THREE.MeshBasicMaterial({
         color: 0x00ee00,
         wireframe: true,
@@ -68,19 +68,10 @@ function ThreeView(scene) {
 
     // PROJECTOR
     this.projector = new THREE.Projector();
-    var thisIsThis = this;
-    document.addEventListener('mousedown', function(event) {
-        var camera = thisIsThis.camera;
-        var mouse = {
-            x: (event.clientX / window.innerWidth) * 2 - 1,
-            y: -(event.clientY / window.innerHeight) * 2 + 1,
-        };
-        var vector = new THREE.Vector3(mouse.x, mouse.y, 1);
-        var ray = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
-        var mouseVector = new THREE.Vector3(mouse.x, mouse.y, 1);
-        thisIsThis.projector.unprojectVector(mouseVector, camera);
-        var intersects = ray.intersectObjects(attributeValues(thisIsThis.o3dByEntityId));
-    }, false);
+
+    // MOUSE EVENTS
+    this.objectClicked = new signals.Signal();
+    document.addEventListener('mousedown', this.onMouseDown.bind(this), false);
 
     // Hack for Physics2 scene
     this.pointLight = new THREE.PointLight(0xffffff);
@@ -112,7 +103,7 @@ ThreeView.prototype = {
         check(entity instanceof Entity);
         var threeGroup = this.o3dByEntityId[entity.id];
         var isNewEntity = false;
-        if(!threeGroup) {
+        if (!threeGroup) {
             check(entity.id > 0);
             this.o3dByEntityId[entity.id] = threeGroup = new THREE.Object3D();
             //console.log("created new o3d group id=" + threeGroup.id);
@@ -122,12 +113,11 @@ ThreeView.prototype = {
         } else {
             //console.log("got cached o3d group " + threeGroup.id + " for entity " + entity.id);
         }
-        
-        if (component instanceof EC_Placeable) {
-            console.log("placeable changed or added for o3d " + threeGroup.userData.entityId);
+
+        if (component instanceof EC_Placeable)
             this.connectToPlaceable(threeGroup, component);
-        } else if (component instanceof EC_Mesh) {
-            //console.log("mesh changed or added for o3d " + threeGroup.userData.entityId);
+        else if (component instanceof EC_Mesh) {
+            // console.log("mesh changed or added for o3d " + threeGroup.userData.entityId);
             this.onMeshAddedOrChanged(threeGroup, component);
         } else if (component instanceof EC_Camera)
             this.onCameraAddedOrChanged(threeGroup, component);
@@ -175,7 +165,7 @@ ThreeView.prototype = {
         }
 
         var url = meshComp.meshRef.ref;
-        console.log("mesh ref " + url + " entity id " + meshComp.parentEntity.id + " parent o3d id " + threeGroup.id);
+
         url = url.replace(/\.mesh$/i, ".json");
 
         var thisIsThis = this;
@@ -198,12 +188,6 @@ ThreeView.prototype = {
             console.log("mesh load failed");
             return;
         }
-        if (material === null) {
-            console.log("mesh material null");
-        }
-        if (material === undefined) {
-            console.log("mesh material null");
-        }
         checkDefined(geometry, material, meshComp, threeParent);
         checkDefined(meshComp.parentEntity);
         check(threeParent.userData.entityId === meshComp.parentEntity.id);
@@ -212,9 +196,6 @@ ThreeView.prototype = {
         var mesh;
         if (useCubes)
             mesh = new THREE.Mesh(this.cubeGeometry, this.wireframeMaterial);
-        // else if (material instanceof THREE.MeshBasicMaterial)
-        //     mesh = new THREE.Mesh(geometry, rafCarMaterial);
-        //     //mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(rafCarMaterial));
         else
             mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(material));
         meshComp.threeMesh = mesh;
@@ -296,8 +277,9 @@ ThreeView.prototype = {
                 thisIsThis.onCameraAddedOrChanged(threeGroup, cameraComp);
         };
         var removed = cameraComp.attributeChanged.remove(onCameraAttributeChanged);
-        if (removed)
+        if (removed) {
             //console.log("removed old camera attr change hook");
+        }
         cameraComp.attributeChanged.add(onCameraAttributeChanged);
 
         this.connectToPlaceable(cameraComp.threeCamera, cameraComp.parentEntity.placeable);
@@ -324,12 +306,12 @@ ThreeView.prototype = {
     updateFromTransform: function(threeMesh, placeable) {
         checkDefined(placeable, threeMesh);
         var ptv = placeable.transform;
-        
+
         copyXyz(ptv.pos, threeMesh.position);
         copyXyz(ptv.scale, threeMesh.scale);
         copyXyzMapped(ptv.rot, threeMesh.rotation, this.degToRad);
         if (placeable.debug)
-            console.log("update placeable to "+ placeable);
+            console.log("update placeable to " + placeable);
         threeMesh.needsUpdate = true; // is this needed?
     },
 
@@ -337,7 +319,7 @@ ThreeView.prototype = {
         this.updateFromTransform(threeObject, placeable);
         if (placeable.debug)
             console.log("connect o3d " + threeObject.id + " to placeable - pl x " + placeable.transform.pos.x + " o3d x " + threeObject.position.x + " o3d parent x " + threeObject.parent.position.x);
-        
+
         //NOTE: this depends on component handling being done here before the componentReady signal fires
         var thisIsThis = this;
         placeable.parentRefReady.add(function() {
@@ -368,6 +350,50 @@ ThreeView.prototype = {
         }
 
         return parent;
+    },
+
+    onMouseDown: function() {
+        var camera = this.camera;
+        var mouse = {
+            x: (event.clientX / window.innerWidth) * 2 - 1,
+            y: -(event.clientY / window.innerHeight) * 2 + 1,
+        };
+
+        // Raycast
+        var vector = new THREE.Vector3(mouse.x, mouse.y, 1);
+        this.projector.unprojectVector(vector, camera);
+        var pLocal = new THREE.Vector3(0, 0, -1);
+        var pWorld = pLocal.applyMatrix4(camera.matrixWorld);
+        var ray = new THREE.Raycaster(pWorld, vector.sub(pWorld).normalize());
+
+        // Get meshes from all objects
+        var getMeshes = function(children) {
+            var meshes = [];
+            for (var i = 0; i < children.length; i++) {
+                if (children[i].children.length > 0) {
+                    meshes = meshes.concat(getMeshes(children[i].children));
+                } else if (children[i] instanceof THREE.Mesh) {
+                    meshes.push(children[i]);
+                }
+            }
+            return meshes;
+        };
+        var objects = attributeValues(this.o3dByEntityId);
+        var meshes = getMeshes(objects);
+
+        // Intersect
+        var intersects = ray.intersectObjects(meshes);
+
+        // if there is one (or more) intersections
+        if (intersects.length > 0) {
+            var clickedObject = intersects[0].object;
+            var entID = clickedObject.parent.userData.entityId;
+            var intersectionPoint = "" + intersects[0].point.x + "," + intersects[0].point.y + "," + intersects[0].point.z;
+
+            var params = [event.button, intersectionPoint, intersects[0].face.materialIndex];
+
+            this.objectClicked.dispatch(entID, params);
+        }
     }
 };
 

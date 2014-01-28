@@ -20,6 +20,13 @@ inputmapper.executionType = 1; // Execute actions locally
 // Connect left mouse button
 var inputContext = inputmapper.GetInputContext();
 inputContext.MouseLeftPressed.connect(this, this.HandleMouseLeftPressed);
+// WebTundra
+var boulder = scene.GetEntityByName("Boulder");
+if(boulder){
+    boulder.Action("MousePress").Triggered.connect(this, dropBoulder);
+} else {
+   console.LogError("Boulder entity not found");
+}
 
 // raycast tied to left mouse button
 function HandleMouseLeftPressed(event)
@@ -29,9 +36,13 @@ function HandleMouseLeftPressed(event)
     {
         if (raycastResult.entity.name == "Boulder")
         {
-            raycastResult.entity.rigidbody.mass = 100.0
+            dropBoulder();
         }
     }
+}
+
+function dropBoulder(){
+    boulder.rigidbody.mass = 100.0;
 }
 
 // Circular light animation

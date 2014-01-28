@@ -7,7 +7,16 @@
 </head>
 <body>
 
-<!-- EC -->
+<!-- THREE.JS -->
+<script src="../../src/view/js/Three.js"></script>
+<script src="../../src/view/js/Detector.js"></script>
+<script src="../../src/view/js/Stats.js"></script>
+<script src="../../src/view/js/FreeLook.js"></script>
+<script src="../../src/view/js/THREEx.KeyboardState.js"></script>
+<script src="../../src/view/js/THREEx.FullScreen.js"></script>
+<script src="../../src/view/js/THREEx.WindowResize.js"></script>
+
+<!-- WEBTUNDRA -->
 <script src="../../src/util/Signals.js"></script>
 <script src="../../src/util/CompoundSignal.js"></script>
 <script src="../../src/network/DataSerializer.js"></script>
@@ -31,14 +40,7 @@
 <script src="../../src/scene/EC_Camera.js"></script>
 <script src="../../src/scene/EC_Sound.js"></script>
 
-<script src="../../src/view/js/Three.js"></script>
-<script src="../../src/view/js/Detector.js"></script>
-<script src="../../src/view/js/Stats.js"></script>
-<script src="../../src/view/js/OrbitControls.js"></script>
-<script src="../../src/view/js/THREEx.KeyboardState.js"></script>
-<script src="../../src/view/js/THREEx.FullScreen.js"></script>
-<script src="../../src/view/js/THREEx.WindowResize.js"></script>
-
+<!-- APP -->
 <script src="../../src/app.js"></script>
 <script src="../../src/WebTundraModel.js"></script>
 <script src="../../src/view/ThreeView.js"></script>
@@ -47,14 +49,19 @@
 
 <div id="ThreeJS" style="z-index: 1; position: absolute; left:0px; top:0px"></div>
 <script>
+// APP
 var app = new Application();
 
 var host = "localhost";
 var port = 2345;
+
 app.start();
 
-app.camera.position.set(0, 8.50, 28.50);
-app.controls.center.y = 10; //OrbitControls is there by default
+// FREE LOOK
+var freeLookCtrl = new THREE.FreeLookControls(app.viewer.camera, app.viewer.renderer.domElement);
+app.scene.add(freeLookCtrl.getObject());
+// An object in freeLookCtrl that carries the camera. Set it's position instead of setting camera position directly
+freeLookCtrl.getObject().position.set(0, 8.50, 28.50);
 
 app.connect(host,port);
 </script>
