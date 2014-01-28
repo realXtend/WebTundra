@@ -79,7 +79,9 @@ function ThreeView(scene) {
     this.updatePeriod_ = 1 / 20; // seconds
     this.avgUpdateInterval = 0;
     this.clock = new THREE.Clock();
+    this.debugClock = new THREE.Clock();
     // debug
+    this.debug = true;
     this.debugThing = true;
 
     // Hack for Physics2 scene
@@ -107,7 +109,7 @@ ThreeView.prototype = {
         // ...
         // newTrans.scale = Lerp(startValue.scale, endValue.scale, t);
         // Set(newTrans, change);
-        if (this.clock.getElapsedTime() < 3 && this.interpolations.length > 0) {
+        if (this.debug && this.debugClock.getElapsedTime() < 3 && this.interpolations.length > 0) {
             console.log("===RENDER=======================");
         }
 
@@ -117,7 +119,7 @@ ThreeView.prototype = {
 
             // Check that the component still exists i.e. it's safe to access the attribute
             if (interp.dest) {
-                if (this.clock.getElapsedTime() < 3) {
+                if (this.debug && this.debugClock.getElapsedTime() < 3) {
                     console.log("interp.time: " + interp.time);
                     console.log("interp.length: " + interp.length);
                     console.log("lerpAlpha: " + (interp.time / interp.length));
@@ -129,7 +131,8 @@ ThreeView.prototype = {
                 if (interp.time <= interp.length) {
                     interp.time += delta;
                     var t = interp.time / interp.length; // between 0 and 1
-                    if (this.clock.getElapsedTime() < 3) {
+                    debugFloat = t;
+                    if (this.debugClock.getElapsedTime() < 3) {
                         console.log("interp.time: " + interp.time);
                         console.log("interp.length: " + interp.length);
                         console.log("lerpAlpha: " + (interp.time / interp.length));
@@ -146,7 +149,7 @@ ThreeView.prototype = {
                     // DEBUG
 
                     // console.clear();
-                    if (this.clock.getElapsedTime() < 3) {
+                    if (this.debug && this.debugClock.getElapsedTime() < 3) {
                         console.log("-------------");
                         console.log("i: " + i);
                         console.log("time: " + t);
@@ -173,14 +176,14 @@ ThreeView.prototype = {
 
             // Remove interpolation (& delete start/endpoints) when done
             if (finished) {
-                if (this.clock.getElapsedTime() < 3) {
+                if (this.debug && this.debugClock.getElapsedTime() < 3) {
                     console.log("Remove interpolation");
                 }
                 this.interpolations.splice(i, 1);
             }
         }
 
-        if (this.clock.getElapsedTime() < 3 && this.interpolations.length > 0) {
+        if (this.debug && this.debugClock.getElapsedTime() < 3 && this.interpolations.length > 0) {
             console.log("================================");
         }
 
@@ -407,7 +410,7 @@ ThreeView.prototype = {
 
             // INTERPOLATION
 
-            if (this.clock.getElapsedTime() < 3) {
+            if (this.debug && this.debugClock.getElapsedTime() < 3) {
                 console.log("...updateFromTransform.....");
                 console.log(ptv);
 
@@ -431,13 +434,13 @@ ThreeView.prototype = {
 
             // If it's the first measurement, set time directly. Else smooth
             var time = this.clock.getDelta(); // * 1000; // ms
-            debugFloat = time;
+
             if (this.avgUpdateInterval === 0) {
                 this.avgUpdateInterval = time;
             } else {
                 this.avgUpdateInterval = 0.5 * time + 0.5 * this.avgUpdateInterval;
             }
-            if (this.clock.getElapsedTime() < 3) {
+            if (this.debug && this.debugClock.getElapsedTime() < 3) {
                 console.log("time: " + time);
                 console.log("this.avgUpdateInterval: " + this.avgUpdateInterval);
                 console.log("...........................");
@@ -457,6 +460,7 @@ ThreeView.prototype = {
             // // Add a fudge factor in case there is jitter in packet receipt or the server is too taxed
             // updateInterval *= 1.25f;
 
+
             var updateInterval = this.updatePeriod_;
             if (this.avgUpdateInterval > 0) {
                 updateInterval = this.avgUpdateInterval;
@@ -464,13 +468,24 @@ ThreeView.prototype = {
             // Add a fudge factor in case there is jitter in packet receipt or the server is too taxed
             updateInterval *= 1.25;
 
+
+
+
+
+
             // End previous interpolation if existed
+
             for (var i = this.interpolations.length - 1; i >= 0; i--) {
-                if (this.clock.getElapsedTime() < 3) {
+                // TODO  if (interp.dest.Get() == attr)
+                if (this.debug && this.debugClock.getElapsedTime() < 3) {
                     console.log("Remove previous interpolation");
                 }
                 this.interpolations.splice(i, 1);
             }
+
+
+
+
 
             // Create new interpolation
 
@@ -486,6 +501,9 @@ ThreeView.prototype = {
             };
 
             this.interpolations.push(newInterp);
+
+
+
 
 
             // THREE MESH
