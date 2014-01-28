@@ -14,7 +14,7 @@ var host = "localhost"; // hostname of the Tundra server
 var port = 2345; // and port to the server
 
 app.start();
-loadXml3d(app.dataConnection, "xml3d-scene.html");
+loadXml3d(app.dataConnection, "xml3d-scene-suzanne.html");
 
 function loadXml3d(model, docurl) {
     var parser = new SceneParser(model);
