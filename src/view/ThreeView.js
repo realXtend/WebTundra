@@ -12,6 +12,7 @@
 
 var useCubes = false;
 var parentCameraToScene = true;
+var debugFloat = 0;
 
 function ThreeView(scene) {
     this.o3dByEntityId = {}; // Three.Object3d's that correspond to Placeables and have Meshes etc as children
@@ -76,7 +77,7 @@ function ThreeView(scene) {
 
     // INTERPOLATION
     this.interpolations = [];
-    this.updatePeriod_ = 0.1 / 0.02; // seconds
+    this.updatePeriod_ = 1 / 20; // seconds
     this.avgUpdateInterval = 0;
     this.clock = new THREE.Clock();
     // debug
@@ -93,6 +94,7 @@ ThreeView.prototype = {
     constructor: ThreeView,
 
     render: function(delta) {
+        // delta *= 1000;
         // checkDefined(this.scene, this.camera);
 
         // Update interpolations
@@ -103,44 +105,82 @@ ThreeView.prototype = {
         // ...
         // newTrans.scale = Lerp(startValue.scale, endValue.scale, t);
         // Set(newTrans, change);
+        if (this.clock.getElapsedTime() < 3 && this.interpolations.length > 0) {
+            console.log("===RENDER=======================");
+        }
 
         for (var i = this.interpolations.length - 1; i >= 0; i--) {
             var interp = this.interpolations[i];
-            interp.time += delta;
-            var t = interp.time / interp.length;
-            if (t > 1.0)
-                t = 1.0;
+            var finished = false;
 
-            // Interpolate
-            var newPos = interp.start.clone();
-            newPos.lerp(interp.end, t);
-            interp.dest.position = newPos;
-            interp.dest.needsUpdate = true; // is this needed?
+            // Check that the component still exists i.e. it's safe to access the attribute
+            if (interp.dest) {
+                if (this.clock.getElapsedTime() < 3) {
+                    console.log("interp.time: " + interp.time);
+                    console.log("interp.length: " + interp.length);
+                    console.log("lerpAlpha: " + (interp.time / interp.length));
+                    console.log("delta: " + delta);
+                }
 
-            // console.clear();
-            if (this.clock.getElapsedTime() < 3) {
-                console.log("---------------");
-                console.log("i: " + i);
-                console.log("time: " + t);
-                console.log("interp.start: " + interp.start);
-                console.log("interp.end: " + interp.end);
-                console.log("newPos: " + newPos);
+                // Allow the interpolation to persist for 2x time, though we are no longer setting the value
+                // This is for the continuous/discontinuous update detection in StartAttributeInterpolation()
+                if (interp.time <= interp.length) {
+                    interp.time += delta;
+                    var t = interp.time / interp.length; // between 0 and 1
+                    if (this.clock.getElapsedTime() < 3) {
+                        console.log("interp.time: " + interp.time);
+                        console.log("interp.length: " + interp.length);
+                        console.log("lerpAlpha: " + (interp.time / interp.length));
+                    }
+                    if (t > 1) {
+                        t = 1;
+                    }
+
+                    // Interpolate
+                    var newPos = interp.start.clone();
+                    newPos.lerp(interp.end, t);
+                    interp.dest.position = newPos;
+
+                    // DEBUG
+
+                    // console.clear();
+                    if (this.clock.getElapsedTime() < 3) {
+                        console.log("-------------");
+                        console.log("i: " + i);
+                        console.log("time: " + t);
+                        console.log("interp.start: " + interp.start);
+                        console.log("interp.end: " + interp.end);
+                        console.log("newPos: " + newPos);
+                        console.log("-------------");
+                    }
+
+                    if (this.debugThing && t >= 1) {
+                        console.log("Now time is 1 or more");
+                        this.debugThing = false;
+                    }
+                } else {
+                    interp.time += delta;
+                    if (interp.time >= interp.length * 2)
+                        finished = true;
+                }
+            } else {
+                // Component pointer has expired, abort this interpolation
+                console.log("Component pointer has expired, abort this interpolation");
+                finished = true;
             }
 
-            if(this.debugThing && t >= 1){
-                console.log("111111111111111111111111111111111111111111");
-                this.debugThing = false;
-            }
-
-
-            if (interp.time >= interp.length) {
+            // Remove interpolation (& delete start/endpoints) when done
+            if (finished) {
+                if (this.clock.getElapsedTime() < 3) {
+                    console.log("Remove interpolation");
+                }
                 this.interpolations.splice(i, 1);
             }
-
-
-
         }
 
+        if (this.clock.getElapsedTime() < 3 && this.interpolations.length > 0) {
+            console.log("================================");
+        }
 
 
         this.renderer.render(this.scene, this.camera);
@@ -386,11 +426,11 @@ ThreeView.prototype = {
             var ptv = placeable.transform;
 
             // INTERPOLATION
-            
+
             if (this.clock.getElapsedTime() < 3) {
-                console.log("...........");
+                console.log("...updateFromTransform.....");
                 console.log(ptv);
-                console.log("...........");
+
             }
 
             // Update interval
@@ -410,13 +450,18 @@ ThreeView.prototype = {
             // }
 
             // If it's the first measurement, set time directly. Else smooth
-            var time = this.clock.getDelta(); // seconds
+            var time = this.clock.getDelta(); // * 1000; // ms
+            debugFloat = time;
             if (this.avgUpdateInterval === 0) {
                 this.avgUpdateInterval = time;
             } else {
                 this.avgUpdateInterval = 0.5 * time + 0.5 * this.avgUpdateInterval;
             }
-
+            if (this.clock.getElapsedTime() < 3) {
+                console.log("time: " + time);
+                console.log("this.avgUpdateInterval: " + this.avgUpdateInterval);
+                console.log("...........................");
+            }
 
             //-----------------
 
@@ -439,7 +484,13 @@ ThreeView.prototype = {
             // Add a fudge factor in case there is jitter in packet receipt or the server is too taxed
             updateInterval *= 1.25;
 
-
+            // End previous interpolation if existed
+            for (var i = this.interpolations.length - 1; i >= 0; i--) {
+                if (this.clock.getElapsedTime() < 3) {
+                    console.log("Remove previous interpolation");
+                }
+                this.interpolations.splice(i, 1);
+            }
 
             // Create new interpolation
 
@@ -451,7 +502,7 @@ ThreeView.prototype = {
                 start: threeMesh.position, // attr
                 end: endAttr, // end attr
                 time: 0,
-                length: updateInterval // update interval (seconds)
+                length: updateInterval // update interval (ms)
             };
 
             this.interpolations.push(newInterp);
