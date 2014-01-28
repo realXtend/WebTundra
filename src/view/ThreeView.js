@@ -74,6 +74,14 @@ function ThreeView(scene) {
     this.objectClicked = new signals.Signal();
     document.addEventListener('mousedown', this.onMouseDown.bind(this), false);
 
+    // INTERPOLATION
+    this.interpolations = [];
+    this.updatePeriod_ = 0.1 / 0.02; // seconds
+    this.avgUpdateInterval = 0;
+    this.clock = new THREE.Clock();
+    // debug
+    this.debugThing = true;
+
     // Hack for Physics2 scene
     this.pointLight = new THREE.PointLight(0xffffff);
     this.pointLight.position.set(-100, 200, 100);
@@ -84,17 +92,66 @@ ThreeView.prototype = {
 
     constructor: ThreeView,
 
-    render: function() {
+    render: function(delta) {
         // checkDefined(this.scene, this.camera);
+
+        // Update interpolations
+
+        // AttributeInterpolation& interp = interpolations_[i];
+        // for(size_t i = interpolations_.size() - 1; i < interpolations_.size(); --i)
+        // interp.dest.Get()->Interpolate(interp.start.Get(), interp.end.Get(), t, AttributeChange::LocalOnly);
+        // ...
+        // newTrans.scale = Lerp(startValue.scale, endValue.scale, t);
+        // Set(newTrans, change);
+
+        for (var i = this.interpolations.length - 1; i >= 0; i--) {
+            var interp = this.interpolations[i];
+            interp.time += delta;
+            var t = interp.time / interp.length;
+            if (t > 1.0)
+                t = 1.0;
+
+            // Interpolate
+            var newPos = interp.start.clone();
+            newPos.lerp(interp.end, t);
+            interp.dest.position = newPos;
+            interp.dest.needsUpdate = true; // is this needed?
+
+            // console.clear();
+            if (this.clock.getElapsedTime() < 3) {
+                console.log("---------------");
+                console.log("i: " + i);
+                console.log("time: " + t);
+                console.log("interp.start: " + interp.start);
+                console.log("interp.end: " + interp.end);
+                console.log("newPos: " + newPos);
+            }
+
+            if(this.debugThing && t >= 1){
+                console.log("111111111111111111111111111111111111111111");
+                this.debugThing = false;
+            }
+
+
+            if (interp.time >= interp.length) {
+                this.interpolations.splice(i, 1);
+            }
+
+
+
+        }
+
+
+
         this.renderer.render(this.scene, this.camera);
     },
 
     onComponentAddedOrChanged: function(entity, component) {
-        try {
-            return this.onComponentAddedOrChangedInternal(entity, component);
-        } catch (e) {
-            debugger;
-        }
+        // try {
+        return this.onComponentAddedOrChangedInternal(entity, component);
+        // } catch (e) {
+        //     debugger;
+        // }
     },
     onComponentAddedOrChangedInternal: function(entity, component, changeType, changedAttr) {
         check(component instanceof Component);
@@ -324,15 +381,91 @@ ThreeView.prototype = {
     },
 
     updateFromTransform: function(threeMesh, placeable) {
-        checkDefined(placeable, threeMesh);
-        var ptv = placeable.transform;
+        if (threeMesh.id === 7) {
+            checkDefined(placeable, threeMesh);
+            var ptv = placeable.transform;
 
-        copyXyz(ptv.pos, threeMesh.position);
-        copyXyz(ptv.scale, threeMesh.scale);
-        copyXyzMapped(ptv.rot, threeMesh.rotation, this.degToRad);
-        if (placeable.debug)
-            console.log("update placeable to " + placeable);
-        threeMesh.needsUpdate = true; // is this needed?
+            // INTERPOLATION
+            
+            if (this.clock.getElapsedTime() < 3) {
+                console.log("...........");
+                console.log(ptv);
+                console.log("...........");
+            }
+
+            // Update interval
+
+            // void UpdateReceived()
+            // {
+            //     float time = updateTimer.MSecsElapsed() * 0.001f;
+            //     updateTimer.Start();
+            //     // Maximum update rate should be 100fps. Discard either very frequent or very infrequent updates.
+            //     if (time < 0.005f || time >= 0.5f)
+            //         return;
+            //     // If it's the first measurement, set time directly. Else smooth
+            //     if (avgUpdateInterval == 0.0f)
+            //         avgUpdateInterval = time;
+            //     else
+            //         avgUpdateInterval = 0.5 * time + 0.5 * avgUpdateInterval;
+            // }
+
+            // If it's the first measurement, set time directly. Else smooth
+            var time = this.clock.getDelta(); // seconds
+            if (this.avgUpdateInterval === 0) {
+                this.avgUpdateInterval = time;
+            } else {
+                this.avgUpdateInterval = 0.5 * time + 0.5 * this.avgUpdateInterval;
+            }
+
+
+            //-----------------
+
+            // // Record the update time for calculating the update interval
+            // float updateInterval = updatePeriod_; // Default update interval if state not found or interval not measured yet
+            // std::map<entity_id_t, EntitySyncState>::iterator it = state->entities.find(entityID);
+            // if (it != state->entities.end())
+            // {
+            //     it->second.UpdateReceived();
+            //     if (it->second.avgUpdateInterval > 0.0f)
+            //         updateInterval = it->second.avgUpdateInterval;
+            // }
+            // // Add a fudge factor in case there is jitter in packet receipt or the server is too taxed
+            // updateInterval *= 1.25f;
+
+            var updateInterval = this.updatePeriod_;
+            if (this.avgUpdateInterval > 0) {
+                updateInterval = this.avgUpdateInterval;
+            }
+            // Add a fudge factor in case there is jitter in packet receipt or the server is too taxed
+            updateInterval *= 1.25;
+
+
+
+            // Create new interpolation
+
+            var endAttr = new THREE.Vector3();
+            copyXyz(ptv.pos, endAttr);
+
+            var newInterp = {
+                dest: threeMesh,
+                start: threeMesh.position, // attr
+                end: endAttr, // end attr
+                time: 0,
+                length: updateInterval // update interval (seconds)
+            };
+
+            this.interpolations.push(newInterp);
+
+
+            // THREE MESH
+
+            // copyXyz(ptv.pos, threeMesh.position);
+            copyXyz(ptv.scale, threeMesh.scale);
+            copyXyzMapped(ptv.rot, threeMesh.rotation, this.degToRad);
+            if (placeable.debug)
+                console.log("update placeable to " + placeable);
+            threeMesh.needsUpdate = true; // is this needed?
+        }
     },
 
     connectToPlaceable: function(threeObject, placeable) {
