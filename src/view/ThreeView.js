@@ -157,7 +157,9 @@ ThreeView.prototype = {
             // this.onCameraAddedOrChanged(threeGroup, component);
         } else if (component instanceof EC_Light) {
             // this.onLightAddedOrChanged(threeGroup, component);
-        } else
+        } else if (component instanceof EC_AnimationController) {
+            this.onAnimatorRemoved(threeGroup, component);
+		} else
             2 > 1;
     },
 
@@ -217,7 +219,6 @@ ThreeView.prototype = {
 			var newMaterial = new THREE.MeshFaceMaterial(material);
 			newMaterial.materials[0].skinning = true;
 			mesh = new THREE.SkinnedMesh(geometry, newMaterial, false);
-			mesh.scale.set(0.1, 0.1, 0.1);
 		}
         else
             mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(material));
@@ -233,52 +234,9 @@ ThreeView.prototype = {
         // changes?
 		
 		var animation = meshComp.parentEntity.componentByType("AnimationController");
-		if (animation != null)
+		if (animation !== null)
 			this.onAnimatorAddedOrChanged(threeParent, animation);
     },
-	
-	onAnimatorAddedOrChanged: function(threeParent, animComp){
-		var thisIsThis = this;
-		var onAnimationAttributeChanged = function(changedAttr, changeType) {
-			var id = changedAttr.id;
-			if (id === "animationState")
-				thisIsThis.onAnimatorAddedOrChanged(threeParent, animComp);
-		};
-		animComp.attributeChanged.remove(onAnimationAttributeChanged);
-		animComp.attributeChanged.add(onAnimationAttributeChanged);
-		
-		animComp.play = function(name)
-		{
-			console.log("Play animation " + name);
-			if (this.threeAnimation !== undefined && this.threeAnimation.data.name === name)
-				animComp.threeAnimation.play();
-		};
-		
-		var mesh = animComp.meshEntity();
-		if (mesh !== null && mesh.threeMesh !== undefined)
-		{
-			THREE.AnimationHandler.add(mesh.threeMesh.geometry.animation);
-			
-			checkDefined(mesh, threeParent, animComp);
-			if (animComp.animationState.length > 0) {
-				var animation = new THREE.Animation(mesh.threeMesh, animComp.animationState);
-				animComp.threeAnimation = animation;
-				
-				// Test the animation.
-				animComp.play(animComp.animationState);
-			}
-		}
-		else
-		{
-			// If no mesh is being added we wait until it gets ready to use.
-			var OnComponentAdded = function(newComp, changeType){
-				if (newComp instanceof EC_Mesh)
-					thisIsThis.onAnimatorAddedOrChanged(threeParent, animComp);
-			};
-			animComp.parentEntity.componentAdded.remove(OnComponentAdded);
-			animComp.parentEntity.componentAdded.add(OnComponentAdded);
-		}
-	},
 
     jsonLoad: function(url, addedCallback) {
         var loader = new THREE.JSONLoader();

@@ -127,6 +127,7 @@ Application.prototype = {
             checkDefined(ent);
             ent.components.placeable.transform.pos.y += posIncrement;
             ent.components.placeable.transform.rot.y += 0.01;
+			console.log(ent.components);
         }
     },
 
