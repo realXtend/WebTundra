@@ -186,7 +186,6 @@ ThreeView.prototype = {
     },
 
     onMeshLoaded: function(threeParent, meshComp, geometry, material) {
-        debugger;
         if (!useCubes && geometry === undefined) {
             console.log("mesh load failed");
             return;
