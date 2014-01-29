@@ -14,7 +14,6 @@
  */
 
 var useSignals = true; // todo: remove (along with EC_* refs in jslint settings)
-var useOrbitalControls = false;
 
 function Application() {}
 
@@ -100,8 +99,6 @@ Application.prototype = {
         if (!useSignals)
             this.dataToViewerUpdate();
 
-        if (useOrbitalControls)
-            this.controls.update();
         this.viewer.stats.update();
 
         requestAnimationFrame(function() {
