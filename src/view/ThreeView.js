@@ -389,8 +389,8 @@ ThreeView.prototype = {
             var clickedObject = intersects[0].object;
             var entID = clickedObject.parent.userData.entityId;
             var intersectionPoint = "" + intersects[0].point.x + "," + intersects[0].point.y + "," + intersects[0].point.z;
-
-            var params = [event.button, intersectionPoint, intersects[0].face.materialIndex];
+            far face = intersects[0].face;
+            var params = [event.button, intersectionPoint, face ? face.materialIndex : 0];
 
             this.objectClicked.dispatch(entID, params);
         }
