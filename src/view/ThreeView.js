@@ -98,7 +98,6 @@ ThreeView.prototype = {
     constructor: ThreeView,
 
     render: function(delta) {
-        // delta *= 1000;
         // checkDefined(this.scene, this.camera);
 
         // Update interpolations
@@ -433,7 +432,7 @@ ThreeView.prototype = {
             // }
 
             // If it's the first measurement, set time directly. Else smooth
-            var time = this.clock.getDelta(); // * 1000; // ms
+            var time = this.clock.getDelta(); // seconds
 
             if (this.avgUpdateInterval === 0) {
                 this.avgUpdateInterval = time;
