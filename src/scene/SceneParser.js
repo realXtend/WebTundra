@@ -1,3 +1,4 @@
+"use strict";
 /* jslint browser: true, globalstrict: true, devel: true, debug: true */
 
 // For conditions of distribution and use, see copyright notice in LICENSE
@@ -9,10 +10,14 @@
  * @author Toni Dahl
  *
  */
-"use strict";
 
 function SceneParser(ecModel) {
     this.ecModel = ecModel;
+}
+
+var logParserDebug = true;
+function parserDebug(msg) {
+    logParserDebug && console.log(msg);
 }
 
 SceneParser.prototype.parseFromUrl = function(url) {
@@ -32,14 +37,17 @@ SceneParser.prototype.parseFromUrlXml3D = function(url) {
     var xhttp = new XMLHttpRequest();
     //xhttp.overrideMimeType('text/xml');
     check(typeof(url) === "string");
-
+    console.log("xhr start");
     xhttp.onreadystatechange = function() {
+        console.log("xhr callback");
         if (xhttp.readyState == 4) {
             if (xhttp.status == 200) {
                 var doc = xhttp.response;
-                check(doc !== null);
+                check(doc !== null);               
                 this.parseDocXml3D(doc);
             }
+        } else {
+            //console.log("unhandled xhr readystate " + xhttp.readyState);
         }
     }.bind(this);
 
@@ -109,33 +117,21 @@ SceneParser.prototype.parseDoc = function(doc) {
     return this.ecModel;
 };
 
+SceneParser.prototype.createEntityWithPlaceable = function() {
+    var entity = this.ecModel.scene.createEntity(0, AttributeChange.LocalOnly);
+    var placeable = entity.createComponent(0, cComponentTypePlaceable,
+                                           "", AttributeChange.LocalOnly);
+    placeable.parentRef = 0; // won't get added to three scene until this is initialized
+    return entity;
+};
+
 SceneParser.prototype.parseDocXml3D = function(doc) {
-    var radToDeg = function(val) {
-        return val * (180.0 / Math.PI);
-    };
     var lightEnt = this.ecModel.scene.createEntity(0, name);
     lightEnt.createComponent(0, cComponentTypePlaceable,
                         "", AttributeChange.LocalOnly);
     lightEnt.createComponent(0, cComponentTypeLight, "", AttributeChange.LocalOnly);
     console.log("SceneParser: created placeholder light");
     
-    var splitToXyz = function(s, v3) {
-        var nums = s.split(/\s+/).map(parseFloat);
-        check(nums.length === 3);
-        v3.x = nums[0]; v3.y = nums[1]; v3.z = nums[2];
-        // console.log("splitToXyz: " + nums);
-    };
-    var splitAxisAngleToEulerXyz = function(s, xfrmRot) {
-        var nums = s.split(/\s+/).map(parseFloat);
-        var euler = new THREE.Euler();
-        copyXyz(xfrmRot, euler);
-        check(nums.length === 4);
-        var q = xyzAngleToQuaternion(nums);
-        euler.setFromQuaternion(q);
-        copyXyzMapped(euler, xfrmRot, radToDeg);
-        //console.log("quat:", q, "euler:", euler);
-    }; 
-
     var x3Nodes = doc.getElementsByTagName("xml3d");
     if (x3Nodes.length < 1) {
         console.log("xml3d node not found");
@@ -147,56 +143,44 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
     
     var groups = getDirectChildNodesByTagName(x3Nodes[0], "group");  
     console.log("handling " + groups.length + " groups");
-    var setPlaceableFromTransformId = function(placeable, root, transformId) {
-        console.log("setting transform from transform id " + transformId);
-        var allDefsNodes = root.getElementsByTagName("defs");
-        if (allDefsNodes.length < 1) {
-            console.log("can't find defs node");
-            return;
+
+    var transformDefs = wtFindTransformDefs(doc);
+
+    var setPlaceableFromGroupNode = function(placeable, groupNode) {
+        check(!!groupNode);
+        var xTransform = groupNode.getAttribute("transform");
+        if (!xTransform)
+            return false;
+        if (xTransform[0] !== "#") {
+            console.log("don't know how to handle this kind of transform: " + xTransform);
+            return false;
         }
-        if (allDefsNodes.length > 1)
-            console.log("multiple defs nodes found, handling only first one");
-        var defsNode = allDefsNodes[0];
-        var allTransformNodes = defsNode.getElementsByTagName("transform");
-        for (var i = 0; i < allTransformNodes.length; i++) {
-            var transformNode = allTransformNodes[i];
-            if (transformNode.getAttribute("id") !== transformId) {
-                continue;
-            }
-            var trans = transformNode.getAttribute("translation"),
-            rot = transformNode.getAttribute("rotation"),
-            scale = transformNode.getAttribute("scale");
-            if (!(trans && rot && scale)) {
-                console.log("incomplete transform " + transformId);
-                return;
-            }
-            var px = placeable.transform;
-            splitToXyz(trans, px.pos);
-            splitAxisAngleToEulerXyz(rot, px.rot);
-            splitToXyz(scale, px.scale);
-            placeable.transform = px; // trigger signals
-            placeable.parentRef = 0;
-            console.log("pos for transform x=" + px.pos.x);
+        var transformId = wtTrimLeft(xTransform, "#");
+        var setter = transformDefs[transformId];
+        if (!setter) {
+            console.log("no transfrom def found:" + transformId);
+            return false;
         }
+        setter(placeable);
+        console.log("placeable setter run");
+        return true;
     };
 
-
-    var viewId, viewPosition, viewOrientation, xview, entity, ecCamera;
+    var viewsInGroups = [];
+    var viewId, viewPosition, viewOrientation, xview,
+       entity, ecCamera, placeable;
     for (var i = 0; i < groups.length; i++) {
         // console.log("doing group " + i);
         var group = groups[i];
         var groupId = group.getAttribute("id");
 
-        entity = this.ecModel.scene.createEntity(0, AttributeChange.LocalOnly);
-        var placeable = entity.createComponent(0, cComponentTypePlaceable,
-                                               "", AttributeChange.LocalOnly);
-        var groupTransformId = group.getAttribute("transform");
-        if (groupTransformId && groupTransformId[0] === '#') {
-            groupTransformId = groupTransformId.substring(1, groupTransformId.length);
-            setPlaceableFromTransformId(placeable, doc, groupTransformId);
-        } else {
-            console.log("group transform missing or not id ref: " + groupTransformId);
-        }
+        entity = this.createEntityWithPlaceable();
+        placeable = entity.componentByType("Placeable");
+        check(!!placeable);
+        var gotTransform = setPlaceableFromGroupNode(placeable, group);
+        if (!gotTransform)
+            console.log("using default transform for group", group);
+
         var meshChildren = group.getElementsByTagName("mesh");
         if (meshChildren.length > 0) {
             //console.log("*** handling meshes in group " + i);
@@ -209,28 +193,42 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
             var ecmesh = entity.createComponent(0, cComponentTypeMesh, meshName,
                                                 AttributeChange.LocalOnly);
             ecmesh.meshRef = { ref: src };
-            console.log("made mesh for id " + meshName);
+            console.log("made mesh for id " + meshName + " entity " + entity.id);
+           
         } else {
-            console.log("no meshes in group " + i);
+            //console.log("no meshes in group " + i);
         }
-
         var viewChildren = group.getElementsByTagName("view");
+        
         if (viewChildren.length > 0) {
-            //console.log("got view");
+            console.log("got view in group");
             xview = viewChildren[0];
             if (viewChildren.length > 1)
                 console.log("handling only first view of " + viewChildren.length);
+            viewsInGroups.push(xview);           
             viewId = xview.getAttribute("id");
             viewPosition = xview.getAttribute("position");
             viewOrientation = xview.getAttribute("orientation");
+            if (viewPosition) {
+                console.log("in-group views with position not implemented");
+            } else {
+                setPlaceableFromGroupNode(placeable, group);
+            }
             ecCamera = entity.createComponent(0, cComponentTypeCamera, viewId || "camera", AttributeChange.LocalOnly);
+          
             //console.log("in-group camera added to entity " + entity.id);
+            //placeable.debug = true;
         }
     }
 
-    var grouplessViews = doc.getElementsByTagName("view");
+    var grouplessViews = wtNodeListToArray(doc.getElementsByTagName("view"));
+    for (i = grouplessViews.length; i >= 0; i--) {
+        if (wtArrayContains(viewsInGroups, grouplessViews[i]))
+            wtRemoveElementAtIndex(grouplessViews, i);
+    }
+    
     if (grouplessViews.length > 0) {
-        console.log("got view");
+        console.log("got view outside group");
         xview = grouplessViews[0];
         if (grouplessViews.length > 1)
             console.log("handling only first view of " + grouplessViews.length);
@@ -244,11 +242,11 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
         var px = placeable.transform;
         if (viewPosition) {
             //console.log("have view pos");
-            splitToXyz(viewPosition, px.pos);
+            wtSplitToXyz(viewPosition, px.pos);
          }
         if (viewOrientation) {
             console.log("viewOrientation conversion " + viewOrientation);
-            splitAxisAngleToEulerXyz(viewOrientation, px.rot);
+            wtSplitAxisAngleToEulerXyz(viewOrientation, px.rot);
             //console.log("have view orientation, x=" + px.rot.x);
         }
         ecCamera.aspectRatio = ecCamera.aspectRatio;
@@ -259,8 +257,7 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
         
     }
 
-  
-
+ 
 };
 
 function getDirectChildNodesByTagName(node, tagName) {
@@ -290,7 +287,103 @@ function xyzAngleToQuaternion(nums) {
     return new THREE.Quaternion(quatXyzw[0], quatXyzw[1], quatXyzw[2], quatXyzw[3])
 }
 
-function loadXml3d(model, docurl) {
-    var parser = new SceneParser(model);
-    parser.parseFromUrlXml3D(docurl);
+function wtRemoveElementAtIndex(arr, i) {
+    arr.splice(i, 1);
 }
+
+function wtNodeListToArray(nodeList) {  
+    var out = [];
+    out.push.apply(out, nodeList);
+    check(out.length === nodeList.length);
+    return out;
+}
+
+function wtFlattenArrays(arrayOfArrays) {
+    var arr = [];
+    return arr.concat.apply(arrayOfArrays);
+}
+
+function wtArrayContains(arr, elt) {
+    for (var i = 0; i < arr.length; i++) {
+        if (arr[i] === elt)
+            return true;
+    }
+    return false;
+}
+
+
+
+var wtFindTransformDefs = function(root) {
+    var allDefsNodes = root.getElementsByTagName("defs");
+    if (allDefsNodes.length < 1) {
+        console.log("can't find defs node");
+        return false;
+    }
+    var foundTransforms = {};
+    var makeSetter = function(trans, rot, scale) {
+        var setter = function(placeable) {
+            var px = placeable.transform;
+            if (trans)
+                wtSplitToXyz(trans, px.pos);
+            if (rot)
+                wtSplitAxisAngleToEulerXyz(rot, px.rot);
+            if (scale)
+                wtSplitToXyz(scale, px.scale);
+            placeable.transform = px; // trigger signals
+            placeable.parentRef = 0;
+            console.log("pos for transform= " + [px.pos.x, px.pos.y, px.pos.z]);
+        };
+        return setter;
+    };
+    var i;
+    var transformNodes = [];
+    for (i = 0; i < allDefsNodes.length; i++) {
+        var thisDefTransforms = allDefsNodes[i].getElementsByTagName("transform")
+        transformNodes = transformNodes.concat(
+            wtNodeListToArray(thisDefTransforms));
+    }
+    console.log("found " + transformNodes.length + " transforms accross all defs");
+    for (i = 0; i < transformNodes.length; i++) {
+        var transformNode = transformNodes[i];
+        var trans = transformNode.getAttribute("translation"),
+           rot = transformNode.getAttribute("rotation"),
+           scale = transformNode.getAttribute("scale");      
+        var transformId = transformNode.getAttribute("id");
+        if (!(trans && rot && scale)) {
+            console.log("incomplete transform " + transformId + ":", trans, rot, scale);
+        }
+        console.log("transform: " + transformId);
+        check(!!(trans || rot || scale));
+        foundTransforms[transformId] = makeSetter(trans, rot, scale);
+    }
+    console.log("transform finding finished");
+    return foundTransforms;
+};
+
+function wtSplitToXyz(s, v3) {
+    var nums = s.split(/\s+/).map(parseFloat);
+    check(nums.length === 3);
+    v3.x = nums[0]; v3.y = nums[1]; v3.z = nums[2];
+    // console.log("wtSplitToXyz: " + nums);
+};
+function wtSplitAxisAngleToEulerXyz(s, xfrmRot) {
+    var nums = s.split(/\s+/).map(parseFloat);
+    var euler = new THREE.Euler();
+    copyXyz(xfrmRot, euler);
+    check(nums.length === 4);
+    var q = xyzAngleToQuaternion(nums);
+    euler.setFromQuaternion(q);
+    copyXyzMapped(euler, xfrmRot, wtRadToDeg);
+    //console.log("quat:", q, "euler:", euler);
+}; 
+
+function wtTrimLeft(s, trimChar) {
+    while (s.length && s[0] === trimChar) {
+        s = s.substring(1, s.length);
+    }
+    return s;
+}
+
+var wtRadToDeg = function(val) {
+    return val * (180.0 / Math.PI);
+};
