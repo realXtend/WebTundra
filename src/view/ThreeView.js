@@ -81,8 +81,7 @@ function ThreeView(scene) {
     this.clock = new THREE.Clock();
     this.debugClock = new THREE.Clock();
     // debug
-    this.debug = true;
-    this.debugThing = true;
+    this.debug = false;
 
     // Hack for Physics2 scene
     this.pointLight = new THREE.PointLight(0xffffff);
@@ -130,8 +129,9 @@ ThreeView.prototype = {
                 if (interp.time <= interp.length) {
                     interp.time += delta;
                     var t = interp.time / interp.length; // between 0 and 1
-                    debugFloat = t;
-                    if (this.debugClock.getElapsedTime() < 3) {
+
+                    if (this.debug && this.debugClock.getElapsedTime() < 3) {
+                        debugFloat = t;
                         console.log("interp.time: " + interp.time);
                         console.log("interp.length: " + interp.length);
                         console.log("lerpAlpha: " + (interp.time / interp.length));
@@ -158,10 +158,6 @@ ThreeView.prototype = {
                         console.log("-------------");
                     }
 
-                    if (this.debugThing && t >= 1) {
-                        console.log("Now time is 1 or more");
-                        this.debugThing = false;
-                    }
                 } else {
                     interp.time += delta;
                     if (interp.time >= interp.length * 2)
@@ -469,9 +465,6 @@ ThreeView.prototype = {
 
 
 
-
-
-
             // End previous interpolation if existed
 
             for (var i = this.interpolations.length - 1; i >= 0; i--) {
@@ -481,8 +474,6 @@ ThreeView.prototype = {
                 }
                 this.interpolations.splice(i, 1);
             }
-
-
 
 
 
@@ -496,12 +487,10 @@ ThreeView.prototype = {
                 start: threeMesh.position, // attr
                 end: endAttr, // end attr
                 time: 0,
-                length: updateInterval // update interval (ms)
+                length: updateInterval // update interval (seconds)
             };
 
             this.interpolations.push(newInterp);
-
-
 
 
 
@@ -635,7 +624,7 @@ ThreeAssetLoader.prototype.cachedLoadAsset = function(url, loadedCallback) {
     } else {
         loadedSig.addOnce(loadedCallback);
     }
-    
+
     check(typeof(url) === "string");
     if (url === "") {
         loadedCallback();
@@ -645,7 +634,9 @@ ThreeAssetLoader.prototype.cachedLoadAsset = function(url, loadedCallback) {
     var thisIsThis = this;
     this.load(url, function(geometry, material) {
         if (material === undefined) {
-            material = new THREE.MeshBasicMaterial({color: 0x808080 });
+            material = new THREE.MeshBasicMaterial({
+                color: 0x808080
+            });
         }
         checkDefined(geometry);
         loadedCallback(geometry, material);
@@ -672,7 +663,9 @@ ThreeAssetLoader.prototype.load = function(url, completedCallback) {
 
 ThreeAssetLoader.prototype.loadCtm = function(url, completedCallback) {
     var loader = new THREE.CTMLoader();
-    loader.load(url, completedCallback, {useWorker: false});
+    loader.load(url, completedCallback, {
+        useWorker: false
+    });
 };
 
 ThreeAssetLoader.prototype.loadJson = function(url, completedCallback) {
