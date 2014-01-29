@@ -24,11 +24,8 @@ app.viewer.meshReadySig.add(function(meshComp, threeMesh) {
     console.log("swapped custom material");
 });
 
-function setupFreelook() {
-    // FREE LOOK
-    var freeLookCtrl = new THREE.FreeLookControls(app.viewer.camera, app.viewer.renderer.domElement);
-    app.scene.add(freeLookCtrl.getObject());
-    // An object in freeLookCtrl that carries the camera. Set it's position instead of setting camera position directly
+function setupEditorControls() {
+    var controls = new THREE.EditorControls(app.viewer.camera, app.viewer.renderer.domElement);
 }
 function loadXml3d(model, docurl) {
     var parser = new SceneParser(model);
@@ -38,4 +35,4 @@ function loadXml3d(model, docurl) {
 
 loadXml3d(app.dataConnection, "xml3d-scene-ctm.html");
 // hack to get the right xml3d-created camera and not the default one.
-window.setTimeout(setupFreelook, 200);
+window.setTimeout(setupEditorControls, 2000);
