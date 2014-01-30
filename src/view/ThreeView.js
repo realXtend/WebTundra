@@ -179,8 +179,9 @@ ThreeView.prototype = {
 
                 } else {
                     interp.time += delta;
-                    if (interp.time >= interp.length * 2)
+                    if (interp.time >= interp.length * 2) {
                         finished = true;
+                    }
                 }
             } else {
                 // Component pointer has expired, abort this interpolation
@@ -417,141 +418,123 @@ ThreeView.prototype = {
         return val * (Math.PI / 180);
     },
 
-    updateFromTransform: function(threeMesh, placeable) {
-        if (threeMesh.id === 7) {
-            checkDefined(placeable, threeMesh);
-            var ptv = placeable.transform;
-
-            // INTERPOLATION
-
-            if (this.debug && this.debugClock.getElapsedTime() < 3) {
-                console.log("...updateFromTransform.....");
-                console.log(ptv);
-
-            }
-
-            // Update interval
-
-            // void UpdateReceived()
-            // {
-            //     float time = updateTimer.MSecsElapsed() * 0.001f;
-            //     updateTimer.Start();
-            //     // Maximum update rate should be 100fps. Discard either very frequent or very infrequent updates.
-            //     if (time < 0.005f || time >= 0.5f)
-            //         return;
-            //     // If it's the first measurement, set time directly. Else smooth
-            //     if (avgUpdateInterval == 0.0f)
-            //         avgUpdateInterval = time;
-            //     else
-            //         avgUpdateInterval = 0.5 * time + 0.5 * avgUpdateInterval;
-            // }
-
-            // If it's the first measurement, set time directly. Else smooth
-            var time = this.clock.getDelta(); // seconds
-
-            if (this.avgUpdateInterval === 0) {
-                this.avgUpdateInterval = time;
-            } else {
-                this.avgUpdateInterval = 0.5 * time + 0.5 * this.avgUpdateInterval;
-            }
-            if (this.debug && this.debugClock.getElapsedTime() < 3) {
-                console.log("time: " + time);
-                console.log("this.avgUpdateInterval: " + this.avgUpdateInterval);
-                console.log("...........................");
-            }
-
-            //-----------------
-
-            // // Record the update time for calculating the update interval
-            // float updateInterval = updatePeriod_; // Default update interval if state not found or interval not measured yet
-            // std::map<entity_id_t, EntitySyncState>::iterator it = state->entities.find(entityID);
-            // if (it != state->entities.end())
-            // {
-            //     it->second.UpdateReceived();
-            //     if (it->second.avgUpdateInterval > 0.0f)
-            //         updateInterval = it->second.avgUpdateInterval;
-            // }
-            // // Add a fudge factor in case there is jitter in packet receipt or the server is too taxed
-            // updateInterval *= 1.25f;
-
-
-            var updateInterval = this.updatePeriod_;
-            if (this.avgUpdateInterval > 0) {
-                updateInterval = this.avgUpdateInterval;
-            }
-            // Add a fudge factor in case there is jitter in packet receipt or the server is too taxed
-            updateInterval *= 1.25;
-
-
-
-            // End previous interpolation if existed
-
-            for (var i = this.interpolations.length - 1; i >= 0; i--) {
-                // TODO  if (interp.dest.Get() == attr)
+    endAttributeInterpolation: function(obj) {
+        for (var i = this.interpolations.length - 1; i >= 0; i--) {
+            if (this.interpolations[i].dest == obj) {
                 if (this.debug && this.debugClock.getElapsedTime() < 3) {
                     console.log("Remove previous interpolation");
                 }
                 this.interpolations.splice(i, 1);
+                return true;
             }
-
-
-
-            // Create new interpolation
-
-            // Convert
-
-            // position
-            var endPos = new THREE.Vector3();
-            copyXyz(ptv.pos, endPos);
-            // rotation
-            var endRot = new THREE.Quaternion();
-            var euler = new THREE.Euler();
-            euler.order = 'XYZ';
-            copyXyzMapped(ptv.rot, euler, this.degToRad);
-            endRot.setFromEuler(euler,true);
-             // endRot.setFromEuler(new THREE.Euler( 2, 2, 2, 'XYZ' ),true);
-            // debugger;
-
-            // var euler = new THREE.Euler();
-            // copyXyz(xfrmRot, euler);
-            // check(nums.length === 4);
-            // var q = xyzAngleToQuaternion(nums);
-            // euler.setFromQuaternion(q);
-            // copyXyzMapped(euler, xfrmRot, wtRadToDeg);
-
-            // scale
-            var endScale = new THREE.Vector3();
-            copyXyz(ptv.scale, endScale);
-
-            var newInterp = {
-                dest: threeMesh,
-                start: {
-                    position: threeMesh.position,
-                    rotation: threeMesh.quaternion,
-                    scale: threeMesh.scale
-                },
-                end: {
-                    position: endPos,
-                    rotation: endRot,
-                    scale: endScale
-                },
-                time: 0,
-                length: updateInterval // update interval (seconds)
-            };
-
-            this.interpolations.push(newInterp);
-
-
-
-            // THREE MESH
-
-            // copyXyz(ptv.pos, threeMesh.position);
-            // copyXyz(ptv.scale, threeMesh.scale);
-            // copyXyzMapped(ptv.rot, threeMesh.rotation, this.degToRad);
-            if (placeable.debug)
-                console.log("update placeable to " + placeable);
-            threeMesh.needsUpdate = true; // is this needed?
         }
+        return false;
+    },
+
+    updateFromTransform: function(threeMesh, placeable) {
+        checkDefined(placeable, threeMesh);
+        var ptv = placeable.transform;
+
+        // INTERPOLATION
+
+        if (this.debug && this.debugClock.getElapsedTime() < 3) {
+            console.log("...updateFromTransform.....");
+            console.log(ptv);
+
+        }
+
+        // Update interval
+
+        // If it's the first measurement, set time directly. Else smooth
+        var time = this.clock.getDelta(); // seconds
+
+        if (this.avgUpdateInterval === 0) {
+            this.avgUpdateInterval = time;
+        } else {
+            this.avgUpdateInterval = 0.5 * time + 0.5 * this.avgUpdateInterval;
+        }
+        if (this.debug && this.debugClock.getElapsedTime() < 3) {
+            console.log("time: " + time);
+            console.log("this.avgUpdateInterval: " + this.avgUpdateInterval);
+            console.log("...........................");
+        }
+
+
+        var updateInterval = this.updatePeriod_;
+        if (this.avgUpdateInterval > 0) {
+            updateInterval = this.avgUpdateInterval;
+        }
+        // Add a fudge factor in case there is jitter in packet receipt or the server is too taxed
+        updateInterval *= 1.25;
+
+
+        // End previous interpolation if existed 
+        var previous = this.endAttributeInterpolation(threeMesh);
+
+        // If previous interpolation does not exist, perform a direct snapping to the end value
+        // but still start an interpolation period, so that on the next update we detect that an interpolation is going on,
+        // and will interpolate normally
+        if (!previous) {
+            copyXyz(ptv.pos, threeMesh.position);
+            copyXyz(ptv.scale, threeMesh.scale);
+            copyXyzMapped(ptv.rot, threeMesh.rotation, this.degToRad);
+        }
+
+        // Create new interpolation
+
+        // Convert
+
+        // position
+        var endPos = new THREE.Vector3();
+        copyXyz(ptv.pos, endPos);
+        // rotation
+        var endRot = new THREE.Quaternion();
+        var euler = new THREE.Euler();
+        euler.order = 'XYZ';
+        copyXyzMapped(ptv.rot, euler, this.degToRad);
+        endRot.setFromEuler(euler, true);
+        // endRot.setFromEuler(new THREE.Euler( 2, 2, 2, 'XYZ' ),true);
+        // debugger;
+
+        // var euler = new THREE.Euler();
+        // copyXyz(xfrmRot, euler);
+        // check(nums.length === 4);
+        // var q = xyzAngleToQuaternion(nums);
+        // euler.setFromQuaternion(q);
+        // copyXyzMapped(euler, xfrmRot, wtRadToDeg);
+
+        // scale
+        var endScale = new THREE.Vector3();
+        copyXyz(ptv.scale, endScale);
+
+        var newInterp = {
+            dest: threeMesh,
+            start: {
+                position: threeMesh.position,
+                rotation: threeMesh.quaternion,
+                scale: threeMesh.scale
+            },
+            end: {
+                position: endPos,
+                rotation: endRot,
+                scale: endScale
+            },
+            time: 0,
+            length: updateInterval // update interval (seconds)
+        };
+
+        this.interpolations.push(newInterp);
+
+
+
+        // THREE MESH
+
+        // copyXyz(ptv.pos, threeMesh.position);
+        // copyXyz(ptv.scale, threeMesh.scale);
+        // copyXyzMapped(ptv.rot, threeMesh.rotation, this.degToRad);
+        if (placeable.debug)
+            console.log("update placeable to " + placeable);
+        threeMesh.needsUpdate = true; // is this needed?
     },
 
     connectToPlaceable: function(threeObject, placeable) {
