@@ -81,7 +81,7 @@ function ThreeView(scene) {
     this.clock = new THREE.Clock();
     this.debugClock = new THREE.Clock();
     // debug
-    this.debug = false;
+    this.debug = true;
 
     // Hack for Physics2 scene
     this.pointLight = new THREE.PointLight(0xffffff);
@@ -140,20 +140,39 @@ ThreeView.prototype = {
                         t = 1;
                     }
 
-                    // Interpolate
-                    var newPos = interp.start.clone();
-                    newPos.lerp(interp.end, t);
-                    interp.dest.position = newPos;
+                    // INTERPOLATE
+
+                    // position
+                    var newPos = interp.start.position.clone();
+                    newPos.lerp(interp.end.position, t);
+                    interp.dest.position.set(newPos.x, newPos.y, newPos.z);
+
+                    // rotation
+                    // debugger;
+                    var newRot = interp.start.rotation.clone();
+                    newRot.slerp(interp.end.rotation, t);
+                    interp.dest.quaternion.set(newRot.x, newRot.y, newRot.z, newRot.w);
+
+                    // scale
+                    var newScale = interp.start.scale.clone();
+                    newScale.lerp(interp.end.scale, t);
+                    interp.dest.scale.set(newScale.x, newScale.y, newScale.z);
+
+                    interp.dest.needsUpdate = true; // is this needed?
 
                     // DEBUG
 
                     // console.clear();
                     if (this.debug && this.debugClock.getElapsedTime() < 3) {
-                        console.log("-------------");
+                        console.log("--interp-----");
                         console.log("i: " + i);
                         console.log("time: " + t);
-                        console.log("interp.start: " + interp.start);
-                        console.log("interp.end: " + interp.end);
+                        console.log("interp.dest: ");
+                        console.log(interp.dest);
+                        console.log("interp.start: ");
+                        console.log(interp.start);
+                        console.log("interp.end: ");
+                        console.log(interp.end);
                         console.log("newPos: " + newPos);
                         console.log("-------------");
                     }
@@ -479,13 +498,43 @@ ThreeView.prototype = {
 
             // Create new interpolation
 
-            var endAttr = new THREE.Vector3();
-            copyXyz(ptv.pos, endAttr);
+            // Convert
+
+            // position
+            var endPos = new THREE.Vector3();
+            copyXyz(ptv.pos, endPos);
+            // rotation
+            var endRot = new THREE.Quaternion();
+            var euler = new THREE.Euler();
+            euler.order = 'XYZ';
+            copyXyzMapped(ptv.rot, euler, this.degToRad);
+            endRot.setFromEuler(euler,true);
+             // endRot.setFromEuler(new THREE.Euler( 2, 2, 2, 'XYZ' ),true);
+            // debugger;
+
+            // var euler = new THREE.Euler();
+            // copyXyz(xfrmRot, euler);
+            // check(nums.length === 4);
+            // var q = xyzAngleToQuaternion(nums);
+            // euler.setFromQuaternion(q);
+            // copyXyzMapped(euler, xfrmRot, wtRadToDeg);
+
+            // scale
+            var endScale = new THREE.Vector3();
+            copyXyz(ptv.scale, endScale);
 
             var newInterp = {
                 dest: threeMesh,
-                start: threeMesh.position, // attr
-                end: endAttr, // end attr
+                start: {
+                    position: threeMesh.position,
+                    rotation: threeMesh.quaternion,
+                    scale: threeMesh.scale
+                },
+                end: {
+                    position: endPos,
+                    rotation: endRot,
+                    scale: endScale
+                },
                 time: 0,
                 length: updateInterval // update interval (seconds)
             };
@@ -497,8 +546,8 @@ ThreeView.prototype = {
             // THREE MESH
 
             // copyXyz(ptv.pos, threeMesh.position);
-            copyXyz(ptv.scale, threeMesh.scale);
-            copyXyzMapped(ptv.rot, threeMesh.rotation, this.degToRad);
+            // copyXyz(ptv.scale, threeMesh.scale);
+            // copyXyzMapped(ptv.rot, threeMesh.rotation, this.degToRad);
             if (placeable.debug)
                 console.log("update placeable to " + placeable);
             threeMesh.needsUpdate = true; // is this needed?
