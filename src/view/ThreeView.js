@@ -93,11 +93,11 @@ ThreeView.prototype = {
         // checkDefined(this.scene, this.camera);
         this.renderer.render(this.scene, this.camera);
     },
-	
-	update: function() {
-		var delta = this.clock.getDelta();
-		THREE.AnimationHandler.update(delta);
-	},
+
+    update: function() {
+        var delta = this.clock.getDelta();
+        THREE.AnimationHandler.update(delta);
+    },
 
     onComponentAddedOrChanged: function(entity, component) {
         try {
@@ -131,8 +131,8 @@ ThreeView.prototype = {
             this.onCameraAddedOrChanged(threeGroup, component);
         else if (component instanceof EC_Light)
             this.onLightAddedOrChanged(threeGroup, component);
-		else if (component instanceof EC_AnimationController)
-			this.onAnimatorAddedOrChanged(threeGroup, component);
+        else if (component instanceof EC_AnimationController)
+            this.onAnimatorAddedOrChanged(threeGroup, component);
         else
             console.log("Component not handled by ThreeView:", entity, component);
     },
@@ -161,7 +161,7 @@ ThreeView.prototype = {
             // this.onLightAddedOrChanged(threeGroup, component);
         } else if (component instanceof EC_AnimationController) {
             this.onAnimatorRemoved(threeGroup, component);
-		} else
+        } else
             console.log("view doesn't know about removed component " + component);
     },
 
@@ -210,11 +210,11 @@ ThreeView.prototype = {
             }*/
             mesh = new THREE.Mesh(this.cubeGeometry, this.wireframeMaterial);
         }
-		else if (geometry.bones !== undefined) {
-			var newMaterial = new THREE.MeshFaceMaterial(material);
-			newMaterial.materials[0].skinning = true;
-			mesh = new THREE.SkinnedMesh(geometry, newMaterial, false);
-		} else {
+        else if (geometry.bones !== undefined) {
+            var newMaterial = new THREE.MeshFaceMaterial(material);
+            newMaterial.materials[0].skinning = true;
+            mesh = new THREE.SkinnedMesh(geometry, newMaterial, false);
+        } else {
             checkDefined(geometry, material, meshComp, threeParent);
             mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(material));
             checkDefined(threeParent, meshComp, geometry, material);
@@ -233,10 +233,10 @@ ThreeView.prototype = {
         // do we need to set up signal that does
         // mesh.applyMatrix(threeParent.matrixWorld) when placeable
         // changes?
-		
-		var animation = meshComp.parentEntity.componentByType("AnimationController");
-		if (animation !== null)
-			this.onAnimatorAddedOrChanged(threeParent, animation);
+
+        var animation = meshComp.parentEntity.componentByType("AnimationController");
+        if (animation !== null)
+            this.onAnimatorAddedOrChanged(threeParent, animation);
     },
 
     onLightAddedOrChanged: function(threeGroup, lightComp) {
