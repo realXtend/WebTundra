@@ -57,7 +57,7 @@ function EC_AnimationController() {
             this.mesh = this.parentEntity.componentByType("Mesh");
         return this.mesh;
     };
-
+    
     // Create new instance of AnimationState object and add it to animations map.
     /* @param {string} name animation name
      * @return {AnimationState} new animation state object.
@@ -67,35 +67,35 @@ function EC_AnimationController() {
         this.animations[name] = anim;
         return anim;
     };
-
-    // Play animation
-    /* @param {string} animation name
-     * @param {float} fadeInTime
-     */
-    this.play = null;
-
-    // Play in loop animation
-    /* @param {string} animation name
-     * @param {float} fadeInTime
-     */
-    this.playLooped = null;
-
-    // Stop playing given animation
-    /* @param {string} name Animation name
-     * @param {EC_Mesh} fadeoutTime how long it takes to fade out the animation.
-     */
-    this.stop = null;
-
-    // Stop all playing animations
-    /* @param {float} fadeoutTime how long it takes to fade out the animations.
-     */
-    this.stopAll = null;
-
-    // Updates animation(s) by elapsed time
-    /* @param deltaTime time elapse.
-     */
-    this.update = null;
 }
+
+// Play animation
+/* @param {string} animation name
+ * @param {float} fadeInTime
+ */
+EC_AnimationController.prototype.play = null;
+
+// Play in loop animation
+/* @param {string} animation name
+ * @param {float} fadeInTime
+ */
+EC_AnimationController.prototype.playLooped = null;
+
+// Stop playing given animation
+/* @param {string} name Animation name
+ * @param {EC_Mesh} fadeoutTime how long it takes to fade out the animation.
+ */
+EC_AnimationController.prototype.stop = null;
+
+// Stop all playing animations
+/* @param {float} fadeoutTime how long it takes to fade out the animations.
+ */
+EC_AnimationController.prototype.stopAll = null;
+
+// Updates animation(s) by elapsed time
+/* @param deltaTime time elapse.
+ */
+EC_AnimationController.prototype.update = null;
 
 EC_AnimationController.prototype = new Component(cComponentTypeAnimation);
 
