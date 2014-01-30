@@ -28,7 +28,7 @@ function ThreeView(scene) {
         FAR = 20000;
     this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
     this.scene.add(this.camera);
-    this.camera.position.set(-100, 50, 0);
+    this.camera.position.set(0, 20, 50);
     this.camera.lookAt(this.scene.position);
 
     // STATS
@@ -221,7 +221,17 @@ ThreeView.prototype = {
         this.meshReadySig.dispatch(meshComp, mesh);
         mesh.needsUpdate = 1;
         console.log("added mesh to o3d id=" + threeParent.id);
-        check(threeParent.children.length == 1);
+        //check(threeParent.children.length == 1);
+		
+		/*var placeable = meshComp.parentEntity.placeable;
+		for(var i = 0; i < mesh.bones.length; ++i)
+		{
+			console.log(mesh.bones[i]);
+			copyXyz(placeable.transform.scale, mesh.bones[i].scale);//b.scale.set(placeable.transform.x, placeable.transform.x,);
+		}*/
+		//this.updateFromTransform(mesh, meshComp.parentEntity.placeable);
+		//console.log(mesh);
+		//console.log(threeParent);
         // threeParent.needsUpdate = 1;
 
         // do we need to set up signal that does

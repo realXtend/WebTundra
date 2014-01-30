@@ -22,14 +22,27 @@ ThreeView.prototype.OnAnimatorInitialize = function(threeParent, animComp) {
 	animComp.play = function(name, fadeInTime)
 	{
 		console.log("Play animation " + name);
-		console.log(animComp);
 		var animation = animComp.animations[name];
 		if (typeof(animation) !== 'undefined')
-			animation.threeAnimation.play();
+		{
+			animation.threeAnimation.play(false);
+		}
 	};
-	
 	animComp.parentEntity.actionFuntionMap["PlayAnim"] = function(params, execType) {
 		animComp.play(params[0], params[1]);
+	};
+	
+	animComp.playLooped = function(name, fadeInTime)
+	{
+		console.log("Play loop animation " + name);
+		var animation = animComp.animations[name];
+		if (typeof(animation) !== 'undefined')
+		{
+			animation.threeAnimation.play();
+		}
+	};
+	animComp.parentEntity.actionFuntionMap["PlayLoopedAnim"] = function(params, execType) {
+		animComp.playLooped(params[0], params[1]);
 	};
 	
 	animComp.stop = function(name, fadeoutTime) {

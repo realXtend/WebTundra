@@ -73,6 +73,12 @@ function EC_AnimationController() {
 	 * @param {float} fadeInTime
 	 */
 	this.play = null;
+	
+	// Play in loop animation
+	/* @param {string} animation name
+	 * @param {float} fadeInTime
+	 */
+	this.playLooped = null;
 
 	// Stop playing given animation
 	/* @param {string} name Animation name
