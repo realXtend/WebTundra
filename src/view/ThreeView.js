@@ -170,10 +170,12 @@ ThreeView.prototype = {
             /* remove previous mesh if it existed */
             /* async hazard: what if two changes for same mesh come in
                order A, B and loads finish in order B, A */
-            threeGroup.remove(meshComp.threeMesh);
-            //console.log("removing prev three mesh on ec_mesh attr change", changedAttr);
+            if (!useCubes) {
+                threeGroup.remove(meshComp.threeMesh);
+                //console.log("removing prev three mesh on ec_mesh attr change");
+            }
         } else {
-            //console.log("adding first mesh for o3d id=" + threeGroup.id);
+            console.log("adding first mesh for o3d id=" + threeGroup.id);
         }
 
         var url = meshComp.meshRef.ref;
@@ -196,42 +198,31 @@ ThreeView.prototype = {
     },
 
     onMeshLoaded: function(threeParent, meshComp, geometry, material) {
-        if (geometry === undefined) {
+        if (!useCubes && geometry === undefined) {
             console.log("mesh load failed");
             return;
         }
-        checkDefined(geometry, material, meshComp, threeParent);
+        var mesh;
+        if (useCubes) {
+            /*if (meshComp.meshRef.ref === "") {
+                console.log("useCubes ignoring empty meshRef");
+                return; //hackish fix to avoid removing the cube when the ref gets the data later
+            }*/
+            mesh = new THREE.Mesh(this.cubeGeometry, this.wireframeMaterial);
+        } else {
+            checkDefined(geometry, material, meshComp, threeParent);
+            mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(material));
+            checkDefined(threeParent, meshComp, geometry, material);
+        }
         checkDefined(meshComp.parentEntity);
         check(threeParent.userData.entityId === meshComp.parentEntity.id);
         // console.log("Mesh loaded:", meshComp.meshRef.ref, "- adding to o3d of entity "+ threeParent.userData.entityId);
-        checkDefined(threeParent, meshComp, geometry, material);
-        var mesh;
-        if (useCubes)
-            mesh = new THREE.Mesh(this.cubeGeometry, this.wireframeMaterial);
-		else if (geometry.bones !== undefined) {
-			var newMaterial = new THREE.MeshFaceMaterial(material);
-			newMaterial.materials[0].skinning = true;
-			mesh = new THREE.SkinnedMesh(geometry, newMaterial, false);
-		}
-        else
-            mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(material));
         meshComp.threeMesh = mesh;
         //mesh.applyMatrix(threeParent.matrixWorld);
         threeParent.add(mesh);
         this.meshReadySig.dispatch(meshComp, mesh);
         mesh.needsUpdate = 1;
         console.log("added mesh to o3d id=" + threeParent.id);
-        //check(threeParent.children.length == 1);
-		
-		/*var placeable = meshComp.parentEntity.placeable;
-		for(var i = 0; i < mesh.bones.length; ++i)
-		{
-			console.log(mesh.bones[i]);
-			copyXyz(placeable.transform.scale, mesh.bones[i].scale);//b.scale.set(placeable.transform.x, placeable.transform.x,);
-		}*/
-		//this.updateFromTransform(mesh, meshComp.parentEntity.placeable);
-		//console.log(mesh);
-		//console.log(threeParent);
         // threeParent.needsUpdate = 1;
 
         // do we need to set up signal that does
@@ -465,7 +456,7 @@ ThreeAssetLoader.prototype.cachedLoadAsset = function(url, loadedCallback) {
     } else {
         loadedSig.addOnce(loadedCallback);
     }
-    
+
     check(typeof(url) === "string");
     if (url === "") {
         loadedCallback();
@@ -475,7 +466,9 @@ ThreeAssetLoader.prototype.cachedLoadAsset = function(url, loadedCallback) {
     var thisIsThis = this;
     this.load(url, function(geometry, material) {
         if (material === undefined) {
-            material = new THREE.MeshBasicMaterial({color: 0x808080 });
+            material = new THREE.MeshBasicMaterial({
+                color: 0x808080
+            });
         }
         checkDefined(geometry);
         loadedCallback(geometry, material);
@@ -502,7 +495,9 @@ ThreeAssetLoader.prototype.load = function(url, completedCallback) {
 
 ThreeAssetLoader.prototype.loadCtm = function(url, completedCallback) {
     var loader = new THREE.CTMLoader();
-    loader.load(url, completedCallback, {useWorker: false});
+    loader.load(url, completedCallback, {
+        useWorker: false
+    });
 };
 
 ThreeAssetLoader.prototype.loadJson = function(url, completedCallback) {
