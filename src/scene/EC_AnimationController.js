@@ -19,7 +19,7 @@ function AnimationState() {
     this.fade_period = 0.0;
 
     /// Weight of an animation in animation blending, maximum 1.0
-    this.weight = 0.0;
+    this.weight = 1.0;//0.0
 
     /// Weight adjust
     this.weight_factor = 1.0;
@@ -46,7 +46,7 @@ function EC_AnimationController() {
     this.mesh = null;
 
     // Map of animations that have their name as variable id.
-    this.animations = new Array();
+    this.animations = new Object;
 
     // Get and return a mesh component attached to entity.
     /* @returns {EC_Mesh} component if found otherwise returns a null.
@@ -93,9 +93,15 @@ EC_AnimationController.prototype.stop = null;
 EC_AnimationController.prototype.stopAll = null;
 
 // Updates animation(s) by elapsed time
-/* @param deltaTime time elapse.
+/* @param {float} deltaTime time elapse.
  */
 EC_AnimationController.prototype.update = null;
+
+/// Set new animation weight to animation
+/*@param {string} name animation name.
+ *@param {float} weight animation weight.
+ */
+EC_AnimationController.prototype.setAnimWeight = null;
 
 EC_AnimationController.prototype = new Component(cComponentTypeAnimation);
 
