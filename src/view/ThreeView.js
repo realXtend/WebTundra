@@ -209,7 +209,12 @@ ThreeView.prototype = {
                 return; //hackish fix to avoid removing the cube when the ref gets the data later
             }*/
             mesh = new THREE.Mesh(this.cubeGeometry, this.wireframeMaterial);
-        } else {
+        }
+		else if (geometry.bones !== undefined) {
+			var newMaterial = new THREE.MeshFaceMaterial(material);
+			newMaterial.materials[0].skinning = true;
+			mesh = new THREE.SkinnedMesh(geometry, newMaterial, false);
+		} else {
             checkDefined(geometry, material, meshComp, threeParent);
             mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(material));
             checkDefined(threeParent, meshComp, geometry, material);
