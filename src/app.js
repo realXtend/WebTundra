@@ -105,7 +105,7 @@ Application.prototype = {
             this.update();
         }.bind(this));
 
-        this.viewer.render();
+        this.viewer.render(delta);
         this.frameCount++;
     },
 

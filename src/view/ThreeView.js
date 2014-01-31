@@ -8,6 +8,7 @@
 /*
  *      @author Erno Kuusela
  *      @author Tapani Jamsa
+ *      @author Toni Alatalo
  */
 
 var useCubes = false;
@@ -73,6 +74,12 @@ function ThreeView(scene) {
     this.objectClicked = new signals.Signal();
     document.addEventListener('mousedown', this.onMouseDown.bind(this), false);
 
+    // INTERPOLATION
+    this.interpolations = [];
+    this.updatePeriod_ = 1 / 20; // seconds
+    this.avgUpdateInterval = 0;
+    this.clock = new THREE.Clock();
+
     // Hack for Physics2 scene
     this.pointLight = new THREE.PointLight(0xffffff);
     this.pointLight.position.set(-100, 200, 100);
@@ -86,8 +93,11 @@ ThreeView.prototype = {
 
     constructor: ThreeView,
 
-    render: function() {
+    render: function(delta) {
         // checkDefined(this.scene, this.camera);
+
+        this.updateInterpolations(delta);
+
         this.renderer.render(this.scene, this.camera);
     },
 
@@ -309,20 +319,138 @@ ThreeView.prototype = {
         return val * (Math.PI / 180);
     },
 
+    updateInterpolations: function(delta) {
+        for (var i = this.interpolations.length - 1; i >= 0; i--) {
+            var interp = this.interpolations[i];
+            var finished = false;
+
+            // Allow the interpolation to persist for 2x time, though we are no longer setting the value
+            // This is for the continuous/discontinuous update detection in updateFromTransform()
+            if (interp.time <= interp.length) {
+                interp.time += delta;
+                var t = interp.time / interp.length; // between 0 and 1
+
+                if (t > 1) {
+                    t = 1;
+                }
+
+                // LERP
+
+                // position
+                var newPos = interp.start.position.clone();
+                newPos.lerp(interp.end.position, t);
+                interp.dest.position.set(newPos.x, newPos.y, newPos.z);
+
+                // rotation
+                var newRot = interp.start.rotation.clone();
+                newRot.slerp(interp.end.rotation, t);
+                interp.dest.quaternion.set(newRot.x, newRot.y, newRot.z, newRot.w);
+
+                // scale
+                var newScale = interp.start.scale.clone();
+                newScale.lerp(interp.end.scale, t);
+                interp.dest.scale.set(newScale.x, newScale.y, newScale.z);
+            } else {
+                interp.time += delta;
+                if (interp.time >= interp.length * 2) {
+                    finished = true;
+                }
+            }
+
+            // Remove interpolation (& delete start/endpoints) when done
+            if (finished) {
+                this.interpolations.splice(i, 1);
+            }
+        }
+    },
+
+    endInterpolation: function(obj) {
+        for (var i = this.interpolations.length - 1; i >= 0; i--) {
+            if (this.interpolations[i].dest == obj) {
+                this.interpolations.splice(i, 1);
+                return true;
+            }
+        }
+        return false;
+    },
+
     updateFromTransform: function(threeMesh, placeable) {
         checkDefined(placeable, threeMesh);
         var ptv = placeable.transform;
 
-        copyXyz(ptv.pos, threeMesh.position);
-        copyXyz(ptv.scale, threeMesh.scale);
-        copyXyzMapped(ptv.rot, threeMesh.rotation, this.degToRad);
+        // INTERPOLATION
+
+        // Update interval
+
+        // If it's the first measurement, set time directly. Else smooth
+        var time = this.clock.getDelta(); // seconds
+
+        if (this.avgUpdateInterval === 0) {
+            this.avgUpdateInterval = time;
+        } else {
+            this.avgUpdateInterval = 0.5 * time + 0.5 * this.avgUpdateInterval;
+        }
+
+        var updateInterval = this.updatePeriod_;
+        if (this.avgUpdateInterval > 0) {
+            updateInterval = this.avgUpdateInterval;
+        }
+        // Add a fudge factor in case there is jitter in packet receipt or the server is too taxed
+        updateInterval *= 1.25;
+
+        // End previous interpolation if existed 
+        var previous = this.endInterpolation(threeMesh);
+
+        // If previous interpolation does not exist, perform a direct snapping to the end value
+        // but still start an interpolation period, so that on the next update we detect that an interpolation is going on,
+        // and will interpolate normally
+        if (!previous) {
+            copyXyz(ptv.pos, threeMesh.position);
+            copyXyz(ptv.scale, threeMesh.scale);
+            copyXyzMapped(ptv.rot, threeMesh.rotation, this.degToRad);
+        }
+
+        // Create new interpolation
+
+        // position
+        var endPos = new THREE.Vector3();
+        copyXyz(ptv.pos, endPos);
+
+        // rotation
+        var endRot = new THREE.Quaternion();
+        var euler = new THREE.Euler();
+        euler.order = 'XYZ';
+        copyXyzMapped(ptv.rot, euler, this.degToRad);
+        endRot.setFromEuler(euler, true);
+
+        // scale
+        var endScale = new THREE.Vector3();
+        copyXyz(ptv.scale, endScale);
+
+        // interpolation struct
+        var newInterp = {
+            dest: threeMesh,
+            start: {
+                position: threeMesh.position,
+                rotation: threeMesh.quaternion,
+                scale: threeMesh.scale
+            },
+            end: {
+                position: endPos,
+                rotation: endRot,
+                scale: endScale
+            },
+            time: 0,
+            length: updateInterval // update interval (seconds)
+        };
+
+        this.interpolations.push(newInterp);
+
         if (placeable.debug)
             console.log("update placeable to " + placeable);
-        threeMesh.needsUpdate = true; // is this needed?
     },
 
     connectToPlaceable: function(threeObject, placeable) {
-        this.updateFromTransform(threeObject, placeable);
         if (placeable.debug)
             console.log("connect o3d " + threeObject.id + " to placeable - pl x " + placeable.transform.pos.x + " o3d x " + threeObject.position.x + " o3d parent x " + threeObject.parent.position.x);
 
