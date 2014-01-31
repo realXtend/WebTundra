@@ -21,13 +21,12 @@ ThreeView.prototype.OnAnimatorInitialize = function(threeParent, animComp) {
     animComp.parentEntity.actionFuntionMap = new Array();
     animComp.play = function(name, fadeInTime)
     {
-        //console.log("Play animation " + name);
+        console.log("Play animation " + name);
         var animation = animComp.animations[name];
         animation.fade_period = fadeInTime !== undefined ? fadeInTime : 0;
-        console.log("Play loop animation " + name + " " + animation.fade_period + " " + animation.weight);
         if (typeof(animation) !== 'undefined')
         {
-            animation.threeAnimation.play(false,animation.weight,animation.fade_period);
+            animation.threeAnimation.play(false, 0, animation.weight, animation.fade_period);
         }
     };
     animComp.parentEntity.actionFuntionMap["PlayAnim"] = function(params, execType) {
@@ -36,12 +35,12 @@ ThreeView.prototype.OnAnimatorInitialize = function(threeParent, animComp) {
 
     animComp.playLooped = function(name, fadeInTime)
     {
+        console.log("Play loop animation " + name);
         var animation = animComp.animations[name];
         animation.fade_period = fadeInTime !== undefined ? fadeInTime : 0;
-        console.log("Play loop animation " + name + " " + animation.fade_period + " " + animation.weight);
         if (typeof(animation) !== 'undefined')
         {
-            animation.threeAnimation.play(true,animation.weight,animation.fade_period);
+            animation.threeAnimation.play(true, 0, animation.weight, animation.fade_period);
         }
     };
     animComp.parentEntity.actionFuntionMap["PlayLoopedAnim"] = function(params, execType) {
@@ -55,28 +54,29 @@ ThreeView.prototype.OnAnimatorInitialize = function(threeParent, animComp) {
         if (typeof(animation) !== 'undefined')
             animation.threeAnimation.stop(animation.fade_period);
     };
-
     animComp.parentEntity.actionFuntionMap["StopAnim"] = function(params, execType) {
         animComp.stop(params[0], params[1]);
     };
 
     animComp.stopAll = function(fadeoutTime) {
-        for(var anim in animComp.animations) {
-            anim.threeAnimation.stop();
+        var anim;
+        for(var id in animComp.animations) {
+            anim = animComp.animations[id];
+            if (anim !== undefined && typeof(anim) == 'AnimationState')
+                anim.threeAnimation.stop();
         }
     };
-    
     animComp.parentEntity.actionFuntionMap["StopAllAnims"] = function(params, execType) {
         animComp.stopAll(params[0]);
     };
     
-    animComp.setAnimWeight = function(name, weight){
+    animComp.setAnimWeight = function(name, weight) {
+        console.log("Set anim weight " + weight);
         var animation = animComp.animations[name];
         if (animation !== undefined && animation.weight !== undefined)
         {
             animation.weight = weight;
             animation.threeAnimation.weight = weight;
-            console.log("Set anim weight" + animation.threeAnimation.weight);
         }
     };
     animComp.parentEntity.actionFuntionMap["SetAnimWeight"] = function(params, execType) {
