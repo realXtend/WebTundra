@@ -102,11 +102,11 @@ ThreeView.prototype = {
     },
 
     onComponentAddedOrChanged: function(entity, component) {
-        // try {
-        return this.onComponentAddedOrChangedInternal(entity, component);
-        // } catch (e) {
-        //     debugger;
-        // }
+        try {
+            return this.onComponentAddedOrChangedInternal(entity, component);
+        } catch (e) {
+            debugger;
+        }
     },
     onComponentAddedOrChangedInternal: function(entity, component, changeType, changedAttr) {
         check(component instanceof Component);
