@@ -457,7 +457,6 @@ ThreeView.prototype = {
             parent.add(threeObject);
             if (placeable.debug)
                 console.log("parent ref set - o3d id=" + threeObject.id + " added to parent " + parent.id);
-            thisIsThis.updateFromTransform(threeObject, placeable);
             placeable.attributeChanged.add(function(attr, changeType) {
                 thisIsThis.updateFromTransform(threeObject, placeable); //Todo: pass attr to know when parentRef changed
             });
