@@ -155,7 +155,10 @@ Application.prototype = {
 
     onObjectClicked: function(entID, params) {
         var ent = this.dataConnection.scene.entityById(entID);
-        ent.triggerAction("MousePress", params, cExecTypeServer);
+        if (ent === null)
+            console.log("objectClicked got nonexistent entity id " + entID);
+        else
+            ent.triggerAction("MousePress", params, cExecTypeServer);
     },
 
 };

@@ -171,8 +171,14 @@ ThreeView.prototype = {
         url = url.replace(/\.mesh$/i, ".json");
 
         var thisIsThis = this;
-        this.assetLoader.cachedLoadAsset(url, function(geometry, material) {
-            thisIsThis.onMeshLoaded(threeGroup, meshComp, geometry, material);
+        this.assetLoader.cachedLoadAsset(url, function(arg1, material) {
+            if (arg1 && arg1.scene) {
+                // if it was a SceneLoader scene, we get a finished scene node
+                thisIsThis.onSceneLoaded(threeGroup, meshComp, arg1.scene);
+            } else {
+                var geometry = arg1;
+                thisIsThis.onMeshLoaded(threeGroup, meshComp, geometry, material);
+            }
         });
 
         var onMeshAttributeChanged = function(changedAttr, changeType) {
@@ -216,6 +222,11 @@ ThreeView.prototype = {
         // do we need to set up signal that does
         // mesh.applyMatrix(threeParent.matrixWorld) when placeable
         // changes?
+    },
+
+    onSceneLoaded: function(threeParent, meshComp, scene) {
+        checkDefined(scene);
+        threeParent.add(scene);
     },
 
     onLightAddedOrChanged: function(threeGroup, lightComp) {
@@ -471,6 +482,8 @@ ThreeAssetLoader.prototype.load = function(url, completedCallback) {
         fn = this.loadCtm;
     else if (suffixMatch(url, ".json") || suffixMatch(url, ".js"))
         fn = this.loadJson;
+    else if (suffixMatch(url, ".jsonscene"))
+        fn = this.loadJsonScene;
     else
         throw "don't know url suffix " + url;
 
@@ -489,6 +502,10 @@ ThreeAssetLoader.prototype.loadJson = function(url, completedCallback) {
     loader.load(url, completedCallback);
 };
 
+ThreeAssetLoader.prototype.loadJsonScene = function(url, completedCallback) {
+    var loader = new THREE.SceneLoader();
+    loader.load(url, completedCallback);
+};
 
 function suffixMatch(str, suffix) {
     str = str.toLowerCase();
