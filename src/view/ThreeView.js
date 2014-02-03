@@ -238,9 +238,10 @@ ThreeView.prototype = {
             console.log("not implemented: light type " + lightComp.type);
             return;
         }
-        var threeColor = THREE.Color();
+        var threeColor = new THREE.Color();
         /* for story about diffuse color and Three, see
            https://github.com/mrdoob/three.js/issues/1595 */
+        threeColor.copy(lightComp.diffColor);
         lightComp.threeLight = new THREE.PointLight(threeColor,
             lightComp.brightness,
             lightComp.range);
