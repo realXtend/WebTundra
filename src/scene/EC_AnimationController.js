@@ -8,7 +8,7 @@ var AnimationPhase = {
     PHASE_PLAY : 1,
     PHASE_FADEOUT: 2,
     PHASE_STOP : 3,
-    PHASE_FREE : 4 //in external control. for dynamiccomponent testing now
+    PHASE_FREE : 4 
 };
 
 function AnimationState() {
@@ -91,7 +91,7 @@ EC_AnimationController.prototype.playLooped = null;
 
 // Stop playing given animation
 /* @param {string} name Animation name
- * @param {EC_Mesh} fadeoutTime how long it takes to fade out the animation.
+ * @param {float} fadeoutTime how long it takes to fade out the animation.
  */
 EC_AnimationController.prototype.stop = null;
 

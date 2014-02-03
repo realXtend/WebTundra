@@ -110,7 +110,14 @@ ThreeView.prototype.onAnimatorAddedOrChanged = function(threeParent, animComp) {
         checkDefined(mesh, threeParent, animComp);
         var geometry = mesh.threeMesh.geometry;
         checkDefined(geometry);
+        
+        // Create Three animations and AnimationState objects.
+        
+        // In Three.js geometry.animations is used if model has more than
+        // one skeletal animation otherwise gemetry.animation is used.
+        
         if (typeof geometry.animations !== 'undefined') {
+            
             var anim, threeAnim;
             for(var i = 0; i < geometry.animations.length; ++i){
                 threeAnim = geometry.animations[i];
