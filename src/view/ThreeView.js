@@ -100,13 +100,10 @@ ThreeView.prototype = {
         // checkDefined(this.scene, this.camera);
 
         this.updateInterpolations(delta);
+        
+        THREE.AnimationHandler.update(delta);
 
         this.renderer.render(this.scene, this.camera);
-    },
-
-    update: function() {
-        var delta = this.clock.getDelta();
-        THREE.AnimationHandler.update(delta);
     },
 
     onComponentAddedOrChanged: function(entity, component) {
