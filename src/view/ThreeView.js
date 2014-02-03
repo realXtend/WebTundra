@@ -487,6 +487,17 @@ ThreeView.prototype = {
             }
             return meshes;
         };
+
+        function attributeValues(o) {
+            var out = [];
+            for (var key in o) {
+                if (!o.hasOwnProperty(key))
+                    continue;
+                out.push(o[key]);
+            }
+            return out;
+        }
+
         var objects = attributeValues(this.o3dByEntityId);
         var meshes = getMeshes(objects);
 

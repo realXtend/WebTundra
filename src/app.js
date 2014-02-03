@@ -184,15 +184,3 @@ function check() {
             }
 }
 
-
-// Todo: move or remove below 
-
-function attributeValues(o) {
-    var out = [];
-    for (var key in o) {
-        if (!o.hasOwnProperty(key))
-            continue;
-        out.push(o[key]);
-    }
-    return out;
-}
