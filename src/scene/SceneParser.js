@@ -373,7 +373,7 @@ function wtSplitAxisAngleToEulerXyz(s, xfrmRot) {
     check(nums.length === 4);
     var q = xyzAngleToQuaternion(nums);
     euler.setFromQuaternion(q);
-    copyXyzMapped(euler, xfrmRot, wtRadToDeg);
+    tundraToThreeEuler(euler, xfrmRot, wtRadToDeg);
     //console.log("quat:", q, "euler:", euler);
 }; 
 
