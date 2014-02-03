@@ -196,16 +196,3 @@ function attributeValues(o) {
     }
     return out;
 }
-
-function EventCounter() {
-    this.events = {};
-}
-
-EventCounter.prototype.add = function(key) {
-    var count = this.events[key];
-    if (count === undefined)
-        count = 0;
-    count++;
-    this.events[key] = count;
-    return count;
-};
