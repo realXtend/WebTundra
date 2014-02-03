@@ -12,6 +12,9 @@ var AnimationPhase = {
 };
 
 function AnimationState() {
+    /// Animation name.
+    this.name = "";
+    
     /// Autostop at end (default false)
     this.auto_stop = false;
 
@@ -64,20 +67,25 @@ function EC_AnimationController() {
      */
     this.createAnimation = function(name) {
         var anim = new AnimationState();
+        anim.name = name;
         this.animations[name] = anim;
         return anim;
     };
 }
 
-// Play animation
+// Play animation. If cross fade is set to true all playing animations are stopped
+// and their fadeOutTime time is same as fadeInTime.
 /* @param {string} animation name
  * @param {float} fadeInTime
+ * @param {bool} crossFade
+ * @param {bool} looped
  */
 EC_AnimationController.prototype.play = null;
 
 // Play in loop animation
 /* @param {string} animation name
  * @param {float} fadeInTime
+ * @param {bool} crossFade
  */
 EC_AnimationController.prototype.playLooped = null;
 

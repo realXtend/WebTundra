@@ -19,38 +19,41 @@ ThreeView.prototype.OnAnimatorInitialize = function(threeParent, animComp) {
     animComp.parentEntity.actionTriggered.add(this.OnAnimatorEntityAction.bind(animComp.parentEntity));
 
     animComp.parentEntity.actionFuntionMap = new Array();
-    animComp.play = function(name, fadeInTime)
+    animComp.play = function(name, fadeInTime, crossFade, looped)
     {
-        console.log("Play animation " + name);
+        //console.log("Play animation " + name);
         var animation = animComp.animations[name];
-        animation.fade_period = fadeInTime !== undefined ? fadeInTime : 0;
+        animation.fade_period = fadeInTime !== undefined ? fadeInTime : 0.001;
+        animation.fade_period = Math.max(0.001, animation.fade_period);
+        animation.phase = AnimationPhase.PHASE_PLAY;
+        
+        if (crossFade)
+            this.stopAll(animation.fade_period);
+        
         if (typeof(animation) !== 'undefined')
         {
-            animation.threeAnimation.play(false, 0, animation.weight, animation.fade_period);
+            animation.threeAnimation.play(looped, 0, animation.weight, animation.fade_period);
         }
     };
     animComp.parentEntity.actionFuntionMap["PlayAnim"] = function(params, execType) {
-        animComp.play(params[0], params[1]);
+        animComp.play(params[0], params[1], params[2], false);
     };
 
-    animComp.playLooped = function(name, fadeInTime)
+    animComp.playLooped = function(name, fadeInTime, crossFade)
     {
-        console.log("Play loop animation " + name);
-        var animation = animComp.animations[name];
-        animation.fade_period = fadeInTime !== undefined ? fadeInTime : 0;
-        if (typeof(animation) !== 'undefined')
-        {
-            animation.threeAnimation.play(true, 0, animation.weight, animation.fade_period);
-        }
+        animComp.play(name, fadeInTime, crossFade, true);
     };
     animComp.parentEntity.actionFuntionMap["PlayLoopedAnim"] = function(params, execType) {
-        animComp.playLooped(params[0], params[1]);
+        animComp.playLooped(params[0], params[1], params[2]);
     };
 
     animComp.stop = function(name, fadeoutTime) {
-        console.log("Stop animation " + name);
+        //console.log("Stop animation " + name);
         var animation = animComp.animations[name];
-        animation.fade_period = fadeoutTime !== undefined ? fadeoutTime : 0;
+        animation.fade_period = fadeoutTime !== undefined ? fadeoutTime : 0.001;
+        animation.fade_period = Math.max(0.001, animation.fade_period);
+        animation.phase = AnimationPhase.PHASE_STOP;
+        
         if (typeof(animation) !== 'undefined')
             animation.threeAnimation.stop(animation.fade_period);
     };
@@ -59,11 +62,12 @@ ThreeView.prototype.OnAnimatorInitialize = function(threeParent, animComp) {
     };
 
     animComp.stopAll = function(fadeoutTime) {
-        var anim;
+        fadeoutTime = Number(fadeoutTime);
+        fadeoutTime = isNaN(fadeoutTime) ? 0.001 : fadeoutTime;
         for(var id in animComp.animations) {
             anim = animComp.animations[id];
-            if (anim !== undefined && typeof(anim) == 'AnimationState')
-                anim.threeAnimation.stop();
+            if (anim instanceof AnimationState)
+                animComp.stop(anim.name, fadeoutTime);
         }
     };
     animComp.parentEntity.actionFuntionMap["StopAllAnims"] = function(params, execType) {
@@ -71,9 +75,9 @@ ThreeView.prototype.OnAnimatorInitialize = function(threeParent, animComp) {
     };
     
     animComp.setAnimWeight = function(name, weight) {
-        console.log("Set anim weight " + weight);
+        //console.log("Set anim weight " + weight);
         var animation = animComp.animations[name];
-        if (animation !== undefined && animation.weight !== undefined)
+        if (animation !== undefined && weight !== undefined)
         {
             animation.weight = weight;
             animation.threeAnimation.weight = weight;

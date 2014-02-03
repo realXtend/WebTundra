@@ -30656,6 +30656,7 @@ THREE.Animation.prototype.update = function ( deltaTimeMS ) {
 	var currentTime, unloopedCurrentTime;
 	var currentPoint, forwardPoint, angle;
 	var fadedWeight;
+	var looped = false;
 
 
 	this.currentTime += deltaTimeMS * this.timeScale;
@@ -30690,7 +30691,8 @@ THREE.Animation.prototype.update = function ( deltaTimeMS ) {
 	while ( this.currentTime > this.data.length ) {
 
 		this.currentTime -= this.data.length;
-
+		looped = true;
+		
 	}
 
 	currentTime = this.currentTime = this.currentTime % this.data.length;
@@ -30720,7 +30722,7 @@ THREE.Animation.prototype.update = function ( deltaTimeMS ) {
 
 				// did we loop?
 
-				if ( currentTime <= unloopedCurrentTime ) {
+				if ( looped ) {
 
 					if ( this.loop ) {
 
