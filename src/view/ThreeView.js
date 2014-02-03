@@ -101,14 +101,7 @@ ThreeView.prototype = {
         this.renderer.render(this.scene, this.camera);
     },
 
-    onComponentAddedOrChanged: function(entity, component) {
-        try {
-            return this.onComponentAddedOrChangedInternal(entity, component);
-        } catch (e) {
-            debugger;
-        }
-    },
-    onComponentAddedOrChangedInternal: function(entity, component, changeType, changedAttr) {
+    onComponentAddedOrChanged: function(entity, component, changeType, changedAttr) {
         check(component instanceof Component);
         check(entity instanceof Entity);
         var threeGroup = this.o3dByEntityId[entity.id];
