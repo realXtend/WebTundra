@@ -230,9 +230,10 @@ ThreeView.prototype = {
             console.log("not implemented: light type " + lightComp.type);
             return;
         }
-        var threeColor = THREE.Color();
+        var threeColor = new THREE.Color();
         /* for story about diffuse color and Three, see
            https://github.com/mrdoob/three.js/issues/1595 */
+        threeColor.copy(lightComp.diffColor);
         lightComp.threeLight = new THREE.PointLight(threeColor,
             lightComp.brightness,
             lightComp.range);
@@ -382,7 +383,7 @@ ThreeView.prototype = {
         if (!previous) {
             copyXyz(ptv.pos, threeMesh.position);
             copyXyz(ptv.scale, threeMesh.scale);
-            copyXyzMapped(ptv.rot, threeMesh.rotation, this.degToRad);
+            tundraToThreeEuler(ptv.rot, threeMesh.rotation, this.degToRad);
         }
 
         // Create new interpolation
@@ -395,7 +396,7 @@ ThreeView.prototype = {
         var endRot = new THREE.Quaternion();
         var euler = new THREE.Euler();
         euler.order = 'XYZ';
-        copyXyzMapped(ptv.rot, euler, this.degToRad);
+        tundraToThreeEuler(ptv.rot, euler, this.degToRad);
         endRot.setFromEuler(euler, true);
 
         // scale
@@ -535,10 +536,8 @@ function copyXyz(src, dst) {
     dst.z = src.z;
 }
 
-function copyXyzMapped(src, dst, mapfun) {
-    dst.x = mapfun(src.x);
-    dst.y = mapfun(src.y);
-    dst.z = mapfun(src.z);
+function tundraToThreeEuler(src, dst, mapfun) {
+    dst.set(mapfun(src.x), mapfun(src.y), mapfun(src.z),'ZYX');
 }
 
 function ThreeAssetLoader() {

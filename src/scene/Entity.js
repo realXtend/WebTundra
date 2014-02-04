@@ -48,7 +48,11 @@ Entity.prototype = {
             if (this[propName] === undefined)
                 this[propName] = newComp;
         }
-
+        else
+        {
+            return null;
+        }
+                
         if (changeType == null || changeType == AttributeChange.Default)
             changeType = newComp.local ? AttributeChange.LocalOnly : AttributeChange.Replicate;
         if (changeType != AttributeChange.Disconnected)
