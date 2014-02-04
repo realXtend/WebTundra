@@ -291,10 +291,6 @@ ThreeView.prototype = {
         // console.log("camera (o3d id " + cameraComp.threeCamera.id + ", entity id" + cameraComp.parentEntity.id + ") connected to placeable");
     },
 
-    degToRad: function(val) {
-        return val * (Math.PI / 180);
-    },
-
     updateInterpolations: function(delta) {
         for (var i = this.interpolations.length - 1; i >= 0; i--) {
             var interp = this.interpolations[i];
@@ -383,7 +379,7 @@ ThreeView.prototype = {
         if (!previous) {
             copyXyz(ptv.pos, threeMesh.position);
             copyXyz(ptv.scale, threeMesh.scale);
-            tundraToThreeEuler(ptv.rot, threeMesh.rotation, this.degToRad);
+            tundraToThreeEuler(ptv.rot, threeMesh.rotation);
         }
 
         // Create new interpolation
@@ -396,7 +392,7 @@ ThreeView.prototype = {
         var endRot = new THREE.Quaternion();
         var euler = new THREE.Euler();
         euler.order = 'XYZ';
-        tundraToThreeEuler(ptv.rot, euler, this.degToRad);
+        tundraToThreeEuler(ptv.rot, euler);
         endRot.setFromEuler(euler, true);
 
         // scale
@@ -536,8 +532,12 @@ function copyXyz(src, dst) {
     dst.z = src.z;
 }
 
-function tundraToThreeEuler(src, dst, mapfun) {
-    dst.set(mapfun(src.x), mapfun(src.y), mapfun(src.z),'ZYX');
+function tundraToThreeEuler(src, dst) {
+    var degToRad = function(val) {
+        return val * (Math.PI / 180);
+    };
+
+    dst.set(degToRad(src.x), degToRad(src.y), degToRad(src.z), 'ZYX');
 }
 
 function ThreeAssetLoader() {
