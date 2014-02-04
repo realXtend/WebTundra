@@ -28,7 +28,14 @@ ThreeView.prototype.OnAnimatorInitialize = function(threeParent, animComp) {
         animation.phase = AnimationPhase.PHASE_PLAY;
         
         if (crossFade)
-            this.stopAll(animation.fade_period);
+        {
+            var tAnim = null;
+            for(var i = 0; i < animComp.animations.length; ++i) {
+                tAnim = animComp.animations[i];
+                if (tAnim.name !== name && tAnim.threeAnim.isPlaying === true)
+                    animComp.stop(tAnim.name, animation.fade_period);
+            }
+        }
         
         if (typeof(animation) !== 'undefined')
         {
@@ -53,7 +60,6 @@ ThreeView.prototype.OnAnimatorInitialize = function(threeParent, animComp) {
         animation.fade_period = fadeoutTime !== undefined ? fadeoutTime : 0.001;
         animation.fade_period = Math.max(0.001, animation.fade_period);
         animation.phase = AnimationPhase.PHASE_STOP;
-        console.log(animComp.meshEntity());
         animComp.meshEntity().threeMesh.pose();
         
         if (typeof(animation) !== 'undefined')
@@ -100,7 +106,10 @@ ThreeView.prototype.OnAnimatorInitialize = function(threeParent, animComp) {
     animComp.setAnimSpeed = function(name, speed) {
         var animation = animComp.animations[name];
         if (animation !== undefined && speed !== undefined)
+        {
             animation.threeAnimation.timeScale = speed;
+            animation.speed_factor = speed;
+        }
     };
     animComp.parentEntity.actionFuntionMap["SetAnimSpeed"] = function(params, execType) {
         animComp.setAnimSpeed(params[0], params[1]);
