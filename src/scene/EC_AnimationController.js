@@ -111,6 +111,13 @@ EC_AnimationController.prototype.update = null;
  */
 EC_AnimationController.prototype.setAnimWeight = null;
 
+/// Implements the SetAnimSpeed action
+/*
+ * @param {string} name animation name
+ * @param {float} speed animation playback speed if negative play backward.
+ */
+EC_AnimationController.prototype.setAnimSpeed = null;
+
 EC_AnimationController.prototype = new Component(cComponentTypeAnimation);
 
 registerComponent(cComponentTypeAnimation, "AnimationController", function(){ return new EC_AnimationController(); });
