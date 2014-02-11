@@ -30841,6 +30841,7 @@ THREE.Animation.prototype.update = function ( delta ) {
 
 	var vector;
 	var quat;
+	var proportionalWeight;
 	var types = [ "pos", "rot", "scl" ];
 
 	var duration = this.data.length;
@@ -30950,9 +30951,14 @@ THREE.Animation.prototype.update = function ( delta ) {
 					// If first animation to blend to a bone, reset position to bind pose
 					if (object instanceof THREE.Bone) {
 
-						if (object.accumulatedPosWeight === 0)
+						if (object.accumulatedPosWeight === 0) {
 							vector.copy(object.originalPosition);
-						vector.lerp(newVector, fadedWeight);
+							proportionalWeight = fadedWeight;
+						}
+						else
+							proportionalWeight = fadedWeight / ( fadedWeight + object.accumulatedPosWeight );
+
+						vector.lerp(newVector, proportionalWeight);
 						object.accumulatedPosWeight += fadedWeight;
 
 					} else
@@ -30974,9 +30980,13 @@ THREE.Animation.prototype.update = function ( delta ) {
 					// If first animation to blend to a bone, reset position to bind pose
 					if ( object instanceof THREE.Bone ) {
 
-						var proportionalWeight = fadedWeight;
-						if (object.accumulatedPosWeight === 0)
+						if (object.accumulatedPosWeight === 0) {
 							vector.copy(object.originalPosition);
+							proportionalWeight = fadedWeight;
+						}
+						else
+							proportionalWeight = fadedWeight / ( fadedWeight + object.accumulatedPosWeight );
+
 						object.accumulatedPosWeight += fadedWeight
 
 					}
@@ -31013,9 +31023,14 @@ THREE.Animation.prototype.update = function ( delta ) {
 				// If first animation to blend to a bone, reset rotation to bind pose
 				if (object instanceof THREE.Bone) {
 
-					if (object.accumulatedRotWeight === 0)
+					if (object.accumulatedRotWeight === 0) {
 						quat.copy(object.originalQuaternion);
-					quat.slerp(newRotation, fadedWeight);
+						proportionalWeight = fadedWeight;
+					}
+					else
+						proportionalWeight = fadedWeight / ( fadedWeight + object.accumulatedRotWeight );
+
+					quat.slerp(newRotation, proportionalWeight);
 					object.accumulatedRotWeight += fadedWeight;
 
 				}
@@ -31035,9 +31050,14 @@ THREE.Animation.prototype.update = function ( delta ) {
 				// If first animation to blend to a bone, reset scale to bind pose
 				if ( object instanceof THREE.Bone ) {
 
-					if (object.accumulatedSclWeight === 0)
+					if (object.accumulatedSclWeight === 0) {
 						vector.copy(object.originalScale);
-					vector.lerp(newScale, fadedWeight);
+						proportionalWeight = fadedWeight;
+					}
+					else
+						proportionalWeight = fadedWeight / ( fadedWeight + object.accumulatedSclWeight );
+
+					vector.lerp(newScale, proportionalWeight);
 					object.accumulatedSclWeight += fadedWeight;
 
 				} else
