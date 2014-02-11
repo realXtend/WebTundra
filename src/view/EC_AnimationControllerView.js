@@ -39,7 +39,8 @@ ThreeView.prototype.OnAnimatorInitialize = function(threeParent, animComp) {
         
         if (typeof(animation) !== 'undefined')
         {
-            animation.threeAnimation.play(looped, 0, animation.weight, animation.fade_period);
+            animation.threeAnimation.loop = looped;
+            animation.threeAnimation.play(0, animation.weight, animation.fade_period);
         }
     };
     animComp.parentEntity.actionFuntionMap["PlayAnim"] = function(params, execType) {
@@ -83,6 +84,9 @@ ThreeView.prototype.OnAnimatorInitialize = function(threeParent, animComp) {
     };
     
     animComp.setAnimWeight = function(name, weight) {
+        // Make sure that weight range is [1-0].
+        weight = Math.min(Math.max(weight, 0), 1);
+        console.log(weight);
         var animation = animComp.animations[name];
         if (animation !== undefined && weight !== undefined)
         {

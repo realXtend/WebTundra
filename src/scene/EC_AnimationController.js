@@ -107,7 +107,7 @@ EC_AnimationController.prototype.update = null;
 
 /// Set new animation weight to animation
 /*@param {string} name animation name.
- *@param {float} weight animation weight.
+ *@param {float} weight animation weight range [0-1].
  */
 EC_AnimationController.prototype.setAnimWeight = null;
 
@@ -115,6 +115,7 @@ EC_AnimationController.prototype.setAnimWeight = null;
 /*
  * @param {string} name animation name
  * @param {float} speed animation playback speed if negative play backward.
+ * @TODO negative speed value wont work with current animation.
  */
 EC_AnimationController.prototype.setAnimSpeed = null;
 
