@@ -113,6 +113,7 @@ ThreeView.prototype = {
             debugger;
         }
     },
+    
     onComponentAddedOrChangedInternal: function(entity, component, changeType, changedAttr) {
         check(component instanceof Component);
         check(entity instanceof Entity);
@@ -124,6 +125,10 @@ ThreeView.prototype = {
             //console.log("created new o3d group id=" + threeGroup.id);
             isNewEntity = true;
             threeGroup.userData.entityId = entity.id;
+            
+            entity.actionTriggered.add(this.OnEntityAction.bind(entity));
+            entity.actionFuntionMap = {};
+            
             //console.log("registered o3d for entity", entity.id);
         } else {
             //console.log("got cached o3d group " + threeGroup.id + " for entity " + entity.id);
@@ -142,6 +147,15 @@ ThreeView.prototype = {
             this.onAnimatorAddedOrChanged(threeGroup, component);
         else
             console.log("Component not handled by ThreeView:", entity, component);
+    },
+    
+    OnEntityAction : function( name, params, execType ) {
+        
+    var sender = this;
+    var call = sender.actionFuntionMap[name];
+    if ( typeof call === "function" )
+        call(params);
+    
     },
 
     onComponentRemoved: function(entity, component, changeType) {

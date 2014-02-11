@@ -1,10 +1,3 @@
-ThreeView.prototype.OnAnimatorEntityAction = function(name, params, execType) {
-    var sender = this;
-    var call = sender.actionFuntionMap[name];
-    if (typeof call === "function")
-        call(params);
-};
-
 ThreeView.prototype.OnAnimatorInitialize = function(threeParent, animComp) {
 
     var thisIsThis = this;
@@ -16,15 +9,11 @@ ThreeView.prototype.OnAnimatorInitialize = function(threeParent, animComp) {
     animComp.attributeChanged.remove(onAnimationAttributeChanged);
     animComp.attributeChanged.add(onAnimationAttributeChanged);
 
-    animComp.parentEntity.actionTriggered.add(this.OnAnimatorEntityAction.bind(animComp.parentEntity));
-
     animComp.parentEntity.actionFuntionMap = new Array();
     animComp.play = function(name, fadeInTime, crossFade, looped)
     {
-        //console.log("Play animation " + name);
         var animation = animComp.animations[name];
-        animation.fade_period = fadeInTime !== undefined ? fadeInTime : 0.001;
-        animation.fade_period = Math.max(0.001, animation.fade_period);
+        animation.fade_period = fadeInTime !== undefined ? fadeInTime : 0;
         animation.phase = AnimationPhase.PHASE_PLAY;
         
         if (crossFade)
@@ -58,8 +47,7 @@ ThreeView.prototype.OnAnimatorInitialize = function(threeParent, animComp) {
     animComp.stop = function(name, fadeoutTime) {
         //console.log("Stop animation " + name);
         var animation = animComp.animations[name];
-        animation.fade_period = fadeoutTime !== undefined ? fadeoutTime : 0.001;
-        animation.fade_period = Math.max(0.001, animation.fade_period);
+        animation.fade_period = fadeoutTime !== undefined ? fadeoutTime : 0;
         animation.phase = AnimationPhase.PHASE_STOP;
         animComp.meshEntity().threeMesh.pose();
         
