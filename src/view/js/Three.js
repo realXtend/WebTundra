@@ -30724,7 +30724,7 @@ THREE.Animation = function ( root, name ) {
 	this.timeScale = 1;
 
 	this.isPlaying = false;
-	this.isPaused = true;
+	this.isPaused = false;
 	this.isFadingOut = false;
 	this.loop = true;
 	this.weight = 1;
@@ -30749,6 +30749,10 @@ THREE.Animation.prototype.play = function ( startTimeMS, weight, fadeInTime ) {
 		this.weight = weight !== undefined ? weight: 1;
 		this.fadeInTime = fadeInTime !== undefined ? fadeInTime: 0;
 		this.fadeTimeElapsed = 0;
+		
+		// Set current time at end of the animation if timeScale is negative (backward).
+		
+		this.currentTime = this.timeScale >= 0 ? 0 : this.data.length;
 
 		this.reset();
 		this.update( 0 );
@@ -30820,13 +30824,27 @@ THREE.Animation.prototype.reset = function () {
 		var prevKey = this.animationCaches[ h ].prevKey;
 		var nextKey = this.animationCaches[ h ].nextKey;
 
-		prevKey.pos = this.data.hierarchy[ h ].keys[ 0 ];
-		prevKey.rot = this.data.hierarchy[ h ].keys[ 0 ];
-		prevKey.scl = this.data.hierarchy[ h ].keys[ 0 ];
+		if (this.timeScale >= 0) {
+		
+			prevKey.pos = this.data.hierarchy[ h ].keys[ 0 ];
+			prevKey.rot = this.data.hierarchy[ h ].keys[ 0 ];
+			prevKey.scl = this.data.hierarchy[ h ].keys[ 0 ];
 
-		nextKey.pos = this.getNextKeyWith( "pos", h, 1 );
-		nextKey.rot = this.getNextKeyWith( "rot", h, 1 );
-		nextKey.scl = this.getNextKeyWith( "scl", h, 1 );
+			nextKey.pos = this.getNextKeyWith( "pos", h, 1 );
+			nextKey.rot = this.getNextKeyWith( "rot", h, 1 );
+			nextKey.scl = this.getNextKeyWith( "scl", h, 1 );
+		
+		} else {
+			
+			prevKey.pos = this.data.hierarchy[ h ].keys[ this.data.hierarchy[ h ].keys.length - 1 ];
+			prevKey.rot = this.data.hierarchy[ h ].keys[ this.data.hierarchy[ h ].keys.length - 1 ];
+			prevKey.scl = this.data.hierarchy[ h ].keys[ this.data.hierarchy[ h ].keys.length - 1 ];
+
+			nextKey.pos = this.getPrevKeyWith( "pos", h, prevKey.index - 1 );
+			nextKey.rot = this.getPrevKeyWith( "rot", h, prevKey.index - 1 );
+			nextKey.scl = this.getPrevKeyWith( "scl", h, prevKey.index - 1 );
+			
+		}
 
 	}
 
@@ -30835,8 +30853,10 @@ THREE.Animation.prototype.reset = function () {
 
 THREE.Animation.prototype.update = function ( delta ) {
 
-	if ( this.isPlaying === false ) return;
+	if ( this.isPlaying === false || this.timeScale === 0) return;
 
+	var forward = this.timeScale >= 0;
+	
 	this.currentTime += delta * this.timeScale;
 
 	var vector;
@@ -30847,7 +30867,7 @@ THREE.Animation.prototype.update = function ( delta ) {
 	var duration = this.data.length;
 	
 	var fadedWeight = 1;
-	this.fadeTimeElapsed += delta * this.timeScale;
+	this.fadeTimeElapsed += delta * Math.abs(this.timeScale);
 
 	// Scale the weight based on fade in/out
 	
@@ -30875,18 +30895,29 @@ THREE.Animation.prototype.update = function ( delta ) {
 			
     }
 	
-	fadedWeight = fadedWeight === 0 ? 0 : this.weight * fadedWeight;
+	fadedWeight = this.weight * fadedWeight;
 	
 	// To make sure that we don't divide by zero while interpolating
 	
 	if ( fadedWeight === 0 )
-            return;
+        return;
+	
+	if ( this.loop === true ) {
+	
+		if ( forward && this.currentTime > duration ) {
+		
+			this.currentTime %= duration;
+			
+			this.reset();
 
-	if ( this.loop === true && this.currentTime > duration ) {
+		} else if ( this.currentTime <= 0 ) {
 
-		this.currentTime %= duration;
-		this.reset();
+			this.currentTime = duration - (this.currentTime % duration);
+			
+			this.reset();
 
+		}
+	
 	}
 
 	this.currentTime = Math.min( this.currentTime, duration );
@@ -30906,26 +30937,54 @@ THREE.Animation.prototype.update = function ( delta ) {
 			var prevKey = animationCache.prevKey[ type ];
 			var nextKey = animationCache.nextKey[ type ];
 
-			if ( nextKey.time <= this.currentTime ) {
+			if ( forward )
+			{
+			
+				// Get next and previous keys for forward playback.
+			
+				if ( nextKey.time <= this.currentTime ) {
+				
+					prevKey = this.data.hierarchy[ h ].keys[ 0 ];
+					nextKey = this.getNextKeyWith( type, h, 1 );
+					
+					while ( nextKey.time < this.currentTime && nextKey.index > prevKey.index ) {
 
-				prevKey = this.data.hierarchy[ h ].keys[ 0 ];
-				nextKey = this.getNextKeyWith( type, h, 1 );
+						prevKey = nextKey;
+						nextKey = this.getNextKeyWith( type, h, nextKey.index + 1 );
 
-				while ( nextKey.time < this.currentTime && nextKey.index > prevKey.index ) {
-
-					prevKey = nextKey;
-					nextKey = this.getNextKeyWith( type, h, nextKey.index + 1 );
-
+					}
+					
+					animationCache.prevKey[ type ] = prevKey;
+					animationCache.nextKey[ type ] = nextKey;
+					
 				}
+			
+			} else {
 
-				animationCache.prevKey[ type ] = prevKey;
-				animationCache.nextKey[ type ] = nextKey;
+				// Get next and previous keys for backward playback.
+			
+				if ( this.currentTime <= nextKey.time ) {
+				
+					prevKey = this.data.hierarchy[ h ].keys[ this.data.hierarchy[ h ].keys.length - 1 ];
+					nextKey = this.getPrevKeyWith( type, h, prevKey.index - 1 );
+					
+					while ( nextKey.time > this.currentTime && nextKey.index < prevKey.index ) {
 
+						prevKey = nextKey;
+						nextKey = this.getPrevKeyWith( type, h, nextKey.index - 1 );
+
+					}
+				
+					animationCache.prevKey[ type ] = prevKey;
+					animationCache.nextKey[ type ] = nextKey;
+					
+				}
+			
 			}
 
 			object.matrixAutoUpdate = true;
 			object.matrixWorldNeedsUpdate = true;
-
+			
 			var scale = ( this.currentTime - prevKey.time ) / ( nextKey.time - prevKey.time );
 
 			var prevXYZ = prevKey[ type ];
@@ -30942,6 +31001,7 @@ THREE.Animation.prototype.update = function ( delta ) {
 				if ( this.interpolationType === THREE.AnimationHandler.LINEAR ) {
 
 					// get the lerped keyframe
+					
 					var newVector = new THREE.Vector3(
 						prevXYZ[ 0 ] + ( nextXYZ[ 0 ] - prevXYZ[ 0 ] ) * scale,
 						prevXYZ[ 1 ] + ( nextXYZ[ 1 ] - prevXYZ[ 1 ] ) * scale,
@@ -30991,7 +31051,7 @@ THREE.Animation.prototype.update = function ( delta ) {
 
 					}
 					else
-						var proportionalWeight = 1;
+						proportionalWeight = 1;
 
 					vector.x = vector.x + ( currentPoint[ 0 ] - vector.x ) * proportionalWeight;
 					vector.y = vector.y + ( currentPoint[ 1 ] - vector.y ) * proportionalWeight;
@@ -31021,6 +31081,7 @@ THREE.Animation.prototype.update = function ( delta ) {
 				THREE.Quaternion.slerp( prevXYZ, nextXYZ, newRotation, scale );
 
 				// If first animation to blend to a bone, reset rotation to bind pose
+				
 				if (object instanceof THREE.Bone) {
 
 					if (object.accumulatedRotWeight === 0) {
@@ -31129,7 +31190,7 @@ THREE.Animation.prototype.getNextKeyWith = function ( type, h, key ) {
 
 	if ( this.interpolationType === THREE.AnimationHandler.CATMULLROM ||
 		 this.interpolationType === THREE.AnimationHandler.CATMULLROM_FORWARD ) {
-
+		 
 		key = key < keys.length - 1 ? key : keys.length - 1;
 
 	} else {
