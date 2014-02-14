@@ -201,6 +201,7 @@ ThreeView.prototype = {
 
         var url = meshComp.meshRef.ref;
 
+        url = url.replace("local://", "");
         url = url.replace(/\.mesh$/i, ".json");
 
         var thisIsThis = this;
