@@ -8,10 +8,10 @@
 /*
  *      @author Erno Kuusela
  *      @author Tapani Jamsa
+ *      @author Toni Alatalo
  */
 
 var useCubes = false;
-var parentCameraToScene = true;
 
 function ThreeView(scene) {
     this.o3dByEntityId = {}; // Three.Object3d's that correspond to Placeables and have Meshes etc as children
@@ -73,6 +73,12 @@ function ThreeView(scene) {
     this.objectClicked = new signals.Signal();
     document.addEventListener('mousedown', this.onMouseDown.bind(this), false);
 
+    // INTERPOLATION
+    this.interpolations = [];
+    this.updatePeriod_ = 1 / 20; // seconds
+    this.avgUpdateInterval = 0;
+    this.clock = new THREE.Clock();
+
     // Hack for Physics2 scene
     this.pointLight = new THREE.PointLight(0xffffff);
     this.pointLight.position.set(-100, 200, 100);
@@ -86,19 +92,15 @@ ThreeView.prototype = {
 
     constructor: ThreeView,
 
-    render: function() {
+    render: function(delta) {
         // checkDefined(this.scene, this.camera);
+
+        this.updateInterpolations(delta);
+
         this.renderer.render(this.scene, this.camera);
     },
 
-    onComponentAddedOrChanged: function(entity, component) {
-        try {
-            return this.onComponentAddedOrChangedInternal(entity, component);
-        } catch (e) {
-            debugger;
-        }
-    },
-    onComponentAddedOrChangedInternal: function(entity, component, changeType, changedAttr) {
+    onComponentAddedOrChanged: function(entity, component, changeType, changedAttr) {
         check(component instanceof Component);
         check(entity instanceof Entity);
         var threeGroup = this.o3dByEntityId[entity.id];
@@ -239,9 +241,10 @@ ThreeView.prototype = {
             console.log("not implemented: light type " + lightComp.type);
             return;
         }
-        var threeColor = THREE.Color();
+        var threeColor = new THREE.Color();
         /* for story about diffuse color and Three, see
            https://github.com/mrdoob/three.js/issues/1595 */
+        threeColor.copy(lightComp.diffColor);
         lightComp.threeLight = new THREE.PointLight(threeColor,
             lightComp.brightness,
             lightComp.range);
@@ -277,14 +280,11 @@ ThreeView.prototype = {
         copyXyz(px.rot, cameraComp.threeCamera.rotation);
         copyXyz(px.pos, cameraComp.threeCamera.position);
         this.camera = cameraComp.threeCamera;
-        //console.log("switched main camera to this one (o3d id" + cameraComp.threeCamera.id + ")");
-        //console.log("copied camera pos/rot from placeable");
-        if (parentCameraToScene)
-            this.scene.add(cameraComp.threeCamera);
-        else
-            threeGroup.add(cameraComp.threeCamera);
-        //console.log("camera own pos: " + cameraComp.threeCamera.position);
-        //console.log("camera group pos: " + threeGroup.position);
+
+        // we parent camera directly to scene instead of threeGroup
+        // due to three behaviour wrt camera parenting.
+        this.scene.add(cameraComp.threeCamera);
+
         var thisIsThis = this;
         var onCameraAttributeChanged = function(changedAttr, changeType) {
             //console.log("onCameraAddedOrChanged due to attributeChanged ->", changedAttr.ref);
@@ -298,42 +298,142 @@ ThreeView.prototype = {
             //console.log("removed old camera attr change hook");
         }
         cameraComp.attributeChanged.add(onCameraAttributeChanged);
-
         this.connectToPlaceable(cameraComp.threeCamera, cameraComp.parentEntity.placeable);
-        console.log("camera (o3d id " + cameraComp.threeCamera.id + ", entity id" + cameraComp.parentEntity.id + ") connected to placeable");
-
-        // var onCameraAttributeChanged = function(changedAttr, changeType) {
-        //     //console.log("onCameraAddedOrChanged due to attributeChanged ->", changedAttr.ref);
-        //     var id = changedAttr.id;
-        //     if (id === "aspectRatio" || id === "verticalFov" ||
-        //         id === "nearPlane" || id === "farPlane")
-        //         thisIsThis.onCameraAddedOrChanged(threeGroup, cameraComp);
-        // };
-        // var removed = cameraComp.attributeChanged.remove(onCameraAttributeChanged);
-        // if (removed)
-        //     console.log("removed old camera attr change hook");
-        // cameraComp.attributeChanged.add(onCameraAttributeChanged);
-
+        // console.log("camera (o3d id " + cameraComp.threeCamera.id + ", entity id" + cameraComp.parentEntity.id + ") connected to placeable");
     },
 
-    degToRad: function(val) {
-        return val * (Math.PI / 180);
+    updateInterpolations: function(delta) {
+        for (var i = this.interpolations.length - 1; i >= 0; i--) {
+            var interp = this.interpolations[i];
+            var finished = false;
+
+            // Allow the interpolation to persist for 2x time, though we are no longer setting the value
+            // This is for the continuous/discontinuous update detection in updateFromTransform()
+            if (interp.time <= interp.length) {
+                interp.time += delta;
+                var t = interp.time / interp.length; // between 0 and 1
+
+                if (t > 1) {
+                    t = 1;
+                }
+
+                // LERP
+
+                // position
+                var newPos = interp.start.position.clone();
+                newPos.lerp(interp.end.position, t);
+                interp.dest.position.set(newPos.x, newPos.y, newPos.z);
+
+                // rotation
+                var newRot = interp.start.rotation.clone();
+                newRot.slerp(interp.end.rotation, t);
+                interp.dest.quaternion.set(newRot.x, newRot.y, newRot.z, newRot.w);
+
+                // scale
+                var newScale = interp.start.scale.clone();
+                newScale.lerp(interp.end.scale, t);
+                interp.dest.scale.set(newScale.x, newScale.y, newScale.z);
+            } else {
+                interp.time += delta;
+                if (interp.time >= interp.length * 2) {
+                    finished = true;
+                }
+            }
+
+            // Remove interpolation (& delete start/endpoints) when done
+            if (finished) {
+                this.interpolations.splice(i, 1);
+            }
+        }
+    },
+
+    endInterpolation: function(obj) {
+        for (var i = this.interpolations.length - 1; i >= 0; i--) {
+            if (this.interpolations[i].dest == obj) {
+                this.interpolations.splice(i, 1);
+                return true;
+            }
+        }
+        return false;
     },
 
     updateFromTransform: function(threeMesh, placeable) {
         checkDefined(placeable, threeMesh);
         var ptv = placeable.transform;
 
-        copyXyz(ptv.pos, threeMesh.position);
-        copyXyz(ptv.scale, threeMesh.scale);
-        copyXyzMapped(ptv.rot, threeMesh.rotation, this.degToRad);
+        // INTERPOLATION
+
+        // Update interval
+
+        // If it's the first measurement, set time directly. Else smooth
+        var time = this.clock.getDelta(); // seconds
+
+        if (this.avgUpdateInterval === 0) {
+            this.avgUpdateInterval = time;
+        } else {
+            this.avgUpdateInterval = 0.5 * time + 0.5 * this.avgUpdateInterval;
+        }
+
+        var updateInterval = this.updatePeriod_;
+        if (this.avgUpdateInterval > 0) {
+            updateInterval = this.avgUpdateInterval;
+        }
+        // Add a fudge factor in case there is jitter in packet receipt or the server is too taxed
+        updateInterval *= 1.25;
+
+        // End previous interpolation if existed 
+        var previous = this.endInterpolation(threeMesh);
+
+        // If previous interpolation does not exist, perform a direct snapping to the end value
+        // but still start an interpolation period, so that on the next update we detect that an interpolation is going on,
+        // and will interpolate normally
+        if (!previous) {
+            copyXyz(ptv.pos, threeMesh.position);
+            copyXyz(ptv.scale, threeMesh.scale);
+            tundraToThreeEuler(ptv.rot, threeMesh.rotation);
+        }
+
+        // Create new interpolation
+
+        // position
+        var endPos = new THREE.Vector3();
+        copyXyz(ptv.pos, endPos);
+
+        // rotation
+        var endRot = new THREE.Quaternion();
+        var euler = new THREE.Euler();
+        euler.order = 'XYZ';
+        tundraToThreeEuler(ptv.rot, euler);
+        endRot.setFromEuler(euler, true);
+
+        // scale
+        var endScale = new THREE.Vector3();
+        copyXyz(ptv.scale, endScale);
+
+        // interpolation struct
+        var newInterp = {
+            dest: threeMesh,
+            start: {
+                position: threeMesh.position,
+                rotation: threeMesh.quaternion,
+                scale: threeMesh.scale
+            },
+            end: {
+                position: endPos,
+                rotation: endRot,
+                scale: endScale
+            },
+            time: 0,
+            length: updateInterval // update interval (seconds)
+        };
+
+        this.interpolations.push(newInterp);
+
         if (placeable.debug)
             console.log("update placeable to " + placeable);
-        threeMesh.needsUpdate = true; // is this needed?
     },
 
     connectToPlaceable: function(threeObject, placeable) {
-        this.updateFromTransform(threeObject, placeable);
         if (placeable.debug)
             console.log("connect o3d " + threeObject.id + " to placeable - pl x " + placeable.transform.pos.x + " o3d x " + threeObject.position.x + " o3d parent x " + threeObject.parent.position.x);
 
@@ -395,6 +495,17 @@ ThreeView.prototype = {
             }
             return meshes;
         };
+
+        function attributeValues(o) {
+            var out = [];
+            for (var key in o) {
+                if (!o.hasOwnProperty(key))
+                    continue;
+                out.push(o[key]);
+            }
+            return out;
+        }
+
         var objects = attributeValues(this.o3dByEntityId);
         var meshes = getMeshes(objects);
 
@@ -432,10 +543,12 @@ function copyXyz(src, dst) {
     dst.z = src.z;
 }
 
-function copyXyzMapped(src, dst, mapfun) {
-    dst.x = mapfun(src.x);
-    dst.y = mapfun(src.y);
-    dst.z = mapfun(src.z);
+function tundraToThreeEuler(src, dst) {
+    var degToRad = function(val) {
+        return val * (Math.PI / 180);
+    };
+
+    dst.set(degToRad(src.x), degToRad(src.y), degToRad(src.z), 'ZYX');
 }
 
 function ThreeAssetLoader() {
