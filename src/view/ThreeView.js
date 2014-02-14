@@ -547,7 +547,6 @@ function tundraToThreeEuler(src, dst) {
     var degToRad = function(val) {
         return val * (Math.PI / 180);
     };
-
     dst.set(degToRad(src.x), degToRad(src.y), degToRad(src.z), 'ZYX');
 }
 
