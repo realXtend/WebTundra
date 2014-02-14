@@ -184,28 +184,3 @@ function check() {
             }
 }
 
-
-// Todo: move or remove below 
-
-function attributeValues(o) {
-    var out = [];
-    for (var key in o) {
-        if (!o.hasOwnProperty(key))
-            continue;
-        out.push(o[key]);
-    }
-    return out;
-}
-
-function EventCounter() {
-    this.events = {};
-}
-
-EventCounter.prototype.add = function(key) {
-    var count = this.events[key];
-    if (count === undefined)
-        count = 0;
-    count++;
-    this.events[key] = count;
-    return count;
-};
