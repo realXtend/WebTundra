@@ -12,7 +12,6 @@
  */
 
 var useCubes = false;
-var parentCameraToScene = true;
 
 function ThreeView(scene) {
     this.o3dByEntityId = {}; // Three.Object3d's that correspond to Placeables and have Meshes etc as children
@@ -106,15 +105,7 @@ ThreeView.prototype = {
         this.renderer.render(this.scene, this.camera);
     },
 
-    onComponentAddedOrChanged: function(entity, component) {
-        try {
-            return this.onComponentAddedOrChangedInternal(entity, component);
-        } catch (e) {
-            debugger;
-        }
-    },
-    
-    onComponentAddedOrChangedInternal: function(entity, component, changeType, changedAttr) {
+    onComponentAddedOrChanged: function(entity, component, changeType, changedAttr) {
         check(component instanceof Component);
         check(entity instanceof Entity);
         var threeGroup = this.o3dByEntityId[entity.id];
@@ -310,14 +301,11 @@ ThreeView.prototype = {
         copyXyz(px.rot, cameraComp.threeCamera.rotation);
         copyXyz(px.pos, cameraComp.threeCamera.position);
         this.camera = cameraComp.threeCamera;
-        //console.log("switched main camera to this one (o3d id" + cameraComp.threeCamera.id + ")");
-        //console.log("copied camera pos/rot from placeable");
-        if (parentCameraToScene)
-            this.scene.add(cameraComp.threeCamera);
-        else
-            threeGroup.add(cameraComp.threeCamera);
-        //console.log("camera own pos: " + cameraComp.threeCamera.position);
-        //console.log("camera group pos: " + threeGroup.position);
+
+        // we parent camera directly to scene instead of threeGroup
+        // due to three behaviour wrt camera parenting.
+        this.scene.add(cameraComp.threeCamera);
+
         var thisIsThis = this;
         var onCameraAttributeChanged = function(changedAttr, changeType) {
             //console.log("onCameraAddedOrChanged due to attributeChanged ->", changedAttr.ref);
@@ -331,26 +319,8 @@ ThreeView.prototype = {
             //console.log("removed old camera attr change hook");
         }
         cameraComp.attributeChanged.add(onCameraAttributeChanged);
-
         this.connectToPlaceable(cameraComp.threeCamera, cameraComp.parentEntity.placeable);
-        console.log("camera (o3d id " + cameraComp.threeCamera.id + ", entity id" + cameraComp.parentEntity.id + ") connected to placeable");
-
-        // var onCameraAttributeChanged = function(changedAttr, changeType) {
-        //     //console.log("onCameraAddedOrChanged due to attributeChanged ->", changedAttr.ref);
-        //     var id = changedAttr.id;
-        //     if (id === "aspectRatio" || id === "verticalFov" ||
-        //         id === "nearPlane" || id === "farPlane")
-        //         thisIsThis.onCameraAddedOrChanged(threeGroup, cameraComp);
-        // };
-        // var removed = cameraComp.attributeChanged.remove(onCameraAttributeChanged);
-        // if (removed)
-        //     console.log("removed old camera attr change hook");
-        // cameraComp.attributeChanged.add(onCameraAttributeChanged);
-
-    },
-
-    degToRad: function(val) {
-        return val * (Math.PI / 180);
+        // console.log("camera (o3d id " + cameraComp.threeCamera.id + ", entity id" + cameraComp.parentEntity.id + ") connected to placeable");
     },
 
     updateInterpolations: function(delta) {
@@ -441,7 +411,7 @@ ThreeView.prototype = {
         if (!previous) {
             copyXyz(ptv.pos, threeMesh.position);
             copyXyz(ptv.scale, threeMesh.scale);
-            tundraToThreeEuler(ptv.rot, threeMesh.rotation, this.degToRad);
+            tundraToThreeEuler(ptv.rot, threeMesh.rotation);
         }
 
         // Create new interpolation
@@ -454,7 +424,7 @@ ThreeView.prototype = {
         var endRot = new THREE.Quaternion();
         var euler = new THREE.Euler();
         euler.order = 'XYZ';
-        tundraToThreeEuler(ptv.rot, euler, this.degToRad);
+        tundraToThreeEuler(ptv.rot, euler);
         endRot.setFromEuler(euler, true);
 
         // scale
@@ -546,6 +516,17 @@ ThreeView.prototype = {
             }
             return meshes;
         };
+
+        function attributeValues(o) {
+            var out = [];
+            for (var key in o) {
+                if (!o.hasOwnProperty(key))
+                    continue;
+                out.push(o[key]);
+            }
+            return out;
+        }
+
         var objects = attributeValues(this.o3dByEntityId);
         var meshes = getMeshes(objects);
 
@@ -583,8 +564,12 @@ function copyXyz(src, dst) {
     dst.z = src.z;
 }
 
-function tundraToThreeEuler(src, dst, mapfun) {
-    dst.set(mapfun(src.x), mapfun(src.y), mapfun(src.z),'ZYX');
+function tundraToThreeEuler(src, dst) {
+    var degToRad = function(val) {
+        return val * (Math.PI / 180);
+    };
+
+    dst.set(degToRad(src.x), degToRad(src.y), degToRad(src.z), 'ZYX');
 }
 
 function ThreeAssetLoader() {
