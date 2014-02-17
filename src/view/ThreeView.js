@@ -85,6 +85,7 @@ function ThreeView(scene) {
     this.scene.add(this.pointLight);
 
     this.meshReadySig = new signals.Signal();
+    this.componentRemovedSig = new signals.Signal();
     this.assetLoader = new ThreeAssetLoader();
 }
 
@@ -151,8 +152,11 @@ ThreeView.prototype = {
             // this.onCameraAddedOrChanged(threeGroup, component);
         } else if (component instanceof EC_Light) {
             // this.onLightAddedOrChanged(threeGroup, component);
-        } else
+        } else {
             console.log("view doesn't know about removed component " + component);
+        }
+
+        this.componentRemovedSig.dispatch(component);
     },
 
     onMeshAddedOrChanged: function(threeGroup, meshComp) {
