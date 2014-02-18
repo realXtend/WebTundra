@@ -369,13 +369,15 @@ function wtSplitToXyz(s, v3) {
 function wtSplitAxisAngleToEulerXyz(s, xfrmRot) {
     var nums = s.split(/\s+/).map(parseFloat);
     var euler = new THREE.Euler();
-    copyXyz(xfrmRot, euler);
     check(nums.length === 4);
     var q = xyzAngleToQuaternion(nums);
     euler.setFromQuaternion(q);
-    tundraToThreeEuler(euler, xfrmRot, wtRadToDeg);
+    /* ec convention is degrees */
+    xfrmRot.x = wtRadToDeg(euler.x);
+    xfrmRot.y = wtRadToDeg(euler.y);
+    xfrmRot.z = wtRadToDeg(euler.z);
     //console.log("quat:", q, "euler:", euler);
-}; 
+}
 
 function wtTrimLeft(s, trimChar) {
     while (s.length && s[0] === trimChar) {
