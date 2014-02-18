@@ -26,7 +26,7 @@ ThreeView.prototype.OnAnimatorInitialize = function(threeParent, animComp) {
             }
         }
         
-        if (typeof(animation) !== 'undefined')
+        if (animation !== undefined)
         {
             animation.threeAnimation.loop = looped;
             animation.threeAnimation.play(0, animation.weight, animation.fade_period);
@@ -51,7 +51,7 @@ ThreeView.prototype.OnAnimatorInitialize = function(threeParent, animComp) {
         animation.phase = AnimationPhase.PHASE_STOP;
         animComp.meshEntity().threeMesh.pose();
         
-        if (typeof(animation) !== 'undefined')
+        if (animation !== undefined)
             animation.threeAnimation.stop(animation.fade_period);
     };
     animComp.parentEntity.actionFuntionMap["StopAnim"] = function(params, execType) {
@@ -60,7 +60,7 @@ ThreeView.prototype.OnAnimatorInitialize = function(threeParent, animComp) {
 
     animComp.stopAll = function(fadeoutTime) {
         fadeoutTime = Number(fadeoutTime);
-        fadeoutTime = isNaN(fadeoutTime) ? 0.001 : fadeoutTime;
+        fadeoutTime = isNaN(fadeoutTime) ? 0 : fadeoutTime;
         for(var id in animComp.animations) {
             anim = animComp.animations[id];
             if (anim instanceof AnimationState)
@@ -111,12 +111,12 @@ ThreeView.prototype.OnAnimatorInitialize = function(threeParent, animComp) {
 };
 
 ThreeView.prototype.onAnimatorAddedOrChanged = function(threeParent, animComp) {
-    if (typeof animComp.initialized === 'undefined'){
+    if (animComp.initialized === undefined){
         this.OnAnimatorInitialize(threeParent, animComp);
     }
 
     var mesh = animComp.meshEntity();
-    if (mesh !== null && typeof mesh.threeMesh !== 'undefined')
+    if (mesh !== null && mesh.threeMesh !== undefined)
     {
         checkDefined(mesh, threeParent, animComp);
         var geometry = mesh.threeMesh.geometry;
@@ -127,25 +127,43 @@ ThreeView.prototype.onAnimatorAddedOrChanged = function(threeParent, animComp) {
         // In Three.js geometry.animations is used if model has more than
         // one skeletal animation otherwise gemetry.animation is used.
         
-        if (typeof geometry.animations !== 'undefined') {
+        if (geometry.animations !== undefined) {
             
+            var animationInCache = false;
             var anim, threeAnim;
             for(var i = 0; i < geometry.animations.length; ++i){
+                
                 threeAnim = geometry.animations[i];
+                //console.log(geometry);
+                
+                // Check if animation is already loaded to cache.
+                animationInCache = THREE.AnimationHandler.get(threeAnim.name) !== null;
+                
+                
                 anim = animComp.createAnimation(threeAnim.name);
 
-                THREE.AnimationHandler.add(threeAnim);
+                if (!animationInCache)
+                    THREE.AnimationHandler.add(threeAnim);
+                
                 var a = new THREE.Animation(mesh.threeMesh, threeAnim.name);
-                THREE.AnimationHandler.removeFromUpdate(threeAnim);
+                
+                if (!animationInCache)
+                    THREE.AnimationHandler.removeFromUpdate(threeAnim);
 
                 anim.threeAnimation = a;
             }
-        } else if (typeof geometry.animation !== 'undefined'){
+        } else if (geometry.animation !== undefined){
             anim = animComp.createAnimation(geometry.animation.name);
+            
+            animationInCache = THREE.AnimationHandler.get(threeAnim.name) !== null;
 
-            THREE.AnimationHandler.add(geometry.animation);
+            if (!animationInCache)
+                THREE.AnimationHandler.add(geometry.animation);
+            
             var a = new THREE.Animation(mesh.threeMesh, geometry.animation.name);
-            THREE.AnimationHandler.removeFromUpdate(geometry.animation);
+            
+            if (!animationInCache)
+                THREE.AnimationHandler.removeFromUpdate(geometry.animation);
 
             anim.threeAnimation = a;
         }
@@ -162,9 +180,28 @@ ThreeView.prototype.onAnimatorAddedOrChanged = function(threeParent, animComp) {
     }
 };
 
-ThreeView.prototype.onAnimatorRemoved = function(threeParent, animComp) {
-    var animation = animComp.threeAnimation;
+ThreeView.prototype.onAnimatorRelease = function(entity, animComp) {
+    
+    var mesh = entity.componentByType("Mesh");
+    if (mesh !== null)
+        animComp.stopAll();
+    
+    //console.log(animComp);
+    var anims = animComp.animations;
+    for ( var i in anims ) {
+        
+        for ( var j in anims[i].threeAnimation ) {
+        
+            delete anims[i].threeAnimation[j];
+            
+        }
+        
+        delete anims[i].threeAnimation;
+        
+    }
+    /*var animation = animComp.threeAnimation;
     if (animation !== undefined) {
         animation.stop();
     }
+    delete animComp.threeAnimation;*/
 };

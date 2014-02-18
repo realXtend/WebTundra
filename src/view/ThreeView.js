@@ -134,8 +134,8 @@ ThreeView.prototype = {
             this.onCameraAddedOrChanged(threeGroup, component);
         else if (component instanceof EC_Light)
             this.onLightAddedOrChanged(threeGroup, component);
-        else if (component instanceof EC_AnimationController)
-            this.onAnimatorAddedOrChanged(threeGroup, component);
+        //else if (component instanceof EC_AnimationController)
+            //this.onAnimatorAddedOrChanged(threeGroup, component);
         else
             console.log("Component not handled by ThreeView:", entity, component);
     },
@@ -163,8 +163,13 @@ ThreeView.prototype = {
         if (component instanceof EC_Placeable) {
             var threeGroup = this.o3dByEntityId[entity.id];
             threeGroup.parent.remove(threeGroup);
+            
+            entity.actionTriggered.remove(this.OnEntityAction.bind(entity));
+            entity.actionFuntionMap = {};
+            
             delete this.o3dByEntityId[entity.id];
         } else if (component instanceof EC_Mesh) {
+            this.onMeshRelease(entity, component);
             //console.log("mesh added for o3d", threeGroup.userData.entityId);
             // this.onMeshAddedOrChanged(threeGroup, component);
         } else if (component instanceof EC_Camera) {
@@ -172,7 +177,7 @@ ThreeView.prototype = {
         } else if (component instanceof EC_Light) {
             // this.onLightAddedOrChanged(threeGroup, component);
         } else if (component instanceof EC_AnimationController) {
-            this.onAnimatorRemoved(threeGroup, component);
+            this.onAnimatorRelease(entity, component);
         } else
             console.log("view doesn't know about removed component " + component);
     },
@@ -250,6 +255,36 @@ ThreeView.prototype = {
         var animation = meshComp.parentEntity.componentByType("AnimationController");
         if (animation !== null)
             this.onAnimatorAddedOrChanged(threeParent, animation);
+    },
+    
+    onMeshRelease: function(entity, component) {
+        
+        var animation = entity.componentByType("AnimationController");
+        if (animation !== null)
+            animation.stopAll();
+        
+        if (component.threeMesh !== undefined) {
+            
+            var mesh = component.threeMesh;
+            
+            this.scene.remove(mesh);
+            
+            mesh.geometry.dispose();
+            for ( var i in mesh.geometry )
+                delete mesh.geometry[i];
+            
+            if (mesh.material !== undefined) {
+                
+                for ( var i = 0; i < mesh.material.materials.length; ++i ) {
+                    mesh.material.materials[i].dispose();
+                }
+                
+            }
+            
+            delete component.threeMesh;
+            
+        }
+        
     },
 
     onLightAddedOrChanged: function(threeGroup, lightComp) {
