@@ -174,16 +174,18 @@ ThreeView.prototype = {
             
             delete this.o3dByEntityId[entity.id];
         } else if (component instanceof EC_Mesh) {
+            
             this.onMeshRelease(entity, component);
-            //console.log("mesh added for o3d", threeGroup.userData.entityId);
-            // this.onMeshAddedOrChanged(threeGroup, component);
+            
         } else if (component instanceof EC_Camera) {
             // this.onCameraAddedOrChanged(threeGroup, component);
         } else if (component instanceof EC_Light) {
             // this.onLightAddedOrChanged(threeGroup, component);
         } else if (component instanceof EC_AnimationController) {
+            
             this.onAnimatorRelease(entity, component);
-        } else
+            
+        } else {
             console.log("view doesn't know about removed component " + component);
         }
 
