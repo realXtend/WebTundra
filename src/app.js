@@ -26,13 +26,13 @@ Application.prototype = {
         this.clock = new THREE.Clock();
 
         // SCENE
-        this.scene = new THREE.Scene();
+        // moved to viewer
 
         // CAMERA
-        // moved to ThreeView
+        // moved to viewer
 
         // VIEWER
-        this.viewer = new ThreeView(this.scene);
+        this.viewer = this.createViewer();
         this.viewer.objectClicked.add(this.onObjectClicked.bind(this));
 
         // MODEL
@@ -50,6 +50,10 @@ Application.prototype = {
         // this.dataConnection.scene.attributeChanged.add(function(comp, attr, ctype) {
         //     this.onComponentAddedOrChanged(comp.parentEntity, comp, ctype, attr);
         // }.bind(this.viewer));
+    },
+
+    createViewer: function() {
+        return new ThreeView();
     },
 
     start: function() {

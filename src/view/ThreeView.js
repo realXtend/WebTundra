@@ -13,11 +13,11 @@
 
 var useCubes = false;
 
-function ThreeView(scene) {
+function ThreeView() {
     this.o3dByEntityId = {}; // Three.Object3d's that correspond to Placeables and have Meshes etc as children
 
     // SCENE
-    this.scene = scene;
+    this.scene = this.createScene();
 
     // Default camera
     var SCREEN_WIDTH = window.innerWidth,
@@ -92,6 +92,10 @@ function ThreeView(scene) {
 ThreeView.prototype = {
 
     constructor: ThreeView,
+
+    createScene: function() {
+        return new THREE.Scene();
+    },
 
     render: function(delta) {
         // checkDefined(this.scene, this.camera);
