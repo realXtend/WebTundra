@@ -26,13 +26,13 @@ Application.prototype = {
         this.clock = new THREE.Clock();
 
         // SCENE
-        this.scene = new THREE.Scene();
+        // moved to viewer
 
         // CAMERA
-        // moved to ThreeView
+        // moved to viewer
 
         // VIEWER
-        this.viewer = new ThreeView(this.scene);
+        this.viewer = this.createViewer();
         this.viewer.objectClicked.add(this.onObjectClicked.bind(this));
 		this.viewer.renderer.setClearColor( 0x9999D6, 1 );
 
@@ -51,6 +51,10 @@ Application.prototype = {
         // this.dataConnection.scene.attributeChanged.add(function(comp, attr, ctype) {
         //     this.onComponentAddedOrChanged(comp.parentEntity, comp, ctype, attr);
         // }.bind(this.viewer));
+    },
+
+    createViewer: function() {
+        return new ThreeView();
     },
 
     start: function() {
@@ -156,7 +160,10 @@ Application.prototype = {
 
     onObjectClicked: function(entID, params) {
         var ent = this.dataConnection.scene.entityById(entID);
-        ent.triggerAction("MousePress", params, cExecTypeServer);
+        if (ent === null)
+            console.log("objectClicked got nonexistent entity id " + entID);
+        else
+            ent.triggerAction("MousePress", params, cExecTypeServer);
     },
 
 };
