@@ -36,9 +36,6 @@ function ThreeView() {
     this.stats.domElement.style.position = 'absolute';
     this.stats.domElement.style.bottom = '0px';
     this.stats.domElement.style.zIndex = 100;
-	
-	// TIME
-	this.clock = new THREE.Clock();
 
     // RENDERER    
     if (Detector.webgl)
