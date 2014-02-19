@@ -176,10 +176,55 @@ function registerComponent(typeId, typeName, factory) {
     componentFactories[typeId] = factory;
 }
 
+function registerPlaceholderComponent(typeId, typeName, attributeList) {
+    if (componentFactories.hasOwnProperty(typeId))
+        return; // Already registered
+    // In WebTundra the convention is to use component typenames without EC_ prefix
+    typeName = ensureTypeNameWithoutPrefix(typeName);
+    componentTypeNames[typeId] = typeName;
+    componentTypeIds[typeName] = typeId;
+    componentFactories[typeId] = function() {
+        var comp = new Component(typeId);
+
+        for (var i = 0; i < attributeList.length; ++i)
+            comp.addAttribute(attributeList[i].typeId, attributeList[i].id, attributeList[i].name);
+        
+        return comp;
+    }
+    console.log("Registered placeholder component type " + typeName);
+}
+
+function ensureTypeNameWithPrefix(typeName) {
+    if (typeName.indexOf("EC_") != 0)
+        return "EC_" + typeName;
+    else
+        return typeName;
+}
+
+function ensureTypeNameWithoutPrefix(typeName) {
+    if (typeName.indexOf("EC_") == 0)
+        return typeName.substring(3);
+    else
+        return typeName;
+}
+
+function generateComponentTypeId(typeName)
+{
+    typeName = ensureTypeNameWithoutPrefix(typeName).toLowerCase();
+    // SDBM hash function, lowercase
+    var hash = 0;
+    for (var i = 0; i < typeName.length; ++i) {
+        hash = typeName.charCodeAt(i) + hash << 6 + hash << 16 - hash;
+        hash &= 0xffffffff;
+    }
+    var typeId = (hash & 0xffff) | 0x10000;
+    return typeId;
+}
+
 function createComponent(typeId) {
     // Convert typename to numeric ID if necessary
     if (typeof typeId == 'string' || typeId instanceof String)
-        typeId = componentTypeIds[typeId];
+        typeId = componentTypeIds[ensureTypeNameWithoutPrefix(typeId)];
     if (componentFactories.hasOwnProperty(typeId))
         return componentFactories[typeId]();
     else

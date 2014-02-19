@@ -11,6 +11,7 @@ var cCreateEntityReply = 117;
 var cCreateComponentsReply = 118;
 var cRigidBodyUpdate = 119;
 var cEntityAction = 120;
+var cRegisterComponentType = 123;
 
 function SyncManager(client, scene) {
     this.client = client;
@@ -221,6 +222,39 @@ SyncManager.prototype = {
         }
         this.scene.syncState.clearModified();
     },
+    
+    sendComponentType : function(component) {
+        // No-op if the scene does not have a syncstate yet or if the connection is not live
+        if (!this.client.webSocket)
+        {
+            console.log("Can not send custom component type, not connected yet");
+            return false;
+        }
+        if (!this.client.protocolVersion < cProtocolCustomComponents)
+        {
+            console.log("Server does not support registering custom component types");
+            return false;
+        }
+        var verifiedTypeId = generateComponentTypeId(component.typeName);
+        if (component.typeId != verifiedTypeId) {
+            console.log("Can not send custom component type " + component.typeName + " to server! TypeID should be " +
+                verifiedTypeId + " but is " + typeId + " instead");
+            return false;
+        }
+        var ds = this.client.startNewMessage(cRegisterComponentType, 65536);
+        ds.addVLE(component.typeId);
+        // For now the native Tundra server expects typenames with the EC_ prefix
+        ds.addString(ensureTypeNameWithPrefix(component.typeName));
+        ds.addVLE(component.attributes.length);
+        for (var i = 0; i < component.attributes.length; i++) {
+            var attr = component.attributes[i];
+            ds.addU8(attr.typeId);
+            ds.addString(attr.id);
+            ds.addString(attr.name);
+        }
+        this.client.endAndQueueMessage(ds);
+        return true;
+    },
 
     onMessageReceived : function(msgId, dd) {
         switch (msgId) {
@@ -254,6 +288,8 @@ SyncManager.prototype = {
         case cEntityAction:
             this.handleEntityAction(dd);
             break;
+        case cRegisterComponentType:
+            this.handleRegisterComponentType(dd);
         }
     },
 
@@ -471,6 +507,22 @@ SyncManager.prototype = {
         entity.triggerAction(name, params, execType);
         if (this.logDebug)
             console.log("Triggered action " + name + " on entity id " + entityId);
+    },
+    
+    handleRegisterComponentType : function(dd) {
+        var typeId = dd.readVLE();
+        var typeName = dd.readString();
+        var attributes = [];
+        var numAttrs = dd.readVLE();
+        for (var i = 0; i < numAttrs; i++) {
+            var attrDesc = {};
+            attrDesc.typeId = dd.readU8();
+            attrDesc.id = dd.readString();
+            attrDesc.name = dd.readString();
+            attributes.push(attrDesc);
+        }
+
+        registerPlaceholderComponent(typeId, typeName, attributes);
     },
 
     readComponentFullUpdate : function(entity, dd) {
