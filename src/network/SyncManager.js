@@ -18,6 +18,7 @@ function SyncManager(client, scene) {
     this.scene = scene;
     this.client.messageReceived.add(this.onMessageReceived, this);
     this.logDebug = false;
+    this.pendingComponentTypeNames = {};
 
     // Attach to scene change signals for determining what changes to send to the server
     scene.attributeChanged.add(this.onAttributeChanged, this);
@@ -28,6 +29,8 @@ function SyncManager(client, scene) {
     scene.entityCreated.add(this.onEntityCreated, this);
     scene.entityRemoved.add(this.onEntityRemoved, this);
     scene.actionTriggered.add(this.onActionTriggered, this);
+    client.loginReplyReceived.add(this.onLoginReplyReceived, this);
+    customComponentRegistered.add(this.onCustomComponentRegistered, this);
 }
 
 SyncManager.prototype = {
@@ -36,6 +39,12 @@ SyncManager.prototype = {
         if (!this.scene.syncState || !this.client.webSocket)
             return;
         
+        // Pending custom component types to send to server
+        for (var typeName in this.pendingComponentTypeNames) {
+            this.replicateComponentType(typeName);
+            delete this.pendingComponentTypeNames[typeName];
+        }
+
         // Removed entities
         for (var id in this.scene.syncState.removed)
         {
@@ -221,39 +230,6 @@ SyncManager.prototype = {
             entity.syncState.clearModified();
         }
         this.scene.syncState.clearModified();
-    },
-    
-    sendComponentType : function(component) {
-        // No-op if the scene does not have a syncstate yet or if the connection is not live
-        if (!this.client.webSocket)
-        {
-            console.log("Can not send custom component type, not connected yet");
-            return false;
-        }
-        if (!this.client.protocolVersion < cProtocolCustomComponents)
-        {
-            console.log("Server does not support registering custom component types");
-            return false;
-        }
-        var verifiedTypeId = generateComponentTypeId(component.typeName);
-        if (component.typeId != verifiedTypeId) {
-            console.log("Can not send custom component type " + component.typeName + " to server! TypeID should be " +
-                verifiedTypeId + " but is " + typeId + " instead");
-            return false;
-        }
-        var ds = this.client.startNewMessage(cRegisterComponentType, 65536);
-        ds.addVLE(component.typeId);
-        // For now the native Tundra server expects typenames with the EC_ prefix
-        ds.addString(ensureTypeNameWithPrefix(component.typeName));
-        ds.addVLE(component.attributes.length);
-        for (var i = 0; i < component.attributes.length; i++) {
-            var attr = component.attributes[i];
-            ds.addU8(attr.typeId);
-            ds.addString(attr.id);
-            ds.addString(attr.name);
-        }
-        this.client.endAndQueueMessage(ds);
-        return true;
     },
 
     onMessageReceived : function(msgId, dd) {
@@ -512,17 +488,18 @@ SyncManager.prototype = {
     handleRegisterComponentType : function(dd) {
         var typeId = dd.readVLE();
         var typeName = dd.readString();
-        var attributes = [];
+
+        var blueprint = new Component(typeId);
         var numAttrs = dd.readVLE();
         for (var i = 0; i < numAttrs; i++) {
-            var attrDesc = {};
-            attrDesc.typeId = dd.readU8();
-            attrDesc.id = dd.readString();
-            attrDesc.name = dd.readString();
-            attributes.push(attrDesc);
+            var typeId = dd.readU8();
+            var id = dd.readString();
+            var name = dd.readString();
+            blueprint.addAttribute(typeId, id, name);
         }
 
-        registerPlaceholderComponent(typeId, typeName, attributes);
+        // Register as local only -> don't echo back to server
+        registerCustomComponent(typeName, blueprint, AttributeChange.LocalOnly);
     },
 
     readComponentFullUpdate : function(entity, dd) {
@@ -591,6 +568,34 @@ SyncManager.prototype = {
 
         ds.addVLE(compDs.bytesFilled);
         ds.addArrayBuffer(compDs.arrayBuffer, compDs.bytesFilled);
+    },
+
+    replicateComponentType : function(typeId) {
+        var component = createComponent(typeId);
+        if (!component)
+        {
+            console.log("Custom component type " + typeId + " not registered as a factory, can not replicate");
+            return;
+        }
+        if (this.client.protocolVersion < cProtocolCustomComponents)
+        {
+            console.log("Server does not support registering custom component types");
+            return;
+        }
+
+        var ds = this.client.startNewMessage(cRegisterComponentType, 65536);
+        ds.addVLE(component.typeId);
+        // For now the native Tundra server expects typenames with the EC_ prefix
+        ds.addString(ensureTypeNameWithPrefix(component.typeName));
+        ds.addVLE(component.attributes.length);
+        for (var i = 0; i < component.attributes.length; i++) {
+            var attr = component.attributes[i];
+            ds.addU8(attr.typeId);
+            ds.addString(attr.id);
+            ds.addString(attr.name);
+        }
+        this.client.endAndQueueMessage(ds);
+        return true;
     },
 
     ensureSyncState : function(object) {
@@ -690,6 +695,17 @@ SyncManager.prototype = {
             if (this.logDebug)
                 console.log("Sent entity action " + name + " on entity id " + entity.id + " to server");
         }
+    },
+    
+    onLoginReplyReceived : function() {
+        // When login happens, we should send all our custom component types on the next update
+        for (var typeId in customComponentTypes)
+            this.pendingComponentTypeNames[componentTypeNames[typeId]] = true;
+    },
+
+    onCustomComponentRegistered : function(typeId, typeName, changeType) {
+        if (changeType == AttributeChange.Default || changeType == AttributeChange.Replicate)
+            this.pendingComponentTypeNames[typeName] = true;
     }
 }
 

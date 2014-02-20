@@ -3,6 +3,8 @@
 var componentTypeNames = {};
 var componentTypeIds = {};
 var componentFactories = {};
+var customComponentTypes = {};
+var customComponentRegistered = new signals.Signal();
 
 function Component(typeId) {
     this.parentEntity = null;
@@ -169,29 +171,49 @@ Component.prototype = {
     }
 }
 
+// This function is meant for ordinary components that have a C++ counterpart in the Tundra server
 function registerComponent(typeId, typeName, factory) {
-    console.log("Registering component typeid " + typeId + " typename " + typeName);
+    console.log("Registering component typeId " + typeId + " typename " + typeName);
     componentTypeNames[typeId] = typeName;
     componentTypeIds[typeName] = typeId;
     componentFactories[typeId] = factory;
 }
 
-function registerPlaceholderComponent(typeId, typeName, attributeList) {
-    if (componentFactories.hasOwnProperty(typeId))
-        return; // Already registered
+// This function registers a static-structured component without C++ counterpart in the server.
+// A blueprint component needs to be provided. SyncManager will replicate the attribute structure
+// to the server when joining
+function registerCustomComponent(typeName, blueprintComponent, changeType) {
+    if (blueprintComponent == null)
+        return;
+
+    if (changeType == null)
+        changeType = AttributeChange.Default;
+
     // In WebTundra the convention is to use component typenames without EC_ prefix
     typeName = ensureTypeNameWithoutPrefix(typeName);
+
+    // Calculate typeId if necessary
+    var typeId = blueprintComponent.typeId;
+    if (typeId === undefined || typeId === null || typeId == 0 || typeId == 0xffffffff)
+        typeId = generateComponentTypeId(typeName)
+
+    console.log("Registering custom component typeId " + typeId + " typename " + typeName);
+
     componentTypeNames[typeId] = typeName;
     componentTypeIds[typeName] = typeId;
     componentFactories[typeId] = function() {
         var comp = new Component(typeId);
+        var attributes = blueprintComponent.attributes;
 
-        for (var i = 0; i < attributeList.length; ++i)
-            comp.addAttribute(attributeList[i].typeId, attributeList[i].id, attributeList[i].name);
-        
+        for (var i = 0; i < attributes.length; ++i)
+            comp.addAttribute(attributes[i].typeId, attributes[i].id, attributes[i].name);
+
         return comp;
     }
-    console.log("Registered placeholder component type " + typeName);
+
+    // Remember the type and signal for the SyncManager
+    customComponentTypes[typeId] = typeName;
+    customComponentRegistered.dispatch(typeId, typeName, changeType);
 }
 
 function ensureTypeNameWithPrefix(typeName) {
@@ -211,14 +233,14 @@ function ensureTypeNameWithoutPrefix(typeName) {
 function generateComponentTypeId(typeName)
 {
     typeName = ensureTypeNameWithoutPrefix(typeName).toLowerCase();
-    // SDBM hash function, lowercase
-    var hash = 0;
+    // SDBM hash function
+    var h = 0;
     for (var i = 0; i < typeName.length; ++i) {
-        hash = typeName.charCodeAt(i) + hash << 6 + hash << 16 - hash;
-        hash &= 0xffffffff;
+        h = typeName.charCodeAt(i) + (h << 6) + (h << 16) - h;
     }
-    var typeId = (hash & 0xffff) | 0x10000;
-    return typeId;
+    h &= 0xffff;
+    h |= 0x10000;
+    return h;
 }
 
 function createComponent(typeId) {
