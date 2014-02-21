@@ -71,6 +71,14 @@ function EC_AnimationController() {
         this.animations[name] = anim;
         return anim;
     };
+    
+    this.play = playFunction;
+    this.playLooped = playLoopedFunction;
+    this.stop = stopFunction;
+    this.stopAll = stopAllFunction;
+    this.update = updateFunction;
+    this.setAnimWeight = setAnimWeightFunction;
+    this.setAnimSpeed = setAnimSpeedFunction;
 }
 
 // Play animation. If cross fade is set to true all playing animations are stopped
@@ -80,44 +88,43 @@ function EC_AnimationController() {
  * @param {bool} crossFade
  * @param {bool} looped
  */
-EC_AnimationController.prototype.play = null;
+var playFunction = function ( name, fadeInTime, crossFade, looped ) {};
 
 // Play in loop animation
 /* @param {string} animation name
  * @param {float} fadeInTime
  * @param {bool} crossFade
  */
-EC_AnimationController.prototype.playLooped = null;
+var playLoopedFunction = function ( name, fadeInTime, crossFade ) {};
 
 // Stop playing given animation
 /* @param {string} name Animation name
  * @param {float} fadeoutTime how long it takes to fade out the animation.
  */
-EC_AnimationController.prototype.stop = null;
+var stopFunction = function ( name, fadeoutTime ) {};
 
 // Stop all playing animations
 /* @param {float} fadeoutTime how long it takes to fade out the animations.
  */
-EC_AnimationController.prototype.stopAll = null;
+var stopAllFunction = function ( fadeoutTime ) {};
 
 // Updates animation(s) by elapsed time
 /* @param {float} deltaTime time elapse.
  */
-EC_AnimationController.prototype.update = null;
+var updateFunction = function ( deltaTime ) {};
 
 /// Set new animation weight to animation
 /*@param {string} name animation name.
  *@param {float} weight animation weight range [0-1].
  */
-EC_AnimationController.prototype.setAnimWeight = null;
+var setAnimWeightFunction = function ( name, weight ) {};
 
 /// Implements the SetAnimSpeed action
 /*
  * @param {string} name animation name
  * @param {float} speed animation playback speed if negative play backward.
- * @TODO negative speed value wont work with current animation.
  */
-EC_AnimationController.prototype.setAnimSpeed = null;
+var setAnimSpeedFunction = function ( name, speed ) {};
 
 EC_AnimationController.prototype = new Component(cComponentTypeAnimation);
 
