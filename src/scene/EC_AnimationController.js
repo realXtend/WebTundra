@@ -72,13 +72,17 @@ function EC_AnimationController() {
         return anim;
     };
     
-    this.play = playFunction;
+    /*this.play = playFunction;
     this.playLooped = playLoopedFunction;
     this.stop = stopFunction;
     this.stopAll = stopAllFunction;
     this.update = updateFunction;
     this.setAnimWeight = setAnimWeightFunction;
-    this.setAnimSpeed = setAnimSpeedFunction;
+    this.setAnimSpeed = setAnimSpeedFunction;*/
+    
+    // entityActions are use to relase actions when component is removed.
+    this.entityActions = ["PlayAnim", "PlayLoopedAnim", "StopAnim", "StopAllAnims",
+                          "SetAnimWeight", "SetAnimSpeed"];
 }
 
 // Play animation. If cross fade is set to true all playing animations are stopped
@@ -88,43 +92,43 @@ function EC_AnimationController() {
  * @param {bool} crossFade
  * @param {bool} looped
  */
-var playFunction = function ( name, fadeInTime, crossFade, looped ) {};
+EC_AnimationController.prototype.playFunction = function ( name, fadeInTime, crossFade, looped ) {};
 
 // Play in loop animation
 /* @param {string} animation name
  * @param {float} fadeInTime
  * @param {bool} crossFade
  */
-var playLoopedFunction = function ( name, fadeInTime, crossFade ) {};
+EC_AnimationController.prototype.playLoopedFunction = function ( name, fadeInTime, crossFade ) {};
 
 // Stop playing given animation
 /* @param {string} name Animation name
  * @param {float} fadeoutTime how long it takes to fade out the animation.
  */
-var stopFunction = function ( name, fadeoutTime ) {};
+EC_AnimationController.prototype.stopFunction = function ( name, fadeoutTime ) {};
 
 // Stop all playing animations
 /* @param {float} fadeoutTime how long it takes to fade out the animations.
  */
-var stopAllFunction = function ( fadeoutTime ) {};
+EC_AnimationController.prototype.stopAllFunction = function ( fadeoutTime ) {};
 
 // Updates animation(s) by elapsed time
 /* @param {float} deltaTime time elapse.
  */
-var updateFunction = function ( deltaTime ) {};
+EC_AnimationController.prototype.updateFunction = function ( deltaTime ) {};
 
 /// Set new animation weight to animation
 /*@param {string} name animation name.
  *@param {float} weight animation weight range [0-1].
  */
-var setAnimWeightFunction = function ( name, weight ) {};
+EC_AnimationController.prototype.setAnimWeightFunction = function ( name, weight ) {};
 
 /// Implements the SetAnimSpeed action
 /*
  * @param {string} name animation name
  * @param {float} speed animation playback speed if negative play backward.
  */
-var setAnimSpeedFunction = function ( name, speed ) {};
+EC_AnimationController.prototype.setAnimSpeedFunction = function ( name, speed ) {};
 
 EC_AnimationController.prototype = new Component(cComponentTypeAnimation);
 

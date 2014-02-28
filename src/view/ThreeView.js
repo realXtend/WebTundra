@@ -111,24 +111,28 @@ ThreeView.prototype = {
         check(component instanceof Component);
         check(entity instanceof Entity);
         var threeGroup = this.o3dByEntityId[entity.id];
-        var isNewEntity = false;
         if (!threeGroup) {
             check(entity.id > 0);
             this.o3dByEntityId[entity.id] = threeGroup = new THREE.Object3D();
             //console.log("created new o3d group id=" + threeGroup.id);
-            isNewEntity = true;
             threeGroup.userData.entityId = entity.id;
             
             entity.actionTriggered.add(this.OnEntityAction.bind(entity));
             entity.actionFuntionMap = {};
+            
+            entity.threeGroup = threeGroup;
             
             //console.log("registered o3d for entity", entity.id);
         } else {
             //console.log("got cached o3d group " + threeGroup.id + " for entity " + entity.id);
         }
 
-        if (component instanceof EC_Placeable)
-            this.connectToPlaceable(threeGroup, component);
+        if (component instanceof EC_Placeable) {
+            
+            this.connectToPlaceable( threeGroup, component );
+            this.ComponentAdded( entity, component );
+            
+        }
         else if (component instanceof EC_Mesh) {
             // console.log("mesh changed or added for o3d " + threeGroup.userData.entityId);
             this.onMeshAddedOrChanged(threeGroup, component);
@@ -137,19 +141,19 @@ ThreeView.prototype = {
         else if (component instanceof EC_Light)
             this.onLightAddedOrChanged(threeGroup, component);
         //else if (component instanceof EC_AnimationController)
-            //this.onAnimatorAddedOrChanged(threeGroup, component);
+        //    this.onAnimatorAddedOrChanged(threeGroup, component);
         else
             console.log("Component not handled by ThreeView:", entity, component);
     },
     
     OnEntityAction : function( name, params, execType ) {
         
-    var sender = this;
-    var call = sender.actionFuntionMap[name];
-    if ( typeof call === "function" )
-        call(params);
-    
-    },
+        var sender = this;
+        var call = sender.actionFuntionMap[name];
+        if ( typeof call === "function" )
+            call(params);
+
+        },
 
     onComponentRemoved: function(entity, component, changeType) {
         try {
@@ -169,6 +173,7 @@ ThreeView.prototype = {
             entity.actionTriggered.remove(this.OnEntityAction.bind(entity));
             entity.actionFuntionMap = {};
             
+            delete entity.threeGroup;
             delete this.o3dByEntityId[entity.id];
         } else if (component instanceof EC_Mesh) {
             
@@ -206,6 +211,8 @@ ThreeView.prototype = {
 
         url = url.replace("local://", "");
         url = url.replace(/\.mesh$/i, ".json");
+        
+        meshComp.assetReady = false;
 
         var thisIsThis = this;
         this.assetLoader.cachedLoadAsset(url, function(arg1, material) {
@@ -229,27 +236,110 @@ ThreeView.prototype = {
     },
 
     onMeshLoaded: function(threeParent, meshComp, geometry, material) {
+        
         if (!useCubes && geometry === undefined) {
+            
             console.log("mesh load failed");
             return;
+            
         }
+        
         var mesh;
+        
         if (useCubes) {
+            
             /*if (meshComp.meshRef.ref === "") {
                 console.log("useCubes ignoring empty meshRef");
                 return; //hackish fix to avoid removing the cube when the ref gets the data later
             }*/
             mesh = new THREE.Mesh(this.cubeGeometry, this.wireframeMaterial);
+            
         }
-        else if (geometry.bones !== undefined) {
+        else if ( geometry.bones !== undefined && geometry.bones.length > 0 ) {
+            
+            // Set material skinning to true or skeletal animation wont work.
+            
             var newMaterial = new THREE.MeshFaceMaterial(material);
             newMaterial.materials[0].skinning = true;
+            
             mesh = new THREE.SkinnedMesh(geometry, newMaterial, false);
+            
+            // Create bone objects and add them to mesh component.
+            
+            var bones = mesh.bones;
+            var bone;
+            var parentBone = null;
+            
+            meshComp.bones = new Array();
+            
+            for ( var i = 0; i < bones.length; ++i ) {
+                
+                if (bones[i].parent !== null)
+                    parentBone = meshComp.getBone(bones[i].name);
+                
+                bone = new Bone(bones[i].name, parentBone);
+                bone.threeBone = bones[i];
+                
+                // Add attach bone function to bone object
+                
+                bone.attach = function( mesh ) {
+                    
+                    Bone.prototype.attach.call(this, mesh);
+                    
+                    mesh.threeMesh.update = function() {};
+                    var parent = this.threeBone;
+                    
+                    do {
+                        if (parent instanceof THREE.Bone) {
+                            parent.update = function( parentSkinMatrix, forceUpdate ) {
+                                THREE.Bone.prototype.update.call(this, parentSkinMatrix, forceUpdate);
+                                this.updateMatrixWorld(true);
+                            };
+                        } else {
+                            
+                            break;
+                            
+                        }
+                        parent = parent.parent;
+                        
+                    } while( parent !== undefined )
+
+                    this.threeBone.add(mesh.threeMesh);
+                    
+                };
+                
+                // Add detach bone function to bone object
+                
+                bone.detach = function( mesh ) {
+                    
+                    Bone.prototype.detach.call(this, mesh);
+                    
+                    delete mesh.threeMesh.update;
+                
+                    var parent = this.threeBone;
+                    do {
+                        if (parent instanceof THREE.Bone) 
+                            delete parent.update;
+                        else
+                            break;
+                        parent = parent.parent;
+                    } while( parent !== undefined )
+                        
+                    this.threeBone.remove(mesh.threeMesh);
+                    
+                };
+                
+                meshComp.bones.push(bone);
+            }
+            
         } else {
+            
             checkDefined(geometry, material, meshComp, threeParent);
             mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(material));
             checkDefined(threeParent, meshComp, geometry, material);
+            
         }
+        
         checkDefined(meshComp.parentEntity);
         check(threeParent.userData.entityId === meshComp.parentEntity.id);
         // console.log("Mesh loaded:", meshComp.meshRef.ref, "- adding to o3d of entity "+ threeParent.userData.entityId);
@@ -258,6 +348,11 @@ ThreeView.prototype = {
         threeParent.add(mesh);
         this.meshReadySig.dispatch(meshComp, mesh);
         mesh.needsUpdate = 1;
+        
+        meshComp.assetReady = true;
+        meshComp.updateParentRef();
+        meshComp.meshAssetReady.dispatch();
+        
         console.log("added mesh to o3d id=" + threeParent.id);
         // threeParent.needsUpdate = 1;
 
@@ -268,6 +363,7 @@ ThreeView.prototype = {
         var animation = meshComp.parentEntity.componentByType("AnimationController");
         if (animation !== null)
             this.onAnimatorAddedOrChanged(threeParent, animation);
+        
     },
     
     onMeshRelease: function(entity, component) {
@@ -432,6 +528,7 @@ ThreeView.prototype = {
     },
 
     updateFromTransform: function(threeMesh, placeable) {
+        
         checkDefined(placeable, threeMesh);
         var ptv = placeable.transform;
 

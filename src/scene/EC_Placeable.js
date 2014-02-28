@@ -9,24 +9,56 @@ function EC_Placeable() {
     this.addAttribute(cAttributeBool, "visible", "Visible", true);
     this.addAttribute(cAttributeInt, "selectionLayer", "Selection layer", 1);
     this.addAttribute(cAttributeEntityReference, "parentRef", "Parent entity ref");
-    this.addAttribute(cAttributeString, "parentBone", "Parent bone name");
+    this.addAttribute(cAttributeString, "skeletonRef", "Parent bone name");
     
     this.attributeChanged.add(this.checkParent.bind(this));
 
-    this.parentRefReady = new signals.Signal(); 
+    this.targetEntity = null;
+
+    this.parentRefReady = new signals.Signal();
 }
 
 EC_Placeable.prototype = new Component(cComponentTypePlaceable);
 
 EC_Placeable.prototype.checkParent = function(attr, changeType) {
+    
+    if (attr.id === "transform") {
+        
+        this.updateTransform();
+        
+    }
+    
+    if (attr.id === "parentRef" || attr.id === "skeletonRef") {
+        
+        var mesh = this.parentEntity.componentByType("Mesh");
+        if ( mesh !== null ) {
+            
+            this.updateTransform();
+            mesh.updateParentRef();
+            
+        }
+            
+    }
+    
     //console.log(this + " - " + this.parentRef + " : " + attr.id); // + " == " + this.parentRef.id);
-    if (attr.id == "parentRef") {
+    if (attr.id === "parentRef") {
+        
+        if ( this.parentRef === "" && this.targetEntity !== null ) {
+            
+            this.setParentEntity(null);
+            this.targetEntity = null;
+            
+        }
+        
         //console.log("parentRef: " + this.parentRef);
         if (this.parentRef) {
             var parentEnt = this.parentEntity.parentScene.entityById(this.parentRef);
             if (parentEnt && parentEnt.componentByType(cComponentTypePlaceable)) {
                 //console.log("placeable parent was there immediately");
                 this.parentRefReady.dispatch();
+                
+                this.setParentEntity(parentEnt);
+                this.targetEntity = parentEnt;
                 //XXX TODO: may break if the parent placeable is not ready yet
                 //if there is a deeper hierarchy with multiple levels of parents
                 //an ugly way to fix would be to add a 'ready' boolean.
@@ -38,15 +70,36 @@ EC_Placeable.prototype.checkParent = function(attr, changeType) {
             this.parentRefReady.dispatch();
         }
     }
-}               
+};
 
 EC_Placeable.prototype.waitParent = function(addedEntity, changeType) {
-    if (addedEntity.id === this.parentRef.id) {        
+    
+    if (addedEntity.id === this.parentRef) {
+        
         //console.log("placeable parent was there later");
         this.parentRefReady.dispatch();
         this.parentEntity.parentScene.entityCreated.remove(this.waitParent);
+        
+        this.targetEntity = this.getParentEntity();
+        this.setParentEntity(this.targetEntity);
+        
     }
-}
+    
+};
+
+EC_Placeable.prototype.getParentEntity = function () {
+    
+    var parentRef = this.parentRef;
+    if ( parentRef !== "" )
+        return this.parentEntity.parentScene.entityById(this.parentRef);
+    
+    return null;
+    
+};
+
+EC_Placeable.prototype.updateTransform = function() {}
+
+EC_Placeable.prototype.setParentEntity = function ( entity ) {};
 
 registerComponent(cComponentTypePlaceable, "Placeable", function(){ return new EC_Placeable(); });
         

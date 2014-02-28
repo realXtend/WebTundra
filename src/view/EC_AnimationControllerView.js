@@ -143,7 +143,6 @@ ThreeView.prototype.onAnimatorRelease = function( entity, animComp ) {
     if (mesh !== null)
         animComp.stopAll();
     
-    //console.log(animComp);
     var anims = animComp.animations;
     for ( var i in anims ) {
         
@@ -156,38 +155,41 @@ ThreeView.prototype.onAnimatorRelease = function( entity, animComp ) {
         delete anims[i].threeAnimation;
         
     }
+    
+    for ( var i = 0; i < animComp.entityActions.length; ++i )
+        delete entity.actionFuntionMap[animComp.entityActions[i]];
 
 };
 
 var AnimationController_play = function(name, fadeInTime, crossFade, looped) {
     
-        var animComp = this;
-        var animation = animComp.animations[name];
-        animation.fade_period = fadeInTime !== undefined ? fadeInTime : 0;
-        animation.phase = AnimationPhase.PHASE_PLAY;
-        
-        if (crossFade)
-        {
-            var tAnim = null;
-            for(var i = 0; i < animComp.animations.length; ++i) {
-                tAnim = animComp.animations[i];
-                if (tAnim.name !== name && tAnim.threeAnim.isPlaying === true)
-                    animComp.stop(tAnim.name, animation.fade_period);
-            }
+    var animComp = this;
+    var animation = animComp.animations[name];
+    animation.fade_period = fadeInTime !== undefined ? fadeInTime : 0;
+    animation.phase = AnimationPhase.PHASE_PLAY;
+
+    if (crossFade)
+    {
+        var tAnim = null;
+        for(var i = 0; i < animComp.animations.length; ++i) {
+            tAnim = animComp.animations[i];
+            if (tAnim.name !== name && tAnim.threeAnim.isPlaying === true)
+                animComp.stop(tAnim.name, animation.fade_period);
         }
-        
-        if (animation !== undefined)
-        {
-            animation.threeAnimation.loop = looped;
-            animation.threeAnimation.play(0, animation.weight, animation.fade_period);
-        }
+    }
+
+    if (animation !== undefined)
+    {
+        animation.threeAnimation.loop = looped;
+        animation.threeAnimation.play(0, animation.weight, animation.fade_period);
+    }
         
 };
 
 var AnimationController_playLooped = function(name, fadeInTime, crossFade) {
     
-        var animComp = this;
-        animComp.play(name, fadeInTime, crossFade, true);
+    var animComp = this;
+    animComp.play(name, fadeInTime, crossFade, true);
         
 };
 
@@ -224,10 +226,9 @@ var AnimationController_setAnimWeight = function( name, weight ) {
     var animComp = this;
     // Make sure that weight range is [1-0].
     weight = Math.min(Math.max(weight, 0), 1);
-    console.log(weight);
     var animation = animComp.animations[name];
     
-    if ( animation !== undefined && weight !== undefined )
+    if ( animation !== undefined && animation.threeAnimation !== undefined )
     {
         
         animation.weight = weight;
@@ -242,12 +243,8 @@ var AnimationController_update = function( deltaTime ) {
     var animComp = this;
     for(var anim in animComp.animations) {
         
-        check(anim instanceof AnimationState);
-        
-        if (typeof deltaTime !== 'number')
-            deltaTime = this.clock.getDelta();
-        
-        anim.threeAnimation.update(deltaTime);
+        if (animComp.animations[anim] instanceof AnimationState)
+            animComp.animations[anim].threeAnimation.update(deltaTime);
         
     }
     
