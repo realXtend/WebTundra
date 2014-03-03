@@ -105,6 +105,7 @@ EC_Mesh.prototype.updateParentRef = function () {
         return;
     
     // Note! this parent isn't same as component.parentEntity
+    // If parent mesh id is set to null detach mesh form bone.
     
     var parentEntity = placeable.getParentEntity();
     if ( parentEntity === null ) {
@@ -112,6 +113,7 @@ EC_Mesh.prototype.updateParentRef = function () {
         if (this.parentBone !== null) {
             this.parentBone.detach(this);
             placeable.setParentEntity(null);
+            console.log("Detach mesh");
         }
         return;
         
@@ -124,9 +126,6 @@ EC_Mesh.prototype.updateParentRef = function () {
      
         parentMesh.attributeChanged.remove(this.parentMeshAssetReady);
         parentMesh.attributeChanged.add(this.parentMeshAssetReady);
-        /*if (!parentMesh.meshAssetReady.has(this, this.parentMeshAssetReady)) {
-            parentMesh.meshAssetReady.add(this, this.parentMeshAssetReady);
-        }*/
         
         return;
         

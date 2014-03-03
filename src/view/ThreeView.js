@@ -287,14 +287,21 @@ ThreeView.prototype = {
                     Bone.prototype.attach.call(this, mesh);
                     
                     mesh.threeMesh.update = function() {};
+                    mesh.parentEntity.threeGroup.update = function ( parentSkinMatrix, forceUpdate ) {
+                        
+                        this.updateMatrixWorld(true);
+                    
+                    };
                     var parent = this.threeBone;
                     
                     do {
                         if (parent instanceof THREE.Bone) {
+                            
                             parent.update = function( parentSkinMatrix, forceUpdate ) {
                                 THREE.Bone.prototype.update.call(this, parentSkinMatrix, forceUpdate);
                                 this.updateMatrixWorld(true);
                             };
+                            
                         } else {
                             
                             break;
@@ -304,7 +311,7 @@ ThreeView.prototype = {
                         
                     } while( parent !== undefined )
 
-                    this.threeBone.add(mesh.threeMesh);
+                    this.threeBone.add(mesh.parentEntity.threeGroup);
                     
                 };
                 
@@ -315,6 +322,7 @@ ThreeView.prototype = {
                     Bone.prototype.detach.call(this, mesh);
                     
                     delete mesh.threeMesh.update;
+                    delete mesh.parentEntity.threeGroup.update;
                 
                     var parent = this.threeBone;
                     do {
@@ -325,7 +333,7 @@ ThreeView.prototype = {
                         parent = parent.parent;
                     } while( parent !== undefined )
                         
-                    this.threeBone.remove(mesh.threeMesh);
+                    this.threeBone.remove(mesh.parentEntity.threeGroup);
                     
                 };
                 

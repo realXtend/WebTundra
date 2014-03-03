@@ -59,7 +59,7 @@ var placeable_UpdateTransform = function() {
         return;
     
     var trans = this.transform;
-    
+
     // position
     //var endPos = new THREE.Vector3(trans.pos.x, trans.pos.y, trans.pos.z);
     //copyXyz(trans.pos, endPos);
@@ -106,7 +106,6 @@ var placeable_SetParentEntity = function ( entity ) {
         
     }
 
-    var placeable = entity.componentByType( "Placeable" );
     if ( entity.threeGroup !== null ) {
 
         entity.threeGroup.add(this.parentEntity.threeGroup);

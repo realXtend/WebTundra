@@ -28,18 +28,6 @@ EC_Placeable.prototype.checkParent = function(attr, changeType) {
         
     }
     
-    if (attr.id === "parentRef" || attr.id === "skeletonRef") {
-        
-        var mesh = this.parentEntity.componentByType("Mesh");
-        if ( mesh !== null ) {
-            
-            this.updateTransform();
-            mesh.updateParentRef();
-            
-        }
-            
-    }
-    
     //console.log(this + " - " + this.parentRef + " : " + attr.id); // + " == " + this.parentRef.id);
     if (attr.id === "parentRef") {
         
@@ -70,6 +58,18 @@ EC_Placeable.prototype.checkParent = function(attr, changeType) {
             this.parentRefReady.dispatch();
         }
     }
+    
+    if (attr.id === "parentRef" || attr.id === "skeletonRef") {
+        
+        var mesh = this.parentEntity.componentByType("Mesh");
+        if ( mesh !== null ) {
+            
+            this.updateTransform();
+            mesh.updateParentRef();
+            
+        }
+            
+    }
 };
 
 EC_Placeable.prototype.waitParent = function(addedEntity, changeType) {
@@ -90,8 +90,9 @@ EC_Placeable.prototype.waitParent = function(addedEntity, changeType) {
 EC_Placeable.prototype.getParentEntity = function () {
     
     var parentRef = this.parentRef;
-    if ( parentRef !== "" )
+    if ( parentRef !== "" ) {
         return this.parentEntity.parentScene.entityById(this.parentRef);
+    }
     
     return null;
     
