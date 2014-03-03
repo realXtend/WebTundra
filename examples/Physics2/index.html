@@ -59,7 +59,7 @@ app.start();
 
 // FREE LOOK
 var freeLookCtrl = new THREE.FreeLookControls(app.viewer.camera, app.viewer.renderer.domElement);
-app.scene.add(freeLookCtrl.getObject());
+app.viewer.scene.add(freeLookCtrl.getObject());
 // An object in freeLookCtrl that carries the camera. Set it's position instead of setting camera position directly
 freeLookCtrl.getObject().position.set(0, 8.50, 28.50);
 
