@@ -543,7 +543,7 @@ ThreeView.prototype = {
         return parent;
     },
 
-    onMouseDown: function() {
+    onMouseDown: function(event) {
         var camera = this.camera;
         var mouse = {
             x: (event.clientX / window.innerWidth) * 2 - 1,
