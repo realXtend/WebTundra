@@ -1,4 +1,4 @@
-ThreeView.prototype.ComponentAdded = function ( entity, component ) {
+ThreeView.prototype.PlaceableIntialize = function ( entity, component ) {
     
     component.setParentEntity = placeable_SetParentEntity;
     
@@ -20,23 +20,14 @@ var placeable_UpdateTransform = function() {
     var trans = this.transform;
 
     // position
-    //var endPos = new THREE.Vector3(trans.pos.x, trans.pos.y, trans.pos.z);
-    //copyXyz(trans.pos, endPos);
     threeGroup.position = new THREE.Vector3(trans.pos.x, trans.pos.y, trans.pos.z);
 
     // rotation
-    //var endRot = new THREE.Quaternion();
     var euler = new THREE.Euler(THREE.Math.degToRad(trans.rot.x), THREE.Math.degToRad(trans.rot.y), THREE.Math.degToRad(trans.rot.z), 'ZYX');
-    
-    //euler.order = 'XYZ';
-    //tundraToThreeEuler(trans.rot, euler);
-    //endRot.setFromEuler(euler, true);
     threeGroup.rotation = euler;
 
     // scale
-    //var endScale = new THREE.Vector3(trans.scale.x, trans.scale.y, trans.scale.z);
-    //copyXyz(trans.scale, endScale);
-    threeGroup.scale = new THREE.Vector3(trans.scale.x, trans.scale.y, trans.scale.z);;
+    threeGroup.scale = new THREE.Vector3(trans.scale.x, trans.scale.y, trans.scale.z);
     
 };
 

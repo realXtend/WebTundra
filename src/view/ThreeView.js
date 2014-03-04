@@ -130,7 +130,7 @@ ThreeView.prototype = {
         if (component instanceof EC_Placeable) {
             
             this.connectToPlaceable( threeGroup, component );
-            this.ComponentAdded( entity, component );
+            this.PlaceableIntialize( entity, component );
             
         }
         else if (component instanceof EC_Mesh) {
@@ -347,6 +347,18 @@ ThreeView.prototype = {
             checkDefined(threeParent, meshComp, geometry, material);
             
         }
+        
+        meshComp.updateNodeTransform = function () {
+          
+            var trans = this.nodeTransformation;
+          
+            // TODO use cache variables.
+          
+            this.threeMesh.position = new THREE.Vector3(trans.pos.x, trans.pos.y, trans.pos.z);
+            this.threeMesh.rotation = new THREE.Euler(THREE.Math.degToRad(trans.rot.x), THREE.Math.degToRad(trans.rot.y), THREE.Math.degToRad(trans.rot.z), 'ZYX');
+            this.threeMesh.scale = new THREE.Vector3(trans.scale.x, trans.scale.y, trans.scale.z);
+            
+        };
         
         checkDefined(meshComp.parentEntity);
         check(threeParent.userData.entityId === meshComp.parentEntity.id);
