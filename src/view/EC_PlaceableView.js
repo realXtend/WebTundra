@@ -10,47 +10,6 @@ ThreeView.prototype.ComponentAdded = function ( entity, component ) {
 
 };
 
-/*ThreeView.prototype.connectToPlaceable = function(threeObject, placeable) {
-    if (placeable.debug)
-        console.log("connect o3d " + threeObject.id + " to placeable - pl x " + placeable.transform.pos.x + " o3d x " + threeObject.position.x + " o3d parent x " + threeObject.parent.position.x);
-
-    //NOTE: this depends on component handling being done here before the componentReady signal fires
-    var thisIsThis = this;
-    placeable.parentRefReady.add(function() {
-        var parent = thisIsThis.parentForPlaceable(placeable);
-        //NOTE: assumes first call -- add removing from prev parent to support live changes! XXX
-        parent.add(threeObject);
-        if (placeable.debug)
-            console.log("parent ref set - o3d id=" + threeObject.id + " added to parent " + parent.id);
-        placeable.updateTransform();
-        //thisIsThis.updateFromTransform(threeObject, placeable);
-        placeable.attributeChanged.add(function(attr, changeType) {
-            thisIsThis.updateFromTransform(threeObject, placeable); //Todo: pass attr to know when parentRef changed
-        });
-    });
-    
-    placeable.updateTransform();
-};
-
-ThreeView.prototype.parentForPlaceable = function(placeable) {
-    
-    console.log("parentForPlaceable");
-    var parent;
-    if (placeable.parentRef) {
-        var parentOb = this.o3dByEntityId[placeable.parentRef];
-        if (!parentOb) {
-            console.log("ThreeView parentForPlaceable ERROR: adding object but parent not there yet -- even though this is called only after the parent was reported being there in the EC scene data. Falling back to add to scene.");
-            parent = this.scene;
-        } else {
-            parent = parentOb;
-        }
-    } else {
-        parent = this.scene;
-    }
-
-    return parent;
-};*/
-
 // TODO! Optimize this by using cache for position, rotation and scale objects.
 var placeable_UpdateTransform = function() {
     
@@ -78,16 +37,6 @@ var placeable_UpdateTransform = function() {
     //var endScale = new THREE.Vector3(trans.scale.x, trans.scale.y, trans.scale.z);
     //copyXyz(trans.scale, endScale);
     threeGroup.scale = new THREE.Vector3(trans.scale.x, trans.scale.y, trans.scale.z);;
-    
-    var parent = threeGroup;
-    while (parent.parent !== undefined) {
-        
-        parent = parent.parent;
-        
-    }
-    
-    threeGroup.matrixWorldNeedsUpdate = true;
-    //this.updateMatrixWorld(true);
     
 };
 
