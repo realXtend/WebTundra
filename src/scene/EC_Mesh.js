@@ -2,6 +2,7 @@
 
 var cComponentTypeMesh = 17;
 
+// TODO add support for multiple attachments.
 function Bone ( name, parent ) {
     
     this.name = name;
@@ -68,7 +69,7 @@ function EC_Mesh() {
     // Bone that this mesh is attached to.
     this.parentBone = null;
     
-    //this.attributeChanged.add(this.checkParentRef.bind(this));
+    this.attributeChanged.add(this.onAttributeChanged.bind(this));
 
     this.meshAssetReady = new signals.Signal();
     
@@ -76,6 +77,22 @@ function EC_Mesh() {
 
 EC_Mesh.prototype = new Component(cComponentTypeMesh);
 
+// AttributeChanged event listener.
+EC_Mesh.prototype.onAttributeChanged = function ( attr, changeType ) {
+    
+    if ( attr.id === "nodeTransformation" ) {
+        
+        this.updateNodeTransform();
+        
+    }
+    
+};
+
+EC_Mesh.prototype.updateNodeTransform = function ( ) {  };
+
+// Get bone by name
+/* @param {string} name bone name
+ */
 EC_Mesh.prototype.getBone = function ( name ) {
     
     if ( this.rootBone !== undefined )
@@ -92,12 +109,17 @@ EC_Mesh.prototype.getBone = function ( name ) {
 
 };
 
+// Check if mesh has a skeleton defined.
+/* @return return true if mesh is holding a skeleton.
+ */
 EC_Mesh.prototype.hasSkeleton = function () {
     
     return this.bones.length > 0;
     
 };
 
+// Check if placeable parentRef or skeletonRef has changed and update parent
+// child hierachy based on the change.
 EC_Mesh.prototype.updateParentRef = function () {
     
     var placeable = this.parentEntity.componentByType("Placeable");
@@ -119,13 +141,17 @@ EC_Mesh.prototype.updateParentRef = function () {
         
     }
     
-    // Check if parent mesh is loaded
+    // Check if parent mesh is loaded, if not wait for asset ready signal.
     
     var parentMesh = parentEntity.componentByType( "Mesh" );
-    if ( parentMesh === null || !parentMesh.assetReady ) {
+    if ( parentMesh === null ) {
+        
+        return;
+        
+    } else if ( !parentMesh.assetReady ) {
      
-        parentMesh.attributeChanged.remove(this.parentMeshAssetReady);
         parentMesh.attributeChanged.add(this.parentMeshAssetReady);
+        parentMesh.attributeChanged.remove(this.parentMeshAssetReady);
         
         return;
         
