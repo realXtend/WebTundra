@@ -113,6 +113,7 @@ ThreeView.prototype = {
         var threeGroup = this.o3dByEntityId[entity.id];
         if (!threeGroup) {
             check(entity.id > 0);
+            console.log("Create three Object3d " + entity.id);
             this.o3dByEntityId[entity.id] = threeGroup = new THREE.Object3D();
             //console.log("created new o3d group id=" + threeGroup.id);
             threeGroup.userData.entityId = entity.id;
@@ -121,6 +122,7 @@ ThreeView.prototype = {
             entity.actionFuntionMap = {};
             
             entity.threeGroup = threeGroup;
+            this.scene.add(entity.threeGroup);
             
             //console.log("registered o3d for entity", entity.id);
         } else {
@@ -213,6 +215,7 @@ ThreeView.prototype = {
         url = url.replace(/\.mesh$/i, ".json");
         
         meshComp.assetReady = false;
+        console.log(url);
 
         var thisIsThis = this;
         this.assetLoader.cachedLoadAsset(url, function(arg1, material) {
@@ -371,7 +374,7 @@ ThreeView.prototype = {
         
         meshComp.assetReady = true;
         meshComp.updateParentRef();
-        meshComp.meshAssetReady.dispatch();
+        meshComp.meshAssetReady.dispatch(meshComp);
         
         console.log("added mesh to o3d id=" + threeParent.id);
         // threeParent.needsUpdate = 1;

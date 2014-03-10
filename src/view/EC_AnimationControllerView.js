@@ -21,7 +21,6 @@ ThreeView.prototype.OnAnimatorInitialize = function( threeParent, animComp ) {
         
     };
 
-    animComp.playLooped = AnimationController_playLooped;
     animComp.parentEntity.actionFuntionMap["PlayLoopedAnim"] = function(params, execType) {
         
         animComp.playLooped.apply(animComp, params);
@@ -35,7 +34,6 @@ ThreeView.prototype.OnAnimatorInitialize = function( threeParent, animComp ) {
         
     };
 
-    animComp.stopAll = AnimationController_stopAll;
     animComp.parentEntity.actionFuntionMap["StopAllAnims"] = function(params, execType) {
         
         animComp.stopAll.apply(animComp, params);
@@ -57,6 +55,9 @@ ThreeView.prototype.OnAnimatorInitialize = function( threeParent, animComp ) {
         animComp.setAnimSpeed.apply(animComp, params);
         
     };
+    
+    animComp.createAnimations = AnimationController_createAnimations;
+    animComp.addMesh = AnimationController_addMesh;
 
     animComp.initialized = true;
 };
@@ -69,58 +70,11 @@ ThreeView.prototype.onAnimatorAddedOrChanged = function( threeParent, animComp )
         
     }
 
-    var mesh = animComp.meshEntity();
+    var mesh = animComp.parentEntity.mesh;
     if ( mesh !== null && mesh.threeMesh !== undefined ) {
         
-        checkDefined(mesh, threeParent, animComp);
-        var geometry = mesh.threeMesh.geometry;
-        checkDefined(geometry);
+        animComp.addMesh( mesh );
         
-        // Create Three animations and AnimationState objects.
-        
-        // In Three.js geometry.animations is used if model has more than
-        // one skeletal animation otherwise gemetry.animation is used.
-        
-        if ( geometry.animations !== undefined ) {
-            
-            var animationInCache = false;
-            var anim, threeAnim;
-            for( var i = 0; i < geometry.animations.length; ++i ) {
-                
-                threeAnim = geometry.animations[i];
-                
-                // Check if animation is already loaded to cache.
-                animationInCache = THREE.AnimationHandler.get(threeAnim.name) !== null;
-                
-                anim = animComp.createAnimation(threeAnim.name);
-
-                if ( !animationInCache )
-                    THREE.AnimationHandler.add(threeAnim);
-                
-                var a = new THREE.Animation(mesh.threeMesh, threeAnim.name);
-                
-                if ( !animationInCache )
-                    THREE.AnimationHandler.removeFromUpdate(threeAnim);
-
-                anim.threeAnimation = a;
-                
-            }
-            
-        } else if ( geometry.animation !== undefined ) {
-            
-            anim = animComp.createAnimation(geometry.animation.name);
-            animationInCache = THREE.AnimationHandler.get(threeAnim.name) !== null;
-
-            if ( !animationInCache )
-                THREE.AnimationHandler.add(geometry.animation);
-            
-            var a = new THREE.Animation(mesh.threeMesh, geometry.animation.name);
-            
-            if ( !animationInCache )
-                THREE.AnimationHandler.removeFromUpdate(geometry.animation);
-
-            anim.threeAnimation = a;
-        }
     } else {
         
         // If no mesh is being added we wait until it gets ready to use.
@@ -135,6 +89,7 @@ ThreeView.prototype.onAnimatorAddedOrChanged = function( threeParent, animComp )
         animComp.parentEntity.componentAdded.add(OnComponentAdded);
         
     }
+    
 };
 
 ThreeView.prototype.onAnimatorRelease = function( entity, animComp ) {
@@ -146,13 +101,7 @@ ThreeView.prototype.onAnimatorRelease = function( entity, animComp ) {
     var anims = animComp.animations;
     for ( var i in anims ) {
         
-        for ( var j in anims[i].threeAnimation ) {
-        
-            delete anims[i].threeAnimation[j];
-            
-        }
-        
-        delete anims[i].threeAnimation;
+        delete anims[i].threeAnimations;
         
     }
     
@@ -163,76 +112,63 @@ ThreeView.prototype.onAnimatorRelease = function( entity, animComp ) {
 
 var AnimationController_play = function(name, fadeInTime, crossFade, looped) {
     
-    var animComp = this;
-    var animation = animComp.animations[name];
+    var animation = this.animations[name];
     animation.fade_period = fadeInTime !== undefined ? fadeInTime : 0;
     animation.phase = AnimationPhase.PHASE_PLAY;
 
-    if (crossFade)
-    {
-        var tAnim = null;
-        for(var i = 0; i < animComp.animations.length; ++i) {
-            tAnim = animComp.animations[i];
-            if (tAnim.name !== name && tAnim.threeAnim.isPlaying === true)
-                animComp.stop(tAnim.name, animation.fade_period);
-        }
-    }
-
-    if (animation !== undefined)
-    {
-        animation.threeAnimation.loop = looped;
-        animation.threeAnimation.play(0, animation.weight, animation.fade_period);
-    }
+    if (crossFade) {
         
-};
+        var tAnim = null;
+        for(var i = 0; i < this.animations.length; ++i) {
+            
+            tAnim = this.animations[i];
+            if (tAnim.name !== name && tAnim.threeAnim.isPlaying === true)
+                this.stop(tAnim.name, animation.fade_period);
+            
+        }
+        
+    }
 
-var AnimationController_playLooped = function(name, fadeInTime, crossFade) {
-    
-    var animComp = this;
-    animComp.play(name, fadeInTime, crossFade, true);
+    if (animation !== undefined) {
+        
+        for ( var i in animation.threeAnimations ) {
+            
+            animation.threeAnimations[i].loop = looped;
+            animation.threeAnimations[i].play(0, animation.weight, animation.fade_period);
+            
+        }
+        
+    }
         
 };
 
 var AnimationController_stop = function(name, fadeoutTime) {
     
-    var animComp = this;
-    var animation = animComp.animations[name];
-    animation.fade_period = fadeoutTime !== undefined ? fadeoutTime : 0;
-    animation.phase = AnimationPhase.PHASE_STOP;
-    animComp.meshEntity().threeMesh.pose();
+    var animation = this.animationState( name );
+    if ( animation !== undefined ) {
 
-    if (animation !== undefined)
-        animation.threeAnimation.stop(animation.fade_period);
-        
-};
+        animation.fade_period = fadeoutTime !== undefined ? fadeoutTime : 0;
+        animation.phase = AnimationPhase.PHASE_STOP;
 
-var AnimationController_stopAll = function ( fadeoutTime ) {
-    
-    var animComp = this;
-    fadeoutTime = Number(fadeoutTime);
-    fadeoutTime = isNaN(fadeoutTime) ? 0 : fadeoutTime;
-    for(var id in animComp.animations) {
-        
-        anim = animComp.animations[id];
-        if (anim instanceof AnimationState)
-            animComp.stop(anim.name, fadeoutTime);
-        
+        for ( var i in animation.threeAnimations )
+            animation.threeAnimations[i].stop(animation.fade_period);
+
     }
         
 };
     
 var AnimationController_setAnimWeight = function( name, weight ) {
     
-    var animComp = this;
     // Make sure that weight range is [1-0].
     weight = Math.min(Math.max(weight, 0), 1);
-    var animation = animComp.animations[name];
+    var animation = this.animations[name];
     
-    if ( animation !== undefined && animation.threeAnimation !== undefined )
+    if ( animation !== undefined )
     {
         
         animation.weight = weight;
-        animation.threeAnimation.weight = weight;
+        for ( var i in animation.threeAnimations )
+            animation.threeAnimations[i].weight = weight;
     
     }
         
@@ -240,11 +176,10 @@ var AnimationController_setAnimWeight = function( name, weight ) {
 
 var AnimationController_update = function( deltaTime ) {
     
-    var animComp = this;
-    for(var anim in animComp.animations) {
+    for( var i in this.animations ) {
         
-        if (animComp.animations[anim] instanceof AnimationState)
-            animComp.animations[anim].threeAnimation.update(deltaTime);
+        if ( this.animations[i] instanceof AnimationState )
+            this.animations[i].threeAnimation.update(deltaTime);
         
     }
     
@@ -252,14 +187,107 @@ var AnimationController_update = function( deltaTime ) {
     
 var AnimationController_setAnimSpeed = function( name, speed ) {
     
-    var animComp = this;
-    var animation = animComp.animations[name];
+    var animation = this.animations[name];
     
     if ( animation !== undefined && speed !== undefined ) {
         
         animation.threeAnimation.timeScale = speed;
-        animation.speed_factor = speed;
+        for( var i in animations.threeAnimations )
+            animations.threeAnimations[i].speed_factor = speed;
 
     }
+    
+};
+
+var AnimationController_createAnimations = function( mesh ) {
+    
+    checkDefined( mesh, mesh.threeMesh );
+    var geometry = mesh.threeMesh.geometry;
+    checkDefined(geometry);
+
+    // Create Three animations and AnimationState objects.
+
+    // In Three.js geometry.animations is used if model has more than
+    // one skeletal animation otherwise gemetry.animation is used.
+
+    var animations = GetAnimationsFromGeometry(geometry);
+
+    for( var i = 0; i < animations.length; ++i ) {
+
+        threeAnim = animations[i];
+
+        // Check if animation is already loaded to cache.
+        animationInCache = THREE.AnimationHandler.get(threeAnim.name) !== null;
+
+        var anim = this.animationState(threeAnim.name);
+        if (anim === null) {
+            anim = this.createAnimation(threeAnim.name);
+            anim.threeAnimations = {};
+        }
+
+        if ( !animationInCache )
+            THREE.AnimationHandler.add(threeAnim);
+
+        var a = new THREE.Animation(mesh.threeMesh, threeAnim.name);
+
+        if ( !animationInCache )
+            THREE.AnimationHandler.removeFromUpdate(threeAnim);
+
+        anim.threeAnimations[mesh.id] = a;
+
+    }
+
+};
+
+var AnimationController_addMesh = function( mesh ) {
+    
+    EC_AnimationController.prototype.addMesh.call( this, mesh );
+    
+    // TODO if mesh is not ready wait for asset ready.
+    
+    
+    
+};
+
+var AnimationController_removeMesh = function( mesh ) {
+    
+    EC_AnimationController.prototype.removeMesh.call( this, mesh );
+    
+    // TODO remove mesh from AnimationState object
+    for ( var i in this.animations ) {
+
+        if ( this.animations[i][mesh.id] !== undefined ) {
+            
+            delete this.animations[i][mesh.id];
+            
+        }
+
+    }
+};
+
+function GetAnimationsFromGeometry ( geometry ) {
+    
+    // In Three.js geometry.animations is used if model has more than
+    // one skeletal animation otherwise gemetry.animation is used.
+    
+    if ( geometry.animations !== undefined ) {
+        
+        return geometry.animations;
+        
+    } else {
+        
+        var animations = [];
+        animation.push(geometry.animation);
+        return animations;
+        
+    }
+    
+    return null;
+};
+
+// Remove mesh from this component.
+EC_AnimationController.prototype.removeMesh = function( mesh ) {
+    
+    
     
 };

@@ -28,7 +28,6 @@ EC_Placeable.prototype.checkParent = function(attr, changeType) {
         
     }
     
-    //console.log(this + " - " + this.parentRef + " : " + attr.id); // + " == " + this.parentRef.id);
     if (attr.id === "parentRef") {
         
         if ( this.parentRef === "" && this.targetEntity !== null ) {
@@ -38,7 +37,6 @@ EC_Placeable.prototype.checkParent = function(attr, changeType) {
             
         }
         
-        //console.log("parentRef: " + this.parentRef);
         if (this.parentRef) {
             var parentEnt = this.parentEntity.parentScene.entityById(this.parentRef);
             if (parentEnt && parentEnt.componentByType(cComponentTypePlaceable)) {
