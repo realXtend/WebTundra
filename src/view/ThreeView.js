@@ -365,9 +365,12 @@ ThreeView.prototype = {
         
         checkDefined(meshComp.parentEntity);
         check(threeParent.userData.entityId === meshComp.parentEntity.id);
-        // console.log("Mesh loaded:", meshComp.meshRef.ref, "- adding to o3d of entity "+ threeParent.userData.entityId);
+
         meshComp.threeMesh = mesh;
-        //mesh.applyMatrix(threeParent.matrixWorld);
+
+        if ( threeParent.visible === false )
+            meshComp.threeMesh.visible = false;
+
         threeParent.add(mesh);
         this.meshReadySig.dispatch(meshComp, mesh);
         mesh.needsUpdate = 1;

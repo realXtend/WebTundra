@@ -3,6 +3,8 @@ ThreeView.prototype.PlaceableIntialize = function ( entity, component ) {
     component.setParentEntity = placeable_SetParentEntity;
     
     component.updateTransform = placeable_UpdateTransform;
+    
+    component.setVisible = placeable_setVisible;
 
     var parent = component.getParentEntity();
     if (parent !== null)
@@ -51,5 +53,11 @@ var placeable_SetParentEntity = function ( entity ) {
         entity.threeGroup.add(this.parentEntity.threeGroup);
 
     }
+
+};
+
+var placeable_setVisible = function ( visible ) {
+    
+    this.parentEntity.threeGroup.traverse( function ( object ) { object.visible = visible; } );
 
 };

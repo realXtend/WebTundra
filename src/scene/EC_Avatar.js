@@ -11,15 +11,17 @@ function EC_Avatar() {
     this.avatar;
     
     this.avatarObject;
-    this.attributeChanged.add(this.HandleAssetRefChange.bind(this));
+    this.attributeChanged.add(this.handleAssetRefChange.bind(this));
     
-    this.onAvatarLoaded = new signals.Signal();
+    this.assetQuery = {};
+    
+    this.avatarLoaded = new signals.Signal();
     
 };
 
 EC_Avatar.prototype = new Component(cComponentTypeAvatar);
 
-EC_Avatar.prototype.HandleAssetRefChange = function ( attr, changeType ) {
+EC_Avatar.prototype.handleAssetRefChange = function ( attr, changeType ) {
     
     if ( attr.id === "appearanceRef" ) {
         
@@ -67,82 +69,133 @@ EC_Avatar.prototype.requestAsset = function () {
     
 };
 
+EC_Avatar.prototype.createGeometry = function ( entity, data, useNodeTransform ) {
+
+    var component = entity.createComponent(0, cComponentTypeMesh, "", AttributeChange.LocalOnly);
+    var meshRef = component.meshRef;
+    meshRef.ref = data.geometry;
+    component.meshRef = meshRef;
+    
+    this.assetQuery[component.id] = false;
+    
+    component.meshAssetReady.addOnce( function( mesh ) {
+        if (this.assetQuery[mesh.id] !== undefined)
+            this.assetQuery[mesh.id] = true;
+        this.checkAvatar();
+    }, this );
+    
+    if (data.materials !== undefined) {
+        
+        // Add material support;
+        
+    }
+    
+    if ( useNodeTransform === true ) {
+        
+        var newTrans = component.nodeTransformation;
+
+        newTrans.pos.x = data.transform.pos[0];
+        newTrans.pos.y = data.transform.pos[1];
+        newTrans.pos.z = data.transform.pos[2];
+
+        newTrans.rot.x = data.transform.rot[0];
+        newTrans.rot.y = data.transform.rot[1];
+        newTrans.rot.z = data.transform.rot[2];
+
+        newTrans.scale.x = data.transform.scale[0];
+        newTrans.scale.y = data.transform.scale[1];
+        newTrans.scale.z = data.transform.scale[2];
+
+        component.nodeTransformation = newTrans;
+        
+    }
+    
+    return component;
+
+};
+
+EC_Avatar.prototype.createPlaceable = function ( entity, parent, data ) {
+
+    var component = entity.createComponent(0, cComponentTypePlaceable, "", AttributeChange.LocalOnly);
+    
+    var newTrans = component.transform;
+
+    newTrans.pos.x = data.transform.pos[0];
+    newTrans.pos.y = data.transform.pos[1];
+    newTrans.pos.z = data.transform.pos[2];
+
+    newTrans.rot.x = data.transform.rot[0];
+    newTrans.rot.y = data.transform.rot[1];
+    newTrans.rot.z = data.transform.rot[2];
+
+    newTrans.scale.x = data.transform.scale[0];
+    newTrans.scale.y = data.transform.scale[1];
+    newTrans.scale.z = data.transform.scale[2];
+
+    component.transform = newTrans;
+    component.parentRef = parent.id;
+    
+    if ( data.transform.parentBone !== undefined ) {
+        component.skeletonRef = data.transform.parentBone;
+    }
+
+};
+
+EC_Avatar.prototype.checkAvatar = function() {
+    
+    for (var i in this.assetQuery)
+    {
+        
+        if ( this.assetQuery[i] === false )
+            return;
+        
+    }
+    
+    this.parentEntity.placeable.visible = true;
+    
+};
+
 EC_Avatar.prototype.setupAppearance = function () {
     
-    var avatar = this.avatarObject;
-    if ( avatar === undefined ) {
+    var avatarData = this.avatarObject;
+    if ( avatarData === undefined ) {
         this.requestAsset();
         return;
     }
     
     this.parts = [];
     
-    /*this.parentEntity.triggerAction = function ( name, params, execType ) {
-        
-        Entity.prototype.triggerAction.call( this, name, params, execType );
-        //this.prototype.triggerAction( this, name, params, execType );
-    
-        var child;
-        for ( var i = 0; i < this.avatar.parts.length; ++i ) {
-            
-            child = this.parentScene.entityById(this.avatar.parts[i]);
-            if (child !== null) {
-                
-                child.triggerAction(this, name, params, execType);
-                
-            }
-            
-        }
-        
-    };*/
-    
+    var component;
     if (this.parentEntity.name !== undefined) {
-        var component = this.parentEntity.createComponent(0, cComponentTypeName, "", AttributeChange.LocalOnly);
-        component.name = avatar.name;
+        component = this.parentEntity.createComponent(0, cComponentTypeName, "", AttributeChange.LocalOnly);
+        component.name = avatarData.name;
     }
     
     component = this.parentEntity.placeable;
     if ( component === undefined )
-       component = this.parentEntity.createComponent(0, cComponentTypePlaceable, "", AttributeChange.LocalOnly);
+        component = this.parentEntity.createComponent(0, cComponentTypePlaceable, "", AttributeChange.LocalOnly);
     
-    component = this.parentEntity.createComponent(0, cComponentTypeMesh, "", AttributeChange.LocalOnly);
-    var meshRef = component.meshRef;
-    meshRef.ref = avatar.geometry;
-    component.meshRef = meshRef;
+    this.createGeometry( this.parentEntity, avatarData, true );
     
-    var newTrans = component.nodeTransformation;
-
-    newTrans.pos.x = avatar.transform.pos[0];
-    newTrans.pos.y = avatar.transform.pos[1];
-    newTrans.pos.z = avatar.transform.pos[2];
-
-    newTrans.rot.x = avatar.transform.rot[0];
-    newTrans.rot.y = avatar.transform.rot[1];
-    newTrans.rot.z = avatar.transform.rot[2];
-
-    newTrans.scale.x = avatar.transform.scale[0];
-    newTrans.scale.y = avatar.transform.scale[1];
-    newTrans.scale.z = avatar.transform.scale[2];
-
-    component.nodeTransformation = newTrans;
-    
-    if ( avatar.animations !== undefined && avatar.animations.length ) {
+    if ( avatarData.animations !== undefined && avatarData.animations.length ) {
         
         component = this.parentEntity.createComponent(0, cComponentTypeAnimation, "", AttributeChange.LocalOnly);
         
     }
     
-    // TODO add materials
-    
-    if ( avatar.parts !== undefined ) {
+    if ( avatarData.parts !== undefined ) {
         
-        for ( var i = 0; i < avatar.parts.length; ++i ) {
+        for ( var i = 0; i < avatarData.parts.length; ++i ) {
             
-            this.createChild( avatar.parts[i] );
+            this.createChild( avatarData.parts[i] );
             
         }
         
     }
+    
+    // set avatar invisible untill all asset are loaded.
+    
+    this.parentEntity.placeable.visible = false;
     
 };
 
@@ -158,66 +211,12 @@ EC_Avatar.prototype.createChild = function ( child ) {
     var component = childEntity.createComponent(0, cComponentTypeName, "", AttributeChange.LocalOnly);
     component.name = child.name;
     
-    component = childEntity.createComponent(0, cComponentTypePlaceable, "", AttributeChange.LocalOnly);
-    var newTrans = component.transform;
-
-    newTrans.pos.x = child.transform.pos[0];
-    newTrans.pos.y = child.transform.pos[1];
-    newTrans.pos.z = child.transform.pos[2];
-
-    newTrans.rot.x = child.transform.rot[0];
-    newTrans.rot.y = child.transform.rot[1];
-    newTrans.rot.z = child.transform.rot[2];
-
-    newTrans.scale.x = child.transform.scale[0];
-    newTrans.scale.y = child.transform.scale[1];
-    newTrans.scale.z = child.transform.scale[2];
-
-    component.transform = newTrans;
-    component.parentRef = this.parentEntity.id;
-    if ( child.transform.parentBone !== undefined ) {
-        component.skeletonRef = child.transform.parentBone;
-    }
+    this.createPlaceable( childEntity, this.parentEntity, child );
     
-    component = childEntity.createComponent(0, cComponentTypeMesh, "", AttributeChange.LocalOnly);
-    var meshRef = component.meshRef;
-    meshRef.ref = child.geometry;
-    component.meshRef = meshRef;
+    component = this.createGeometry( this.parentEntity, child, false );
     
     this.parentEntity.animationController.addMesh(component);
     
-    //component = childEntity.createComponent(0, cComponentTypeAnimation, "", AttributeChange.LocalOnly);
-    
-    // TODO add materials
-    
 };
-
-/*EC_Avatar.prototype.UpdateTransform = function ( transform, parent ) {
-    
-    var newTrans = component.transform;
-
-    newTrans.pos.x = transform.pos[0];
-    newTrans.pos.y = transform.pos[1];
-    newTrans.pos.z = transform.pos[2];
-
-    newTrans.rot.x = transform.rot[0];
-    newTrans.rot.y = transform.rot[1];
-    newTrans.rot.z = transform.rot[2];
-
-    newTrans.scale.x = transform.scale[0];
-    newTrans.scale.y = transform.scale[1];
-    newTrans.scale.z = transform.scale[2];
-
-    component.transform = newTrans;
-    
-    if ( parent !== undefined ) {
-        
-        component.parentRef = parent.id;
-        if ( child.transform.parent !== undefined )
-            component.skeletonRef = child.transform.parent;
-        
-    }
-    
-}*/
 
 registerComponent(cComponentTypeAvatar, "Avatar", function(){ return new EC_Avatar(); });

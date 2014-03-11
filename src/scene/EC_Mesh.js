@@ -150,8 +150,7 @@ EC_Mesh.prototype.updateParentRef = function () {
         
     } else if ( !parentMesh.assetReady ) {
      
-        parentMesh.attributeChanged.remove(this.parentMeshAssetReady);
-        parentMesh.attributeChanged.add(this.parentMeshAssetReady);
+        parentMesh.attributeChanged.addOnce(this.parentMeshAssetReady, this);
         
         return;
         

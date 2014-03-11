@@ -11,7 +11,7 @@ function EC_Placeable() {
     this.addAttribute(cAttributeEntityReference, "parentRef", "Parent entity ref");
     this.addAttribute(cAttributeString, "skeletonRef", "Parent bone name");
     
-    this.attributeChanged.add(this.checkParent.bind(this));
+    this.attributeChanged.add(this.onAttributeChanged, this);
 
     this.targetEntity = null;
 
@@ -20,7 +20,13 @@ function EC_Placeable() {
 
 EC_Placeable.prototype = new Component(cComponentTypePlaceable);
 
-EC_Placeable.prototype.checkParent = function(attr, changeType) {
+EC_Placeable.prototype.onAttributeChanged = function(attr, changeType) {
+    
+    if (attr.id === "visible") {
+        
+        this.setVisible(this.visible);
+        
+    }
     
     if (attr.id === "transform") {
         
@@ -59,16 +65,14 @@ EC_Placeable.prototype.checkParent = function(attr, changeType) {
     
     if (attr.id === "parentRef" || attr.id === "skeletonRef") {
         
-        var mesh = this.parentEntity.componentByType("Mesh");
-        if ( mesh !== null ) {
-            
-            this.updateTransform();
+        this.targetEntity;
+        if ( this.parentEntity.mesh !== undefined )
             mesh.updateParentRef();
-            
-        }
             
     }
 };
+
+EC_Placeable.prototype.setVisible = function( visible ) {};
 
 EC_Placeable.prototype.waitParent = function(addedEntity, changeType) {
     
