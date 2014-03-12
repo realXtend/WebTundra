@@ -402,7 +402,8 @@ ThreeView.prototype = {
             
             var mesh = component.threeMesh;
             
-            this.scene.remove(mesh);
+            if (component.parentEntity.threeGroup !== undefined)
+                component.parentEntity.threeGroup.remove( mesh );
             
             mesh.geometry.dispose();
             for ( var i in mesh.geometry )

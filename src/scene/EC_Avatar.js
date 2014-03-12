@@ -17,6 +17,11 @@ function EC_Avatar() {
     
     this.avatarLoaded = new signals.Signal();
     
+    // Child entity ids created by the avatar.
+    this.parts = [];
+    
+    this.previousRef = "";
+    
 };
 
 EC_Avatar.prototype = new Component(cComponentTypeAvatar);
@@ -25,15 +30,37 @@ EC_Avatar.prototype.handleAssetRefChange = function ( attr, changeType ) {
     
     if ( attr.id === "appearanceRef" ) {
         
-        this.requestAsset();
+        if ( this.previousRef !== this.appearanceRef.ref ) {
+            this.releaseAssets();
+            this.requestAsset();
+            this.previousRef = this.appearanceRef.ref;
+        }
         
     }
     
 };
 
+EC_Avatar.prototype.releaseAssets = function () {
+    
+    if ( this.parentEntity.animationController !== undefined )
+        this.parentEntity.removeComponent(this.parentEntity.animationController.id, AttributeChange.LocalOnly);
+    
+    if ( this.parentEntity.mesh !== undefined )
+        this.parentEntity.removeComponent(this.parentEntity.mesh.id, AttributeChange.LocalOnly);
+    
+    var scene = this.parentEntity.parentScene;
+    for( var i = 0; i < this.parts.length; ++i ) {
+
+        scene.removeEntity(this.parts[i], AttributeChange.LocalOnly);
+        
+    }
+    this.parts = [];
+    
+};
+
 EC_Avatar.prototype.requestAsset = function () {
     
-    if (this.appearanceRef === undefined)
+    if (this.appearanceRef.ref === "")
         return;
     
     var ref = this.appearanceRef.ref;
@@ -133,7 +160,8 @@ EC_Avatar.prototype.createPlaceable = function ( entity, parent, data ) {
     newTrans.scale.z = data.transform.scale[2];
 
     component.transform = newTrans;
-    component.parentRef = parent.id;
+    if ( parent !== undefined && parent !== null )
+        component.parentRef = parent.id;
     
     if ( data.transform.parentBone !== undefined ) {
         component.skeletonRef = data.transform.parentBone;
@@ -163,14 +191,13 @@ EC_Avatar.prototype.setupAppearance = function () {
         return;
     }
     
-    this.parts = [];
+    
+    if (this.parentEntity.name !== undefined) {
+        this.parentEntity.createComponent(0, cComponentTypeName, "", AttributeChange.LocalOnly);
+    }
+    this.parentEntity.name.name = avatarData.name;
     
     var component;
-    if (this.parentEntity.name !== undefined) {
-        component = this.parentEntity.createComponent(0, cComponentTypeName, "", AttributeChange.LocalOnly);
-        component.name = avatarData.name;
-    }
-    
     component = this.parentEntity.placeable;
     if ( component === undefined )
         component = this.parentEntity.createComponent(0, cComponentTypePlaceable, "", AttributeChange.LocalOnly);
@@ -213,7 +240,7 @@ EC_Avatar.prototype.createChild = function ( child ) {
     
     this.createPlaceable( childEntity, this.parentEntity, child );
     
-    component = this.createGeometry( this.parentEntity, child, false );
+    component = this.createGeometry( childEntity, child, false );
     
     this.parentEntity.animationController.addMesh(component);
     
