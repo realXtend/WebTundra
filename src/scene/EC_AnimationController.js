@@ -195,20 +195,6 @@ EC_AnimationController.prototype.addMesh = function( mesh ) {
     
     this.animatingMeshes.push(animationMesh);
     
-    // TODO add mesh removed event listener.
-    
-    /*if ( mesh.assetReady ) {
-        
-        this.createAnimations( mesh );
-        
-    } else {
-
-        mesh.meshAssetReady.add( animationMesh );
-        //mesh.meshAssetReady.remove( this.createAnimations.bind(this) );
-        //mesh.meshAssetReady.add( this.createAnimations.bind(this) );
-        
-    }*/
-    
 };
 
 // Remove mesh from this component.

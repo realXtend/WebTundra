@@ -96,79 +96,6 @@ EC_Avatar.prototype.requestAsset = function () {
     
 };
 
-EC_Avatar.prototype.createGeometry = function ( entity, data, useNodeTransform ) {
-
-    var component = entity.createComponent(0, cComponentTypeMesh, "", AttributeChange.LocalOnly);
-    var meshRef = component.meshRef;
-    meshRef.ref = data.geometry;
-    component.meshRef = meshRef;
-    
-    this.assetQuery[component.id] = false;
-    
-    component.meshAssetReady.addOnce( function( mesh ) {
-        if (this.assetQuery[mesh.id] !== undefined)
-            this.assetQuery[mesh.id] = true;
-        this.checkAvatar();
-    }, this );
-    
-    if (data.materials !== undefined) {
-        
-        // Add material support;
-        
-    }
-    
-    if ( useNodeTransform === true ) {
-        
-        var newTrans = component.nodeTransformation;
-
-        newTrans.pos.x = data.transform.pos[0];
-        newTrans.pos.y = data.transform.pos[1];
-        newTrans.pos.z = data.transform.pos[2];
-
-        newTrans.rot.x = data.transform.rot[0];
-        newTrans.rot.y = data.transform.rot[1];
-        newTrans.rot.z = data.transform.rot[2];
-
-        newTrans.scale.x = data.transform.scale[0];
-        newTrans.scale.y = data.transform.scale[1];
-        newTrans.scale.z = data.transform.scale[2];
-
-        component.nodeTransformation = newTrans;
-        
-    }
-    
-    return component;
-
-};
-
-EC_Avatar.prototype.createPlaceable = function ( entity, parent, data ) {
-
-    var component = entity.createComponent(0, cComponentTypePlaceable, "", AttributeChange.LocalOnly);
-    
-    var newTrans = component.transform;
-
-    newTrans.pos.x = data.transform.pos[0];
-    newTrans.pos.y = data.transform.pos[1];
-    newTrans.pos.z = data.transform.pos[2];
-
-    newTrans.rot.x = data.transform.rot[0];
-    newTrans.rot.y = data.transform.rot[1];
-    newTrans.rot.z = data.transform.rot[2];
-
-    newTrans.scale.x = data.transform.scale[0];
-    newTrans.scale.y = data.transform.scale[1];
-    newTrans.scale.z = data.transform.scale[2];
-
-    component.transform = newTrans;
-    if ( parent !== undefined && parent !== null )
-        component.parentRef = parent.id;
-    
-    if ( data.transform.parentBone !== undefined ) {
-        component.skeletonRef = data.transform.parentBone;
-    }
-
-};
-
 EC_Avatar.prototype.checkAvatar = function() {
     
     for (var i in this.assetQuery)
@@ -244,6 +171,79 @@ EC_Avatar.prototype.createChild = function ( child ) {
     
     this.parentEntity.animationController.addMesh(component);
     
+};
+
+EC_Avatar.prototype.createGeometry = function ( entity, data, useNodeTransform ) {
+
+    var component = entity.createComponent(0, cComponentTypeMesh, "", AttributeChange.LocalOnly);
+    var meshRef = component.meshRef;
+    meshRef.ref = data.geometry;
+    component.meshRef = meshRef;
+    
+    this.assetQuery[component.id] = false;
+    
+    component.meshAssetReady.addOnce( function( mesh ) {
+        if (this.assetQuery[mesh.id] !== undefined)
+            this.assetQuery[mesh.id] = true;
+        this.checkAvatar();
+    }, this );
+    
+    if (data.materials !== undefined) {
+        
+        // Add material support;
+        
+    }
+    
+    if ( useNodeTransform === true ) {
+        
+        var newTrans = component.nodeTransformation;
+
+        newTrans.pos.x = data.transform.pos[0];
+        newTrans.pos.y = data.transform.pos[1];
+        newTrans.pos.z = data.transform.pos[2];
+
+        newTrans.rot.x = data.transform.rot[0];
+        newTrans.rot.y = data.transform.rot[1];
+        newTrans.rot.z = data.transform.rot[2];
+
+        newTrans.scale.x = data.transform.scale[0];
+        newTrans.scale.y = data.transform.scale[1];
+        newTrans.scale.z = data.transform.scale[2];
+
+        component.nodeTransformation = newTrans;
+        
+    }
+    
+    return component;
+
+};
+
+EC_Avatar.prototype.createPlaceable = function ( entity, parent, data ) {
+
+    var component = entity.createComponent(0, cComponentTypePlaceable, "", AttributeChange.LocalOnly);
+    
+    var newTrans = component.transform;
+
+    newTrans.pos.x = data.transform.pos[0];
+    newTrans.pos.y = data.transform.pos[1];
+    newTrans.pos.z = data.transform.pos[2];
+
+    newTrans.rot.x = data.transform.rot[0];
+    newTrans.rot.y = data.transform.rot[1];
+    newTrans.rot.z = data.transform.rot[2];
+
+    newTrans.scale.x = data.transform.scale[0];
+    newTrans.scale.y = data.transform.scale[1];
+    newTrans.scale.z = data.transform.scale[2];
+
+    component.transform = newTrans;
+    if ( parent !== undefined && parent !== null )
+        component.parentRef = parent.id;
+    
+    if ( data.transform.parentBone !== undefined ) {
+        component.skeletonRef = data.transform.parentBone;
+    }
+
 };
 
 registerComponent(cComponentTypeAvatar, "Avatar", function(){ return new EC_Avatar(); });

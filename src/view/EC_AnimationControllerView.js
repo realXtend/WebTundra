@@ -40,7 +40,7 @@ ThreeView.prototype.OnAnimatorInitialize = function( threeParent, animComp ) {
         
     };
     
-    animComp.setAnimWeight = AnimationController_update;
+    animComp.setAnimWeight = AnimationController_setAnimWeight;
     animComp.parentEntity.actionFuntionMap["SetAnimWeight"] = function(params, execType) {
         
         animComp.setAnimWeight.apply(animComp, params);
@@ -166,6 +166,7 @@ var AnimationController_setAnimWeight = function( name, weight ) {
     if ( animation !== undefined )
     {
         
+        console.log("Set weight " + weight);
         animation.weight = weight;
         for ( var i in animation.threeAnimations )
             animation.threeAnimations[i].weight = weight;
@@ -176,10 +177,12 @@ var AnimationController_setAnimWeight = function( name, weight ) {
 
 var AnimationController_update = function( deltaTime ) {
     
+    var animation;
     for( var i in this.animations ) {
         
-        if ( this.animations[i] instanceof AnimationState )
-            this.animations[i].threeAnimation.update(deltaTime);
+        animation = this.animations[i];
+        for ( var j in animation.threeAnimations )
+            animation.threeAnimations[j].update(deltaTime);
         
     }
     
@@ -191,9 +194,9 @@ var AnimationController_setAnimSpeed = function( name, speed ) {
     
     if ( animation !== undefined && speed !== undefined ) {
         
-        animation.threeAnimation.timeScale = speed;
-        for( var i in animations.threeAnimations )
-            animations.threeAnimations[i].speed_factor = speed;
+        animation.speed_factor = speed;
+        for( var i in animation.threeAnimations )
+            animation.threeAnimations[i].timeScale = speed;
 
     }
     
@@ -233,7 +236,7 @@ var AnimationController_createAnimations = function( mesh ) {
         if ( !animationInCache )
             THREE.AnimationHandler.removeFromUpdate(threeAnim);
 
-        anim.threeAnimations[mesh.id] = a;
+        anim.threeAnimations[mesh.parentEntity.id + ":" + mesh.id] = a;
 
     }
 
