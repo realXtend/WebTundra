@@ -277,8 +277,9 @@ ThreeView.prototype = {
             
             for ( var i = 0; i < bones.length; ++i ) {
                 
-                if (bones[i].parent !== null)
-                    parentBone = meshComp.getBone(bones[i].name);
+                if (bones[i].parent !== null) {
+                    parentBone = meshComp.getBone(bones[i].parent.name);
+                }
                 
                 bone = new Bone(bones[i].name, parentBone);
                 bone.threeBone = bones[i];

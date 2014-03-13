@@ -96,20 +96,6 @@ EC_Avatar.prototype.requestAsset = function () {
     
 };
 
-EC_Avatar.prototype.checkAvatar = function() {
-    
-    for (var i in this.assetQuery)
-    {
-        
-        if ( this.assetQuery[i] === false )
-            return;
-        
-    }
-    
-    this.parentEntity.placeable.visible = true;
-    
-};
-
 EC_Avatar.prototype.setupAppearance = function () {
     
     var avatarData = this.avatarObject;
@@ -169,7 +155,7 @@ EC_Avatar.prototype.createChild = function ( child ) {
     
     component = this.createGeometry( childEntity, child, false );
     
-    this.parentEntity.animationController.addMesh(component);
+    //this.parentEntity.animationController.addMesh(component);
     
 };
 
@@ -180,12 +166,12 @@ EC_Avatar.prototype.createGeometry = function ( entity, data, useNodeTransform )
     meshRef.ref = data.geometry;
     component.meshRef = meshRef;
     
-    this.assetQuery[component.id] = false;
+    this.assetQuery[entity.id + ":" + component.id] = false;
     
     component.meshAssetReady.addOnce( function( mesh ) {
-        if (this.assetQuery[mesh.id] !== undefined)
-            this.assetQuery[mesh.id] = true;
-        this.checkAvatar();
+        if (this.assetQuery[mesh.parentEntity.id + ":" + mesh.id] !== undefined)
+            this.assetQuery[mesh.parentEntity.id + ":" + mesh.id] = true;
+        this.checkAvatarAssets();
     }, this );
     
     if (data.materials !== undefined) {
@@ -240,10 +226,76 @@ EC_Avatar.prototype.createPlaceable = function ( entity, parent, data ) {
     if ( parent !== undefined && parent !== null )
         component.parentRef = parent.id;
     
-    if ( data.transform.parentBone !== undefined ) {
+    if ( data.transform.parentBone !== undefined )
         component.skeletonRef = data.transform.parentBone;
-    }
 
 };
+
+
+EC_Avatar.prototype.checkAvatarAssets = function() {
+    
+    for (var i in this.assetQuery)
+    {
+        
+        if ( this.assetQuery[i] === false )
+            return;
+        
+    }
+    
+    this.parentEntity.placeable.visible = true;
+    
+    // Check if we need to add child mesh to AnimationController.
+    // Only add meshes that have same skeleton as parent mesh.
+    
+    var entity;
+    var parentMesh = this.parentEntity.mesh;
+    var parentAnimation = this.parentEntity.animationController;
+    
+    if ( parentMesh === undefined || parentAnimation === undefined ||
+         !parentMesh.hasSkeleton() )
+        return;
+    
+    for ( var i in this.parts ) {
+        
+        entity = this.parentEntity.parentScene.entityById(this.parts[i]);
+
+        if ( entity !== null && entity.mesh !== undefined &&
+             skeletonMatch( parentMesh, entity.mesh ) ) {
+            
+            parentAnimation.addMesh( entity.mesh );
+            
+        }
+        
+    }
+    
+};
+
+function skeletonMatch( mesh1, mesh2 ) {
+    
+    if ( !mesh1.hasSkeleton() || !mesh2.hasSkeleton() ) {
+        return false;
+    }
+    
+    if ( !checkBones( mesh1.bones[0], mesh2.bones[0] ) )
+        return false;
+    
+    return true;
+    
+};
+
+function checkBones( bone1, bone2 ) {
+    
+    if ( bone1.children.length !== bone2.children.length || bone1.name !== bone2.name )
+        return false;
+    
+    for ( var i = 0; i < bone1.children.length; ++i ) {
+        
+        if ( !checkBones(bone1.children[i], bone2.children[i]) )
+            return false;
+        
+    }
+    
+    return true;
+}
 
 registerComponent(cComponentTypeAvatar, "Avatar", function(){ return new EC_Avatar(); });

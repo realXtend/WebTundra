@@ -181,14 +181,14 @@ EC_AnimationController.prototype.createAnimation = function( name ) {
 EC_AnimationController.prototype.addMesh = function( mesh ) {
     
     for ( var i = 0; i < this.animatingMeshes.length; ++i ) {
-        
+    
         if ( this.animatingMeshes[i].mesh === mesh ) {
-            
+        
             console.log("Mesh is already added to AnimationController.");
             return;
-            
-        }
         
+        }
+    
     }
     
     var animationMesh = new AnimationMeshInfo( this, mesh );
