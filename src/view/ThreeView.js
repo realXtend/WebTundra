@@ -668,7 +668,7 @@ ThreeView.prototype = {
         return parent;
     },
 
-    onMouseDown: function() {
+    onMouseDown: function(event) {
         var camera = this.camera;
         var mouse = {
             x: (event.clientX / window.innerWidth) * 2 - 1,
@@ -793,6 +793,8 @@ ThreeAssetLoader.prototype.load = function(url, completedCallback) {
         fn = this.loadCtm;
     else if (suffixMatch(url, ".json") || suffixMatch(url, ".js"))
         fn = this.loadJson;
+    else if (suffixMatch(url, ".gltf"))
+        fn = this.loadGltf;
     else if (suffixMatch(url, ".jsonscene"))
         fn = this.loadJsonScene;
     else
@@ -815,6 +817,12 @@ ThreeAssetLoader.prototype.loadJson = function(url, completedCallback) {
 
 ThreeAssetLoader.prototype.loadJsonScene = function(url, completedCallback) {
     var loader = new THREE.SceneLoader();
+    loader.load(url, completedCallback);
+};
+
+ThreeAssetLoader.prototype.loadGltf = function(url, completedCallback) {
+    var loader = new THREE.glTFLoader;
+    loader.useBufferGeometry = true;
     loader.load(url, completedCallback);
 };
 
