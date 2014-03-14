@@ -252,7 +252,7 @@ EC_Avatar.prototype.checkAvatarAssets = function() {
     var parentAnimation = this.parentEntity.animationController;
     
     if ( parentMesh === undefined || parentAnimation === undefined ||
-         !parentMesh.hasSkeleton() )
+         parentMesh.skeleton === null )
         return;
     
     for ( var i in this.parts ) {
@@ -260,7 +260,7 @@ EC_Avatar.prototype.checkAvatarAssets = function() {
         entity = this.parentEntity.parentScene.entityById(this.parts[i]);
 
         if ( entity !== null && entity.mesh !== undefined &&
-             skeletonMatch( parentMesh, entity.mesh ) ) {
+             parentMesh.skeleton.isMatch( entity.mesh.skeleton ) ) {
             
             parentAnimation.addMesh( entity.mesh );
             
@@ -270,9 +270,9 @@ EC_Avatar.prototype.checkAvatarAssets = function() {
     
 };
 
-function skeletonMatch( mesh1, mesh2 ) {
+/*function skeletonMatch( mesh1, mesh2 ) {
     
-    if ( !mesh1.hasSkeleton() || !mesh2.hasSkeleton() ) {
+    if ( !mesh1.skeleton !== null || !mesh2.skeleton !== null ) {
         return false;
     }
     
@@ -296,6 +296,6 @@ function checkBones( bone1, bone2 ) {
     }
     
     return true;
-}
+}*/
 
 registerComponent(cComponentTypeAvatar, "Avatar", function(){ return new EC_Avatar(); });

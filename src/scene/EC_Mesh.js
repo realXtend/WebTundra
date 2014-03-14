@@ -6,10 +6,15 @@ var cComponentTypeMesh = 17;
 function Bone ( name, parent ) {
     
     this.name = name;
+    
     this.parent = parent;
+    
+    // Child bones
+    
     this.children = new Array();
     
-    // List of attached meshes in this bone.
+    // List of attachments objects added to this bone.
+    
     this.attachments = new Array();
     
     if ( this.parent !== undefined && this.parent !== null ) {
@@ -33,7 +38,7 @@ function Bone ( name, parent ) {
 
 Bone.prototype.attach = function ( mesh ) {
     
-    if ( mesh instanceof EC_Mesh === false && mesh.threeMesh !== undefined )
+    if ( mesh instanceof EC_Mesh === false && !mesh.assetReady )
         debugger;
     
     if (mesh.parentBone !== null)
@@ -45,12 +50,69 @@ Bone.prototype.attach = function ( mesh ) {
 
 Bone.prototype.detach = function ( mesh ) {
     
-    if ( mesh instanceof EC_Mesh === false && mesh.threeMesh !== undefined )
+    if ( mesh instanceof EC_Mesh === false && !mesh.assetReady )
         debugger;
     
     mesh.parentBone = null;
     
 };
+
+function Skeleton () {
+    
+    this.bones = [];
+    
+    this.attachments = [];
+    
+}
+
+// Get bone by name
+/* @param {string} name bone name
+ */
+Skeleton.prototype.getBone = function ( name ) {
+    
+    if ( this.rootBone !== undefined )
+        return null;
+
+    for ( var i = 0; i < this.bones.length; ++i ) {
+
+        if ( this.bones[i].name === name )
+            return this.bones[i];
+
+    }
+
+    return null;
+
+};
+
+Skeleton.prototype.isMatch = function( skeleton ) {
+    
+    if ( skeleton === null ) {
+        return false;
+    }
+    
+    if ( this.bones.length === 0 || skeleton.bones.length === 0 || 
+         !this.checkBones( this.bones[0], skeleton.bones[0] ) )
+        return false;
+    
+    return true;
+    
+};
+
+Skeleton.prototype.checkBones = function( bone1, bone2 ) {
+    
+    if ( bone1.children.length !== bone2.children.length || bone1.name !== bone2.name )
+        return false;
+    
+    for ( var i = 0; i < bone1.children.length; ++i ) {
+        
+        if ( !this.checkBones(bone1.children[i], bone2.children[i]) )
+            return false;
+        
+    }
+    
+    return true;
+    
+}
 
 function EC_Mesh() {
     
@@ -64,9 +126,11 @@ function EC_Mesh() {
     this.addAttribute(cAttributeBool, "useInstancing", "Use instancing", false);
     
     this.assetReady = false;
-    this.bones = new Array();
+    
+    this.skeleton = null;
     
     // Bone that this mesh is attached to.
+    
     this.parentBone = null;
     
     this.attributeChanged.add(this.onAttributeChanged.bind(this));
@@ -90,36 +154,9 @@ EC_Mesh.prototype.onAttributeChanged = function ( attr, changeType ) {
 
 EC_Mesh.prototype.updateNodeTransform = function ( ) {  };
 
-// Get bone by name
-/* @param {string} name bone name
- */
-EC_Mesh.prototype.getBone = function ( name ) {
-    
-    if ( this.rootBone !== undefined )
-        return null;
-
-    for ( var i = 0; i < this.bones.length; ++i ) {
-
-        if ( this.bones[i].name === name )
-            return this.bones[i];
-
-    }
-
-    return null;
-
-};
-
-// Check if mesh has a skeleton defined.
-/* @return return true if mesh is holding a skeleton.
- */
-EC_Mesh.prototype.hasSkeleton = function () {
-    
-    return this.bones.length > 0;
-    
-};
-
 // Check if placeable parentRef or skeletonRef has changed and update parent
 // child hierachy based on the change.
+// TODO! Code fail to attach mesh to bone when parent mesh asset isn't loaded.
 EC_Mesh.prototype.updateParentRef = function () {
     
     var placeable = this.parentEntity.componentByType("Placeable");
@@ -159,10 +196,10 @@ EC_Mesh.prototype.updateParentRef = function () {
     // Check if we need to attach this mesh to bone.
     
     var boneRef = placeable.skeletonRef;
-    if ( parentMesh.hasSkeleton() &&  boneRef !== "" )
+    if ( parentMesh.skeleton !== null && boneRef !== "" )
     {
         
-        var bone = parentMesh.getBone(boneRef);
+        var bone = parentMesh.skeleton.getBone(boneRef);
         if ( bone !== null) {
 
             bone.attach(this);

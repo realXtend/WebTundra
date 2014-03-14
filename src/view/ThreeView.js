@@ -267,81 +267,84 @@ ThreeView.prototype = {
             
             mesh = new THREE.SkinnedMesh(geometry, newMaterial, false);
             
-            // Create bone objects and add them to mesh component.
+            // Create skeleton bones and add them to mesh component.
             
-            var bones = mesh.bones;
-            var bone;
-            var parentBone = null;
+            if ( mesh.bones.length > 0 ) {
             
-            meshComp.bones = new Array();
-            
-            for ( var i = 0; i < bones.length; ++i ) {
-                
-                if (bones[i].parent !== null) {
-                    parentBone = meshComp.getBone(bones[i].parent.name);
-                }
-                
-                bone = new Bone(bones[i].name, parentBone);
-                bone.threeBone = bones[i];
-                
-                // Add attach bone function to bone object
-                
-                bone.attach = function( mesh ) {
-                    
-                    Bone.prototype.attach.call(this, mesh);
-                    
-                    mesh.threeMesh.update = function() {};
-                    mesh.parentEntity.threeGroup.update = function ( parentSkinMatrix, forceUpdate ) {
-                        
-                        this.updateMatrixWorld(true);
-                    
-                    };
-                    var parent = this.threeBone;
-                    
-                    do {
-                        if (parent instanceof THREE.Bone) {
-                            
-                            parent.update = function( parentSkinMatrix, forceUpdate ) {
-                                THREE.Bone.prototype.update.call(this, parentSkinMatrix, forceUpdate);
-                                this.updateMatrixWorld(true);
-                            };
-                            
-                        } else {
-                            
-                            break;
-                            
-                        }
-                        parent = parent.parent;
-                        
-                    } while( parent !== undefined )
+                var bones = mesh.bones;
+                var bone;
+                var parentBone = null;
 
-                    this.threeBone.add(mesh.parentEntity.threeGroup);
-                    
-                };
-                
-                // Add detach bone function to bone object
-                
-                bone.detach = function( mesh ) {
-                    
-                    Bone.prototype.detach.call(this, mesh);
-                    
-                    delete mesh.threeMesh.update;
-                    delete mesh.parentEntity.threeGroup.update;
-                
-                    var parent = this.threeBone;
-                    do {
-                        if (parent instanceof THREE.Bone) 
-                            delete parent.update;
-                        else
-                            break;
-                        parent = parent.parent;
-                    } while( parent !== undefined )
-                        
-                    this.threeBone.remove(mesh.parentEntity.threeGroup);
-                    
-                };
-                
-                meshComp.bones.push(bone);
+                meshComp.skeleton = new Skeleton();
+
+                for ( var i = 0; i < bones.length; ++i ) {
+
+                    if (bones[i].parent !== null) {
+                        parentBone = meshComp.skeleton.getBone(bones[i].parent.name);
+                    }
+
+                    bone = new Bone(bones[i].name, parentBone);
+                    bone.threeBone = bones[i];
+
+                    // Add attach bone function to bone object
+
+                    bone.attach = function( mesh ) {
+
+                        Bone.prototype.attach.call(this, mesh);
+
+                        mesh.threeMesh.update = function() {};
+                        mesh.parentEntity.threeGroup.update = function ( parentSkinMatrix, forceUpdate ) {
+
+                            this.updateMatrixWorld(true);
+
+                        };
+                        var parent = this.threeBone;
+
+                        do {
+                            if (parent instanceof THREE.Bone) {
+
+                                parent.update = function( parentSkinMatrix, forceUpdate ) {
+                                    THREE.Bone.prototype.update.call(this, parentSkinMatrix, forceUpdate);
+                                    this.updateMatrixWorld(true);
+                                };
+
+                            } else {
+
+                                break;
+
+                            }
+                            parent = parent.parent;
+
+                        } while ( parent !== undefined )
+
+                        this.threeBone.add(mesh.parentEntity.threeGroup);
+
+                    };
+
+                    // Add detach bone function to bone object
+
+                    bone.detach = function( mesh ) {
+
+                        Bone.prototype.detach.call(this, mesh);
+
+                        delete mesh.threeMesh.update;
+                        delete mesh.parentEntity.threeGroup.update;
+
+                        var parent = this.threeBone;
+                        do {
+                            if (parent instanceof THREE.Bone) 
+                                delete parent.update;
+                            else
+                                break;
+                            parent = parent.parent;
+                        } while( parent !== undefined )
+
+                        this.threeBone.remove(mesh.parentEntity.threeGroup);
+
+                    };
+
+                    meshComp.skeleton.bones.push(bone);
+                }
             }
             
         } else {
