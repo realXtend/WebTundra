@@ -43,6 +43,7 @@ Application.prototype = {
         this.dataConnection.client.disconnected.add(this.onDisconnected.bind(this));
         this.dataConnection.scene.componentAdded.add(this.viewer.onComponentAddedOrChanged.bind(this.viewer));
         this.dataConnection.scene.componentRemoved.add(this.viewer.onComponentRemoved.bind(this.viewer));
+        this.dataConnection.scene.threeScene = this.viewer.scene;
 
         // an alternative to hooking per component attributeChanged signals,
         // would simplify business registering/unregistering handlers in

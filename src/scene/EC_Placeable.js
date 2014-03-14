@@ -44,20 +44,26 @@ EC_Placeable.prototype.onAttributeChanged = function(attr, changeType) {
         }
         
         if (this.parentRef) {
+            
             var parentEnt = this.parentEntity.parentScene.entityById(this.parentRef);
             if (parentEnt && parentEnt.componentByType(cComponentTypePlaceable)) {
-                //console.log("placeable parent was there immediately");
-                this.parentRefReady.dispatch();
                 
                 this.setParentEntity(parentEnt);
                 this.targetEntity = parentEnt;
+                
                 //XXX TODO: may break if the parent placeable is not ready yet
                 //if there is a deeper hierarchy with multiple levels of parents
                 //an ugly way to fix would be to add a 'ready' boolean.
                 //same problem is in the waitParent case below
+                
+                this.parentRefReady.dispatch();
+
             } else {
+
                 this.parentEntity.parentScene.entityCreated.add(this.waitParent);
+
             }
+            
         } else {
             this.parentRefReady.dispatch();
         }
@@ -79,6 +85,7 @@ EC_Placeable.prototype.waitParent = function(addedEntity, changeType) {
         
         //console.log("placeable parent was there later");
         this.parentRefReady.dispatch();
+        
         this.parentEntity.parentScene.entityCreated.remove(this.waitParent);
         
         this.targetEntity = this.parentEntity.parentScene.entityById(this.parentRef);
@@ -86,17 +93,6 @@ EC_Placeable.prototype.waitParent = function(addedEntity, changeType) {
         this.setParentEntity(this.targetEntity);
         
     }
-    
-};
-
-EC_Placeable.prototype.getParentEntity = function () {
-    
-    var parentRef = this.parentRef;
-    if ( parentRef !== "" ) {
-        return this.parentEntity.parentScene.entityById(this.parentRef);
-    }
-    
-    return null;
     
 };
 

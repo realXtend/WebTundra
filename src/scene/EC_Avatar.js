@@ -270,32 +270,4 @@ EC_Avatar.prototype.checkAvatarAssets = function() {
     
 };
 
-/*function skeletonMatch( mesh1, mesh2 ) {
-    
-    if ( !mesh1.skeleton !== null || !mesh2.skeleton !== null ) {
-        return false;
-    }
-    
-    if ( !checkBones( mesh1.bones[0], mesh2.bones[0] ) )
-        return false;
-    
-    return true;
-    
-};
-
-function checkBones( bone1, bone2 ) {
-    
-    if ( bone1.children.length !== bone2.children.length || bone1.name !== bone2.name )
-        return false;
-    
-    for ( var i = 0; i < bone1.children.length; ++i ) {
-        
-        if ( !checkBones(bone1.children[i], bone2.children[i]) )
-            return false;
-        
-    }
-    
-    return true;
-}*/
-
 registerComponent(cComponentTypeAvatar, "Avatar", function(){ return new EC_Avatar(); });

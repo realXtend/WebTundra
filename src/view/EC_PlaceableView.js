@@ -37,13 +37,17 @@ var placeable_SetParentEntity = function ( entity ) {
 
     // Remove from old parent.
 
-    if ( this.parentEntity.threeGroup.parent !== undefined )
-        this.parentEntity.threeGroup.parent.remove(this.parentEntity.threeGroup);
+    if ( this.parentEntity.threeGroup.parent !== undefined ) {
 
-    if (entity === undefined || entity === null) {
+         this.parentEntity.threeGroup.parent.remove(this.parentEntity.threeGroup);
+
+    }
+
+    // If entity is set to null we add this object as child of scene.
+
+    if ( entity === null ) {
 
         this.parentEntity.parentScene.threeScene.add(this.parentEntity.threeGroup);
-        this.updateTransform();
         return;
         
     }

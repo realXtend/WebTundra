@@ -331,9 +331,7 @@ ThreeView.prototype = {
                         delete mesh.threeMesh.update;
                         delete mesh.parentEntity.threeGroup.update;
                         
-                        if ( mesh.skeleton.hasAttachments() ) {
-                            
-                            console.log("Remove skeleton update!");
+                        if ( this.skeleton.hasAttachments() ) {
 
                             var parent = this.threeBone;
                             do {
