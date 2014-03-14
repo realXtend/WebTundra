@@ -5,8 +5,8 @@ ThreeView.prototype.PlaceableIntialize = function ( entity, component ) {
     component.updateTransform = placeable_UpdateTransform;
     
     component.setVisible = placeable_setVisible;
-
-    var parent = component.getParentEntity();
+    
+    var parent = component.parentEntity.parentScene.entityById(this.parentRef);
     if (parent !== null)
         component.setParentEntity( parent );
 

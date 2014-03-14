@@ -215,7 +215,6 @@ ThreeView.prototype = {
         url = url.replace(/\.mesh$/i, ".json");
         
         meshComp.assetReady = false;
-        console.log(url);
 
         var thisIsThis = this;
         this.assetLoader.cachedLoadAsset(url, function(arg1, material) {
@@ -268,6 +267,8 @@ ThreeView.prototype = {
             mesh = new THREE.SkinnedMesh(geometry, newMaterial, false);
             
             // Create skeleton bones and add them to mesh component.
+            
+            meshComp.skeleton = null;
             
             if ( mesh.bones.length > 0 ) {
             
@@ -329,21 +330,27 @@ ThreeView.prototype = {
 
                         delete mesh.threeMesh.update;
                         delete mesh.parentEntity.threeGroup.update;
+                        
+                        if ( mesh.skeleton.hasAttachments() ) {
+                            
+                            console.log("Remove skeleton update!");
 
-                        var parent = this.threeBone;
-                        do {
-                            if (parent instanceof THREE.Bone) 
-                                delete parent.update;
-                            else
-                                break;
-                            parent = parent.parent;
-                        } while( parent !== undefined )
+                            var parent = this.threeBone;
+                            do {
+                                if (parent instanceof THREE.Bone) 
+                                    delete parent.update;
+                                else
+                                    break;
+                                parent = parent.parent;
+                            } while( parent !== undefined )
+
+                        }
 
                         this.threeBone.remove(mesh.parentEntity.threeGroup);
 
                     };
 
-                    meshComp.skeleton.bones.push(bone);
+                    meshComp.skeleton.addBone(bone);
                 }
             }
             

@@ -46,22 +46,29 @@ Bone.prototype.attach = function ( mesh ) {
         
     mesh.parentBone = this;
     
+    this.attachments.push( mesh.parentEntity.id );
+    
 };
 
 Bone.prototype.detach = function ( mesh ) {
-    
+
     if ( mesh instanceof EC_Mesh === false && !mesh.assetReady )
         debugger;
     
     mesh.parentBone = null;
     
+    for ( var i = 0; i < this.attachments.length; ++i ) {
+        
+        if ( this.attachments[i] === mesh.parentEntity.id )
+            this.attachments.splice( i, 0 );
+        
+    }
+
 };
 
 function Skeleton () {
     
     this.bones = [];
-    
-    this.attachments = [];
     
 }
 
@@ -98,6 +105,19 @@ Skeleton.prototype.isMatch = function( skeleton ) {
     
 };
 
+Skeleton.prototype.hasAttachments = function( ) {
+    
+    for ( var i in this.bones ) {
+        
+        if ( this.bones[i].attachments.length > 0 )
+            return true;
+        
+    }
+    
+    return false;
+    
+};
+
 Skeleton.prototype.checkBones = function( bone1, bone2 ) {
     
     if ( bone1.children.length !== bone2.children.length || bone1.name !== bone2.name )
@@ -112,7 +132,14 @@ Skeleton.prototype.checkBones = function( bone1, bone2 ) {
     
     return true;
     
-}
+};
+
+Skeleton.prototype.addBone = function( bone ) {
+    
+    bone.skeleton = this;
+    this.bones.push(bone);
+    
+};
 
 function EC_Mesh() {
     
@@ -156,39 +183,39 @@ EC_Mesh.prototype.updateNodeTransform = function ( ) {  };
 
 // Check if placeable parentRef or skeletonRef has changed and update parent
 // child hierachy based on the change.
-// TODO! Code fail to attach mesh to bone when parent mesh asset isn't loaded.
+// TODO! Code fails to attach mesh to bone when parent mesh asset isn't loaded.
 EC_Mesh.prototype.updateParentRef = function () {
     
     var placeable = this.parentEntity.componentByType("Placeable");
     if ( placeable === null )
         return;
     
-    // Note! this parent isn't same as component.parentEntity
-    // If parent mesh id is set to null detach mesh form bone.
+    // If parent mesh id is set to null detach mesh from bone.
     
-    var parentEntity = placeable.getParentEntity();
-    if ( parentEntity === null ) {
+    if ( placeable.parentRef === "" && placeable.targetEntity !== null ) {
         
-        if (this.parentBone !== null) {
+        if ( this.parentBone !== null ) {
             this.parentBone.detach(this);
-            placeable.setParentEntity(null);
-            console.log("Detach mesh");
         }
+        
+        placeable.setParentEntity(null);
         return;
         
     }
     
     // Check if parent mesh is loaded, if not wait for asset ready signal.
     
-    var parentMesh = parentEntity.componentByType( "Mesh" );
-    if ( parentMesh === null ) {
+    //var parentMesh = this.parentEntity.componentByType( "Mesh" );
+    var pEntity = this.parentEntity.parentScene.entityById( placeable.parentRef );
+    
+    if ( pEntity === null ) {
         
+        // TODO Listen when new entities are added
         return;
         
-    } else if ( !parentMesh.assetReady ) {
-     
-        parentMesh.attributeChanged.addOnce(this.parentMeshAssetReady, this);
+    } else if ( pEntity.mesh === undefined ) {
         
+        pEntity.mesh.attributeChanged.addOnce(this.updateParentRef, this);
         return;
         
     }
@@ -196,23 +223,18 @@ EC_Mesh.prototype.updateParentRef = function () {
     // Check if we need to attach this mesh to bone.
     
     var boneRef = placeable.skeletonRef;
-    if ( parentMesh.skeleton !== null && boneRef !== "" )
+    if ( pEntity.mesh.skeleton !== null && boneRef !== "" )
     {
         
-        var bone = parentMesh.skeleton.getBone(boneRef);
+        var bone = pEntity.mesh.skeleton.getBone(boneRef);
         if ( bone !== null) {
 
             bone.attach(this);
             return;
-        
+
         }
         
     }
-};
-
-EC_Mesh.prototype.parentMeshAssetReady = function() {
-    
-    this.updateParentRef();
     
 };
 

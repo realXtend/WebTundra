@@ -65,9 +65,8 @@ EC_Placeable.prototype.onAttributeChanged = function(attr, changeType) {
     
     if (attr.id === "parentRef" || attr.id === "skeletonRef") {
         
-        this.targetEntity;
         if ( this.parentEntity.mesh !== undefined )
-            mesh.updateParentRef();
+            this.parentEntity.mesh.updateParentRef();
             
     }
 };
@@ -82,7 +81,8 @@ EC_Placeable.prototype.waitParent = function(addedEntity, changeType) {
         this.parentRefReady.dispatch();
         this.parentEntity.parentScene.entityCreated.remove(this.waitParent);
         
-        this.targetEntity = this.getParentEntity();
+        this.targetEntity = this.parentEntity.parentScene.entityById(this.parentRef);
+        
         this.setParentEntity(this.targetEntity);
         
     }
