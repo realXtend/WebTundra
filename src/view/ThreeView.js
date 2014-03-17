@@ -386,6 +386,7 @@ ThreeView.prototype = {
         
         meshComp.assetReady = true;
         meshComp.updateParentRef();
+        meshComp.updateNodeTransform();
         meshComp.meshAssetReady.dispatch(meshComp);
         
         console.log("added mesh to o3d id=" + threeParent.id);

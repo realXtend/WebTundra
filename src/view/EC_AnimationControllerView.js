@@ -114,21 +114,21 @@ var AnimationController_play = function(name, fadeInTime, crossFade, looped) {
     
     var animation = this.animations[name];
     animation.fade_period = fadeInTime !== undefined ? fadeInTime : 0;
-    animation.phase = AnimationPhase.PHASE_PLAY;
 
     if (crossFade) {
         
         var tAnim = null;
-        for(var i = 0; i < this.animations.length; ++i) {
+        for( var i in this.animations ) {
             
             tAnim = this.animations[i];
-            if (tAnim.name !== name && tAnim.threeAnim.isPlaying === true)
+            if (tAnim.name !== name && tAnim.phase === AnimationPhase.PHASE_PLAY)
                 this.stop(tAnim.name, animation.fade_period);
             
         }
         
     }
 
+    animation.phase = AnimationPhase.PHASE_PLAY;
     if (animation !== undefined) {
         
         for ( var i in animation.threeAnimations ) {
@@ -163,8 +163,7 @@ var AnimationController_setAnimWeight = function( name, weight ) {
     weight = Math.min(Math.max(weight, 0), 1);
     var animation = this.animations[name];
     
-    if ( animation !== undefined )
-    {
+    if ( animation !== undefined ) {
         
         console.log("Set weight " + weight);
         animation.weight = weight;

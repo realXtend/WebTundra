@@ -113,7 +113,6 @@ EC_AnimationController.prototype.play = function ( name, fadeInTime, crossFade, 
 EC_AnimationController.prototype.playLooped = function ( name, fadeInTime, crossFade )
 {
     
-    console.log( "Play animation " + name );
     this.play( name, fadeInTime, crossFade, true );
     
 };
