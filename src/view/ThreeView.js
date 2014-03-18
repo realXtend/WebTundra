@@ -461,13 +461,13 @@ ThreeView.prototype = {
             lightComp.brightness,
             lightComp.range);
         threeGroup.add(lightComp.threeLight);
-        var thisIsThis = this;
+
         var onLightAttributeChanged = function(changedAttr, changeType) {
             //console.log("onLightAddedOrChanged due to attributeChanged ->", changedAttr.ref);
             var id = changedAttr.id;
             if (id === "range" || id === "brightness" ||
                 id === "diffuseColor" || id === "type")
-                thisIsThis.onLightAddedOrChanged(threeGroup, lightComp);
+                this.onLightAddedOrChanged(threeGroup, lightComp);
         };
         lightComp.attributeChanged.remove(onLightAttributeChanged);
         lightComp.attributeChanged.add(onLightAttributeChanged);

@@ -1,16 +1,6 @@
 ThreeView.prototype.OnAnimatorInitialize = function( threeParent, animComp ) {
-
-    var thisIsThis = this;
     
-    var onAnimationAttributeChanged = function ( changedAttr, changeType ) {
-        
-        var id = changedAttr.id;
-        if (id === "animationState")
-            thisIsThis.onAnimatorAddedOrChanged(threeParent, animComp);
-        
-    };
-    animComp.attributeChanged.remove(onAnimationAttributeChanged);
-    animComp.attributeChanged.add(onAnimationAttributeChanged);
+    animComp.attributeChanged.add(this.onAnimationAttributeChanged, this);
     
     animComp.parentEntity.actionFuntionMap = new Array();
     animComp.play = AnimationController_play;
@@ -62,6 +52,14 @@ ThreeView.prototype.OnAnimatorInitialize = function( threeParent, animComp ) {
     animComp.initialized = true;
 };
 
+ThreeView.prototype.onAnimationAttributeChanged = function ( changedAttr, changeType ) {
+        
+    var id = changedAttr.id;
+    if (id === "animationState")
+        this.onAnimatorAddedOrChanged(threeParent, animComp);
+        
+};
+
 ThreeView.prototype.onAnimatorAddedOrChanged = function( threeParent, animComp ) {
     
     if ( animComp.initialized === undefined ){
@@ -93,6 +91,8 @@ ThreeView.prototype.onAnimatorAddedOrChanged = function( threeParent, animComp )
 };
 
 ThreeView.prototype.onAnimatorRelease = function( entity, animComp ) {
+    
+    animComp.attributeChanged.remove(this.onAnimationAttributeChanged, this);
     
     if (entity.mesh !== undefined)
         animComp.stopAll();
@@ -248,7 +248,6 @@ var AnimationController_removeMesh = function( mesh ) {
     
     for ( var i in this.animations ) {
         
-        console.log(this.animations[i]);
         if ( this.animations[i].threeAnimations[mesh.parentEntity.id + ":" + mesh.id] !== undefined ) {
             
             delete this.animations[i].threeAnimations[mesh.parentEntity.id + ":" + mesh.id];
