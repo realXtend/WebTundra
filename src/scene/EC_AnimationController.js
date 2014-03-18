@@ -56,16 +56,22 @@ function AnimationMeshInfo( animationController, mesh ) {
     
     this.onComponentRemoved = function ( comp, changeType ) {
         
-        if ( comp === this.mesh ) {
-            
-            animationController.removeMesh( this.mesh );
-            if ( this.mesh !== undefined ) {
-                this.mesh.meshAssetReady.remove( this.onAssetReady, this );
-            }
-            
-        }
+        if ( comp === this.mesh )
+            this.release();
         
     };
+    
+    this.release = function () {
+        
+        animationController.removeMesh( this.mesh );
+        
+        this.mesh.meshAssetReady.remove( this.onAssetReady, this );
+        this.mesh.parentEntity.componentRemoved.remove( this.onComponentRemoved, this );
+        
+        delete this.mesh;
+        delete this.animationController;
+        
+    }
     
     mesh.parentEntity.componentRemoved.add( this.onComponentRemoved, this );
     

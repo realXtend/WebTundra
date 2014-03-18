@@ -57,7 +57,7 @@ ThreeView.prototype.OnAnimatorInitialize = function( threeParent, animComp ) {
     };
     
     animComp.createAnimations = AnimationController_createAnimations;
-    animComp.addMesh = AnimationController_addMesh;
+    animComp.removeMesh = AnimationController_removeMesh;
 
     animComp.initialized = true;
 };
@@ -90,24 +90,6 @@ ThreeView.prototype.onAnimatorAddedOrChanged = function( threeParent, animComp )
         
     }
     
-};
-
-ThreeView.prototype.onAnimatorRelease = function( entity, animComp ) {
-    
-    var mesh = entity.componentByType("Mesh");
-    if (mesh !== null)
-        animComp.stopAll();
-    
-    var anims = animComp.animations;
-    for ( var i in anims ) {
-        
-        delete anims[i].threeAnimations;
-        
-    }
-    
-    for ( var i = 0; i < animComp.entityActions.length; ++i )
-        delete entity.actionFuntionMap[animComp.entityActions[i]];
-
 };
 
 var AnimationController_play = function(name, fadeInTime, crossFade, looped) {
@@ -241,26 +223,16 @@ var AnimationController_createAnimations = function( mesh ) {
 
 };
 
-var AnimationController_addMesh = function( mesh ) {
-    
-    EC_AnimationController.prototype.addMesh.call( this, mesh );
-    
-    // TODO if mesh is not ready wait for asset ready.
-    
-    
-    
-};
-
 var AnimationController_removeMesh = function( mesh ) {
     
     EC_AnimationController.prototype.removeMesh.call( this, mesh );
     
-    // TODO remove mesh from AnimationState object
     for ( var i in this.animations ) {
-
-        if ( this.animations[i][mesh.id] !== undefined ) {
+        
+        console.log(this.animations[i]);
+        if ( this.animations[i].threeAnimations[mesh.parentEntity.id + ":" + mesh.id] !== undefined ) {
             
-            delete this.animations[i][mesh.id];
+            delete this.animations[i].threeAnimations[mesh.parentEntity.id + ":" + mesh.id];
             
         }
 
@@ -287,9 +259,21 @@ function GetAnimationsFromGeometry ( geometry ) {
     return null;
 };
 
-// Remove mesh from this component.
-EC_AnimationController.prototype.removeMesh = function( mesh ) {
+ThreeView.prototype.onAnimatorRelease = function( entity, animComp ) {
     
+    if (entity.mesh !== undefined)
+        animComp.stopAll();
     
+    var meshInfo = animComp.animatingMeshes.pop();
+    while ( meshInfo !== undefined ) {
+        meshInfo.release();
+        meshInfo = animComp.animatingMeshes.pop();
+    }
     
+    delete animComp.animatingMeshes;
+    delete animComp.animations;
+    
+    for ( var i = 0; i < animComp.entityActions.length; ++i )
+        delete entity.actionFuntionMap[animComp.entityActions[i]];
+
 };

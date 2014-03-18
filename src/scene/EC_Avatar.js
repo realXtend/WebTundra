@@ -42,12 +42,6 @@ EC_Avatar.prototype.handleAssetRefChange = function ( attr, changeType ) {
 
 EC_Avatar.prototype.releaseAssets = function () {
     
-    if ( this.parentEntity.animationController !== undefined )
-        this.parentEntity.removeComponent(this.parentEntity.animationController.id, AttributeChange.LocalOnly);
-    
-    if ( this.parentEntity.mesh !== undefined )
-        this.parentEntity.removeComponent(this.parentEntity.mesh.id, AttributeChange.LocalOnly);
-    
     var scene = this.parentEntity.parentScene;
     for( var i = 0; i < this.parts.length; ++i ) {
 
@@ -55,6 +49,12 @@ EC_Avatar.prototype.releaseAssets = function () {
         
     }
     this.parts = [];
+    
+    if ( this.parentEntity.animationController !== undefined )
+        this.parentEntity.removeComponent(this.parentEntity.animationController.id, AttributeChange.LocalOnly);
+    
+    if ( this.parentEntity.mesh !== undefined )
+        this.parentEntity.removeComponent(this.parentEntity.mesh.id, AttributeChange.LocalOnly);
     
 };
 
