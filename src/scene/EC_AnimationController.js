@@ -209,6 +209,7 @@ EC_AnimationController.prototype.removeMesh = function( mesh ) {
         
         if ( this.animatingMeshes[i].mesh === mesh ) {
             
+            console.log("Remove mesh from animation controller");
             this.animatingMeshes.splice(i, 1);
             return;
             

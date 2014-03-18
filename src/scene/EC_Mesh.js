@@ -261,6 +261,6 @@ EC_Mesh.prototype.checkParentEntity = function( entity, component, chnageType ) 
             
     }
     
-}
+};
 
 registerComponent(cComponentTypeMesh, "Mesh", function(){ return new EC_Mesh(); });

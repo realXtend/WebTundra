@@ -209,7 +209,21 @@ ThreeView.prototype = {
             console.log("adding first mesh for o3d id=" + threeGroup.id);
         }
 
+        var onMeshAttributeChanged = function(changedAttr, changeType) {
+            if (changedAttr.id !== "meshRef")
+                return;
+            //console.log("onMeshAddedOrChanged due to attributeChanged ->", changedAttr.ref);
+            this.onMeshAddedOrChanged(threeGroup, meshComp);
+        };
+        meshComp.attributeChanged.remove(onMeshAttributeChanged, this);
+        meshComp.attributeChanged.add(onMeshAttributeChanged, this);
+
         var url = meshComp.meshRef.ref;
+        
+        // If mesh asset ref is empty dont try to load asset.
+        
+        if (url === "")
+            return;
 
         url = url.replace("local://", "");
         url = url.replace(/\.mesh$/i, ".json");
@@ -226,15 +240,6 @@ ThreeView.prototype = {
                 thisIsThis.onMeshLoaded(threeGroup, meshComp, geometry, material);
             }
         });
-
-        var onMeshAttributeChanged = function(changedAttr, changeType) {
-            if (changedAttr.id !== "meshRef")
-                return;
-            //console.log("onMeshAddedOrChanged due to attributeChanged ->", changedAttr.ref);
-            thisIsThis.onMeshAddedOrChanged(threeGroup, meshComp);
-        };
-        meshComp.attributeChanged.remove(onMeshAttributeChanged);
-        meshComp.attributeChanged.add(onMeshAttributeChanged);
     },
 
     onMeshLoaded: function(threeParent, meshComp, geometry, material) {

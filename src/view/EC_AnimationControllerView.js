@@ -92,6 +92,25 @@ ThreeView.prototype.onAnimatorAddedOrChanged = function( threeParent, animComp )
     
 };
 
+ThreeView.prototype.onAnimatorRelease = function( entity, animComp ) {
+    
+    if (entity.mesh !== undefined)
+        animComp.stopAll();
+    
+    var meshInfo = animComp.animatingMeshes.pop();
+    while ( meshInfo !== undefined ) {
+        meshInfo.release();
+        meshInfo = animComp.animatingMeshes.pop();
+    }
+    
+    delete animComp.animatingMeshes;
+    delete animComp.animations;
+    
+    for ( var i = 0; i < animComp.entityActions.length; ++i )
+        delete entity.actionFuntionMap[animComp.entityActions[i]];
+
+};
+
 var AnimationController_play = function(name, fadeInTime, crossFade, looped) {
     
     var animation = this.animations[name];
@@ -257,23 +276,4 @@ function GetAnimationsFromGeometry ( geometry ) {
     }
     
     return null;
-};
-
-ThreeView.prototype.onAnimatorRelease = function( entity, animComp ) {
-    
-    if (entity.mesh !== undefined)
-        animComp.stopAll();
-    
-    var meshInfo = animComp.animatingMeshes.pop();
-    while ( meshInfo !== undefined ) {
-        meshInfo.release();
-        meshInfo = animComp.animatingMeshes.pop();
-    }
-    
-    delete animComp.animatingMeshes;
-    delete animComp.animations;
-    
-    for ( var i = 0; i < animComp.entityActions.length; ++i )
-        delete entity.actionFuntionMap[animComp.entityActions[i]];
-
 };
