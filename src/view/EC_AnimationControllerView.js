@@ -70,7 +70,7 @@ ThreeView.prototype.onAnimatorAddedOrChanged = function( threeParent, animComp )
 
 ThreeView.prototype.onAnimatorRelease = function( entity, animComp ) {
     
-    animComp.parentEntity.componentAdded.remove(this.OnComponentAdded, animComp);
+    animComp.parentEntity.componentAdded.remove(animComp.onComponentAdded, animComp);
     
     if (entity.mesh !== undefined)
         animComp.stopAll();
@@ -84,7 +84,7 @@ ThreeView.prototype.onAnimatorRelease = function( entity, animComp ) {
     delete animComp.animatingMeshes;
     delete animComp.animations;
     
-    for ( var i = 0; i < animComp.entityActions.length; ++i )
+    for ( var i in animComp.entityActions )
         delete entity.actionFuntionMap[animComp.entityActions[i]];
 
 };

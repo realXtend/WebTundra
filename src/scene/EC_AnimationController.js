@@ -62,7 +62,7 @@ function AnimationMeshInfo( animationController, mesh ) {
     };
     
     this.onAttributeChanged = function ( attr, changeType ) {
-        ;
+
         if (attr.id === "meshRef")
             this.release();
         
@@ -70,11 +70,11 @@ function AnimationMeshInfo( animationController, mesh ) {
     
     this.release = function () {
         
-        animationController.removeMesh( this.mesh );
-        
         this.mesh.meshAssetReady.remove( this.onAssetReady, this );
         this.mesh.parentEntity.componentRemoved.remove( this.onComponentRemoved, this );
         this.mesh.attributeChanged.remove( this.onAttributeChanged, this );
+        
+        animationController.removeMesh( this.mesh );
         
         delete this.mesh;
         delete this.animationController;
@@ -245,11 +245,11 @@ EC_AnimationController.prototype.animationState = function( name ) {
     
 };
 
-// If new mesh components are added add them to animation controller.
+// If new mesh components are added to entity, add them to animation controller.
 EC_AnimationController.prototype.onComponentAdded = function ( newComp, changeType ) {
     
     if (newComp instanceof EC_Mesh)
-        addMesh(newComp);
+        this.addMesh(newComp);
     
 };
 
