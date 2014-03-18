@@ -1,6 +1,11 @@
 ThreeView.prototype.OnAnimatorInitialize = function( threeParent, animComp ) {
     
-    animComp.attributeChanged.add(this.onAnimationAttributeChanged, this);
+    animComp.parentEntity.componentAdded.add(animComp.onComponentAdded, animComp);
+    
+    // entityActions are use to relase actions when component is removed.
+    this.entityActions = ["PlayAnim", "PlayLoopedAnim",
+                          "StopAnim", "StopAllAnims",
+                          "SetAnimWeight", "SetAnimSpeed"];
     
     animComp.parentEntity.actionFuntionMap = new Array();
     animComp.play = AnimationController_play;
@@ -52,47 +57,20 @@ ThreeView.prototype.OnAnimatorInitialize = function( threeParent, animComp ) {
     animComp.initialized = true;
 };
 
-ThreeView.prototype.onAnimationAttributeChanged = function ( changedAttr, changeType ) {
-        
-    var id = changedAttr.id;
-    if (id === "animationState")
-        this.onAnimatorAddedOrChanged(threeParent, animComp);
-        
-};
-
 ThreeView.prototype.onAnimatorAddedOrChanged = function( threeParent, animComp ) {
     
-    if ( animComp.initialized === undefined ){
-        
+    if ( animComp.initialized === undefined )
         this.OnAnimatorInitialize(threeParent, animComp);
-        
-    }
 
     var mesh = animComp.parentEntity.mesh;
-    if ( mesh !== null && mesh.threeMesh !== undefined ) {
-        
+    if ( mesh !== undefined )
         animComp.addMesh( mesh );
-        
-    } else {
-        
-        // If no mesh is being added we wait until it gets ready to use.
-        var OnComponentAdded = function(newComp, changeType) {
-            
-            if (newComp instanceof EC_Mesh)
-                thisIsThis.onAnimatorAddedOrChanged(threeParent, animComp);
-            
-        };
-        
-        animComp.parentEntity.componentAdded.remove(OnComponentAdded);
-        animComp.parentEntity.componentAdded.add(OnComponentAdded);
-        
-    }
     
 };
 
 ThreeView.prototype.onAnimatorRelease = function( entity, animComp ) {
     
-    animComp.attributeChanged.remove(this.onAnimationAttributeChanged, this);
+    animComp.parentEntity.componentAdded.remove(this.OnComponentAdded, animComp);
     
     if (entity.mesh !== undefined)
         animComp.stopAll();

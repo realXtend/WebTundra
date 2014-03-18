@@ -142,8 +142,8 @@ ThreeView.prototype = {
             this.onCameraAddedOrChanged(threeGroup, component);
         else if (component instanceof EC_Light)
             this.onLightAddedOrChanged(threeGroup, component);
-        //else if (component instanceof EC_AnimationController)
-        //    this.onAnimatorAddedOrChanged(threeGroup, component);
+        else if (component instanceof EC_AnimationController)
+            this.onAnimatorAddedOrChanged(threeGroup, component);
         else
             console.log("Component not handled by ThreeView:", entity, component);
     },
@@ -155,7 +155,7 @@ ThreeView.prototype = {
         if ( typeof call === "function" )
             call(params);
 
-        },
+    },
 
     onComponentRemoved: function(entity, component, changeType) {
         try {
@@ -209,14 +209,10 @@ ThreeView.prototype = {
             console.log("adding first mesh for o3d id=" + threeGroup.id);
         }
 
-        var onMeshAttributeChanged = function(changedAttr, changeType) {
-            if (changedAttr.id !== "meshRef")
-                return;
-            //console.log("onMeshAddedOrChanged due to attributeChanged ->", changedAttr.ref);
-            this.onMeshAddedOrChanged(threeGroup, meshComp);
-        };
-        meshComp.attributeChanged.remove(onMeshAttributeChanged, this);
-        meshComp.attributeChanged.add(onMeshAttributeChanged, this);
+        if (!meshComp.attributeChanged.has(this.onMeshAttributeChanged, this))
+            meshComp.attributeChanged.add(this.onMeshAttributeChanged, this);
+
+        meshComp.assetReady = false;
 
         var url = meshComp.meshRef.ref;
         
@@ -227,8 +223,6 @@ ThreeView.prototype = {
 
         url = url.replace("local://", "");
         url = url.replace(/\.mesh$/i, ".json");
-        
-        meshComp.assetReady = false;
 
         var thisIsThis = this;
         this.assetLoader.cachedLoadAsset(url, function(arg1, material) {
@@ -240,6 +234,23 @@ ThreeView.prototype = {
                 thisIsThis.onMeshLoaded(threeGroup, meshComp, geometry, material);
             }
         });
+        
+        var animation = meshComp.parentEntity.animationController;
+        if ( animation !== undefined )
+            this.onAnimatorAddedOrChanged(threeGroup, animation);
+    },
+    
+    onMeshAttributeChanged : function(changedAttr, changeType) {
+        
+        if (changedAttr.id !== "meshRef")
+            return;
+            
+        var mesh = changedAttr.owner;
+        if ( mesh === undefined )
+            return;
+            //console.log("onMeshAddedOrChanged due to attributeChanged ->", changedAttr.ref);
+        this.onMeshAddedOrChanged(mesh.parentEntity.threeGroup, mesh);
+            
     },
 
     onMeshLoaded: function(threeParent, meshComp, geometry, material) {
@@ -400,10 +411,6 @@ ThreeView.prototype = {
         // do we need to set up signal that does
         // mesh.applyMatrix(threeParent.matrixWorld) when placeable
         // changes?
-
-        var animation = meshComp.parentEntity.componentByType("AnimationController");
-        if (animation !== null)
-            this.onAnimatorAddedOrChanged(threeParent, animation);
         
     },
     
@@ -412,6 +419,8 @@ ThreeView.prototype = {
         var animation = entity.componentByType("AnimationController");
         if (animation !== null)
             animation.stopAll();
+        
+        component.attributeChanged.remove(this.onMeshAttributeChanged, this);
         
         if (component.threeMesh !== undefined) {
             
@@ -462,15 +471,18 @@ ThreeView.prototype = {
             lightComp.range);
         threeGroup.add(lightComp.threeLight);
 
-        var onLightAttributeChanged = function(changedAttr, changeType) {
-            //console.log("onLightAddedOrChanged due to attributeChanged ->", changedAttr.ref);
-            var id = changedAttr.id;
-            if (id === "range" || id === "brightness" ||
-                id === "diffuseColor" || id === "type")
-                this.onLightAddedOrChanged(threeGroup, lightComp);
-        };
-        lightComp.attributeChanged.remove(onLightAttributeChanged);
-        lightComp.attributeChanged.add(onLightAttributeChanged);
+        if (!lightComp.attributeChanged.has(this.onLightAttributeChanged, this))
+            lightComp.attributeChanged.add(this.onLightAttributeChanged, this);
+    },
+            
+    onLightAttributeChanged: function(changedAttr, changeType) {
+    
+        console.log(changedAttr.id);
+        var id = changedAttr.id;
+        if (id === "range" || id === "brightness" ||
+            id === "diffColor" || id === "type")
+            this.onLightAddedOrChanged(changedAttr.owner.parentEntity.threeGroup, changedAttr.owner);
+        
     },
 
     onCameraAddedOrChanged: function(threeGroup, cameraComp) {

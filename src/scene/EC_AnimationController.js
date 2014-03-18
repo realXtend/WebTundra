@@ -61,19 +61,28 @@ function AnimationMeshInfo( animationController, mesh ) {
         
     };
     
+    this.onAttributeChanged = function ( attr, changeType ) {
+        ;
+        if (attr.id === "meshRef")
+            this.release();
+        
+    };
+    
     this.release = function () {
         
         animationController.removeMesh( this.mesh );
         
         this.mesh.meshAssetReady.remove( this.onAssetReady, this );
         this.mesh.parentEntity.componentRemoved.remove( this.onComponentRemoved, this );
+        this.mesh.attributeChanged.remove( this.onAttributeChanged, this );
         
         delete this.mesh;
         delete this.animationController;
         
-    }
+    };
     
-    mesh.parentEntity.componentRemoved.add( this.onComponentRemoved, this );
+    this.mesh.parentEntity.componentRemoved.add( this.onComponentRemoved, this );
+    this.mesh.attributeChanged.add( this.onAttributeChanged, this );
     
     if (mesh.assetReady)
         animationController.createAnimations( mesh );
@@ -91,13 +100,7 @@ function EC_AnimationController() {
     this.animations = new Object;
     
     // List of meshes we wish to animate.
-    // Note! all meshes need to have identical skeleton defined.
     this.animatingMeshes = [];
-    
-    // entityActions are use to relase actions when component is removed.
-    this.entityActions = ["PlayAnim", "PlayLoopedAnim",
-                          "StopAnim", "StopAllAnims",
-                          "SetAnimWeight", "SetAnimSpeed"];
 }
 
 EC_AnimationController.prototype = new Component(cComponentTypeAnimation);
@@ -189,7 +192,6 @@ EC_AnimationController.prototype.addMesh = function( mesh ) {
     
         if ( this.animatingMeshes[i].mesh === mesh ) {
         
-            console.log("Mesh is already added to AnimationController.");
             return;
         
         }
@@ -202,16 +204,17 @@ EC_AnimationController.prototype.addMesh = function( mesh ) {
     
 };
 
-// Remove mesh from this component.
+// Remove mesh from animation controller.
+/* @param {EC_Mesh} mesh that we dont want to animate
+ */
 EC_AnimationController.prototype.removeMesh = function( mesh ) {
     
     for ( var i = 0; i < this.animatingMeshes.length; ++i ) {
         
         if ( this.animatingMeshes[i].mesh === mesh ) {
             
-            console.log("Remove mesh from animation controller");
             this.animatingMeshes.splice(i, 1);
-            return;
+            break;
             
         }
         
@@ -219,6 +222,11 @@ EC_AnimationController.prototype.removeMesh = function( mesh ) {
     
 };
 
+// Get animation state object by name.
+/* @param {string} animation name id
+ * @return {AnimationState} return animation state object if found othervice
+ *         return null.
+ */
 EC_AnimationController.prototype.animationState = function( name ) {
     
     var state;
@@ -234,6 +242,14 @@ EC_AnimationController.prototype.animationState = function( name ) {
         
     }
     return null;
+    
+};
+
+// If new mesh components are added add them to animation controller.
+EC_AnimationController.prototype.onComponentAdded = function ( newComp, changeType ) {
+    
+    if (newComp instanceof EC_Mesh)
+        addMesh(newComp);
     
 };
 
