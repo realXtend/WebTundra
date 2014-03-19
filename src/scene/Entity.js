@@ -221,7 +221,7 @@ Entity.prototype = {
         if (newParent)
             newParent.children.push(this);
         this.parent = newParent;
-        
+
         // Signal
         if (changeType == null || changeType == AttributeChange.Default)
             changeType = this.local ? AttributeChange.LocalOnly : AttributeChange.Replicate;

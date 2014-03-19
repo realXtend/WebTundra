@@ -109,6 +109,18 @@ Scene.prototype = {
         return null;
     },
     
+    // Return root-level (unparented) entities
+    rootLevelEntities: function() {
+        var ret = [];
+        for (var entityId in this.entities) {
+            if (this.entities.hasOwnProperty(entityId)) {
+                if (this.entities[entityId].parent == null)
+                    ret.push(this.entities[entityId]);
+            }
+        }
+        return ret;
+    },
+
     // Trigger scene-level attribute change signal. Called by Component
     emitAttributeChanged : function(comp, attr, changeType) {
         if (changeType == AttributeChange.Disconnected)
