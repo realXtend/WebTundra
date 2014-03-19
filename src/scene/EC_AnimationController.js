@@ -4,11 +4,9 @@ var cComponentTypeAnimation = 14;
 
 /// Enumeration of animation phase
 var AnimationPhase = {
-    PHASE_FADEIN : 0,
-    PHASE_PLAY : 1,
-    PHASE_FADEOUT: 2,
-    PHASE_STOP : 3,
-    PHASE_FREE : 4 
+    PHASE_PLAY : 0,
+    PHASE_STOP : 1,
+    PHASE_FREE : 2 
 };
 
 // TODO not fully implemented.
@@ -27,16 +25,16 @@ function AnimationState() {
     this.weight = 1.0;
 
     /// Weight adjust
-    this.weight_factor = 1.0;
+    //this.weight_factor = 1.0;
 
     /// How an animation is speed up or slowed down, default 1.0 (original speed)
     this.speed_factor = 1.0;
 
     /// loop animation through num_repeats times, or loop if zero
-    this.num_repeats = 0;
+    //this.num_repeats = 0;
 
     /// priority. high priority will reduce the weight of low priority animations, if exists on the same bone tracks
-    this.priority = 0;
+    //this.priority = 0;
 
     /// current phase
     this.phase = AnimationPhase.PHASE_STOP;
