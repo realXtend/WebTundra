@@ -15358,6 +15358,8 @@ THREE.Bone = function( belongsToSkin ) {
 	this.accumulatedRotWeight = 0;
 	this.accumulatedPosWeight = 0;
 	this.accumulatedSclWeight = 0;
+	
+	this.enableAnimation = true;
 
 };
 
@@ -31617,6 +31619,9 @@ THREE.Animation.prototype.update = function ( delta ) {
 			var nextXYZ = nextKey[ type ];
 
 			scale = Math.min(Math.max(scale, 0), 1);
+			
+			if ( object.enableAnimation === false )
+				continue;
 
 			// interpolate
 

@@ -9,6 +9,8 @@ function EC_Camera() {
     this.addAttribute(cAttributeReal, "farPlane", "Far plane", 2000.0);
     this.addAttribute(cAttributeReal, "verticalFov", "Vertical FOV", 45.0);
     this.addAttribute(cAttributeString, "aspectRatio", "Aspect ratio", "");
+    
+    this.setCameraActive = new signals.Signal();
 }
 
 EC_Camera.prototype = new Component(cComponentTypeCamera);

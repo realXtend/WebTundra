@@ -190,6 +190,20 @@ Bone.prototype.detach = function ( mesh ) {
 
 };
 
+Bone.prototype.enableAnimation = function ( enable, recursive ) {
+    
+    if (recursive !== undefined && recursive === true) {
+        
+        for (var i = 0; i < this.children; i++) {
+
+            this.children[i].enableAnimation( enable, recursive );
+
+        }
+        
+    }
+    
+};
+
 function Skeleton () {
     
     this.bones = [];

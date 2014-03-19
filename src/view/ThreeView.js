@@ -14,6 +14,7 @@
 var useCubes = false;
 
 function ThreeView() {
+    
     this.o3dByEntityId = {}; // Three.Object3d's that correspond to Placeables and have Meshes etc as children
 
     // SCENE
@@ -26,10 +27,12 @@ function ThreeView() {
         ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT,
         NEAR = 0.1,
         FAR = 20000;
+    
     this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
     this.scene.add(this.camera);
     this.camera.position.set(0, 20, 50);
     this.camera.lookAt(this.scene.position);
+    this.defaultCamera = this.camera;
 
     // STATS
     this.stats = new Stats();
@@ -182,7 +185,9 @@ ThreeView.prototype = {
             this.onMeshRelease(entity, component);
             
         } else if (component instanceof EC_Camera) {
-            // this.onCameraAddedOrChanged(threeGroup, component);
+            
+            this.onCameraRelease( entity, component );
+            
         } else if (component instanceof EC_Light) {
             // this.onLightAddedOrChanged(threeGroup, component);
         } else if (component instanceof EC_AnimationController) {
@@ -363,6 +368,14 @@ ThreeView.prototype = {
                         this.threeBone.remove(mesh.parentEntity.threeGroup);
 
                     };
+                    
+                    bone.enableAnimation = function( enable, recursive ) {
+                        
+                        Bone.prototype.detach.call(this, enable, recursive);
+                        
+                        this.threeBone.enableAnimations = enable;
+                        
+                    };
 
                     meshComp.skeleton.addBone(bone);
                 }
@@ -486,44 +499,80 @@ ThreeView.prototype = {
     },
 
     onCameraAddedOrChanged: function(threeGroup, cameraComp) {
+        
         var prevThreeCamera = cameraComp.threeCamera;
         if (prevThreeCamera) {
             threeGroup.remove(prevThreeCamera);
             console.log("removing previous camera");
         }
-        console.log("make camera");
+        
         var threeAspectRatio = cameraComp.aspectRatio;
-        if (threeAspectRatio === "")
-            threeAspectRatio = 1.0;
-        var px = cameraComp.parentEntity.placeable.transform;
-        checkDefined(px);
-        //console.log("camera rot from placeable x=" + px.rot.x);
+        if (threeAspectRatio === "") {
+            
+            // If no aspect ration is defined use target window width and height
+            // to calculate correct aspect ration, so that geometry wont stretch.
+            
+            threeAspectRatio = window.innerWidth / window.innerHeight;
+        
+        }
+        
         cameraComp.threeCamera = new THREE.PerspectiveCamera(
             cameraComp.verticalFov, threeAspectRatio,
             cameraComp.nearPlane, cameraComp.farPlane);
-        copyXyz(px.rot, cameraComp.threeCamera.rotation);
-        copyXyz(px.pos, cameraComp.threeCamera.position);
+
         this.camera = cameraComp.threeCamera;
 
-        // we parent camera directly to scene instead of threeGroup
-        // due to three behaviour wrt camera parenting.
-        this.scene.add(cameraComp.threeCamera);
+        cameraComp.parentEntity.threeGroup.add( cameraComp.threeCamera );
 
-        var thisIsThis = this;
-        var onCameraAttributeChanged = function(changedAttr, changeType) {
-            //console.log("onCameraAddedOrChanged due to attributeChanged ->", changedAttr.ref);
-            var id = changedAttr.id;
-            if (id === "aspectRatio" || id === "verticalFov" ||
-                id === "nearPlane" || id === "farPlane")
-                thisIsThis.onCameraAddedOrChanged(threeGroup, cameraComp);
-        };
-        var removed = cameraComp.attributeChanged.remove(onCameraAttributeChanged);
-        if (removed) {
-            //console.log("removed old camera attr change hook");
+        if (!cameraComp.attributeChanged.has(this.onCameraAttributeChanged, this))
+            cameraComp.attributeChanged.add(this.onCameraAttributeChanged, this);
+        
+        if (!cameraComp.setCameraActive.has(this.setActiveCamera, this))
+            cameraComp.setCameraActive.add(this.setActiveCamera, this);
+        
+        if (cameraComp.setActive === undefined) {
+            
+            cameraComp.setActive = function () {
+                
+                this.setCameraActive.dispatch( this );
+                
+            }
+            
         }
-        cameraComp.attributeChanged.add(onCameraAttributeChanged);
-        this.connectToPlaceable(cameraComp.threeCamera, cameraComp.parentEntity.placeable);
-        // console.log("camera (o3d id " + cameraComp.threeCamera.id + ", entity id" + cameraComp.parentEntity.id + ") connected to placeable");
+        
+        console.log(this.scene.matrixWorldNeedsUpdate);
+        this.scene.matrixWorldNeedsUpdate = true;
+        
+    },
+            
+    setActiveCamera: function( camera ) {
+        
+        this.camera = camera.threeCamera;
+        
+    },
+            
+    onCameraAttributeChanged: function(changedAttr, changeType) {
+
+        var id = changedAttr.id;
+        if (id === "aspectRatio" || id === "verticalFov" ||
+            id === "nearPlane" || id === "farPlane") {
+            this.onCameraAddedOrChanged(changedAttr.owner.parentEntity.threeGroup, changedAttr.owner);
+        }
+        
+    },
+            
+    onCameraRelease: function( entity, component ) {
+        
+        component.attributeChanged.remove(this.onCameraAttributeChanged, this);
+        component.setCameraActive.remove(this.setActiveCamera, this);
+        
+        entity.threeGroup.remove(component.threeCamera);
+        
+        if ( this.camera === component.threeCamera )
+            this.camera = this.defaultCamera;
+        
+        delete component.threeCamera;
+        
     },
 
     updateInterpolations: function(delta) {
