@@ -50,6 +50,7 @@ Entity.prototype = {
             var propName = sanitatePropertyName(newComp.typeName);
             if (this[propName] === undefined)
                 this[propName] = newComp;
+            newComp.parentEntitySet.dispatch(newComp, this);
         }
         else
         {
@@ -214,7 +215,7 @@ Entity.prototype = {
         if (this.parent) {
             var index = this.parent.children.indexOf(this);
             if (index > -1)
-                this.parent.children.splace(index, 1);
+                this.parent.children.splice(index, 1);
         }
         
         // Add to the new parent's child vector

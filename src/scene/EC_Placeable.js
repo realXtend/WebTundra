@@ -10,13 +10,18 @@ function EC_Placeable() {
     this.addAttribute(cAttributeInt, "selectionLayer", "Selection layer", 1);
     this.addAttribute(cAttributeEntityReference, "parentRef", "Parent entity ref");
     this.addAttribute(cAttributeString, "parentBone", "Parent bone name");
-    
-    this.attributeChanged.add(this.checkParent.bind(this));
 
-    this.parentRefReady = new signals.Signal(); 
+    this.attributeChanged.add(this.checkParent.bind(this));
+    this.parentEntitySet.add(this.connectToEntity.bind(this));
+
+    this.parentRefReady = new signals.Signal();
 }
 
 EC_Placeable.prototype = new Component(cComponentTypePlaceable);
+
+EC_Placeable.prototype.connectToEntity = function(component, entity) {
+    entity.parentChanged.add(this.checkParentEntity.bind(this));
+}
 
 EC_Placeable.prototype.checkParent = function(attr, changeType) {
     //console.log(this + " - " + this.parentRef + " : " + attr.id); // + " == " + this.parentRef.id);
@@ -35,10 +40,15 @@ EC_Placeable.prototype.checkParent = function(attr, changeType) {
                 this.parentEntity.parentScene.entityCreated.add(this.waitParent);
             }
         } else {
-            this.parentRefReady.dispatch();
+            this.checkParentEntity();
         }
     }
-}               
+}
+
+EC_Placeable.prototype.checkParentEntity = function() {
+    // Should wait for placeable component in the parent entity. For now just dispatch
+    this.parentRefReady.dispatch();
+}
 
 EC_Placeable.prototype.waitParent = function(addedEntity, changeType) {
     if (addedEntity.id === this.parentRef.id) {        
