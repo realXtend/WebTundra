@@ -519,6 +519,13 @@ ThreeView.prototype = {
         cameraComp.threeCamera = new THREE.PerspectiveCamera(
             cameraComp.verticalFov, threeAspectRatio,
             cameraComp.nearPlane, cameraComp.farPlane);
+            
+        cameraComp.lookAt = function ( vector3 ) {
+            
+            // TODO use transform rotation instead.
+            cameraComp.threeCamera.lookAt( new THREE.Vector3(vector3.x, vector3.y, vector3.z) );
+
+        };
 
         this.camera = cameraComp.threeCamera;
 

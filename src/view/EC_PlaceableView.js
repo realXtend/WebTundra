@@ -6,6 +6,11 @@ ThreeView.prototype.PlaceableIntialize = function ( entity, component ) {
     
     component.setVisible = placeable_setVisible;
     
+    component.setPosition = placeable_setPosition;
+    component.setPositionVector = function( vector3 ) {
+        component.setPosition( vector3.x, vector3.y, vector3.z );
+    };
+    
     var parent = component.parentEntity.parentScene.entityById(this.parentRef);
     if (parent !== null)
         component.setParentEntity( parent );
@@ -65,3 +70,14 @@ var placeable_setVisible = function ( visible ) {
     this.parentEntity.threeGroup.traverse( function ( object ) { object.visible = visible; } );
 
 };
+
+var placeable_setPosition = function ( x, y, z ) {
+    
+    var transform = this.transform;
+    transform.pos.x = x;
+    transform.pos.y = y;
+    transform.pos.z = z;
+    this.transform = transform;
+    
+}
+EC_Placeable.prototype.setParentEntity = function ( entity ) {};
