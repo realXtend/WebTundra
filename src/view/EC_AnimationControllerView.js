@@ -1,3 +1,5 @@
+// For conditions of distribution and use, see copyright notice in LICENSE
+
 ThreeView.prototype.OnAnimatorInitialize = function( threeParent, animComp ) {
     
     animComp.parentEntity.componentAdded.add(animComp.onComponentAdded, animComp);
@@ -92,6 +94,11 @@ ThreeView.prototype.onAnimatorRelease = function( entity, animComp ) {
 var AnimationController_play = function(name, fadeInTime, crossFade, looped) {
     
     var animation = this.animations[name];
+    if (animation === undefined) {
+        console.warn("Failed to find animation " + "'" + name + "'.");
+        return;
+    }
+    
     animation.fade_period = fadeInTime !== undefined ? fadeInTime : 0;
 
     if (crossFade) {

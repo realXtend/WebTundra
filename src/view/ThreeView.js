@@ -371,9 +371,9 @@ ThreeView.prototype = {
                     
                     bone.enableAnimation = function( enable, recursive ) {
                         
-                        Bone.prototype.detach.call(this, enable, recursive);
+                        Bone.prototype.enableAnimation.call(this, enable, recursive);
                         
-                        this.threeBone.enableAnimations = enable;
+                        this.threeBone.enableAnimation = enable;
                         
                     };
 

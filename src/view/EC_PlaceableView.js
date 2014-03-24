@@ -1,3 +1,5 @@
+// For conditions of distribution and use, see copyright notice in LICENSE
+
 ThreeView.prototype.PlaceableIntialize = function ( entity, component ) {
     
     component.setParentEntity = placeable_SetParentEntity;

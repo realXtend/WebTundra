@@ -126,7 +126,6 @@ EC_Mesh.prototype.checkParentEntity = function( entity, component, chnageType ) 
 
 registerComponent(cComponentTypeMesh, "Mesh", function(){ return new EC_Mesh(); });
 
-// TODO add support for multiple attachments.
 function Bone ( name, parent ) {
     
     this.name = name;
@@ -210,6 +209,16 @@ function Skeleton () {
     
 }
 
+// Add new bone to skeleton
+/* @param {Bone} new bone.
+ */
+Skeleton.prototype.addBone = function( bone ) {
+    
+    bone.skeleton = this;
+    this.bones.push(bone);
+    
+};
+
 // Get bone by name
 /* @param {string} name bone name
  */
@@ -269,12 +278,5 @@ Skeleton.prototype.checkBones = function( bone1, bone2 ) {
     }
     
     return true;
-    
-};
-
-Skeleton.prototype.addBone = function( bone ) {
-    
-    bone.skeleton = this;
-    this.bones.push(bone);
     
 };

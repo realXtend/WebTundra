@@ -22,6 +22,7 @@
 	<script src="src/scene/EC_DynamicComponent.js"></script>
 	<script src="src/scene/EC_EnvironmentLight.js"></script>
 	<script src="src/scene/EC_Mesh.js"></script>
+    <script src="src/scene/Bone.js"></script>
 	<script src="src/scene/EC_Name.js"></script>
 	<script src="src/scene/EC_Placeable.js"></script>
 	<script src="src/scene/EC_RigidBody.js"></script>
@@ -45,6 +46,7 @@
 	<script src="src/view/ThreeView.js"></script>
 	<script src="src/view/EC_AnimationControllerView.js"></script>
 	<script src="src/view/EC_PlaceableView.js"></script>
+    <script src="src/view/BoneView.js"></script>
 
 	<!-- ------------------------------------------------------------ -->
     <div id="ThreeJS" style="z-index: 1; position: absolute; left:0px; top:0px"></div>
@@ -87,7 +89,7 @@
         }
         
         if ( data.animationController !== undefined ) {
-            var mesh = entity.createComponent(0, cComponentTypeAnimation);
+            var animator = entity.createComponent(0, cComponentTypeAnimation);
         }
         
         if ( data.light !== undefined ) {
@@ -104,6 +106,8 @@
     
     var robot;
     var cam;
+    var animator;
+    var playRun = false;
     
     function CreateScene() {
         
@@ -120,6 +124,8 @@
         cam.placeable.parentRef = robot.id;
         cam.placeable.skeletonRef = "head";
         
+        animator = robot.animationController;
+        
     }
     
     function Update() {
@@ -131,20 +137,30 @@
             Update();
         }.bind(this));
         
-        var pos = robot.placeable.transform.pos;
-        pos.x += delta * 1;
-        if (pos.x > 10)
-            pos.x = 0;
-        
-        robot.placeable.setPosition(pos.x, pos.y, pos.z);
-        
-        /*if (robot.mesh.skeleton !== null) {
+        if ( !playRun && robot.mesh.assetReady ) {
             
-            var bone = robot.mesh.skeleton.getBone("head");
-            bone.attach();
+            playRun = true;
             
-        }*/
+            var bone = robot.mesh.skeleton.getBone("hips");
+            bone.enableAnimation(false);
             
+            var bone = robot.mesh.skeleton.getBone("thigh.R");
+            bone.enableAnimation(false, true);
+            var rot = bone.getRotation();
+            console.log(rot);
+            rot.z += -90 * (Math.PI / 180);
+            console.log(rot);
+            bone.setRotation(rot);
+            
+            bone = robot.mesh.skeleton.getBone("thigh.L");
+            bone.enableAnimation(false, true);
+            rot = bone.getRotation();
+            rot.z += 90 * (Math.PI / 180);
+            bone.setRotation(rot);
+            
+            animator.playLooped("Run");
+            
+        }   
 
     }
 
