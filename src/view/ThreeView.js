@@ -373,7 +373,7 @@ ThreeView.prototype = {
                         
                         Bone.prototype.enableAnimation.call(this, enable, recursive);
                         
-                        this.threeBone.enableAnimation = enable;
+                        this.threeBone.enableAnimations = enable;
                         
                     };
 

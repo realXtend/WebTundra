@@ -147,9 +147,7 @@
             var bone = robot.mesh.skeleton.getBone("thigh.R");
             bone.enableAnimation(false, true);
             var rot = bone.getRotation();
-            console.log(rot);
             rot.z += -90 * (Math.PI / 180);
-            console.log(rot);
             bone.setRotation(rot);
             
             bone = robot.mesh.skeleton.getBone("thigh.L");
