@@ -107,7 +107,7 @@ ThreeView.prototype = {
         this.renderer.render(this.scene, this.camera);
     },
 
-    onComponentAddedOrChanged: function(entity, component, changeType, changedAttr) {
+    onComponentAdded: function(entity, component, changeType, changedAttr) {
         check(component instanceof Component);
         check(entity instanceof Entity);
         var threeGroup = this.o3dByEntityId[entity.id];
@@ -127,19 +127,20 @@ ThreeView.prototype = {
             //console.log("got cached o3d group " + threeGroup.id + " for entity " + entity.id);
         }
 
-        if (component instanceof EC_Placeable)
+        if (component instanceof EC_Placeable) {
             this.connectToPlaceable(threeGroup, component);
-        else if (component instanceof EC_Mesh) {
+        } else if (component instanceof EC_Mesh) {
             // console.log("mesh changed or added for o3d " + threeGroup.userData.entityId);
             this.onMeshAddedOrChanged(threeGroup, component);
-        } else if (component instanceof EC_Camera)
+        } else if (component instanceof EC_Camera) {
             this.onCameraAddedOrChanged(threeGroup, component);
-        else if (component instanceof EC_Light)
+        } else if (component instanceof EC_Light) {
             this.onLightAddedOrChanged(threeGroup, component);
         //else if (component instanceof EC_AnimationController)
             //this.onAnimatorAddedOrChanged(threeGroup, component);
-        else
+        } else {
             console.log("Component not handled by ThreeView:", entity, component);
+        }
     },
     
     OnEntityAction : function( name, params, execType ) {
@@ -151,15 +152,7 @@ ThreeView.prototype = {
     
     },
 
-    onComponentRemoved: function(entity, component, changeType) {
-        try {
-            return this.onComponentRemovedInternal(entity, component);
-        } catch (e) {
-            debugger;
-        }
-    },
-
-    onComponentRemovedInternal: function(entity, component) {
+    onComponentRemoved: function(entity, component) {
         checkDefined(component, entity);
 
         if (component instanceof EC_Placeable) {
