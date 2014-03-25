@@ -722,7 +722,6 @@ ThreeView.prototype = {
         var thisIsThis = this;
         placeable.parentRefReady.add(function() {
             var parent = thisIsThis.parentForPlaceable(placeable);
-            //NOTE: assumes first call -- add removing from prev parent to support live changes! XXX
             parent.add(threeObject);
             if (placeable.debug)
                 console.log("parent ref set - o3d id=" + threeObject.id + " added to parent " + parent.id);
@@ -739,6 +738,14 @@ ThreeView.prototype = {
             var parentOb = this.o3dByEntityId[placeable.parentRef];
             if (!parentOb) {
                 console.log("ThreeView parentForPlaceable ERROR: adding object but parent not there yet -- even though this is called only after the parent was reported being there in the EC scene data. Falling back to add to scene.");
+                parent = this.scene;
+            } else {
+                parent = parentOb;
+            }
+        } else if (placeable.parentEntity.parent) {
+            var parentOb = this.o3dByEntityId[placeable.parentEntity.parent.id];
+            if (!parentOb) {
+                console.log("ThreeView parentForPlaceable ERROR: adding object but parent not there yet. Falling back to add to scene.");
                 parent = this.scene;
             } else {
                 parent = parentOb;

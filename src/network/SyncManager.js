@@ -12,6 +12,7 @@ var cCreateComponentsReply = 118;
 var cRigidBodyUpdate = 119;
 var cEntityAction = 120;
 var cRegisterComponentType = 123;
+var cSetEntityParent = 124;
 
 function SyncManager(client, scene) {
     this.client = client;
@@ -21,6 +22,7 @@ function SyncManager(client, scene) {
     this.pendingComponentTypeNames = {};
 
     // Attach to scene change signals for determining what changes to send to the server
+    this.ensureSyncState(scene);
     scene.attributeChanged.add(this.onAttributeChanged, this);
     scene.attributeAdded.add(this.onAttributeAdded, this);
     scene.attributeRemoved.add(this.onAttributeRemoved, this);
@@ -29,6 +31,7 @@ function SyncManager(client, scene) {
     scene.entityCreated.add(this.onEntityCreated, this);
     scene.entityRemoved.add(this.onEntityRemoved, this);
     scene.actionTriggered.add(this.onActionTriggered, this);
+    scene.entityParentChanged.add(this.onEntityParentChanged, this);
     client.loginReplyReceived.add(this.onLoginReplyReceived, this);
     customComponentRegistered.add(this.onCustomComponentRegistered, this);
 }
@@ -52,7 +55,7 @@ SyncManager.prototype = {
             this.scene.syncState.removeCreated(id);
             this.scene.syncState.removeModified(id);
             
-            var ds = this.client.startNewMessage(cRemoveEntity, 1024);
+            var ds = this.client.startNewMessage(cRemoveEntity, 256);
             ds.addVLE(0); // Dummy scene ID
             ds.addVLE(id);
             this.client.endAndQueueMessage(ds);
@@ -74,6 +77,13 @@ SyncManager.prototype = {
             ds.addVLE(0); // Dummy scene ID
             ds.addVLE(id);
             ds.addU8(entity.temporary ? 1 : 0);
+
+            // If supported in the protocol, add parent entity ID here
+            if (this.client.protocolVersion >= cProtocolHierarchicScene) {
+                var parentEntityId = entity.parent ? entity.parent.id : 0;
+                ds.addU32(parentEntityId);
+            }
+
             var numReplicatedComponents = 0;
             for (var compId in entity.components)
             {
@@ -119,7 +129,7 @@ SyncManager.prototype = {
             // Removed components
             for (var compId in entity.syncState.removed)
             {
-                var ds = this.client.startNewMessage(cRemoveComponents, 1024);
+                var ds = this.client.startNewMessage(cRemoveComponents, 256);
                 ds.addVLE(0); // Dummy scene ID
                 ds.addVLE(id);
                 ds.addVLE(compId);
@@ -166,7 +176,7 @@ SyncManager.prototype = {
                 // Removed attributes
                 for (var attrIndex in comp.syncState.removed)
                 {
-                    var ds = this.client.startNewMessage(cRemoveAttributes, 1024);
+                    var ds = this.client.startNewMessage(cRemoveAttributes, 256);
                     ds.addVLE(0); // Dummy scene ID
                     ds.addVLE(id);
                     ds.addVLE(compId);
@@ -227,6 +237,24 @@ SyncManager.prototype = {
                 }
                 comp.syncState.clearModified();
             }
+            
+            // Parent change
+            if (entity.syncState.parentChanged) {
+                // Send parent change message if supported
+                if (this.client.protocolVersion >= cProtocolHierarchicScene) {
+                    var ds = this.client.startNewMessage(cSetEntityParent, 256);
+                    ds.addVLE(0); // Dummy scene ID
+                    ds.addU32(entity.id);
+                    var parentEntityId = entity.parent ? entity.parent.id : 0;
+                    ds.addU32(parentEntityId);
+
+                    this.client.endAndQueueMessage(ds);
+                    if (this.logDebug)
+                        console.log("Sent SetEntityParent message for entity id " + id + " new parent id " + parentEntityId);
+                }
+
+                entity.syncState.parentChanged = false;
+            }
             entity.syncState.clearModified();
         }
         this.scene.syncState.clearModified();
@@ -266,6 +294,10 @@ SyncManager.prototype = {
             break;
         case cRegisterComponentType:
             this.handleRegisterComponentType(dd);
+            break;
+        case cSetEntityParent:
+            this.handleSetEntityParent(dd);
+            break;
         }
     },
 
@@ -273,6 +305,12 @@ SyncManager.prototype = {
         var sceneId = dd.readVLE(); // Dummy sceneID for multi-scene support, yet unused
         var entityId = dd.readVLE();
         var tempFlag = dd.readU8(); /// \todo Handle
+        var parentEntityId = 0;
+
+        // Read parent entity ID if supported in protocol
+        if (this.client.protocolVersion >= cProtocolHierarchicScene)
+            parentEntityId = dd.readU32();
+       
         var numComponents = dd.readVLE();
 
         // Changes from the server are localonly on the client to not trigger further replication back
@@ -281,6 +319,19 @@ SyncManager.prototype = {
             return;
         if (this.logDebug)
             console.log("Created entity id " + entity.id);
+
+        // If nonzero parent ID, parent the entity now
+        if (parentEntityId != 0) {
+            var parentEntity = scene.entityById(parentEntityId);
+            if (parentEntity) {
+                entity.setParent(parentEntity, AttributeChange.LocalOnly);
+                if (this.logDebug)
+                    console.log("Parented entity id " + entityId + " to entity id " + parentEntityId);
+            }
+            else
+                console.log("Parent entity id " + parentEntityId + " not found from scene when handling CreateEntity message");
+        }
+
 
         for (var i = 0; i < numComponents; i++) {
             this.readComponentFullUpdate(entity, dd);
@@ -501,6 +552,36 @@ SyncManager.prototype = {
         // Register as local only -> don't echo back to server
         registerCustomComponent(typeName, blueprint, AttributeChange.LocalOnly);
     },
+    
+    handleSetEntityParent : function(dd) {
+        var sceneId = dd.readVLE(); // Dummy sceneID for multi-scene support, yet unused
+        var entityId = dd.readU32();
+        var parentEntityId = dd.readU32();
+        
+        var entity = this.scene.entityById(entityId);
+        if (entity == null) {
+            console.log("Entity id " + entityId + " not found when handling SetEntityParent message");
+            return;
+        }
+
+        if (parentEntityId) {
+            var parentEntity = this.scene.entityById(parentEntityId);
+            if (parentEntity == null) {
+                console.log("Parent entity id " + parentEntityId + " not found when handling SetEntityParent message");
+                return;
+            }
+            // Perform change as local only -> don't echo back to server
+            entity.setParent(parentEntity, AttributeChange.LocalOnly);
+            if (this.logDebug)
+                console.log("Parented entity id " + entityId + " to entity id " + parentEntityId);
+        }
+        else {
+            entity.setParent(null, AttributeChange.LocalOnly);
+            if (this.logDebug)
+                console.log("Unparented entity id " + entityId);
+        }
+
+    },
 
     readComponentFullUpdate : function(entity, dd) {
         var compId = dd.readVLE();
@@ -605,46 +686,34 @@ SyncManager.prototype = {
 
     onEntityCreated : function(entity, changeType) {
         if (changeType == AttributeChange.Replicate && !entity.local)
-        {
-            this.ensureSyncState(scene);
-            scene.syncState.addCreated(entity.id);
-        }
+            this.scene.syncState.addCreated(entity.id);
     },
 
     onEntityRemoved : function(entity, changeType) {
         if (changeType == AttributeChange.Replicate && !entity.local)
-        {
-            this.ensureSyncState(scene);
-            scene.syncState.addRemoved(entity.id);
-        }
+            this.scene.syncState.addRemoved(entity.id);
     },
 
     onComponentAdded : function(entity, comp, changeType) {
-        if (changeType == AttributeChange.Replicate && !entity.local && !comp.local)
-        {
-            this.ensureSyncState(scene);
-            scene.syncState.addModified(entity.id);
+        if (changeType == AttributeChange.Replicate && !entity.local && !comp.local) {
+            this.scene.syncState.addModified(entity.id);
             this.ensureSyncState(entity);
             entity.syncState.addCreated(comp.id);
         }
     },
 
     onComponentRemoved : function(entity, comp, changeType) {
-        if (changeType == AttributeChange.Replicate && !entity.local && !comp.local)
-        {
-            this.ensureSyncState(scene);
-            scene.syncState.addModified(entity.id);
+        if (changeType == AttributeChange.Replicate && !entity.local && !comp.local) {
+            this.scene.syncState.addModified(entity.id);
             this.ensureSyncState(entity);
             entity.syncState.addRemoved(comp.id);
         }
     },
 
     onAttributeChanged : function(comp, attr, changeType) {
-        if (changeType == AttributeChange.Replicate && !comp.local && comp.parentEntity && !comp.parentEntity.local)
-        {
+        if (changeType == AttributeChange.Replicate && !comp.local && comp.parentEntity && !comp.parentEntity.local) {
             var entity = comp.parentEntity;
-            this.ensureSyncState(scene);
-            scene.syncState.addModified(entity.id);
+            this.scene.syncState.addModified(entity.id);
             this.ensureSyncState(entity);
             entity.syncState.addModified(comp.id);
             this.ensureSyncState(comp);
@@ -653,11 +722,9 @@ SyncManager.prototype = {
     },
     
     onAttributeAdded : function(comp, attr, changeType) {
-        if (changeType == AttributeChange.Replicate && !comp.local && comp.parentEntity && !comp.parentEntity.local)
-        {
+        if (changeType == AttributeChange.Replicate && !comp.local && comp.parentEntity && !comp.parentEntity.local) {
             var entity = comp.parentEntity;
-            this.ensureSyncState(scene);
-            scene.syncState.addModified(comp.parentEntity.id);
+            this.scene.syncState.addModified(comp.parentEntity.id);
             this.ensureSyncState(entity);
             entity.syncState.addModified(comp.id);
             this.ensureSyncState(comp);
@@ -666,11 +733,9 @@ SyncManager.prototype = {
     },
     
     onAttributeRemoved : function(comp, attr, changeType) {
-        if (changeType == AttributeChange.Replicate && !comp.local && comp.parentEntity && !comp.parentEntity.local)
-        {
+        if (changeType == AttributeChange.Replicate && !comp.local && comp.parentEntity && !comp.parentEntity.local) {
             var entity = comp.parentEntity;
-            this.ensureSyncState(scene);
-            scene.syncState.addModified(comp.parentEntity.id);
+            this.scene.syncState.addModified(comp.parentEntity.id);
             this.ensureSyncState(entity);
             entity.syncState.addModified(comp.id);
             this.ensureSyncState(comp);
@@ -696,6 +761,14 @@ SyncManager.prototype = {
                 console.log("Sent entity action " + name + " on entity id " + entity.id + " to server");
         }
     },
+
+    onEntityParentChanged : function(entity, newParent, changeType) {
+        if (changeType == AttributeChange.Replicate && !entity.local) {
+            this.ensureSyncState(entity);
+            entity.syncState.parentChanged = true;
+            this.scene.syncState.addModified(entity.id);
+        }
+    },
     
     onLoginReplyReceived : function() {
         // When login happens, we should send all our custom component types on the next update
@@ -717,6 +790,8 @@ function SyncState(parent) {
     this.removed = {};
     // Modified entities/components/attributes
     this.modified = {};
+    // Only for entities
+    this.parentChanged = false;
 }
 
 SyncState.prototype = {

@@ -14,6 +14,7 @@ function Scene() {
     this.actionTriggered = new signals.Signal();
     this.entityIdChanged = new signals.Signal();
     this.componentIdChanged = new signals.Signal();
+    this.entityParentChanged = new signals.Signal();
 }
 
 Scene.prototype = {
@@ -59,6 +60,13 @@ Scene.prototype = {
                 this.entityRemoved.dispatch(entity, changeType);
                 entity.removeAllComponents(changeType);
             }
+            
+            // Make the removed entity unparented
+            if (entity.parent != null)
+                entity.setParent(null, AttributeChange.Disconnected);
+
+            // Remove child entities. Possibly recursive
+            entity.removeAllChildren(changeType);
         }
         else
             console.log("Entity id " + id + " does not exist in scene, can not remove");
@@ -101,6 +109,18 @@ Scene.prototype = {
         return null;
     },
     
+    // Return root-level (unparented) entities
+    rootLevelEntities: function() {
+        var ret = [];
+        for (var entityId in this.entities) {
+            if (this.entities.hasOwnProperty(entityId)) {
+                if (this.entities[entityId].parent == null)
+                    ret.push(this.entities[entityId]);
+            }
+        }
+        return ret;
+    },
+
     // Trigger scene-level attribute change signal. Called by Component
     emitAttributeChanged : function(comp, attr, changeType) {
         if (changeType == AttributeChange.Disconnected)
@@ -144,5 +164,10 @@ Scene.prototype = {
     // Trigger scene-level component id change signal. Called by Entity
     emitComponentIdChanged: function(entity, oldId, newId) {
         this.componentIdChanged.dispatch(entity, oldId, newId);
+    },
+    
+    // Trigger scene-level parent change signal. Called by Entity
+    emitEntityParentChanged: function(entity, newParent, changeType) {
+        this.entityParentChanged.dispatch(entity, newParent, changeType);
     }
 };
