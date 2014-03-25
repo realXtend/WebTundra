@@ -31908,19 +31908,17 @@ THREE.Animation = function ( root, name ) {
 
 THREE.Animation.prototype.play = function ( startTime, weight, fadeInTime ) {
 
-	this.currentTime = startTime !== undefined ? startTime : 0;
-
 	if ( this.isPlaying === false ) {
 
 		this.isPlaying = true;
 		this.isFadingOut = false;
 		this.weight = weight !== undefined ? weight: 1;
 		this.fadeTime = fadeInTime !== undefined ? fadeInTime: 0;
-		
 		this.fadeTimeElapsed = 0;
 
 		// Set current time at end of the animation if timeScale is negative (backward).
 
+		this.currentTime = startTime !== undefined ? startTime : 0;
 		if ( startTime === 0 )
 			this.currentTime = this.timeScale >= 0 ? 0 : this.data.length;
 		
@@ -32070,12 +32068,10 @@ THREE.Animation.prototype.update = (function(){
 	};
 	
 	return function ( delta ) {
+	
 		if ( this.isPlaying === false ) return;
 	
 		this.currentTime += delta * this.timeScale;
-		
-		if ( this.fadeTime > 0 )
-			this.fadeTimeElapsed += delta * Math.abs(this.timeScale);
 	
 		//
 	
@@ -32089,28 +32085,34 @@ THREE.Animation.prototype.update = (function(){
 		
 		var fadedWeight = 1;
 		
-		// Check if fadein our fadeout is active.
 		if (this.fadeTime > 0) {
 
-			if ( this.isFadingOut === true ) {
-			
-				fadedWeight = Math.max( 1 - this.fadeTimeElapsed / this.fadeTime, 0 );
-				if ( fadedWeight <= 0 ) { 
+			this.fadeTimeElapsed += delta * Math.abs(this.timeScale);
+			if (this.isFadingOut) {
 				
+				fadedWeight = Math.max( 1 - this.fadeTimeElapsed / this.fadeTime, 0 );
+				
+				if (fadedWeight === 0) {
+				
+					this.fadeTimeElapsed = 0;
 					this.fadeTime = 0;
 					this.stop(0);
-					return;
 					
 				}
-			
+
 			} else {
-				
+
 				fadedWeight = Math.min( this.fadeTimeElapsed / this.fadeTime, 1 );
-				if ( fadedWeight >= 1 )
+
+				if (fadedWeight === 1) {
+				
+					this.fadeTimeElapsed = 0;
 					this.fadeTime = 0;
-			
+					
+				}
+
 			}
-			
+
 		}
 			
 		fadedWeight *= this.weight;
@@ -32135,12 +32137,12 @@ THREE.Animation.prototype.update = (function(){
 			
 			if (forward && this.currentTime > duration) {
 			
-				this.stop();
+				this.stop(0.01);
 				return;
 				
 			} else if ( this.currentTime <= 0 ) {
 			
-				this.stop();
+				this.stop(0.01);
 				return;
 				
 			}

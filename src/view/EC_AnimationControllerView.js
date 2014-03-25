@@ -151,7 +151,6 @@ var AnimationController_setAnimWeight = function( name, weight ) {
     
     if ( animation !== undefined ) {
         
-        console.log("Set weight " + weight);
         animation.weight = weight;
         for ( var i in animation.threeAnimations )
             animation.threeAnimations[i].weight = weight;
