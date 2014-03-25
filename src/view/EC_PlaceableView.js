@@ -27,16 +27,21 @@ var placeable_UpdateTransform = function() {
         return;
     
     var trans = this.transform;
-
+    
     // position
-    threeGroup.position = new THREE.Vector3(trans.pos.x, trans.pos.y, trans.pos.z);
+    threeGroup.position.x = trans.pos.x;
+    threeGroup.position.y = trans.pos.y;
+    threeGroup.position.z = trans.pos.z;
 
     // rotation
-    var euler = new THREE.Euler(THREE.Math.degToRad(trans.rot.x), THREE.Math.degToRad(trans.rot.y), THREE.Math.degToRad(trans.rot.z), 'ZYX');
-    threeGroup.rotation = euler;
+    threeGroup.rotation.x = THREE.Math.degToRad(trans.rot.x);
+    threeGroup.rotation.y = THREE.Math.degToRad(trans.rot.y);
+    threeGroup.rotation.z = THREE.Math.degToRad(trans.rot.z);
 
     // scale
-    threeGroup.scale = new THREE.Vector3(trans.scale.x, trans.scale.y, trans.scale.z);
+    threeGroup.scale.x = trans.scale.x;
+    threeGroup.scale.y = trans.scale.y;
+    threeGroup.scale.z = trans.scale.z;
     
 };
 
