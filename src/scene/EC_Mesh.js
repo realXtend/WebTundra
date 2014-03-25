@@ -42,7 +42,7 @@ EC_Mesh.prototype.onAttributeChanged = function ( attr, changeType ) {
 
 EC_Mesh.prototype.updateNodeTransform = function ( ) {  };
 
-// Check if placeable parentRef or skeletonRef has changed and update parent
+// Check if placeable parentRef or parentBone has changed and update parent
 // child hierachy based on the change.
 EC_Mesh.prototype.updateParentRef = function () {
     
@@ -61,7 +61,7 @@ EC_Mesh.prototype.updateParentRef = function () {
         placeable.setParentEntity(null);
         return;
         
-    } else if ( placeable.skeletonRef === "" && this.parentBone !== null) {
+    } else if ( placeable.parentBone === "" && this.parentBone !== null) {
         
         this.parentBone.detach(this);
         
@@ -91,13 +91,13 @@ EC_Mesh.prototype.updateParentRef = function () {
     
     // Check if we need to attach this mesh to bone.
     
-    if ( placeable.skeletonRef === "" ) {
+    if ( placeable.parentBone === "" ) {
         
         placeable.setParentEntity( pEntity );
         
     } else if ( pEntity.mesh.skeleton !== null ) {
         
-        var bone = pEntity.mesh.skeleton.getBone(placeable.skeletonRef);
+        var bone = pEntity.mesh.skeleton.getBone(placeable.parentBone);
         if ( bone !== null) {
 
             bone.attach(this);

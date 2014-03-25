@@ -227,7 +227,7 @@ EC_Avatar.prototype.createPlaceable = function ( entity, parent, data ) {
         component.parentRef = parent.id;
     
     if ( data.transform.parentBone !== undefined )
-        component.skeletonRef = data.transform.parentBone;
+        component.parentBone = data.transform.parentBone;
 
 };
 

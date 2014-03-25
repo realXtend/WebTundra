@@ -9,7 +9,7 @@ function EC_Placeable() {
     this.addAttribute(cAttributeBool, "visible", "Visible", true);
     this.addAttribute(cAttributeInt, "selectionLayer", "Selection layer", 1);
     this.addAttribute(cAttributeEntityReference, "parentRef", "Parent entity ref");
-    this.addAttribute(cAttributeString, "skeletonRef", "Parent bone name");
+    this.addAttribute(cAttributeString, "parentBone", "Parent bone name");
     
     this.attributeChanged.add(this.onAttributeChanged, this);
 
@@ -69,7 +69,7 @@ EC_Placeable.prototype.onAttributeChanged = function(attr, changeType) {
         }
     }
     
-    if (attr.id === "parentRef" || attr.id === "skeletonRef") {
+    if (attr.id === "parentRef" || attr.id === "parentBone") {
         
         if ( this.parentEntity.mesh !== undefined )
             this.parentEntity.mesh.updateParentRef();
