@@ -766,7 +766,7 @@ SyncManager.prototype = {
         if (changeType == AttributeChange.Replicate && !entity.local) {
             this.ensureSyncState(entity);
             entity.syncState.parentChanged = true;
-            this.scene.syncState.addModified(comp.parentEntity.id);
+            this.scene.syncState.addModified(entity.id);
         }
     },
     
