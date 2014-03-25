@@ -3,7 +3,7 @@
 /* global requestAnimationFrame */
 /* global ThreeView, WebTundraModel */
 /* global EC_Mesh, EC_Placeable */
-/* global THREE, THREEx, signals, Stats, Detector */
+/* global THREE, THREEx, Stats, Detector */
 
 // For conditions of distribution and use, see copyright notice in LICENSE
 /*
@@ -12,8 +12,6 @@
  *      @author Toni Alatalo
  *      Date: 2013
  */
-
-var useSignals = true; // todo: remove (along with EC_* refs in jslint settings)
 
 function Application() {}
 
@@ -57,21 +55,7 @@ Application.prototype = {
     },
 
     logicInit: function() {
-        this.cubeCount = 0;
-        var scene = this.dataConnection.scene;
-        this.testEntities = [];
-        console.log("in makeEntities");
-        for (var i = 0; i < this.cubeCount; i++) {
-            var ent = scene.createEntity(i + 1000);
-            this.testEntities.push(ent);
-            var placeable = ent.createComponent("placeable", "Placeable", "");
-            var mesh = ent.createComponent("mesh", "Mesh", "placeable");
-            placeable.transform.pos.x = i * 150;
-            placeable.transform.pos.y = 150;
-
-            setXyz(placeable.transform.scale, 1, 1, 1);
-            mesh.meshRef.ref = "http://kek";
-        }
+        /* override this and put app initialization code here */
     },
 
     connect: function(host, port) {
@@ -93,8 +77,6 @@ Application.prototype = {
         var delta = this.clock.getDelta(); // seconds
 
         this.logicUpdate(delta);
-        if (!useSignals)
-            this.dataToViewerUpdate();
 
         this.viewer.stats.update();
 
@@ -106,20 +88,8 @@ Application.prototype = {
         this.frameCount++;
     },
 
-    logicUpdate: function() {
-        var posIncrement;
-        checkDefined(this.frameCount);
-        if (this.frameCount % 100 === 0) {
-            posIncrement = 50;
-        } else {
-            posIncrement = -0.5;
-        }
-        for (var i = 0; i < this.testEntities.length; i++) {
-            var ent = this.testEntities[i];
-            checkDefined(ent);
-            ent.components.placeable.transform.pos.y += posIncrement;
-            ent.components.placeable.transform.rot.y += 0.01;
-        }
+    logicUpdate: function(timeDelta) {
+        /* put frame update code for app logic here */
     },
 
     dataToViewerUpdate: function() {
