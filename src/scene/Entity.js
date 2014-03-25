@@ -8,7 +8,9 @@ var cExecTypePeers = 4;
 
 function Entity() {
     this.components = {};
+    this.children = [];
     this.parentScene = null;
+    this.parent = null;
     this.id = 0;
     this.temporary = false;
     this.componentIdGenerator = new UniqueIdGenerator();
@@ -16,6 +18,7 @@ function Entity() {
     this.componentRemoved = new signals.Signal();
     this.actionTriggered = new signals.Signal();
     this.componentIdChanged = new signals.Signal();
+    this.parentChanged = new signals.Signal();
 }
 
 Entity.prototype = {
@@ -47,6 +50,7 @@ Entity.prototype = {
             var propName = sanitatePropertyName(newComp.typeName);
             if (this[propName] === undefined)
                 this[propName] = newComp;
+            newComp.parentEntitySet.dispatch(newComp, this);
         }
         else
         {
@@ -146,6 +150,93 @@ Entity.prototype = {
             }
         }
         return null;
+    },
+    
+    addChild: function(child, changeType) {
+        if (child == null)
+            return;
+
+        child.setParent(this, changeType);
+    },
+
+    removeChild: function(child, changeType) {
+        if (child == null)
+            return;
+            
+        if (child.parent != this) {
+            console.log("Entity " + child.id + " is not parented to this entity, can not remove");
+            return;
+        }
+
+        // Simply remove from the scene, which will also set the child's parent to null
+        if (this.parentScene)
+            this.parentScene.removeEntity(child.id, changeType);
+        else
+            console.log("Null parent scene, can not remove child entity");
+    },
+
+    removeAllChildren: function(changeType) {
+        while (this.children.length > 0)
+            removeChild(this.children[this.children.length - 1], changeType);
+    },
+
+    detachChild: function(child, changeType) {
+        if (child == null)
+            return;
+            
+        if (child.parent != this) {
+            console.log("Entity " + child.id + " is not parented to this entity, can not detach");
+            return;
+        }
+        
+        child.setParent(null, changeType);
+    },
+    
+    setParent: function(newParent, changeType) {
+        if (this.parent == newParent)
+            return; // Nothing to do
+            
+        if (newParent == this) {
+            console.log("Attempted to parent entity to self");
+            return;
+        }
+
+        // Check for and prevent cyclic assignment
+        var parentCheck = newParent;
+        while (parentCheck) {
+            if (parentCheck == this) {
+                console.log("Attempted to cyclically parent an entity");
+                return;
+            }
+            parentCheck = parentCheck.parent;
+        }
+
+        // Remove from old parent's child vector
+        if (this.parent) {
+            var index = this.parent.children.indexOf(this);
+            if (index > -1)
+                this.parent.children.splice(index, 1);
+        }
+        
+        // Add to the new parent's child vector
+        if (newParent)
+            newParent.children.push(this);
+        this.parent = newParent;
+
+        // Signal
+        if (changeType == null || changeType == AttributeChange.Default)
+            changeType = this.local ? AttributeChange.LocalOnly : AttributeChange.Replicate;
+        if (changeType != AttributeChange.Disconnected) {
+            this.parentChanged.dispatch(this, newParent, changeType);
+            if (this.parentScene)
+                this.parentScene.emitEntityParentChanged(this, newParent, changeType);
+        }
+    },
+    
+    createChild: function(id, changeType) {
+        var childEntity = this.parentScene.createEntity(id, changeType);
+        if (childEntity)
+            childEntity.setParent(this, changeType);
     },
 
     get local(){

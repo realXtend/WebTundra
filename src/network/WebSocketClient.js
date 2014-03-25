@@ -5,7 +5,9 @@ var cLoginReply = 101;
 
 var cProtocolOriginal = 1;
 var cProtocolCustomComponents = 2;
-var cHighestSupportedProtocolVersion = cProtocolCustomComponents;
+var cProtocolHierarchicScene = 3;
+
+var cHighestSupportedProtocolVersion = cProtocolHierarchicScene;
 
 function WebSocketClient() {
     this.webSocket = null;
@@ -104,7 +106,7 @@ WebSocketClient.prototype = {
             var ds = this.startNewMessage(cLoginMessage, 1024);
             var loginText = JSON.stringify(this.loginData);
             ds.addUtf8String(loginText);
-            // Send suggestion to serve to use the highest protocol known to client, see what the client responds
+            // Send suggestion to server to use the highest protocol known to client, see what the server responds
             ds.addVLE(cHighestSupportedProtocolVersion);
             this.endAndQueueMessage(ds);
         }

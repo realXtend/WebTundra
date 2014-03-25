@@ -16,6 +16,7 @@ function Component(typeId) {
     this.attributeChanged = new signals.Signal();
     this.attributeAdded = new signals.Signal();
     this.attributeRemoved = new signals.Signal();
+    this.parentEntitySet = new signals.Signal();
 }
 
 Component.prototype = {
