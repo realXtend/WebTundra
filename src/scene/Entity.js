@@ -237,6 +237,7 @@ Entity.prototype = {
         var childEntity = this.parentScene.createEntity(id, changeType);
         if (childEntity)
             childEntity.setParent(this, changeType);
+        return childEntity;
     },
 
     get local(){
