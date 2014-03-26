@@ -547,7 +547,6 @@ ThreeView.prototype = {
             
         }
         
-        console.log(this.scene.matrixWorldNeedsUpdate);
         this.scene.matrixWorldNeedsUpdate = true;
         
     },

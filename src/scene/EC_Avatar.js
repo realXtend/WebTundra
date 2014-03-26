@@ -10,17 +10,15 @@ function EC_Avatar() {
     // Root entity for avatar.
     this.avatar;
     
-    this.avatarObject;
     this.attributeChanged.add(this.handleAssetRefChange.bind(this));
     
+    // Loading asset for the avatar.
     this.assetQuery = {};
     
     this.avatarLoaded = new signals.Signal();
     
     // Child entity ids created by the avatar.
     this.parts = [];
-    
-    this.previousRef = "";
     
 };
 
@@ -30,11 +28,8 @@ EC_Avatar.prototype.handleAssetRefChange = function ( attr, changeType ) {
     
     if ( attr.id === "appearanceRef" ) {
         
-        if ( this.previousRef !== this.appearanceRef.ref ) {
-            this.releaseAssets();
-            this.requestAsset();
-            this.previousRef = this.appearanceRef.ref;
-        }
+        this.releaseAssets();
+        this.requestAsset();
         
     }
     
@@ -74,10 +69,14 @@ EC_Avatar.prototype.requestAsset = function () {
             
             if ( xmlRequest.status === 200 || xmlRequest.status === 0 ) {
                 
-                thisIsThis.avatarObject = JSON.parse(xmlRequest.responseText);
-                if (thisIsThis.avatarObject !== null) {
+                var data = JSON.parse(xmlRequest.responseText);
+                if (data !== null) {
                     
-                    thisIsThis.setupAppearance();
+                    thisIsThis.setupAppearance(data);
+                    
+                } else {
+                    
+                    console.error( "Failed to parse asset data from " + ref );
                     
                 }
 
@@ -96,38 +95,38 @@ EC_Avatar.prototype.requestAsset = function () {
     
 };
 
-EC_Avatar.prototype.setupAppearance = function () {
+EC_Avatar.prototype.setupAppearance = function ( avatarData ) {
     
-    var avatarData = this.avatarObject;
-    if ( avatarData === undefined ) {
+    // If old avatar exists release it.
+    if ( this.parts.length > 0 )
+        this.releaseAssets();
+    
+    var data = avatarData;
+    if ( data === undefined ) {
         this.requestAsset();
         return;
     }
     
-    
-    if (this.parentEntity.name !== undefined) {
-        this.parentEntity.createComponent(0, cComponentTypeName, "", AttributeChange.LocalOnly);
-    }
-    this.parentEntity.name.name = avatarData.name;
+    /*if (this.parentEntity.name !== undefined)
+        this.parentEntity.createComponent(0, cComponentTypeName);
+    this.parentEntity.name.name = data.name;*/
+    this.parentEntity.name = data.name;
     
     var component;
     component = this.parentEntity.placeable;
     if ( component === undefined )
-        component = this.parentEntity.createComponent(0, cComponentTypePlaceable, "", AttributeChange.LocalOnly);
+        component = this.parentEntity.createComponent(0, cComponentTypePlaceable);
     
-    this.createGeometry( this.parentEntity, avatarData, true );
+    this.createGeometry( this.parentEntity, data, true );
     
-    if ( avatarData.animations !== undefined && avatarData.animations.length ) {
-        
-        component = this.parentEntity.createComponent(0, cComponentTypeAnimation, "", AttributeChange.LocalOnly);
-        
-    }
+    if ( data.animations !== undefined )
+        component = this.parentEntity.createComponent(0, cComponentTypeAnimation);
     
-    if ( avatarData.parts !== undefined ) {
+    if ( data.parts !== undefined ) {
         
-        for ( var i = 0; i < avatarData.parts.length; ++i ) {
+        for ( var i = 0; i < data.parts.length; ++i ) {
             
-            this.createChild( avatarData.parts[i] );
+            this.createChild( data.parts[i] );
             
         }
         
@@ -145,23 +144,23 @@ EC_Avatar.prototype.createChild = function ( child ) {
         child.transform === undefined )
         return;
     
-    var childEntity = this.parentEntity.parentScene.createEntity(0, AttributeChange.LocalOnly);
+    var childEntity = this.parentEntity.createChild(0);
     this.parts.push(childEntity.id);
     
-    var component = childEntity.createComponent(0, cComponentTypeName, "", AttributeChange.LocalOnly);
-    component.name = child.name;
+    childEntity.name = child.name;
     
     this.createPlaceable( childEntity, this.parentEntity, child );
     
     component = this.createGeometry( childEntity, child, false );
     
-    //this.parentEntity.animationController.addMesh(component);
+    if ( child.animations !== undefined )
+        component = this.parentEntity.createComponent(0, cComponentTypeAnimation);
     
 };
 
 EC_Avatar.prototype.createGeometry = function ( entity, data, useNodeTransform ) {
 
-    var component = entity.createComponent(0, cComponentTypeMesh, "", AttributeChange.LocalOnly);
+    var component = entity.createComponent(0, cComponentTypeMesh);
     var meshRef = component.meshRef;
     meshRef.ref = data.geometry;
     component.meshRef = meshRef;
@@ -206,7 +205,7 @@ EC_Avatar.prototype.createGeometry = function ( entity, data, useNodeTransform )
 
 EC_Avatar.prototype.createPlaceable = function ( entity, parent, data ) {
 
-    var component = entity.createComponent(0, cComponentTypePlaceable, "", AttributeChange.LocalOnly);
+    var component = entity.createComponent(0, cComponentTypePlaceable);
     
     var newTrans = component.transform;
 
@@ -267,6 +266,8 @@ EC_Avatar.prototype.checkAvatarAssets = function() {
         }
         
     }
+    
+    this.avatarLoaded.dispatch( this );
     
 };
 
