@@ -4,12 +4,12 @@ var cComponentTypeSky = 10;
 
 function EC_Sky() {
     Component.call(this, cComponentTypeSky);
-    this.addAttribute(cAttributeAssetReference, "materialRef", "Material");
-    this.addAttribute(cAttributeAssetReferenceList, "textureRefs", "Texture");
-    this.addAttribute(cAttributeQuat, "orientation", "Orientation");
-    this.addAttribute(cAttributeReal, "distance", "Distance", 999.0);
-    this.addAttribute(cAttributeBool, "drawFirst", "Draw first", true);
-    this.addAttribute(cAttributeBool, "enabled", "Enabled", true);
+    this.addAttribute(Tundra.cAttributeAssetReference, "materialRef", "Material");
+    this.addAttribute(Tundra.cAttributeAssetReferenceList, "textureRefs", "Texture");
+    this.addAttribute(Tundra.cAttributeQuat, "orientation", "Orientation");
+    this.addAttribute(Tundra.cAttributeReal, "distance", "Distance", 999.0);
+    this.addAttribute(Tundra.cAttributeBool, "drawFirst", "Draw first", true);
+    this.addAttribute(Tundra.cAttributeBool, "enabled", "Enabled", true);
 }
 
 EC_Sky.prototype = new Component(cComponentTypeSky);

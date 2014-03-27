@@ -1,9 +1,14 @@
 "use strict";
+/* jslint browser: true, globalstrict: true, devel: true, debug: true */
+/* global signals, Tundra */
 // For conditions of distribution and use, see copyright notice in LICENSE
+
+if (Tundra === undefined)
+    var Tundra = {};
 
 function Scene() {
     this.entities = {};
-    this.entityIdGenerator = new UniqueIdGenerator();
+    this.entityIdGenerator = new Tundra.UniqueIdGenerator();
     this.attributeChanged = new signals.Signal();
     this.attributeAdded = new signals.Signal();
     this.attributeRemoved = new signals.Signal();

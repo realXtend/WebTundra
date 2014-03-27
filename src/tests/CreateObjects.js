@@ -44,9 +44,9 @@ function manipulateEntities() {
     // Create a dynamic component to the third entity
     ent = scene.entityByName("Entity3");
     var dc = ent.createComponent(0, cComponentTypeDynamicComponent, "");
-    dc.createAttribute(0, cAttributeString, "Test String", "test");
-    dc.createAttribute(1, cAttributeInt, "Test Int", 100);
-    dc.createAttribute(2, cAttributeBool, "Test Bool", false);
+    dc.createAttribute(0, Tundra.cAttributeString, "Test String", "test");
+    dc.createAttribute(1, Tundra.cAttributeInt, "Test Int", 100);
+    dc.createAttribute(2, Tundra.cAttributeBool, "Test Bool", false);
 
     // Create component to the fourth entity, which we will remove later
     ent = scene.entityByName("Entity4");
@@ -84,5 +84,5 @@ function manipulateEntities2() {
     // Trigger a remote entity action on the fifth entity
     var params = ["Param1", "Param2", "Param3"];
     ent = scene.entityByName("Entity5");
-    ent.triggerAction("TestAction", params, cExecTypeServer | cExecTypePeers);
+    ent.triggerAction("TestAction", params, Tundra.cExecTypeServer | cExecTypePeers);
 }

@@ -91,8 +91,8 @@ function AnimationMeshInfo( animationController, mesh ) {
 
 function EC_AnimationController() {
     Component.call(this, cComponentTypeAnimation);
-    this.addAttribute(cAttributeString, "animationState", "", "");
-    this.addAttribute(cAttributeBool, "drawDebug", "", false);
+    this.addAttribute(Tundra.cAttributeString, "animationState", "", "");
+    this.addAttribute(Tundra.cAttributeBool, "drawDebug", "", false);
 
     // Map of animations that have their name as variable id.
     this.animations = new Object;

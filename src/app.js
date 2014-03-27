@@ -170,7 +170,7 @@ Application.prototype = {
         if (ent === null)
             console.log("objectClicked got nonexistent entity id " + entID);
         else
-            ent.triggerAction("MousePress", params, cExecTypeServer);
+            ent.triggerAction("MousePress", params, Tundra.cExecTypeServer);
     },
 
 };

@@ -149,11 +149,11 @@ Component.prototype = {
     },
 
     get local(){
-        return this.id >= cFirstLocalId;
+        return this.id >= Tundra.cFirstLocalId;
     },
 
     get unacked(){
-        return this.id >= cFirstUnackedId && this.id < cFirstLocalId;
+        return this.id >= Tundra.cFirstUnackedId && this.id < Tundra.cFirstLocalId;
     },
     
     // Trigger attribute change signal. Called by Attribute

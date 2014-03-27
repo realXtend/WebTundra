@@ -4,12 +4,12 @@ var cComponentTypePlaceable = 20;
 
 function EC_Placeable() {
     Component.call(this, cComponentTypePlaceable);
-    this.addAttribute(cAttributeTransform, "transform", "Transform");
-    this.addAttribute(cAttributeBool, "drawDebug", "Show bounding box", false);
-    this.addAttribute(cAttributeBool, "visible", "Visible", true);
-    this.addAttribute(cAttributeInt, "selectionLayer", "Selection layer", 1);
-    this.addAttribute(cAttributeEntityReference, "parentRef", "Parent entity ref");
-    this.addAttribute(cAttributeString, "parentBone", "Parent bone name");
+    this.addAttribute(Tundra.cAttributeTransform, "transform", "Transform");
+    this.addAttribute(Tundra.cAttributeBool, "drawDebug", "Show bounding box", false);
+    this.addAttribute(Tundra.cAttributeBool, "visible", "Visible", true);
+    this.addAttribute(Tundra.cAttributeInt, "selectionLayer", "Selection layer", 1);
+    this.addAttribute(Tundra.cAttributeEntityReference, "parentRef", "Parent entity ref");
+    this.addAttribute(Tundra.cAttributeString, "parentBone", "Parent bone name");
     this.attributeChanged.add(this.onAttributeChanged, this);
     this.targetEntity = null;
 

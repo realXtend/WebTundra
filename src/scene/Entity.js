@@ -1,10 +1,15 @@
 "use strict";
+/* jslint browser: true, globalstrict: true, devel: true, debug: true */
+/* global signals, Tundra */
 
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-var cExecTypeLocal = 1;
-var cExecTypeServer = 2;
-var cExecTypePeers = 4;
+if (Tundra === undefined)
+    var Tundra = {};
+
+Tundra.cExecTypeLocal = 1;
+Tundra.cExecTypeServer = 2;
+Tundra.cExecTypePeers = 4;
 
 function Entity() {
     this.components = {};
@@ -13,7 +18,7 @@ function Entity() {
     this.parent = null;
     this.id = 0;
     this.temporary = false;
-    this.componentIdGenerator = new UniqueIdGenerator();
+    this.componentIdGenerator = new Tundra.UniqueIdGenerator();
     this.componentAdded = new signals.Signal();
     this.componentRemoved = new signals.Signal();
     this.actionTriggered = new signals.Signal();
@@ -104,7 +109,7 @@ Entity.prototype = {
 
     triggerAction: function(name, params, execType) {
         if (execType == null)
-            execType = cExecTypeLocal;
+            execType = Tundra.cExecTypeLocal;
         this.actionTriggered.dispatch(name, params, execType);
         // Trigger scene level signal
         if (this.parentScene)
@@ -241,11 +246,11 @@ Entity.prototype = {
     },
 
     get local(){
-        return this.id >= cFirstLocalId;
+        return this.id >= Tundra.cFirstLocalId;
     },
 
     get unacked(){
-        return this.id >= cFirstUnackedId && this.id < cFirstLocalId;
+        return this.id >= Tundra.cFirstUnackedId && this.id < Tundra.cFirstLocalId;
     },
 
     get name()

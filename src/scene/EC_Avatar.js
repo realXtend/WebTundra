@@ -5,7 +5,7 @@ var cComponentTypeAvatar = 1;
 function EC_Avatar() {
     
     Component.call(this, cComponentTypeAvatar);
-    this.addAttribute(cAttributeAssetReference, "appearanceRef", "Reference to avatar file");
+    this.addAttribute(Tundra.cAttributeAssetReference, "appearanceRef", "Reference to avatar file");
     
     // Root entity for avatar.
     this.avatar;

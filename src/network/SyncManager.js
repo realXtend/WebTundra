@@ -476,7 +476,7 @@ SyncManager.prototype = {
     
     handleCreateEntityReply : function(dd) {
         var sceneId = dd.readVLE(); // Dummy sceneID for multi-scene support, yet unused
-        var entityId = dd.readVLE() + cFirstUnackedId;
+        var entityId = dd.readVLE() + Tundra.cFirstUnackedId;
         var serverEntityId = dd.readVLE();
         var entity = scene.entityById(entityId);
         if (entity == null) {
@@ -489,7 +489,7 @@ SyncManager.prototype = {
         var numComponentIdRewrites = dd.readVLE();
         for (var i = 0; i < numComponentIdRewrites; i++)
         {
-            var compId = dd.readVLE() + cFirstUnackedId;
+            var compId = dd.readVLE() + Tundra.cFirstUnackedId;
             var serverCompId = dd.readVLE();
             if (this.logDebug)
                 console.log("Server sent authoritative component id " + serverCompId + " for pending component id " + compId + ", reassigning");
@@ -508,7 +508,7 @@ SyncManager.prototype = {
         var numComponentIdRewrites = dd.readVLE();
         for (var i = 0; i < numComponentIdRewrites; i++)
         {
-            var compId = dd.readVLE() + cFirstUnackedId;
+            var compId = dd.readVLE() + Tundra.cFirstUnackedId;
             var serverCompId = dd.readVLE();
             if (this.logDebug)
                 console.log("Server sent authoritative component id " + serverCompId + " for pending component id " + compId + ", reassigning");
@@ -525,7 +525,7 @@ SyncManager.prototype = {
         for (var i = 0; i < numParams; i++)
             params.push(dd.readStringVLE());
         // Make sure the exectype is local so that we do not circulate the action back to server
-        execType = cExecTypeLocal;
+        execType = Tundra.cExecTypeLocal;
         var entity = scene.entityById(entityId);
         if (entity == null) {
             console.log("Entity id " + entityId + " not found when handling EntityAction message");
@@ -744,11 +744,11 @@ SyncManager.prototype = {
     },
 
     onActionTriggered : function(entity, name, params, execType) {
-        if (entity != null && execType > cExecTypeLocal) {
+        if (entity != null && execType > Tundra.cExecTypeLocal) {
             var ds = this.client.startNewMessage(cEntityAction, 4096);
             ds.addU32(entity.id);
             ds.addString(name);
-            ds.addU8(execType & (cExecTypeServer | cExecTypePeers));
+            ds.addU8(execType & (Tundra.cExecTypeServer | cExecTypePeers));
             if (params != null) {
                 ds.addU8(params.length);
                 for (var i = 0; i < params.length; i++)

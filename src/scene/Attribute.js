@@ -1,84 +1,90 @@
+"use strict";
+/* jslint browser: true, globalstrict: true, devel: true, debug: true */
+/* global signals, Tundra */
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-var cAttributeNoneTypeName = "";
-var cAttributeStringTypeName = "string";
-var cAttributeIntTypeName = "int";
-var cAttributeRealTypeName = "real";
-var cAttributeColorTypeName = "Color";
-var cAttributeFloat2TypeName = "float2";
-var cAttributeFloat3TypeName = "float3";
-var cAttributeFloat4TypeName = "float4";
-var cAttributeBoolTypeName = "bool";
-var cAttributeUIntTypeName = "uint";
-var cAttributeQuatTypeName = "Quat";
-var cAttributeAssetReferenceTypeName = "AssetReference";
-var cAttributeAssetReferenceListTypeName = "AssetReferenceList";
-var cAttributeEntityReferenceTypeName = "EntityReference";
-var cAttributeQVariantTypeName = "QVariant";
-var cAttributeQVariantListTypeName = "QVariantList";
-var cAttributeTransformTypeName = "Transform";
-var cAttributeQPointTypeName = "QPoint";
+if (Tundra === undefined)
+    var Tundra = {};
 
-var cAttributeNone = 0;
-var cAttributeString = 1;
-var cAttributeInt = 2;
-var cAttributeReal = 3;
-var cAttributeColor = 4;
-var cAttributeFloat2 = 5;
-var cAttributeFloat3 = 6;
-var cAttributeFloat4 = 7;
-var cAttributeBool = 8;
-var cAttributeUInt = 9;
-var cAttributeQuat = 10;
-var cAttributeAssetReference = 11;
-var cAttributeAssetReferenceList = 12;
-var cAttributeEntityReference = 13;
-var cAttributeQVariant = 14;
-var cAttributeQVariantList = 15;
-var cAttributeTransform = 16;
-var cAttributeQPoint = 17;
-var cNumAttributeTypes = 18;
+Tundra.cAttributeNoneTypeName = "";
+Tundra.cAttributeStringTypeName = "string";
+Tundra.cAttributeIntTypeName = "int";
+Tundra.cAttributeRealTypeName = "real";
+Tundra.cAttributeColorTypeName = "Color";
+Tundra.cAttributeFloat2TypeName = "float2";
+Tundra.cAttributeFloat3TypeName = "float3";
+Tundra.cAttributeFloat4TypeName = "float4";
+Tundra.cAttributeBoolTypeName = "bool";
+Tundra.cAttributeUIntTypeName = "uint";
+Tundra.cAttributeQuatTypeName = "Quat";
+Tundra.cAttributeAssetReferenceTypeName = "AssetReference";
+Tundra.cAttributeAssetReferenceListTypeName = "AssetReferenceList";
+Tundra.cAttributeEntityReferenceTypeName = "EntityReference";
+Tundra.cAttributeQVariantTypeName = "QVariant";
+Tundra.cAttributeQVariantListTypeName = "QVariantList";
+Tundra.cAttributeTransformTypeName = "Transform";
+Tundra.cAttributeQPointTypeName = "QPoint";
+
+Tundra.cAttributeNone = 0;
+Tundra.cAttributeString = 1;
+Tundra.cAttributeInt = 2;
+Tundra.cAttributeReal = 3;
+Tundra.cAttributeColor = 4;
+Tundra.cAttributeFloat2 = 5;
+Tundra.cAttributeFloat3 = 6;
+Tundra.cAttributeFloat4 = 7;
+Tundra.cAttributeBool = 8;
+Tundra.cAttributeUInt = 9;
+Tundra.cAttributeQuat = 10;
+Tundra.cAttributeAssetReference = 11;
+Tundra.cAttributeAssetReferenceList = 12;
+Tundra.cAttributeEntityReference = 13;
+Tundra.cAttributeQVariant = 14;
+Tundra.cAttributeQVariantList = 15;
+Tundra.cAttributeTransform = 16;
+Tundra.cAttributeQPoint = 17;
+Tundra.cNumAttributeTypes = 18;
 
 var attributeTypeNames = [
-    cAttributeNoneTypeName,
-    cAttributeStringTypeName,
-    cAttributeIntTypeName,
-    cAttributeRealTypeName,
-    cAttributeColorTypeName,
-    cAttributeFloat2TypeName,
-    cAttributeFloat3TypeName,
-    cAttributeFloat4TypeName,
-    cAttributeBoolTypeName,
-    cAttributeUIntTypeName,
-    cAttributeQuatTypeName,
-    cAttributeAssetReferenceTypeName,
-    cAttributeAssetReferenceListTypeName,
-    cAttributeEntityReferenceTypeName,
-    cAttributeQVariantTypeName,
-    cAttributeQVariantListTypeName,
-    cAttributeTransformTypeName,
-    cAttributeQPointTypeName
+    Tundra.cAttributeNoneTypeName,
+    Tundra.cAttributeStringTypeName,
+    Tundra.cAttributeIntTypeName,
+    Tundra.cAttributeRealTypeName,
+    Tundra.cAttributeColorTypeName,
+    Tundra.cAttributeFloat2TypeName,
+    Tundra.cAttributeFloat3TypeName,
+    Tundra.cAttributeFloat4TypeName,
+    Tundra.cAttributeBoolTypeName,
+    Tundra.cAttributeUIntTypeName,
+    Tundra.cAttributeQuatTypeName,
+    Tundra.cAttributeAssetReferenceTypeName,
+    Tundra.cAttributeAssetReferenceListTypeName,
+    Tundra.cAttributeEntityReferenceTypeName,
+    Tundra.cAttributeQVariantTypeName,
+    Tundra.cAttributeQVariantListTypeName,
+    Tundra.cAttributeTransformTypeName,
+    Tundra.cAttributeQPointTypeName
 ];
 
 var attributeTypeIds = {
-    "" : cAttributeNone,
-    "string" : cAttributeString,
-    "int" : cAttributeInt,
-    "real" : cAttributeReal,
-    "Color" : cAttributeColor,
-    "float2" : cAttributeFloat2,
-    "float3" : cAttributeFloat3,
-    "float4" : cAttributeFloat4,
-    "bool" : cAttributeBool,
-    "uint" : cAttributeUInt,
-    "Quat" : cAttributeQuat,
-    "AssetReference" : cAttributeAssetReference,
-    "AssetReferenceList" : cAttributeAssetReferenceList,
-    "EntityReference" : cAttributeEntityReference,
-    "QVariant" : cAttributeQVariant,
-    "QVariantList" : cAttributeQVariantList,
-    "Transform" : cAttributeTransform,
-    "QPoint" : cAttributeQPoint
+    "" : Tundra.cAttributeNone,
+    "string" : Tundra.cAttributeString,
+    "int" : Tundra.cAttributeInt,
+    "real" : Tundra.cAttributeReal,
+    "Color" : Tundra.cAttributeColor,
+    "float2" : Tundra.cAttributeFloat2,
+    "float3" : Tundra.cAttributeFloat3,
+    "float4" : Tundra.cAttributeFloat4,
+    "bool" : Tundra.cAttributeBool,
+    "uint" : Tundra.cAttributeUInt,
+    "Quat" : Tundra.cAttributeQuat,
+    "AssetReference" : Tundra.cAttributeAssetReference,
+    "AssetReferenceList" : Tundra.cAttributeAssetReferenceList,
+    "EntityReference" : Tundra.cAttributeEntityReference,
+    "QVariant" : Tundra.cAttributeQVariant,
+    "QVariantList" : Tundra.cAttributeQVariantList,
+    "Transform" : Tundra.cAttributeTransform,
+    "QPoint" : Tundra.cAttributeQPoint
 };
 
 var AttributeChange = {
@@ -121,10 +127,10 @@ Attribute.prototype = {
 // String
 
 function AttributeString() {
-    Attribute.call(this, cAttributeString);
+    Attribute.call(this, Tundra.cAttributeString);
     this.valueInternal = "";
 }
-AttributeString.prototype = new Attribute(cAttributeString);
+AttributeString.prototype = new Attribute(Tundra.cAttributeString);
 
 AttributeString.prototype.fromBinary = function(dd, changeType){
     this.set(dd.readUtf8String(), changeType);
@@ -137,10 +143,10 @@ AttributeString.prototype.toBinary = function(ds){
 // Int
 
 function AttributeInt() {
-    Attribute.call(this, cAttributeInt);
+    Attribute.call(this, Tundra.cAttributeInt);
     this.valueInternal = 0;
 }
-AttributeInt.prototype = new Attribute(cAttributeInt);
+AttributeInt.prototype = new Attribute(Tundra.cAttributeInt);
 
 AttributeInt.prototype.fromBinary = function(dd, changeType){
     this.set(dd.readS32(), changeType);
@@ -153,11 +159,11 @@ AttributeInt.prototype.toBinary = function(ds){
 // Real
 
 function AttributeReal() {
-    Attribute.call(this, cAttributeReal);
+    Attribute.call(this, Tundra.cAttributeReal);
     this.valueInternal = 0.0;
 }
 
-AttributeReal.prototype = new Attribute(cAttributeReal);
+AttributeReal.prototype = new Attribute(Tundra.cAttributeReal);
 
 AttributeReal.prototype.fromBinary = function(dd, changeType){
     this.set(dd.readFloat(), changeType);
@@ -170,7 +176,7 @@ AttributeReal.prototype.toBinary = function(ds){
 // Color
 
 function AttributeColor() {
-    Attribute.call(this, cAttributeColor);
+    Attribute.call(this, Tundra.cAttributeColor);
     this.valueInternal = {};
     this.valueInternal.r = 0.0;
     this.valueInternal.g = 0.0;
@@ -178,7 +184,7 @@ function AttributeColor() {
     this.valueInternal.a = 0.0;
 }
 
-AttributeColor.prototype = new Attribute(cAttributeColor);
+AttributeColor.prototype = new Attribute(Tundra.cAttributeColor);
 
 AttributeColor.prototype.fromBinary = function(dd, changeType){
     var newValue = {};
@@ -199,13 +205,13 @@ AttributeColor.prototype.toBinary = function(ds){
 // Float2
 
 function AttributeFloat2() {
-    Attribute.call(this, cAttributeFloat2);
+    Attribute.call(this, Tundra.cAttributeFloat2);
     this.valueInternal = {};
     this.valueInternal.x = 0.0;
     this.valueInternal.y = 0.0;
 }
 
-AttributeFloat2.prototype = new Attribute(cAttributeFloat2);
+AttributeFloat2.prototype = new Attribute(Tundra.cAttributeFloat2);
 
 AttributeFloat2.prototype.fromBinary = function(dd, changeType){
     var newValue = {};
@@ -222,14 +228,14 @@ AttributeFloat2.prototype.toBinary = function(ds){
 // Float3
 
 function AttributeFloat3() {
-    Attribute.call(this, cAttributeFloat3);
+    Attribute.call(this, Tundra.cAttributeFloat3);
     this.valueInternal = {};
     this.valueInternal.x = 0.0;
     this.valueInternal.y = 0.0;
     this.valueInternal.z = 0.0;
 }
 
-AttributeFloat3.prototype = new Attribute(cAttributeFloat3);
+AttributeFloat3.prototype = new Attribute(Tundra.cAttributeFloat3);
 
 AttributeFloat3.prototype.fromBinary = function(dd, changeType){
     var newValue = {};
@@ -248,7 +254,7 @@ AttributeFloat3.prototype.toBinary = function(ds){
 // Float4
 
 function AttributeFloat4() {
-    Attribute.call(this, cAttributeFloat4);
+    Attribute.call(this, Tundra.cAttributeFloat4);
     this.valueInternal = {};
     this.valueInternal.x = 0.0;
     this.valueInternal.y = 0.0;
@@ -256,7 +262,7 @@ function AttributeFloat4() {
     this.valueInternal.w = 0.0;
 }
 
-AttributeFloat4.prototype = new Attribute(cAttributeFloat4);
+AttributeFloat4.prototype = new Attribute(Tundra.cAttributeFloat4);
 
 AttributeFloat4.prototype.fromBinary = function(dd, changeType){
     var newValue = {};
@@ -277,11 +283,11 @@ AttributeFloat4.prototype.toBinary = function(ds){
 // Bool
 
 function AttributeBool() {
-    Attribute.call(this, cAttributeBool);
+    Attribute.call(this, Tundra.cAttributeBool);
     this.valueInternal = false;
 }
 
-AttributeBool.prototype = new Attribute(cAttributeBool);
+AttributeBool.prototype = new Attribute(Tundra.cAttributeBool);
 
 AttributeBool.prototype.fromBinary = function(dd, changeType){
     this.set(dd.readU8() > 0 ? true : false, changeType);
@@ -294,10 +300,10 @@ AttributeBool.prototype.toBinary = function(ds){
 // UInt
 
 function AttributeUInt() {
-    Attribute.call(this, cAttributeUInt);
+    Attribute.call(this, Tundra.cAttributeUInt);
     this.valueInternal = 0;
 }
-AttributeUInt.prototype = new Attribute(cAttributeUInt);
+AttributeUInt.prototype = new Attribute(Tundra.cAttributeUInt);
 
 AttributeUInt.prototype.fromBinary = function(dd, changeType){
     this.set(dd.readU32(), changeType);
@@ -310,7 +316,7 @@ AttributeUInt.prototype.toBinary = function(ds){
 // Quat
 
 function AttributeQuat() {
-    Attribute.call(this, cAttributeQuat);
+    Attribute.call(this, Tundra.cAttributeQuat);
     this.valueInternal = {};
     this.valueInternal.x = 0.0;
     this.valueInternal.y = 0.0;
@@ -318,7 +324,7 @@ function AttributeQuat() {
     this.valueInternal.w = 0.0;
 }
 
-AttributeQuat.prototype = new Attribute(cAttributeQuat);
+AttributeQuat.prototype = new Attribute(Tundra.cAttributeQuat);
 
 AttributeQuat.prototype.fromBinary = function(dd, changeType){
     var newValue = {};
@@ -339,12 +345,12 @@ AttributeQuat.prototype.toBinary = function(ds){
 // AssetReference
 
 function AttributeAssetReference() {
-    Attribute.call(this, cAttributeAssetReference);
+    Attribute.call(this, Tundra.cAttributeAssetReference);
     this.valueInternal = {}
     this.valueInternal.ref = "";
     this.valueInternal.type = "";
 }
-AttributeAssetReference.prototype = new Attribute(cAttributeAssetReference);
+AttributeAssetReference.prototype = new Attribute(Tundra.cAttributeAssetReference);
 
 AttributeAssetReference.prototype.fromBinary = function(dd, changeType){
     var oldValue = this.value;
@@ -359,11 +365,11 @@ AttributeAssetReference.prototype.toBinary = function(ds){
 // AssetReferenceList
 
 function AttributeAssetReferenceList() {
-    Attribute.call(this, cAttributeAssetReferenceList);
+    Attribute.call(this, Tundra.cAttributeAssetReferenceList);
     this.valueInternal = []
 }
 
-AttributeAssetReferenceList.prototype = new Attribute(cAttributeAssetReference);
+AttributeAssetReferenceList.prototype = new Attribute(Tundra.cAttributeAssetReference);
 
 AttributeAssetReferenceList.prototype.fromBinary = function(dd, changeType){
     var newValue = [];
@@ -389,10 +395,10 @@ AttributeAssetReferenceList.prototype.toBinary = function(ds){
 // EntityReference
 
 function AttributeEntityReference() {
-    Attribute.call(this, cAttributeEntityReference);
+    Attribute.call(this, Tundra.cAttributeEntityReference);
     this.valueInternal = "";
 }
-AttributeEntityReference.prototype = new Attribute(cAttributeEntityReference);
+AttributeEntityReference.prototype = new Attribute(Tundra.cAttributeEntityReference);
 
 AttributeEntityReference.prototype.fromBinary = function(dd, changeType){
     this.set(dd.readString(), changeType); // Todo: migrate to Utf8String in the protocol
@@ -405,10 +411,10 @@ AttributeEntityReference.prototype.toBinary = function(ds){
 // QVariant
 
 function AttributeQVariant() {
-    Attribute.call(this, cAttributeQVariant);
+    Attribute.call(this, Tundra.cAttributeQVariant);
     this.valueInternal = "";
 }
-AttributeQVariant.prototype = new Attribute(cAttributeQVariant);
+AttributeQVariant.prototype = new Attribute(Tundra.cAttributeQVariant);
 
 AttributeQVariant.prototype.fromBinary = function(dd, changeType){
     this.set(dd.readString(), changeType); // Todo: migrate to Utf8String in the protocol
@@ -421,10 +427,10 @@ AttributeQVariant.prototype.toBinary = function(ds){
 // QVariantList
 
 function AttributeQVariantList() {
-    Attribute.call(this, cAttributeQVariantList);
+    Attribute.call(this, Tundra.cAttributeQVariantList);
     this.valueInternal = [];
 }
-AttributeQVariantList.prototype = new Attribute(cAttributeQVariantList);
+AttributeQVariantList.prototype = new Attribute(Tundra.cAttributeQVariantList);
 
 AttributeQVariantList.prototype.fromBinary = function(dd, changeType){
     var newValue = [];
@@ -443,7 +449,7 @@ AttributeQVariantList.prototype.toBinary = function(ds){
 // Transform
 
 function AttributeTransform() {
-    Attribute.call(this, cAttributeTransform);
+    Attribute.call(this, Tundra.cAttributeTransform);
     this.valueInternal = {};
     this.valueInternal.pos = {};
     this.valueInternal.rot = {};
@@ -459,7 +465,7 @@ function AttributeTransform() {
     this.valueInternal.scale.z = 1.0;
 }
 
-AttributeTransform.prototype = new Attribute(cAttributeTransform);
+AttributeTransform.prototype = new Attribute(Tundra.cAttributeTransform);
 
 AttributeTransform.prototype.fromBinary = function(dd, changeType){
     var newValue = {};
@@ -493,13 +499,13 @@ AttributeTransform.prototype.toBinary = function(ds){
 // QPoint
 
 function AttributeQPoint() {
-    Attribute.call(this, cAttributeQPoint);
+    Attribute.call(this, Tundra.cAttributeQPoint);
     this.valueInternal = {};
     this.valueInternal.x = 0;
     this.valueInternal.y = 0;
 }
 
-AttributeQPoint.prototype = new Attribute(cAttributeQPoint);
+AttributeQPoint.prototype = new Attribute(Tundra.cAttributeQPoint);
 
 AttributeQPoint.prototype.fromBinary = function(dd, changeType){
     var newValue = {};
@@ -520,39 +526,39 @@ function createAttribute(typeId) {
 
     switch (typeId)
     {
-    case cAttributeString:
+    case Tundra.cAttributeString:
         return new AttributeString();
-    case cAttributeInt:
+    case Tundra.cAttributeInt:
         return new AttributeInt();
-    case cAttributeReal:
+    case Tundra.cAttributeReal:
         return new AttributeReal();
-    case cAttributeColor:
+    case Tundra.cAttributeColor:
         return new AttributeColor();
-    case cAttributeFloat2:
+    case Tundra.cAttributeFloat2:
         return new AttributeFloat2();
-    case cAttributeFloat3:
+    case Tundra.cAttributeFloat3:
         return new AttributeFloat3();
-    case cAttributeFloat4:
+    case Tundra.cAttributeFloat4:
         return new AttributeFloat4();
-    case cAttributeBool:
+    case Tundra.cAttributeBool:
         return new AttributeBool();
-    case cAttributeUInt:
+    case Tundra.cAttributeUInt:
         return new AttributeUInt();
-    case cAttributeQuat:
+    case Tundra.cAttributeQuat:
         return new AttributeQuat();
-    case cAttributeAssetReference:
+    case Tundra.cAttributeAssetReference:
         return new AttributeAssetReference();
-    case cAttributeAssetReferenceList:
+    case Tundra.cAttributeAssetReferenceList:
         return new AttributeAssetReferenceList();
-    case cAttributeEntityReference:
+    case Tundra.cAttributeEntityReference:
         return new AttributeEntityReference();
-    case cAttributeQVariant:
+    case Tundra.cAttributeQVariant:
         return new AttributeQVariant();
-    case cAttributeQVariantList:
+    case Tundra.cAttributeQVariantList:
         return new AttributeQVariantList();
-    case cAttributeTransform:
+    case Tundra.cAttributeTransform:
         return new AttributeTransform();
-    case cAttributeQPoint:
+    case Tundra.cAttributeQPoint:
         return new AttributeQPoint();
     default:
         console.log("Can not create unknown attribute type " + typeId);

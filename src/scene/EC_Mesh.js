@@ -5,13 +5,13 @@ var cComponentTypeMesh = 17;
 function EC_Mesh() {
     
     Component.call(this, cComponentTypeMesh);
-    this.addAttribute(cAttributeTransform, "nodeTransformation", "Transform");
-    this.addAttribute(cAttributeAssetReference, "meshRef", "Mesh ref");
-    this.addAttribute(cAttributeAssetReference, "skeletonRef", "Skeleton ref");
-    this.addAttribute(cAttributeAssetReferenceList, "meshMaterial", "Mesh materials");
-    this.addAttribute(cAttributeReal, "drawDistance", "Draw distance");
-    this.addAttribute(cAttributeBool, "castShadows", "Cast shadows", false);
-    this.addAttribute(cAttributeBool, "useInstancing", "Use instancing", false);
+    this.addAttribute(Tundra.cAttributeTransform, "nodeTransformation", "Transform");
+    this.addAttribute(Tundra.cAttributeAssetReference, "meshRef", "Mesh ref");
+    this.addAttribute(Tundra.cAttributeAssetReference, "skeletonRef", "Skeleton ref");
+    this.addAttribute(Tundra.cAttributeAssetReferenceList, "meshMaterial", "Mesh materials");
+    this.addAttribute(Tundra.cAttributeReal, "drawDistance", "Draw distance");
+    this.addAttribute(Tundra.cAttributeBool, "castShadows", "Cast shadows", false);
+    this.addAttribute(Tundra.cAttributeBool, "useInstancing", "Use instancing", false);
     
     this.assetReady = false;
     
