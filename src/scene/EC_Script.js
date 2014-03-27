@@ -3,7 +3,7 @@
 var cComponentTypeScript = 5;
 
 function EC_Script() {
-    Component.call(this, cComponentTypeScript);
+    Tundra.Component.call(this, cComponentTypeScript);
     this.addAttribute(Tundra.cAttributeAssetReferenceList, "scriptRef", "Script ref");
     this.addAttribute(Tundra.cAttributeBool, "runOnLoad", "Run on load", false);
     this.addAttribute(Tundra.cAttributeInt, "runMode", "Run mode");
@@ -11,6 +11,6 @@ function EC_Script() {
     this.addAttribute(Tundra.cAttributeString, "className", "Script class name");
 }
 
-EC_Script.prototype = new Component(cComponentTypeScript);
+EC_Script.prototype = new Tundra.Component(cComponentTypeScript);
 
-registerComponent(cComponentTypeScript, "Script", function(){ return new EC_Script(); });
+Tundra.registerComponent(cComponentTypeScript, "Script", function(){ return new EC_Script(); });

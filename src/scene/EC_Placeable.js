@@ -1,9 +1,15 @@
+"use strict";
+/* jslint browser: true, globalstrict: true, devel: true, debug: true */
+/* global signals */
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-var cComponentTypePlaceable = 20;
+if (Tundra === undefined)
+    var Tundra = {};
 
-function EC_Placeable() {
-    Component.call(this, cComponentTypePlaceable);
+Tundra.cComponentTypePlaceable = 20;
+
+Tundra.EC_Placeable = function() {
+    Tundra.Component.call(this, Tundra.cComponentTypePlaceable);
     this.addAttribute(Tundra.cAttributeTransform, "transform", "Transform");
     this.addAttribute(Tundra.cAttributeBool, "drawDebug", "Show bounding box", false);
     this.addAttribute(Tundra.cAttributeBool, "visible", "Visible", true);
@@ -18,20 +24,20 @@ function EC_Placeable() {
     this.parentRefReady = new signals.Signal();
 }
 
-EC_Placeable.prototype = new Component(cComponentTypePlaceable);
+Tundra.EC_Placeable.prototype = new Tundra.Component(Tundra.cComponentTypePlaceable);
 
-EC_Placeable.prototype.connectToEntity = function() {
+Tundra.EC_Placeable.prototype.connectToEntity = function() {
     // When we are first added to the entity, check parent ref. Also re-check it if the entity is re-parented
     this.parentEntity.parentChanged.add(this.checkParentRef, this);
     this.checkParentRef();
 }
 
-EC_Placeable.prototype.checkParentRef = function() {
+Tundra.EC_Placeable.prototype.checkParentRef = function() {
 
     if (this.parentRef) {
 
         var parentEnt = this.parentEntity.parentScene.entityById(this.parentRef);
-        if (parentEnt && parentEnt.componentByType(cComponentTypePlaceable)) {
+        if (parentEnt && parentEnt.componentByType(Tundra.cComponentTypePlaceable)) {
             
             this.setParentEntity(parentEnt);
             this.targetEntity = parentEnt;
@@ -57,7 +63,7 @@ EC_Placeable.prototype.checkParentRef = function() {
     }
 }
 
-EC_Placeable.prototype.onAttributeChanged = function(attr, changeType) {
+Tundra.EC_Placeable.prototype.onAttributeChanged = function(attr, changeType) {
     
     if (attr.id === "visible") {
         
@@ -85,9 +91,9 @@ EC_Placeable.prototype.onAttributeChanged = function(attr, changeType) {
     }
 };
 
-EC_Placeable.prototype.setVisible = function( visible ) {};
+Tundra.EC_Placeable.prototype.setVisible = function( visible ) {};
 
-EC_Placeable.prototype.waitParent = function(addedEntity, changeType) {
+Tundra.EC_Placeable.prototype.waitParent = function(addedEntity, changeType) {
     
     if (addedEntity.id === this.parentRef) {
         
@@ -104,9 +110,9 @@ EC_Placeable.prototype.waitParent = function(addedEntity, changeType) {
     
 };
 
-EC_Placeable.prototype.updateTransform = function() {}
+Tundra.EC_Placeable.prototype.updateTransform = function() {}
 
-EC_Placeable.prototype.setParentEntity = function ( entity ) {};
+Tundra.EC_Placeable.prototype.setParentEntity = function ( entity ) {};
 
-registerComponent(cComponentTypePlaceable, "Placeable", function(){ return new EC_Placeable(); });
+Tundra.registerComponent(Tundra.cComponentTypePlaceable, "Placeable", function(){ return new Tundra.EC_Placeable(); });
         

@@ -3,10 +3,10 @@
 var cComponentTypeDynamicComponent = 25;
 
 function EC_DynamicComponent() {
-    Component.call(this, cComponentTypeDynamicComponent);
+    Tundra.Component.call(this, cComponentTypeDynamicComponent);
     this.supportsDynamicAttributes = true;
 }
 
-EC_DynamicComponent.prototype = new Component(cComponentTypeDynamicComponent);
+EC_DynamicComponent.prototype = new Tundra.Component(cComponentTypeDynamicComponent);
 
-registerComponent(cComponentTypeDynamicComponent, "DynamicComponent", function(){ return new EC_DynamicComponent(); });
+Tundra.registerComponent(cComponentTypeDynamicComponent, "DynamicComponent", function(){ return new EC_DynamicComponent(); });

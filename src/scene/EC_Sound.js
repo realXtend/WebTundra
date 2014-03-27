@@ -3,7 +3,7 @@
 var cComponentTypeSound = 6;
 
 function EC_Sound() {
-    Component.call(this, cComponentTypeSound);
+    Tundra.Component.call(this, cComponentTypeSound);
     this.addAttribute(Tundra.cAttributeAssetReference, "soundRef", "Sound ref");
     this.addAttribute(Tundra.cAttributeReal, "soundInnerRadius", "Sound radius inner", 0.0);
     this.addAttribute(Tundra.cAttributeReal, "soundOuterRadius", "Sound radius outer", 20.0);
@@ -13,6 +13,6 @@ function EC_Sound() {
     this.addAttribute(Tundra.cAttributeBool, "spatial", "Spatial", true);
 }
 
-EC_Sound.prototype = new Component(cComponentTypeSound);
+EC_Sound.prototype = new Tundra.Component(cComponentTypeSound);
 
-registerComponent(cComponentTypeSound, "Sound", function(){ return new EC_Sound(); });
+Tundra.registerComponent(cComponentTypeSound, "Sound", function(){ return new EC_Sound(); });

@@ -3,7 +3,7 @@
 var cComponentTypeEnvironmentLight = 8;
 
 function EC_EnvironmentLight() {
-    Component.call(this, cComponentTypeEnvironmentLight);
+    Tundra.Component.call(this, cComponentTypeEnvironmentLight);
     this.addAttribute(Tundra.cAttributeColor, "sunColor", "Sunlight color");
     this.addAttribute(Tundra.cAttributeColor, "ambientColor", "Ambient light color");
     this.addAttribute(Tundra.cAttributeFloat3, "sunDirection", "Sunlight direction vector");
@@ -11,6 +11,6 @@ function EC_EnvironmentLight() {
     this.addAttribute(Tundra.cAttributeReal, "brightness", "Brightness", 1.0);
 }
 
-EC_EnvironmentLight.prototype = new Component(cComponentTypeEnvironmentLight);
+EC_EnvironmentLight.prototype = new Tundra.Component(cComponentTypeEnvironmentLight);
 
-registerComponent(cComponentTypeEnvironmentLight, "EnvironmentLight", function(){ return new EC_EnvironmentLight(); });
+Tundra.registerComponent(cComponentTypeEnvironmentLight, "EnvironmentLight", function(){ return new EC_EnvironmentLight(); });

@@ -12,7 +12,7 @@ Tundra.componentFactories = {};
 Tundra.customComponentTypes = {};
 Tundra.customComponentRegistered = new signals.Signal();
 
-function Component(typeId) {
+Tundra.Component = function(typeId) {
     this.parentEntity = null;
     this.typeId = typeId;
     this.name = "";
@@ -23,9 +23,9 @@ function Component(typeId) {
     this.attributeAdded = new signals.Signal();
     this.attributeRemoved = new signals.Signal();
     this.parentEntitySet = new signals.Signal();
-}
+};
 
-Component.prototype = {
+Tundra.Component.prototype = {
     // Add a new static attribute at initialization
     addAttribute: function(typeId, id, name, value) {
         var newAttr = Tundra.createAttribute(typeId);
@@ -47,7 +47,7 @@ Component.prototype = {
     // Create a dynamic attribute during runtime
     createAttribute: function(index, typeId, name, value, changeType) {
         if (!this.supportsDynamicAttributes) {
-            console.log("Component " + this.typeName + " does not support adding dynamic attributes");
+            console.log("Tundra.Component " + this.typeName + " does not support adding dynamic attributes");
             return null;
         }
         var newAttr = createAttribute(typeId);
@@ -103,7 +103,7 @@ Component.prototype = {
     // Remove a dynamic attribute during runtime
     removeAttribute : function(index, changeType) {
         if (!this.supportsDynamicAttributes) {
-            console.log("Component " + this.typeName + " does not support dynamic attributes");
+            console.log("Tundra.Component " + this.typeName + " does not support dynamic attributes");
             return null;
         }
         if (index < this.attributes.length && this.attributes[index] != null) {
@@ -179,17 +179,17 @@ Component.prototype = {
 }
 
 // This function is meant for ordinary components that have a C++ counterpart in the Tundra server
-function registerComponent(typeId, typeName, factory) {
+Tundra.registerComponent = function(typeId, typeName, factory) {
     console.log("Registering component typeId " + typeId + " typename " + typeName);
     Tundra.componentTypeNames[typeId] = typeName;
     Tundra.componentTypeIds[typeName] = typeId;
     Tundra.componentFactories[typeId] = factory;
-}
+};
 
 // This function registers a static-structured component without C++ counterpart in the server.
 // A blueprint component needs to be provided. SyncManager will replicate the attribute structure
 // to the server when joining
-function registerCustomComponent(typeName, blueprintComponent, changeType) {
+Tundra.registerCustomComponent = function(typeName, blueprintComponent, changeType) {
     if (blueprintComponent == null)
         return;
 
@@ -197,19 +197,19 @@ function registerCustomComponent(typeName, blueprintComponent, changeType) {
         changeType = Tundra.AttributeChange.Default;
 
     // In WebTundra the convention is to use component typenames without EC_ prefix
-    typeName = ensureTypeNameWithoutPrefix(typeName);
+    typeName = Tundra.ensureTypeNameWithoutPrefix(typeName);
 
     // Calculate typeId if necessary
     var typeId = blueprintComponent.typeId;
     if (typeId === undefined || typeId === null || typeId == 0 || typeId == 0xffffffff)
-        typeId = generateComponentTypeId(typeName)
+        typeId = Tundra.generateComponentTypeId(typeName)
 
     console.log("Registering custom component typeId " + typeId + " typename " + typeName);
 
     Tundra.componentTypeNames[typeId] = typeName;
     Tundra.componentTypeIds[typeName] = typeId;
     Tundra.componentFactories[typeId] = function() {
-        var comp = new Component(typeId);
+        var comp = new Tundra.Component(typeId);
         var attributes = blueprintComponent.attributes;
 
         for (var i = 0; i < attributes.length; ++i)
@@ -221,25 +221,25 @@ function registerCustomComponent(typeName, blueprintComponent, changeType) {
     // Remember the type and signal for the SyncManager
     Tundra.customComponentTypes[typeId] = typeName;
     Tundra.customComponentRegistered.dispatch(typeId, typeName, changeType);
-}
+};
 
-function ensureTypeNameWithPrefix(typeName) {
+Tundra.ensureTypeNameWithPrefix = function(typeName) {
     if (typeName.indexOf("EC_") != 0)
         return "EC_" + typeName;
     else
         return typeName;
 }
 
-function ensureTypeNameWithoutPrefix(typeName) {
+Tundra.ensureTypeNameWithoutPrefix = function(typeName) {
     if (typeName.indexOf("EC_") == 0)
         return typeName.substring(3);
     else
         return typeName;
 }
 
-function generateComponentTypeId(typeName)
+Tundra.generateComponentTypeId = function(typeName)
 {
-    typeName = ensureTypeNameWithoutPrefix(typeName).toLowerCase();
+    typeName = Tundra.ensureTypeNameWithoutPrefix(typeName).toLowerCase();
     // SDBM hash function
     var h = 0;
     for (var i = 0; i < typeName.length; ++i) {
@@ -248,12 +248,12 @@ function generateComponentTypeId(typeName)
     h &= 0xffff;
     h |= 0x10000;
     return h;
-}
+};
 
-function createComponent(typeId) {
+Tundra.createComponent = function(typeId) {
     // Convert typename to numeric ID if necessary
     if (typeof typeId == 'string' || typeId instanceof String)
-        typeId = Tundra.componentTypeIds[ensureTypeNameWithoutPrefix(typeId)];
+        typeId = Tundra.componentTypeIds[Tundra.ensureTypeNameWithoutPrefix(typeId)];
     if (Tundra.componentFactories.hasOwnProperty(typeId))
         return Tundra.componentFactories[typeId]();
     else
@@ -261,4 +261,4 @@ function createComponent(typeId) {
         console.log("Could not create unknown component " + typeId);
         return null;
     }
-}
+};

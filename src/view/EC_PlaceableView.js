@@ -1,6 +1,6 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-ThreeView.prototype.PlaceableIntialize = function ( entity, component ) {
+Tundra.ThreeView.prototype.PlaceableIntialize = function ( entity, component ) {
     
     component.setParentEntity = placeable_SetParentEntity;
     
@@ -86,5 +86,5 @@ var placeable_setPosition = function ( x, y, z ) {
     transform.pos.z = z;
     this.transform = transform;
     
-}
-EC_Placeable.prototype.setParentEntity = function ( entity ) {};
+};
+Tundra.EC_Placeable.prototype.setParentEntity = function ( entity ) {};

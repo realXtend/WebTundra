@@ -398,7 +398,7 @@ Tundra.SyncManager.prototype = {
             var compId = dd.readVLE();
             var component = entity.componentById(compId);
             if (component == null) {
-                console.log("Component id " + compId + " not found in entity id " + entityId + " when handling EditAttributes message");
+                console.log("Tundra.Component id " + compId + " not found in entity id " + entityId + " when handling EditAttributes message");
                 return;
             }
             var compDataSize = dd.readVLE();
@@ -443,7 +443,7 @@ Tundra.SyncManager.prototype = {
             var compId = dd.readVLE();
             var component = entity.componentById(compId);
             if (component == null) {
-                console.log("Component id " + compId + " not found in entity id " + entityId + " when handling CreateAttributes message");
+                console.log("Tundra.Component id " + compId + " not found in entity id " + entityId + " when handling CreateAttributes message");
                 return;
             }
             var attrIndex = dd.readU8();
@@ -545,7 +545,7 @@ Tundra.SyncManager.prototype = {
         var typeId = dd.readVLE();
         var typeName = dd.readString();
 
-        var blueprint = new Component(typeId);
+        var blueprint = new Tundra.Component(typeId);
         var numAttrs = dd.readVLE();
         for (var i = 0; i < numAttrs; i++) {
             var typeId = dd.readU8();
@@ -555,7 +555,7 @@ Tundra.SyncManager.prototype = {
         }
 
         // Register as local only -> don't echo back to server
-        registerCustomComponent(typeName, blueprint, Tundra.AttributeChange.LocalOnly);
+        Tundra.registerCustomComponent(typeName, blueprint, Tundra.AttributeChange.LocalOnly);
     },
     
     handleSetEntityParent : function(dd) {
@@ -657,7 +657,7 @@ Tundra.SyncManager.prototype = {
     },
 
     replicateComponentType : function(typeId) {
-        var component = createComponent(typeId);
+        var component = Tundra.createComponent(typeId);
         if (!component)
         {
             console.log("Custom component type " + typeId + " not registered as a factory, can not replicate");
@@ -672,7 +672,7 @@ Tundra.SyncManager.prototype = {
         var ds = this.client.startNewMessage(Tundra.cRegisterComponentType, 65536);
         ds.addVLE(component.typeId);
         // For now the native Tundra server expects typenames with the EC_ prefix
-        ds.addString(ensureTypeNameWithPrefix(component.typeName));
+        ds.addString(Tundra.ensureTypeNameWithPrefix(component.typeName));
         ds.addVLE(component.attributes.length);
         for (var i = 0; i < component.attributes.length; i++) {
             var attr = component.attributes[i];

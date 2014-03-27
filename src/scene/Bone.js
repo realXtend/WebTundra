@@ -5,11 +5,6 @@
 if (Tundra === undefined)
     var Tundra = {};
 
-if (true) {
-    // transitioning to namespace
-    Tundra.EC_Mesh = EC_Mesh;
-}
-
 Tundra.Bone = function ( name, parent ) {
     
     this.name = name;

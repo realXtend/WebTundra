@@ -126,21 +126,21 @@ Tundra.Scene.prototype = {
         return ret;
     },
 
-    // Trigger scene-level attribute change signal. Called by Component
+    // Trigger scene-level attribute change signal. Called by Tundra.Component
     emitAttributeChanged : function(comp, attr, changeType) {
         if (changeType == Tundra.AttributeChange.Disconnected)
             return;
         this.attributeChanged.dispatch(comp, attr, changeType);
     },
 
-    // Trigger scene-level attribute added signal. Called by Component
+    // Trigger scene-level attribute added signal. Called by Tundra.Component
     emitAttributeAdded : function(comp, attr, changeType) {
         if (changeType == Tundra.AttributeChange.Disconnected)
             return;
         this.attributeAdded.dispatch(comp, attr, changeType);
     },
 
-    // Trigger scene-level attribute removed signal. Called by Component
+    // Trigger scene-level attribute removed signal. Called by Tundra.Component
     emitAttributeRemoved : function(comp, attr, changeType) {
         if (changeType == Tundra.AttributeChange.Disconnected)
             return;

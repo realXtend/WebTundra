@@ -149,7 +149,7 @@ Tundra.ThreeView.prototype = {
         else if (component instanceof Tundra.EC_AnimationController)
             this.onAnimatorAddedOrChanged(threeGroup, component);
         else
-            console.log("Component not handled by ThreeView:", entity, component);
+            console.log("Tundra.Component not handled by ThreeView:", entity, component);
     },
     
     OnEntityAction : function( name, params, execType ) {
@@ -820,15 +820,11 @@ if (true) {
     Tundra.check = check;
     Tundra.checkDefined = checkDefined;
     Tundra.Skeleton = Skeleton;
-    Tundra.EC_Placeable = EC_Placeable;
-    Tundra.EC_Mesh = EC_Mesh;
     Tundra.EC_Light = EC_Light;
     Tundra.EC_Camera = EC_Camera;
     Tundra.LT_Spot = LT_Spot;
     Tundra.EC_AnimationController = EC_AnimationController;
-    Tundra.Component = Component;
     Tundra.Entity = Entity;
-    var ThreeView = Tundra.ThreeView;
 }
 
 Tundra.EC_Placeable.prototype.toString = function() {

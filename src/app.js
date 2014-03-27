@@ -78,8 +78,8 @@ Application.prototype = {
         for (var i = 0; i < this.cubeCount; i++) {
             var ent = scene.createEntity(i + 1000);
             this.testEntities.push(ent);
-            var placeable = ent.createComponent("placeable", "Placeable", "");
-            var mesh = ent.createComponent("mesh", "Mesh", "placeable");
+            var placeable = ent.Tundra.createComponent("placeable", "Placeable", "");
+            var mesh = ent.Tundra.createComponent("mesh", "Mesh", "placeable");
             placeable.transform.pos.x = i * 150;
             placeable.transform.pos.y = 150;
 
@@ -151,7 +151,7 @@ Application.prototype = {
                     continue;
                 var comp = entity.components[j];
                 checkDefined(comp);
-                if (comp instanceof EC_Mesh)
+                if (comp instanceof Tundra.EC_Mesh)
                     meshes.push(comp);
                 else if (comp instanceof EC_Placeable)
                     placeable = comp;

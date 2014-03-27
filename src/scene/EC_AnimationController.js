@@ -90,7 +90,7 @@ function AnimationMeshInfo( animationController, mesh ) {
 };
 
 function EC_AnimationController() {
-    Component.call(this, cComponentTypeAnimation);
+    Tundra.Component.call(this, cComponentTypeAnimation);
     this.addAttribute(Tundra.cAttributeString, "animationState", "", "");
     this.addAttribute(Tundra.cAttributeBool, "drawDebug", "", false);
 
@@ -101,7 +101,7 @@ function EC_AnimationController() {
     this.animatingMeshes = [];
 }
 
-EC_AnimationController.prototype = new Component(cComponentTypeAnimation);
+EC_AnimationController.prototype = new Tundra.Component(cComponentTypeAnimation);
 
 // Play animation. If cross fade is set to true all playing animations are stopped
 // and their fadeOutTime time is same as fadeInTime.
@@ -246,11 +246,11 @@ EC_AnimationController.prototype.animationState = function( name ) {
 // If new mesh components are added to entity, add them to animation controller.
 EC_AnimationController.prototype.onComponentAdded = function ( newComp, changeType ) {
     
-    if (newComp instanceof EC_Mesh)
+    if (newComp instanceof Tundra.EC_Mesh)
         this.addMesh(newComp);
     
 };
 
 EC_AnimationController.prototype.createAnimations = function( mesh ) {};
 
-registerComponent(cComponentTypeAnimation, "AnimationController", function(){ return new EC_AnimationController(); });
+Tundra.registerComponent(cComponentTypeAnimation, "AnimationController", function(){ return new EC_AnimationController(); });

@@ -40,10 +40,10 @@ Entity.prototype = {
 
         if (this.componentById(id))
         {
-            console.log("Component id " + id + " in entity " + this.id + " already exists, can not create");
+            console.log("Tundra.Component id " + id + " in entity " + this.id + " already exists, can not create");
             return null;
         }
-        var newComp = createComponent(typeId);
+        var newComp = Tundra.createComponent(typeId);
         if (newComp)
         {
             newComp.id = id;
@@ -98,7 +98,7 @@ Entity.prototype = {
             }
         }
         else
-            console.log("Component id " + id + " in entity " + this.id + " does not exist, can not remove");
+            console.log("Tundra.Component id " + id + " in entity " + this.id + " does not exist, can not remove");
     },
 
     removeAllComponents: function(changeType) {
@@ -123,7 +123,7 @@ Entity.prototype = {
             var comp = this.components[oldId];
             if (comp == null)
             {
-                console.log("Component id " + oldId + " not found, can not assign new id");
+                console.log("Tundra.Component id " + oldId + " not found, can not assign new id");
                 return;
             }
             delete this.components[oldId];
@@ -269,7 +269,7 @@ Entity.prototype = {
         // Name exists in its own component, create if doesn't exist
         var nameComp = this.componentByType(cComponentTypeName);
         if (nameComp == null)
-            nameComp = this.createComponent(0, cComponentTypeName, "");
+            nameComp = this.Tundra.createComponent(0, cComponentTypeName, "");
         var nameAttr = nameComp.attributeById("name");
         nameAttr.value = value;
     }

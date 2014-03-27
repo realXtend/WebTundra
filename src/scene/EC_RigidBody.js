@@ -3,7 +3,7 @@
 var cComponentTypeRigidBody = 23;
 
 function EC_RigidBody() {
-    Component.call(this, cComponentTypeRigidBody);
+    Tundra.Component.call(this, cComponentTypeRigidBody);
     this.addAttribute(Tundra.cAttributeReal, "mass", "Mass", 0.0);
     this.addAttribute(Tundra.cAttributeInt, "shapeType", "Shape type");
     this.addAttribute(Tundra.cAttributeFloat3, "size", "Size");
@@ -25,6 +25,6 @@ function EC_RigidBody() {
     this.addAttribute(Tundra.cAttributeBool, "useGravity", "Use gravity", true);
 }
 
-EC_RigidBody.prototype = new Component(cComponentTypeRigidBody);
+EC_RigidBody.prototype = new Tundra.Component(cComponentTypeRigidBody);
 
-registerComponent(cComponentTypeRigidBody, "RigidBody", function(){ return new EC_RigidBody(); });
+Tundra.registerComponent(cComponentTypeRigidBody, "RigidBody", function(){ return new EC_RigidBody(); });

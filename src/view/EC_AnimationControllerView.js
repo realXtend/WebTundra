@@ -1,6 +1,6 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-ThreeView.prototype.OnAnimatorInitialize = function( threeParent, animComp ) {
+Tundra.ThreeView.prototype.OnAnimatorInitialize = function( threeParent, animComp ) {
     
     animComp.parentEntity.componentAdded.add(animComp.onComponentAdded, animComp);
     
@@ -59,7 +59,7 @@ ThreeView.prototype.OnAnimatorInitialize = function( threeParent, animComp ) {
     animComp.initialized = true;
 };
 
-ThreeView.prototype.onAnimatorAddedOrChanged = function( threeParent, animComp ) {
+Tundra.ThreeView.prototype.onAnimatorAddedOrChanged = function( threeParent, animComp ) {
     
     if ( animComp.initialized === undefined )
         this.OnAnimatorInitialize(threeParent, animComp);
@@ -70,7 +70,7 @@ ThreeView.prototype.onAnimatorAddedOrChanged = function( threeParent, animComp )
     
 };
 
-ThreeView.prototype.onAnimatorRelease = function( entity, animComp ) {
+Tundra.ThreeView.prototype.onAnimatorRelease = function( entity, animComp ) {
     
     animComp.parentEntity.componentAdded.remove(animComp.onComponentAdded, animComp);
     

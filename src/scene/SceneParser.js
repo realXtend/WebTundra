@@ -83,7 +83,7 @@ SceneParser.prototype.parseDoc = function(doc) {
 
             // debugger;
 
-            var ECComp = this.ecModel.createComponent(type);
+            var ECComp = this.ecModel.Tundra.createComponent(type);
 
             for (var k = 0; k < attributes.length; k++) {
                 var attribute = attributes[k];
@@ -119,7 +119,7 @@ SceneParser.prototype.parseDoc = function(doc) {
 
 SceneParser.prototype.createEntityWithPlaceable = function() {
     var entity = this.ecModel.scene.createEntity(0, Tundra.AttributeChange.LocalOnly);
-    var placeable = entity.createComponent(0, cComponentTypePlaceable,
+    var placeable = entity.Tundra.createComponent(0, Tundra.cComponentTypePlaceable,
                                            "", Tundra.AttributeChange.LocalOnly);
     placeable.parentRef = 0; // won't get added to three scene until this is initialized
     return entity;
@@ -127,9 +127,9 @@ SceneParser.prototype.createEntityWithPlaceable = function() {
 
 SceneParser.prototype.parseDocXml3D = function(doc) {
     var lightEnt = this.ecModel.scene.createEntity(0, name);
-    lightEnt.createComponent(0, cComponentTypePlaceable,
+    lightEnt.Tundra.createComponent(0, Tundra.cComponentTypePlaceable,
                         "", Tundra.AttributeChange.LocalOnly);
-    lightEnt.createComponent(0, cComponentTypeLight, "", Tundra.AttributeChange.LocalOnly);
+    lightEnt.Tundra.createComponent(0, cComponentTypeLight, "", Tundra.AttributeChange.LocalOnly);
     console.log("SceneParser: created placeholder light");
     
     var x3Nodes = doc.getElementsByTagName("xml3d");
@@ -190,7 +190,7 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
             var type = xmesh.getAttribute("type");
             var src = xmesh.getAttribute("src");
             var meshName = xmesh.getAttribute("id") || groupId;
-            var ecmesh = entity.createComponent(0, cComponentTypeMesh, meshName,
+            var ecmesh = entity.Tundra.createComponent(0, Tundra.cComponentTypeMesh, meshName,
                                                 Tundra.AttributeChange.LocalOnly);
             ecmesh.meshRef = { ref: src };
             console.log("made mesh for id " + meshName + " entity " + entity.id);
@@ -214,7 +214,7 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
             } else {
                 setPlaceableFromGroupNode(placeable, group);
             }
-            ecCamera = entity.createComponent(0, cComponentTypeCamera, viewId || "camera", Tundra.AttributeChange.LocalOnly);
+            ecCamera = entity.Tundra.createComponent(0, cComponentTypeCamera, viewId || "camera", Tundra.AttributeChange.LocalOnly);
           
             //console.log("in-group camera added to entity " + entity.id);
             //placeable.debug = true;
@@ -236,9 +236,9 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
         viewPosition = xview.getAttribute("position");
         viewOrientation = xview.getAttribute("orientation");
         var camEntity = this.ecModel.scene.createEntity(0, Tundra.AttributeChange.LocalOnly);
-        var placeable = camEntity.createComponent(0, cComponentTypePlaceable,
+        var placeable = camEntity.Tundra.createComponent(0, Tundra.cComponentTypePlaceable,
                                                "", Tundra.AttributeChange.LocalOnly);
-        ecCamera = camEntity.createComponent(0, cComponentTypeCamera, viewId || "camera", Tundra.AttributeChange.LocalOnly);
+        ecCamera = camEntity.Tundra.createComponent(0, cComponentTypeCamera, viewId || "camera", Tundra.AttributeChange.LocalOnly);
         var px = placeable.transform;
         if (viewPosition) {
             //console.log("have view pos");

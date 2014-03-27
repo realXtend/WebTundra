@@ -94,7 +94,7 @@ Tundra.AttributeChange = {
     Replicate : 3
 };
 
-function Attribute(typeId) {
+Tundra.Attribute = function(typeId) {
     this.owner = null;
     this.name = "";
     this.id = "";
@@ -105,9 +105,9 @@ function Attribute(typeId) {
     this.dynamic = false;
 }
 
-Attribute.prototype = {
+Tundra.Attribute.prototype = {
     set: function(newValue, changeType) {
-        if (newValue != null) {
+        if (newValue !== null) {
             //TODO: would be good to validate here. as the attributes are typed and all..
             this.valueInternal = newValue;
             if (this.owner)
@@ -122,15 +122,15 @@ Attribute.prototype = {
     set value(newValue){
         this.set(newValue, Tundra.AttributeChange.Default);
     }
-}
+};
 
 // String
 
 Tundra.AttributeString = function() {
-    Attribute.call(this, Tundra.cAttributeString);
+    Tundra.Attribute.call(this, Tundra.cAttributeString);
     this.valueInternal = "";
-}
-Tundra.AttributeString.prototype = new Attribute(Tundra.cAttributeString);
+};
+Tundra.AttributeString.prototype = new Tundra.Attribute(Tundra.cAttributeString);
 
 Tundra.AttributeString.prototype.fromBinary = function(dd, changeType){
     this.set(dd.readUtf8String(), changeType);
@@ -143,10 +143,10 @@ Tundra.AttributeString.prototype.toBinary = function(ds){
 // Int
 
 Tundra.AttributeInt = function() {
-    Attribute.call(this, Tundra.cAttributeInt);
+    Tundra.Attribute.call(this, Tundra.cAttributeInt);
     this.valueInternal = 0;
 };
-Tundra.AttributeInt.prototype = new Attribute(Tundra.cAttributeInt);
+Tundra.AttributeInt.prototype = new Tundra.Attribute(Tundra.cAttributeInt);
 
 Tundra.AttributeInt.prototype.fromBinary = function(dd, changeType){
     this.set(dd.readS32(), changeType);
@@ -159,11 +159,11 @@ Tundra.AttributeInt.prototype.toBinary = function(ds){
 // Real
 
 Tundra.AttributeReal = function() {
-    Attribute.call(this, Tundra.cAttributeReal);
+    Tundra.Attribute.call(this, Tundra.cAttributeReal);
     this.valueInternal = 0.0;
 }
 
-Tundra.AttributeReal.prototype = new Attribute(Tundra.cAttributeReal);
+Tundra.AttributeReal.prototype = new Tundra.Attribute(Tundra.cAttributeReal);
 
 Tundra.AttributeReal.prototype.fromBinary = function(dd, changeType){
     this.set(dd.readFloat(), changeType);
@@ -176,7 +176,7 @@ Tundra.AttributeReal.prototype.toBinary = function(ds){
 // Color
 
 Tundra.AttributeColor = function() {
-    Attribute.call(this, Tundra.cAttributeColor);
+    Tundra.Attribute.call(this, Tundra.cAttributeColor);
     this.valueInternal = {};
     this.valueInternal.r = 0.0;
     this.valueInternal.g = 0.0;
@@ -184,7 +184,7 @@ Tundra.AttributeColor = function() {
     this.valueInternal.a = 0.0;
 };
 
-Tundra.AttributeColor.prototype = new Attribute(Tundra.cAttributeColor);
+Tundra.AttributeColor.prototype = new Tundra.Attribute(Tundra.cAttributeColor);
 
 Tundra.AttributeColor.prototype.fromBinary = function(dd, changeType){
     var newValue = {};
@@ -205,13 +205,13 @@ Tundra.AttributeColor.prototype.toBinary = function(ds){
 // Float2
 
 Tundra.AttributeFloat2 = function() {
-    Attribute.call(this, Tundra.cAttributeFloat2);
+    Tundra.Attribute.call(this, Tundra.cAttributeFloat2);
     this.valueInternal = {};
     this.valueInternal.x = 0.0;
     this.valueInternal.y = 0.0;
 };
 
-Tundra.AttributeFloat2.prototype = new Attribute(Tundra.cAttributeFloat2);
+Tundra.AttributeFloat2.prototype = new Tundra.Attribute(Tundra.cAttributeFloat2);
 
 Tundra.AttributeFloat2.prototype.fromBinary = function(dd, changeType){
     var newValue = {};
@@ -228,14 +228,14 @@ Tundra.AttributeFloat2.prototype.toBinary = function(ds){
 // Float3
 
 Tundra.AttributeFloat3 = function() {
-    Attribute.call(this, Tundra.cAttributeFloat3);
+    Tundra.Attribute.call(this, Tundra.cAttributeFloat3);
     this.valueInternal = {};
     this.valueInternal.x = 0.0;
     this.valueInternal.y = 0.0;
     this.valueInternal.z = 0.0;
 }
 
-Tundra.AttributeFloat3.prototype = new Attribute(Tundra.cAttributeFloat3);
+Tundra.AttributeFloat3.prototype = new Tundra.Attribute(Tundra.cAttributeFloat3);
 
 Tundra.AttributeFloat3.prototype.fromBinary = function(dd, changeType){
     var newValue = {};
@@ -254,7 +254,7 @@ Tundra.AttributeFloat3.prototype.toBinary = function(ds){
 // Float4
 
 Tundra.AttributeFloat4 = function() {
-    Attribute.call(this, Tundra.cAttributeFloat4);
+    Tundra.Attribute.call(this, Tundra.cAttributeFloat4);
     this.valueInternal = {};
     this.valueInternal.x = 0.0;
     this.valueInternal.y = 0.0;
@@ -262,7 +262,7 @@ Tundra.AttributeFloat4 = function() {
     this.valueInternal.w = 0.0;
 }
 
-Tundra.AttributeFloat4.prototype = new Attribute(Tundra.cAttributeFloat4);
+Tundra.AttributeFloat4.prototype = new Tundra.Attribute(Tundra.cAttributeFloat4);
 
 Tundra.AttributeFloat4.prototype.fromBinary = function(dd, changeType){
     var newValue = {};
@@ -283,11 +283,11 @@ Tundra.AttributeFloat4.prototype.toBinary = function(ds){
 // Bool
 
 Tundra.AttributeBool = function() {
-    Attribute.call(this, Tundra.cAttributeBool);
+    Tundra.Attribute.call(this, Tundra.cAttributeBool);
     this.valueInternal = false;
 }
 
-Tundra.AttributeBool.prototype = new Attribute(Tundra.cAttributeBool);
+Tundra.AttributeBool.prototype = new Tundra.Attribute(Tundra.cAttributeBool);
 
 Tundra.AttributeBool.prototype.fromBinary = function(dd, changeType){
     this.set(dd.readU8() > 0 ? true : false, changeType);
@@ -300,10 +300,10 @@ Tundra.AttributeBool.prototype.toBinary = function(ds){
 // UInt
 
 Tundra.AttributeUInt = function() {
-    Attribute.call(this, Tundra.cAttributeUInt);
+    Tundra.Attribute.call(this, Tundra.cAttributeUInt);
     this.valueInternal = 0;
 }
-Tundra.AttributeUInt.prototype = new Attribute(Tundra.cAttributeUInt);
+Tundra.AttributeUInt.prototype = new Tundra.Attribute(Tundra.cAttributeUInt);
 
 Tundra.AttributeUInt.prototype.fromBinary = function(dd, changeType){
     this.set(dd.readU32(), changeType);
@@ -316,7 +316,7 @@ Tundra.AttributeUInt.prototype.toBinary = function(ds){
 // Quat
 
 Tundra.AttributeQuat = function() {
-    Attribute.call(this, Tundra.cAttributeQuat);
+    Tundra.Attribute.call(this, Tundra.cAttributeQuat);
     this.valueInternal = {};
     this.valueInternal.x = 0.0;
     this.valueInternal.y = 0.0;
@@ -324,7 +324,7 @@ Tundra.AttributeQuat = function() {
     this.valueInternal.w = 0.0;
 };
 
-Tundra.AttributeQuat.prototype = new Attribute(Tundra.cAttributeQuat);
+Tundra.AttributeQuat.prototype = new Tundra.Attribute(Tundra.cAttributeQuat);
 
 Tundra.AttributeQuat.prototype.fromBinary = function(dd, changeType){
     var newValue = {};
@@ -345,12 +345,12 @@ Tundra.AttributeQuat.prototype.toBinary = function(ds){
 // AssetReference
 
 Tundra.AttributeAssetReference = function() {
-    Attribute.call(this, Tundra.cAttributeAssetReference);
+    Tundra.Attribute.call(this, Tundra.cAttributeAssetReference);
     this.valueInternal = {}
     this.valueInternal.ref = "";
     this.valueInternal.type = "";
 };
-Tundra.AttributeAssetReference.prototype = new Attribute(Tundra.cAttributeAssetReference);
+Tundra.AttributeAssetReference.prototype = new Tundra.Attribute(Tundra.cAttributeAssetReference);
 
 Tundra.AttributeAssetReference.prototype.fromBinary = function(dd, changeType){
     var oldValue = this.value;
@@ -365,11 +365,11 @@ Tundra.AttributeAssetReference.prototype.toBinary = function(ds){
 // AssetReferenceList
 
 Tundra.AttributeAssetReferenceList = function() {
-    Attribute.call(this, Tundra.cAttributeAssetReferenceList);
+    Tundra.Attribute.call(this, Tundra.cAttributeAssetReferenceList);
     this.valueInternal = []
 }
 
-Tundra.AttributeAssetReferenceList.prototype = new Attribute(Tundra.cAttributeAssetReference);
+Tundra.AttributeAssetReferenceList.prototype = new Tundra.Attribute(Tundra.cAttributeAssetReference);
 
 Tundra.AttributeAssetReferenceList.prototype.fromBinary = function(dd, changeType){
     var newValue = [];
@@ -395,10 +395,10 @@ Tundra.AttributeAssetReferenceList.prototype.toBinary = function(ds){
 // EntityReference
 
 Tundra.AttributeEntityReference = function() {
-    Attribute.call(this, Tundra.cAttributeEntityReference);
+    Tundra.Attribute.call(this, Tundra.cAttributeEntityReference);
     this.valueInternal = "";
 };
-Tundra.AttributeEntityReference.prototype = new Attribute(Tundra.cAttributeEntityReference);
+Tundra.AttributeEntityReference.prototype = new Tundra.Attribute(Tundra.cAttributeEntityReference);
 
 Tundra.AttributeEntityReference.prototype.fromBinary = function(dd, changeType){
     this.set(dd.readString(), changeType); // Todo: migrate to Utf8String in the protocol
@@ -411,10 +411,10 @@ Tundra.AttributeEntityReference.prototype.toBinary = function(ds){
 // QVariant
 
 Tundra.AttributeQVariant = function() {
-    Attribute.call(this, Tundra.cAttributeQVariant);
+    Tundra.Attribute.call(this, Tundra.cAttributeQVariant);
     this.valueInternal = "";
 };
-Tundra.AttributeQVariant.prototype = new Attribute(Tundra.cAttributeQVariant);
+Tundra.AttributeQVariant.prototype = new Tundra.Attribute(Tundra.cAttributeQVariant);
 
 Tundra.AttributeQVariant.prototype.fromBinary = function(dd, changeType){
     this.set(dd.readString(), changeType); // Todo: migrate to Utf8String in the protocol
@@ -427,10 +427,10 @@ Tundra.AttributeQVariant.prototype.toBinary = function(ds){
 // QVariantList
 
 Tundra.AttributeQVariantList = function() {
-    Attribute.call(this, Tundra.cAttributeQVariantList);
+    Tundra.Attribute.call(this, Tundra.cAttributeQVariantList);
     this.valueInternal = [];
 }
-Tundra.AttributeQVariantList.prototype = new Attribute(Tundra.cAttributeQVariantList);
+Tundra.AttributeQVariantList.prototype = new Tundra.Attribute(Tundra.cAttributeQVariantList);
 
 Tundra.AttributeQVariantList.prototype.fromBinary = function(dd, changeType){
     var newValue = [];
@@ -449,7 +449,7 @@ Tundra.AttributeQVariantList.prototype.toBinary = function(ds){
 // Transform
 
 Tundra.AttributeTransform = function () {
-    Attribute.call(this, Tundra.cAttributeTransform);
+    Tundra.Attribute.call(this, Tundra.cAttributeTransform);
     this.valueInternal = {};
     this.valueInternal.pos = {};
     this.valueInternal.rot = {};
@@ -465,7 +465,7 @@ Tundra.AttributeTransform = function () {
     this.valueInternal.scale.z = 1.0;
 }
 
-Tundra.AttributeTransform.prototype = new Attribute(Tundra.cAttributeTransform);
+Tundra.AttributeTransform.prototype = new Tundra.Attribute(Tundra.cAttributeTransform);
 
 Tundra.AttributeTransform.prototype.fromBinary = function(dd, changeType){
     var newValue = {};
@@ -499,13 +499,13 @@ Tundra.AttributeTransform.prototype.toBinary = function(ds){
 // QPoint
 
 function AttributeQPoint() {
-    Attribute.call(this, Tundra.cAttributeQPoint);
+    Tundra.Attribute.call(this, Tundra.cAttributeQPoint);
     this.valueInternal = {};
     this.valueInternal.x = 0;
     this.valueInternal.y = 0;
 }
 
-AttributeQPoint.prototype = new Attribute(Tundra.cAttributeQPoint);
+AttributeQPoint.prototype = new Tundra.Attribute(Tundra.cAttributeQPoint);
 
 AttributeQPoint.prototype.fromBinary = function(dd, changeType){
     var newValue = {};
@@ -559,13 +559,13 @@ Tundra.createAttribute = function(typeId) {
     case Tundra.cAttributeTransform:
         return new Tundra.AttributeTransform();
     case Tundra.cAttributeQPoint:
-        return new AttributeQPoint();
+        return new Tundra.AttributeQPoint();
     default:
         console.log("Can not create unknown attribute type " + typeId);
         return null;
     }
-}
+};
 
 Tundra.sanitatePropertyName = function(name) {
     return (name.substring(0, 1).toLowerCase() + name.substring(1)).trim();
-}
+};

@@ -5,7 +5,7 @@ var cComponentTypeLight = 16;
 var LT_Point = 0, LT_Spot = 1, LT_Directional = 2;
 
 function EC_Light() {
-    Component.call(this, cComponentTypeLight);
+    Tundra.Component.call(this, cComponentTypeLight);
     this.addAttribute(Tundra.cAttributeInt, "type", "Light type", LT_Point);
     this.addAttribute(Tundra.cAttributeColor, "diffColor", "Diffuse color", {r: 1.0, g: 1.0, b: 1.0, a: 0.0});
     this.addAttribute(Tundra.cAttributeColor, "specColor", "Specular color", {r: 0.0, g: 0.0, b: 0.0, a: 0.0});
@@ -19,6 +19,6 @@ function EC_Light() {
     this.addAttribute(Tundra.cAttributeReal, "outerAngle", "Light outer angle", 40.0);
 }
 
-EC_Light.prototype = new Component(cComponentTypeLight);
+EC_Light.prototype = new Tundra.Component(cComponentTypeLight);
 
-registerComponent(cComponentTypeLight, "Light", function(){ return new EC_Light(); });
+Tundra.registerComponent(cComponentTypeLight, "Light", function(){ return new EC_Light(); });
