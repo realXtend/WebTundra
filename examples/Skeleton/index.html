@@ -8,6 +8,33 @@
 <body>
 
 	<!-- EC -->
+
+<script>
+    function checkDefined() {
+        for (var i = 0; i < arguments.length; i++) {
+            if (arguments[i] === undefined) {
+                if (debugOnCheckFail) {
+                    debugger;
+                } else {
+                    throw ("undefined value, arg #" + i);
+                }
+            }
+        }
+    }
+
+    function check() {
+        for (var i = 0; i < arguments.length; i++)
+            if (arguments[i] !== true)
+                if (debugOnCheckFail) {
+                    debugger;
+                } else {
+                    throw ("untrue value" + arguments[i] + ", arg #" + i);
+                }
+    }
+
+</script>
+
+
 	<script src="../../src/util/Signals.js"></script>
 	<script src="../../src/util/CompoundSignal.js"></script>
 	<script src="../../src/network/DataSerializer.js"></script>
@@ -158,28 +185,6 @@
             
         }   
 
-    }
-
-    function checkDefined() {
-        for (var i = 0; i < arguments.length; i++) {
-            if (arguments[i] === undefined) {
-                if (debugOnCheckFail) {
-                    debugger;
-                } else {
-                    throw ("undefined value, arg #" + i);
-                }
-            }
-        }
-    }
-
-    function check() {
-        for (var i = 0; i < arguments.length; i++)
-            if (arguments[i] !== true)
-                if (debugOnCheckFail) {
-                    debugger;
-                } else {
-                    throw ("untrue value" + arguments[i] + ", arg #" + i);
-                }
     }
 
 	</script>

@@ -1,6 +1,7 @@
+"use strict";
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-Bone.prototype.setPosition = function ( position ) {
+Tundra.Bone.prototype.setPosition = function ( position ) {
 
     this.threeBone.position.x = position.x;
     this.threeBone.position.y = position.y;
@@ -9,7 +10,7 @@ Bone.prototype.setPosition = function ( position ) {
 
 };
 
-Bone.prototype.getPosition = function () {
+Tundra.Bone.prototype.getPosition = function () {
     
     var vector = {x:0, y:0, z:0};
     vector.x = this.threeBone.position.x;
@@ -19,7 +20,7 @@ Bone.prototype.getPosition = function () {
     
 }
 
-Bone.prototype.setRotation = function ( euler ) {
+Tundra.Bone.prototype.setRotation = function ( euler ) {
 
     this.threeBone.rotation.x = euler.x;
     this.threeBone.rotation.y = euler.y;
@@ -28,7 +29,7 @@ Bone.prototype.setRotation = function ( euler ) {
 
 };
 
-Bone.prototype.getRotation = function () {
+Tundra.Bone.prototype.getRotation = function () {
     
     var vector = {x:0, y:0, z:0};
     vector.x = this.threeBone.rotation.x;
@@ -38,7 +39,7 @@ Bone.prototype.getRotation = function () {
     
 }
 
-Bone.prototype.setScale = function ( scale ) {
+Tundra.Bone.prototype.setScale = function ( scale ) {
 
     this.threeBone.scale.x = scale.x;
     this.threeBone.scale.y = scale.y;
@@ -47,7 +48,7 @@ Bone.prototype.setScale = function ( scale ) {
 
 };
 
-Bone.prototype.getScale = function () {
+Tundra.Bone.prototype.getScale = function () {
     
     var vector = {x:0, y:0, z:0};
     vector.x = this.threeBone.scale.x;
