@@ -310,12 +310,12 @@ ThreeView.prototype = {
 
                     // Add attach bone function to bone object
 
-                    bone.attach = function( mesh ) {
+                    bone.attach = function( placeable ) {
 
-                        Bone.prototype.attach.call(this, mesh);
+                        Bone.prototype.attach.call(this, placeable);
 
-                        mesh.threeMesh.update = function() {};
-                        mesh.parentEntity.threeGroup.update = function ( parentSkinMatrix, forceUpdate ) {
+                        //placeable.threeMesh.update = function() {};
+                        placeable.parentEntity.threeGroup.update = function ( parentSkinMatrix, forceUpdate ) {
 
                             this.updateMatrixWorld(true);
 
@@ -339,18 +339,18 @@ ThreeView.prototype = {
 
                         } while ( parent !== undefined )
 
-                        this.threeBone.add(mesh.parentEntity.threeGroup);
+                        this.threeBone.add(placeable.parentEntity.threeGroup);
 
                     };
 
                     // Add detach bone function to bone object
 
-                    bone.detach = function( mesh ) {
+                    bone.detach = function( placeable ) {
 
-                        Bone.prototype.detach.call(this, mesh);
+                        Bone.prototype.detach.call(this, placeable);
 
-                        delete mesh.threeMesh.update;
-                        delete mesh.parentEntity.threeGroup.update;
+                        //delete placeable.threeMesh.update;
+                        delete placeable.parentEntity.threeGroup.update;
                         
                         if ( this.skeleton.hasAttachments() ) {
 
@@ -365,7 +365,7 @@ ThreeView.prototype = {
 
                         }
 
-                        this.threeBone.remove(mesh.parentEntity.threeGroup);
+                        this.threeBone.remove(placeable.parentEntity.threeGroup);
 
                     };
                     

@@ -11,7 +11,12 @@ function EC_Placeable() {
     this.addAttribute(cAttributeEntityReference, "parentRef", "Parent entity ref");
     this.addAttribute(cAttributeString, "parentBone", "Parent bone name");
     this.attributeChanged.add(this.onAttributeChanged, this);
+    
+    // entity this placeable is attach to.
     this.targetEntity = null;
+    
+    // Bone that this mesh is attached to.
+    this.parentBone = null;
 
     this.parentEntitySet.add(this.connectToEntity.bind(this));
 

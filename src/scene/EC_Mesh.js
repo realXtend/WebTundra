@@ -17,10 +17,6 @@ function EC_Mesh() {
     
     this.skeleton = null;
     
-    // Bone that this mesh is attached to.
-    
-    this.parentBone = null;
-    
     this.attributeChanged.add(this.onAttributeChanged.bind(this));
 
     this.meshAssetReady = new signals.Signal();
@@ -54,16 +50,16 @@ EC_Mesh.prototype.updateParentRef = function () {
     
     if ( placeable.parentRef === "" ) {
         
-        if ( this.parentBone !== null ) {
-            this.parentBone.detach(this);
+        if ( placeable.targetBone != null ) {
+            placeable.targetBone.detach( placeable );
         }
         
         placeable.setParentEntity(null);
         return;
         
-    } else if ( placeable.parentBone === "" && this.parentBone !== null) {
+    } else if ( placeable.parentBone == "" && placeable.targetBone != null) {
         
-        this.parentBone.detach(this);
+        placeable.targetBone.detach( placeable );
         
         var pEntity = this.parentEntity.parentScene.entityById( placeable.parentRef );
         if (pEntity)
@@ -100,7 +96,7 @@ EC_Mesh.prototype.updateParentRef = function () {
         var bone = pEntity.mesh.skeleton.getBone(placeable.parentBone);
         if ( bone !== null) {
 
-            bone.attach(this);
+            bone.attach( placeable );
             return;
 
         }
@@ -125,83 +121,6 @@ EC_Mesh.prototype.checkParentEntity = function( entity, component, chnageType ) 
 };
 
 registerComponent(cComponentTypeMesh, "Mesh", function(){ return new EC_Mesh(); });
-
-function Bone ( name, parent ) {
-    
-    this.name = name;
-    
-    this.parent = parent;
-    
-    // Child bones
-    
-    this.children = new Array();
-    
-    // List of attachments objects added to this bone.
-    
-    this.attachments = new Array();
-    
-    if ( this.parent !== undefined && this.parent !== null ) {
-        
-        var parentChildren = this.parent.children;
-        var alreadyAdded = false;
-        
-        for (var i = 0; i < parentChildren; i++) {
-            
-            if (parentChildren[i] === this)
-                alreadyAdded = true;
-            
-        }
-        
-        if ( !alreadyAdded )
-            this.parent.children.push(this);
-        
-    }
-    
-}
-
-Bone.prototype.attach = function ( mesh ) {
-    
-    if ( mesh instanceof EC_Mesh === false && !mesh.assetReady )
-        debugger;
-    
-    if (mesh.parentBone !== null)
-        mesh.parentBone.detach(mesh);
-        
-    mesh.parentBone = this;
-    
-    this.attachments.push( mesh.parentEntity.id );
-    
-};
-
-Bone.prototype.detach = function ( mesh ) {
-
-    if ( mesh instanceof EC_Mesh === false && !mesh.assetReady )
-        debugger;
-    
-    mesh.parentBone = null;
-    
-    for ( var i = 0; i < this.attachments.length; ++i ) {
-        
-        if ( this.attachments[i] === mesh.parentEntity.id )
-            this.attachments.splice( i, 0 );
-        
-    }
-
-};
-
-Bone.prototype.enableAnimation = function ( enable, recursive ) {
-    
-    if (recursive !== undefined && recursive === true) {
-        
-        for (var i = 0; i < this.children; i++) {
-
-            this.children[i].enableAnimation( enable, recursive );
-
-        }
-        
-    }
-    
-};
 
 function Skeleton () {
     

@@ -31,30 +31,30 @@ function Bone ( name, parent ) {
     
 }
 
-Bone.prototype.attach = function ( mesh ) {
+Bone.prototype.attach = function ( placeable ) {
     
-    if ( mesh instanceof EC_Mesh === false && !mesh.assetReady )
+    if ( placeable instanceof EC_Placeable === false )
         debugger;
     
-    if (mesh.parentBone !== null)
-        mesh.parentBone.detach(mesh);
+    if (placeable.targetBone != null)
+        placeable.targetBone.detach( placeable );
         
-    mesh.parentBone = this;
+    placeable.targetBone = this;
     
-    this.attachments.push( mesh.parentEntity.id );
+    this.attachments.push( placeable.parentEntity.id );
     
 };
 
-Bone.prototype.detach = function ( mesh ) {
+Bone.prototype.detach = function ( placeable ) {
 
-    if ( mesh instanceof EC_Mesh === false && !mesh.assetReady )
+    if ( placeable instanceof EC_Placeable === false )
         debugger;
     
-    mesh.parentBone = null;
+    placeable.targetBone = null;
     
     for ( var i = 0; i < this.attachments.length; ++i ) {
         
-        if ( this.attachments[i] === mesh.parentEntity.id )
+        if ( this.attachments[i] === placeable.parentEntity.id )
             this.attachments.splice( i, 0 );
         
     }
