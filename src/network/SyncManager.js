@@ -19,7 +19,7 @@ Tundra.cEntityAction = 120;
 Tundra.cRegisterComponentType = 123;
 Tundra.cSetEntityParent = 124;
 
-function SyncManager(client, scene) {
+Tundra.SyncManager = function(client, scene) {
     this.client = client;
     this.scene = scene;
     this.client.messageReceived.add(this.onMessageReceived, this);
@@ -41,7 +41,7 @@ function SyncManager(client, scene) {
     Tundra.customComponentRegistered.add(this.onCustomComponentRegistered, this);
 }
 
-SyncManager.prototype = {
+Tundra.SyncManager.prototype = {
     sendChanges : function() {
         // No-op if the scene does not have a syncstate yet or if the connection is not live
         if (!this.scene.syncState || !this.client.webSocket)
@@ -72,7 +72,7 @@ SyncManager.prototype = {
         // Created entities
         for (var id in this.scene.syncState.created)
         {
-            var entity = scene.entityById(id);
+            var entity = this.scene.entityById(id);
             if (entity == null)
             {
                 console.log("Warning: entity id " + id + " not found for sending create");
@@ -84,7 +84,7 @@ SyncManager.prototype = {
             ds.addU8(entity.temporary ? 1 : 0);
 
             // If supported in the protocol, add parent entity ID here
-            if (this.client.protocolVersion >= cProtocolHierarchicScene) {
+            if (this.client.protocolVersion >= Tundra.cProtocolHierarchicScene) {
                 var parentEntityId = entity.parent ? entity.parent.id : 0;
                 ds.addU32(parentEntityId);
             }
@@ -123,7 +123,7 @@ SyncManager.prototype = {
         // Modified entities
         for (var id in this.scene.syncState.modified)
         {
-            var entity = scene.entityById(id);
+            var entity = this.scene.entityById(id);
             if (entity == null)
             {
                 console.log("Warning: entity " + id + " not found for sending modify");
@@ -224,7 +224,7 @@ SyncManager.prototype = {
                     ds.addVLE(compId);
                     
                     // Attribute data is sent in separate databuffer
-                    var compDs = new DataSerializer(16384);
+                    var compDs = new Tundra.DataSerializer(16384);
                     compDs.addBit(0); // Always use the index method for simplicity
                     compDs.addU8(numModifiedAttrs);
                     for (var attrIndex in comp.syncState.modified)
@@ -246,7 +246,7 @@ SyncManager.prototype = {
             // Parent change
             if (entity.syncState.parentChanged) {
                 // Send parent change message if supported
-                if (this.client.protocolVersion >= cProtocolHierarchicScene) {
+                if (this.client.protocolVersion >= Tundra.cProtocolHierarchicScene) {
                     var ds = this.client.startNewMessage(Tundra.cSetEntityParent, 256);
                     ds.addVLE(0); // Dummy scene ID
                     ds.addU32(entity.id);
@@ -313,13 +313,13 @@ SyncManager.prototype = {
         var parentEntityId = 0;
 
         // Read parent entity ID if supported in protocol
-        if (this.client.protocolVersion >= cProtocolHierarchicScene)
+        if (this.client.protocolVersion >= Tundra.cProtocolHierarchicScene)
             parentEntityId = dd.readU32();
        
         var numComponents = dd.readVLE();
 
         // Changes from the server are localonly on the client to not trigger further replication back
-        var entity = scene.createEntity(entityId, Tundra.AttributeChange.LocalOnly);
+        var entity = this.scene.createEntity(entityId, Tundra.AttributeChange.LocalOnly);
         if (entity == null)
             return;
         if (this.logDebug)
@@ -327,7 +327,7 @@ SyncManager.prototype = {
 
         // If nonzero parent ID, parent the entity now
         if (parentEntityId != 0) {
-            var parentEntity = scene.entityById(parentEntityId);
+            var parentEntity = this.scene.entityById(parentEntityId);
             if (parentEntity) {
                 entity.setParent(parentEntity, Tundra.AttributeChange.LocalOnly);
                 if (this.logDebug)
@@ -346,7 +346,7 @@ SyncManager.prototype = {
     handleCreateComponents : function(dd) {
         var sceneId = dd.readVLE(); // Dummy sceneID for multi-scene support, yet unused
         var entityId = dd.readVLE();
-        var entity = scene.entityById(entityId);
+        var entity = this.scene.entityById(entityId);
         if (entity == null) {
             console.log("Entity id " + entityId + " not found when handling CreateComponents message");
             return;
@@ -359,7 +359,7 @@ SyncManager.prototype = {
     handleCreateAttributes : function(dd) {
         var sceneId = dd.readVLE(); // Dummy sceneID for multi-scene support, yet unused
         var entityId = dd.readVLE();
-        var entity = scene.entityById(entityId);
+        var entity = this.scene.entityById(entityId);
         if (entity == null) {
             console.log("Entity id " + entityId + " not found when handling CreateAttributes message");
             return;
@@ -389,7 +389,7 @@ SyncManager.prototype = {
     handleEditAttributes : function(dd) {
         var sceneId = dd.readVLE(); // Dummy sceneID for multi-scene support, yet unused
         var entityId = dd.readVLE();
-        var entity = scene.entityById(entityId);
+        var entity = this.scene.entityById(entityId);
         if (entity == null) {
             console.log("Entity id " + entityId + " not found when handling EditAttributes message");
             return;
@@ -402,7 +402,7 @@ SyncManager.prototype = {
                 return;
             }
             var compDataSize = dd.readVLE();
-            var compDd = new DataDeserializer(dd.readArrayBuffer(compDataSize));
+            var compDd = new Tundra.DataDeserialier(dd.readArrayBuffer(compDataSize));
             // Choose index or bitmask method
             var methodBit = compDd.readBit();
             // Index method
@@ -434,7 +434,7 @@ SyncManager.prototype = {
     handleRemoveAttributes : function(dd) {
         var sceneId = dd.readVLE(); // Dummy sceneID for multi-scene support, yet unused
         var entityId = dd.readVLE();
-        var entity = scene.entityById(entityId);
+        var entity = this.scene.entityById(entityId);
         if (entity == null) {
             console.log("Entity id " + entityId + " not found when handling RemoveAttributes message");
             return;
@@ -457,7 +457,7 @@ SyncManager.prototype = {
     handleRemoveComponents : function(dd) {
         var sceneId = dd.readVLE(); // Dummy sceneID for multi-scene support, yet unused
         var entityId = dd.readVLE();
-        var entity = scene.entityById(entityId);
+        var entity = this.scene.entityById(entityId);
         if (entity == null) {
             console.log("Entity id " + entityId + " not found when handling EditAttributes message");
             return;
@@ -474,7 +474,7 @@ SyncManager.prototype = {
     handleRemoveEntity : function(dd) {
         var sceneId = dd.readVLE(); // Dummy sceneID for multi-scene support, yet unused
         var entityId = dd.readVLE();
-        scene.removeEntity(entityId);
+        this.scene.removeEntity(entityId);
         if (this.logDebug)
             console.log("Removed entity id " + entityId);
     },
@@ -483,14 +483,14 @@ SyncManager.prototype = {
         var sceneId = dd.readVLE(); // Dummy sceneID for multi-scene support, yet unused
         var entityId = dd.readVLE() + Tundra.cFirstUnackedId;
         var serverEntityId = dd.readVLE();
-        var entity = scene.entityById(entityId);
+        var entity = this.scene.entityById(entityId);
         if (entity == null) {
             console.log("Entity id " + entityId + " not found when handling CreateEntityReply message");
             return;
         }
         if (this.logDebug)
             console.log("Server sent authoritative entity id " + serverEntityId + " for pending entity id " + entityId + ", reassigning");
-        scene.changeEntityId(entityId, serverEntityId);
+        this.scene.changeEntityId(entityId, serverEntityId);
         var numComponentIdRewrites = dd.readVLE();
         for (var i = 0; i < numComponentIdRewrites; i++)
         {
@@ -505,7 +505,7 @@ SyncManager.prototype = {
     handleCreateComponentsReply : function(dd) {
         var sceneId = dd.readVLE(); // Dummy sceneID for multi-scene support, yet unused
         var entityId = dd.readVLE();
-        var entity = scene.entityById(entityId);
+        var entity = this.scene.entityById(entityId);
         if (entity == null) {
             console.log("Entity id " + entityId + " not found when handling CreateComponentsReply message");
             return;
@@ -531,7 +531,7 @@ SyncManager.prototype = {
             params.push(dd.readStringVLE());
         // Make sure the exectype is local so that we do not circulate the action back to server
         execType = Tundra.cExecTypeLocal;
-        var entity = scene.entityById(entityId);
+        var entity = this.scene.entityById(entityId);
         if (entity == null) {
             console.log("Entity id " + entityId + " not found when handling EntityAction message");
             return;
@@ -595,7 +595,7 @@ SyncManager.prototype = {
 
         // Get the nested serializer for component data
         var compDataSize = dd.readVLE();
-        var compDd = new DataDeserializer(dd.readArrayBuffer(compDataSize));
+        var compDd = new Tundra.DataDeserialier(dd.readArrayBuffer(compDataSize));
 
         // Changes from the server are localonly on the client to not trigger further replication back
         var component = entity.createComponent(compId, compTypeId, compName, Tundra.AttributeChange.LocalOnly);
@@ -663,7 +663,7 @@ SyncManager.prototype = {
             console.log("Custom component type " + typeId + " not registered as a factory, can not replicate");
             return;
         }
-        if (this.client.protocolVersion < cProtocolCustomComponents)
+        if (this.client.protocolVersion < Tundra.cProtocolCustomComponents)
         {
             console.log("Server does not support registering custom component types");
             return;
@@ -686,7 +686,7 @@ SyncManager.prototype = {
 
     ensureSyncState : function(object) {
         if (object.syncState === undefined)
-            object.syncState = new SyncState(object);
+            object.syncState = new Tundra.SyncState(object);
     },
 
     onEntityCreated : function(entity, changeType) {
@@ -787,7 +787,7 @@ SyncManager.prototype = {
     }
 }
 
-function SyncState(parent) {
+Tundra.SyncState = function(parent) {
     this.parent = parent;
     // Created entities/components/attributes
     this.created = {};
@@ -799,7 +799,7 @@ function SyncState(parent) {
     this.parentChanged = false;
 }
 
-SyncState.prototype = {
+Tundra.SyncState.prototype = {
     addCreated : function(id){
         this.created[id] = true;
     },

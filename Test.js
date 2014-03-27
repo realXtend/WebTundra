@@ -1,8 +1,8 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-var client = new WebSocketClient();
-var scene = new Scene();
-var syncManager = new SyncManager(client, scene);
+var client = new Tundra.WebSocketClient();
+var scene = new Tundra.Scene();
+var syncManager = new Tundra.SyncManager(client, scene);
 var loginData = {"username": "Test User"};
 
 syncManager.logDebug = true;

@@ -6,7 +6,7 @@
 if (Tundra === undefined)
     var Tundra = {};
 
-function Scene() {
+Tundra.Scene = function() {
     this.entities = {};
     this.entityIdGenerator = new Tundra.UniqueIdGenerator();
     this.attributeChanged = new signals.Signal();
@@ -22,7 +22,7 @@ function Scene() {
     this.entityParentChanged = new signals.Signal();
 }
 
-Scene.prototype = {
+Tundra.Scene.prototype = {
     // Create an entity to the scene by id
     createEntity: function(id, changeType) {
         // If zero ID, assign ID now

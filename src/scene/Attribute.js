@@ -126,67 +126,67 @@ Attribute.prototype = {
 
 // String
 
-function AttributeString() {
+Tundra.AttributeString = function() {
     Attribute.call(this, Tundra.cAttributeString);
     this.valueInternal = "";
 }
-AttributeString.prototype = new Attribute(Tundra.cAttributeString);
+Tundra.AttributeString.prototype = new Attribute(Tundra.cAttributeString);
 
-AttributeString.prototype.fromBinary = function(dd, changeType){
+Tundra.AttributeString.prototype.fromBinary = function(dd, changeType){
     this.set(dd.readUtf8String(), changeType);
 };
 
-AttributeString.prototype.toBinary = function(ds){
+Tundra.AttributeString.prototype.toBinary = function(ds){
     ds.addUtf8String(this.value);
 };
 
 // Int
 
-function AttributeInt() {
+Tundra.AttributeInt = function() {
     Attribute.call(this, Tundra.cAttributeInt);
     this.valueInternal = 0;
-}
-AttributeInt.prototype = new Attribute(Tundra.cAttributeInt);
+};
+Tundra.AttributeInt.prototype = new Attribute(Tundra.cAttributeInt);
 
-AttributeInt.prototype.fromBinary = function(dd, changeType){
+Tundra.AttributeInt.prototype.fromBinary = function(dd, changeType){
     this.set(dd.readS32(), changeType);
 };
 
-AttributeInt.prototype.toBinary = function(ds){
+Tundra.AttributeInt.prototype.toBinary = function(ds){
     ds.addS32(this.value);
-}
+};
 
 // Real
 
-function AttributeReal() {
+Tundra.AttributeReal = function() {
     Attribute.call(this, Tundra.cAttributeReal);
     this.valueInternal = 0.0;
 }
 
-AttributeReal.prototype = new Attribute(Tundra.cAttributeReal);
+Tundra.AttributeReal.prototype = new Attribute(Tundra.cAttributeReal);
 
-AttributeReal.prototype.fromBinary = function(dd, changeType){
+Tundra.AttributeReal.prototype.fromBinary = function(dd, changeType){
     this.set(dd.readFloat(), changeType);
 };
 
-AttributeReal.prototype.toBinary = function(ds){
+Tundra.AttributeReal.prototype.toBinary = function(ds){
     ds.addFloat(this.value);
 };
 
 // Color
 
-function AttributeColor() {
+Tundra.AttributeColor = function() {
     Attribute.call(this, Tundra.cAttributeColor);
     this.valueInternal = {};
     this.valueInternal.r = 0.0;
     this.valueInternal.g = 0.0;
     this.valueInternal.b = 0.0;
     this.valueInternal.a = 0.0;
-}
+};
 
-AttributeColor.prototype = new Attribute(Tundra.cAttributeColor);
+Tundra.AttributeColor.prototype = new Attribute(Tundra.cAttributeColor);
 
-AttributeColor.prototype.fromBinary = function(dd, changeType){
+Tundra.AttributeColor.prototype.fromBinary = function(dd, changeType){
     var newValue = {};
     newValue.r = dd.readFloat();
     newValue.g = dd.readFloat();
@@ -195,7 +195,7 @@ AttributeColor.prototype.fromBinary = function(dd, changeType){
     this.set(newValue, changeType);
 };
 
-AttributeColor.prototype.toBinary = function(ds){
+Tundra.AttributeColor.prototype.toBinary = function(ds){
     ds.addFloat(this.value.r);
     ds.addFloat(this.value.g);
     ds.addFloat(this.value.b);
@@ -204,30 +204,30 @@ AttributeColor.prototype.toBinary = function(ds){
 
 // Float2
 
-function AttributeFloat2() {
+Tundra.AttributeFloat2 = function() {
     Attribute.call(this, Tundra.cAttributeFloat2);
     this.valueInternal = {};
     this.valueInternal.x = 0.0;
     this.valueInternal.y = 0.0;
-}
+};
 
-AttributeFloat2.prototype = new Attribute(Tundra.cAttributeFloat2);
+Tundra.AttributeFloat2.prototype = new Attribute(Tundra.cAttributeFloat2);
 
-AttributeFloat2.prototype.fromBinary = function(dd, changeType){
+Tundra.AttributeFloat2.prototype.fromBinary = function(dd, changeType){
     var newValue = {};
     newValue.x = dd.readFloat();
     newValue.y = dd.readFloat();
     this.set(newValue, changeType);
 };
 
-AttributeFloat2.prototype.toBinary = function(ds){
+Tundra.AttributeFloat2.prototype.toBinary = function(ds){
     ds.addFloat(this.value.x);
     ds.addFloat(this.value.y);
 };
 
 // Float3
 
-function AttributeFloat3() {
+Tundra.AttributeFloat3 = function() {
     Attribute.call(this, Tundra.cAttributeFloat3);
     this.valueInternal = {};
     this.valueInternal.x = 0.0;
@@ -235,9 +235,9 @@ function AttributeFloat3() {
     this.valueInternal.z = 0.0;
 }
 
-AttributeFloat3.prototype = new Attribute(Tundra.cAttributeFloat3);
+Tundra.AttributeFloat3.prototype = new Attribute(Tundra.cAttributeFloat3);
 
-AttributeFloat3.prototype.fromBinary = function(dd, changeType){
+Tundra.AttributeFloat3.prototype.fromBinary = function(dd, changeType){
     var newValue = {};
     newValue.x = dd.readFloat();
     newValue.y = dd.readFloat();
@@ -245,7 +245,7 @@ AttributeFloat3.prototype.fromBinary = function(dd, changeType){
     this.set(newValue, changeType);
 };
 
-AttributeFloat3.prototype.toBinary = function(ds){
+Tundra.AttributeFloat3.prototype.toBinary = function(ds){
     ds.addFloat(this.value.x);
     ds.addFloat(this.value.y);
     ds.addFloat(this.value.z);
@@ -253,7 +253,7 @@ AttributeFloat3.prototype.toBinary = function(ds){
 
 // Float4
 
-function AttributeFloat4() {
+Tundra.AttributeFloat4 = function() {
     Attribute.call(this, Tundra.cAttributeFloat4);
     this.valueInternal = {};
     this.valueInternal.x = 0.0;
@@ -262,9 +262,9 @@ function AttributeFloat4() {
     this.valueInternal.w = 0.0;
 }
 
-AttributeFloat4.prototype = new Attribute(Tundra.cAttributeFloat4);
+Tundra.AttributeFloat4.prototype = new Attribute(Tundra.cAttributeFloat4);
 
-AttributeFloat4.prototype.fromBinary = function(dd, changeType){
+Tundra.AttributeFloat4.prototype.fromBinary = function(dd, changeType){
     var newValue = {};
     newValue.x = dd.readFloat();
     newValue.y = dd.readFloat();
@@ -273,7 +273,7 @@ AttributeFloat4.prototype.fromBinary = function(dd, changeType){
     this.set(newValue, changeType);
 };
 
-AttributeFloat4.prototype.toBinary = function(ds){
+Tundra.AttributeFloat4.prototype.toBinary = function(ds){
     ds.addFloat(this.value.x);
     ds.addFloat(this.value.y);
     ds.addFloat(this.value.z);
@@ -282,51 +282,51 @@ AttributeFloat4.prototype.toBinary = function(ds){
 
 // Bool
 
-function AttributeBool() {
+Tundra.AttributeBool = function() {
     Attribute.call(this, Tundra.cAttributeBool);
     this.valueInternal = false;
 }
 
-AttributeBool.prototype = new Attribute(Tundra.cAttributeBool);
+Tundra.AttributeBool.prototype = new Attribute(Tundra.cAttributeBool);
 
-AttributeBool.prototype.fromBinary = function(dd, changeType){
+Tundra.AttributeBool.prototype.fromBinary = function(dd, changeType){
     this.set(dd.readU8() > 0 ? true : false, changeType);
 };
 
-AttributeBool.prototype.toBinary = function(ds){
+Tundra.AttributeBool.prototype.toBinary = function(ds){
     ds.addU8(this.value == true ? 1 : 0);
-}
+};
 
 // UInt
 
-function AttributeUInt() {
+Tundra.AttributeUInt = function() {
     Attribute.call(this, Tundra.cAttributeUInt);
     this.valueInternal = 0;
 }
-AttributeUInt.prototype = new Attribute(Tundra.cAttributeUInt);
+Tundra.AttributeUInt.prototype = new Attribute(Tundra.cAttributeUInt);
 
-AttributeUInt.prototype.fromBinary = function(dd, changeType){
+Tundra.AttributeUInt.prototype.fromBinary = function(dd, changeType){
     this.set(dd.readU32(), changeType);
 };
 
-AttributeUInt.prototype.toBinary = function(ds){
+Tundra.AttributeUInt.prototype.toBinary = function(ds){
     ds.addU32(this.value);
 }
 
 // Quat
 
-function AttributeQuat() {
+Tundra.AttributeQuat = function() {
     Attribute.call(this, Tundra.cAttributeQuat);
     this.valueInternal = {};
     this.valueInternal.x = 0.0;
     this.valueInternal.y = 0.0;
     this.valueInternal.z = 0.0;
     this.valueInternal.w = 0.0;
-}
+};
 
-AttributeQuat.prototype = new Attribute(Tundra.cAttributeQuat);
+Tundra.AttributeQuat.prototype = new Attribute(Tundra.cAttributeQuat);
 
-AttributeQuat.prototype.fromBinary = function(dd, changeType){
+Tundra.AttributeQuat.prototype.fromBinary = function(dd, changeType){
     var newValue = {};
     newValue.x = dd.readFloat();
     newValue.y = dd.readFloat();
@@ -335,7 +335,7 @@ AttributeQuat.prototype.fromBinary = function(dd, changeType){
     this.set(newValue, changeType);
 };
 
-AttributeQuat.prototype.toBinary = function(ds){
+Tundra.AttributeQuat.prototype.toBinary = function(ds){
     ds.addFloat(this.value.x);
     ds.addFloat(this.value.y);
     ds.addFloat(this.value.z);
@@ -344,34 +344,34 @@ AttributeQuat.prototype.toBinary = function(ds){
 
 // AssetReference
 
-function AttributeAssetReference() {
+Tundra.AttributeAssetReference = function() {
     Attribute.call(this, Tundra.cAttributeAssetReference);
     this.valueInternal = {}
     this.valueInternal.ref = "";
     this.valueInternal.type = "";
-}
-AttributeAssetReference.prototype = new Attribute(Tundra.cAttributeAssetReference);
+};
+Tundra.AttributeAssetReference.prototype = new Attribute(Tundra.cAttributeAssetReference);
 
-AttributeAssetReference.prototype.fromBinary = function(dd, changeType){
+Tundra.AttributeAssetReference.prototype.fromBinary = function(dd, changeType){
     var oldValue = this.value;
     oldValue.ref = dd.readString(); // Todo: migrate to Utf8String in the protocol
     this.set(oldValue, changeType);
 };
 
-AttributeAssetReference.prototype.toBinary = function(ds){
+Tundra.AttributeAssetReference.prototype.toBinary = function(ds){
     ds.addString(this.value.ref);
 };
 
 // AssetReferenceList
 
-function AttributeAssetReferenceList() {
+Tundra.AttributeAssetReferenceList = function() {
     Attribute.call(this, Tundra.cAttributeAssetReferenceList);
     this.valueInternal = []
 }
 
-AttributeAssetReferenceList.prototype = new Attribute(Tundra.cAttributeAssetReference);
+Tundra.AttributeAssetReferenceList.prototype = new Attribute(Tundra.cAttributeAssetReference);
 
-AttributeAssetReferenceList.prototype.fromBinary = function(dd, changeType){
+Tundra.AttributeAssetReferenceList.prototype.fromBinary = function(dd, changeType){
     var newValue = [];
     var numRefs = dd.readU8();
     for (var i = 0; i < numRefs; i++)
@@ -384,7 +384,7 @@ AttributeAssetReferenceList.prototype.fromBinary = function(dd, changeType){
     this.set(newValue, changeType);
 };
 
-AttributeAssetReferenceList.prototype.toBinary = function(ds){
+Tundra.AttributeAssetReferenceList.prototype.toBinary = function(ds){
     ds.addU8(this.value.length);
     for (var i = 0; i < this.value.length; i++)
     {
@@ -394,45 +394,45 @@ AttributeAssetReferenceList.prototype.toBinary = function(ds){
 
 // EntityReference
 
-function AttributeEntityReference() {
+Tundra.AttributeEntityReference = function() {
     Attribute.call(this, Tundra.cAttributeEntityReference);
     this.valueInternal = "";
-}
-AttributeEntityReference.prototype = new Attribute(Tundra.cAttributeEntityReference);
+};
+Tundra.AttributeEntityReference.prototype = new Attribute(Tundra.cAttributeEntityReference);
 
-AttributeEntityReference.prototype.fromBinary = function(dd, changeType){
+Tundra.AttributeEntityReference.prototype.fromBinary = function(dd, changeType){
     this.set(dd.readString(), changeType); // Todo: migrate to Utf8String in the protocol
 };
 
-AttributeEntityReference.prototype.toBinary = function(ds){
+Tundra.AttributeEntityReference.prototype.toBinary = function(ds){
     ds.addString(this.value);
 };
 
 // QVariant
 
-function AttributeQVariant() {
+Tundra.AttributeQVariant = function() {
     Attribute.call(this, Tundra.cAttributeQVariant);
     this.valueInternal = "";
-}
-AttributeQVariant.prototype = new Attribute(Tundra.cAttributeQVariant);
+};
+Tundra.AttributeQVariant.prototype = new Attribute(Tundra.cAttributeQVariant);
 
-AttributeQVariant.prototype.fromBinary = function(dd, changeType){
+Tundra.AttributeQVariant.prototype.fromBinary = function(dd, changeType){
     this.set(dd.readString(), changeType); // Todo: migrate to Utf8String in the protocol
 };
 
-AttributeQVariant.prototype.toBinary = function(ds){
+Tundra.AttributeQVariant.prototype.toBinary = function(ds){
     ds.addString(this.value);
 };
 
 // QVariantList
 
-function AttributeQVariantList() {
+Tundra.AttributeQVariantList = function() {
     Attribute.call(this, Tundra.cAttributeQVariantList);
     this.valueInternal = [];
 }
-AttributeQVariantList.prototype = new Attribute(Tundra.cAttributeQVariantList);
+Tundra.AttributeQVariantList.prototype = new Attribute(Tundra.cAttributeQVariantList);
 
-AttributeQVariantList.prototype.fromBinary = function(dd, changeType){
+Tundra.AttributeQVariantList.prototype.fromBinary = function(dd, changeType){
     var newValue = [];
     var numItems = dd.readU8();
     for (var i = 0; i < numItems; i++)
@@ -440,7 +440,7 @@ AttributeQVariantList.prototype.fromBinary = function(dd, changeType){
     this.set(newValue);
 };
 
-AttributeQVariantList.prototype.toBinary = function(ds){
+Tundra.AttributeQVariantList.prototype.toBinary = function(ds){
     ds.addU8(this.value.length);
     for (var i = 0; i < this.value.length; ++i)
         ds.addString(this.value[i]);
@@ -448,7 +448,7 @@ AttributeQVariantList.prototype.toBinary = function(ds){
 
 // Transform
 
-function AttributeTransform() {
+Tundra.AttributeTransform = function () {
     Attribute.call(this, Tundra.cAttributeTransform);
     this.valueInternal = {};
     this.valueInternal.pos = {};
@@ -465,9 +465,9 @@ function AttributeTransform() {
     this.valueInternal.scale.z = 1.0;
 }
 
-AttributeTransform.prototype = new Attribute(Tundra.cAttributeTransform);
+Tundra.AttributeTransform.prototype = new Attribute(Tundra.cAttributeTransform);
 
-AttributeTransform.prototype.fromBinary = function(dd, changeType){
+Tundra.AttributeTransform.prototype.fromBinary = function(dd, changeType){
     var newValue = {};
     newValue.pos = {};
     newValue.rot = {};
@@ -484,7 +484,7 @@ AttributeTransform.prototype.fromBinary = function(dd, changeType){
     this.set(newValue, changeType);
 };
 
-AttributeTransform.prototype.toBinary = function(ds){
+Tundra.AttributeTransform.prototype.toBinary = function(ds){
     ds.addFloat(this.value.pos.x);
     ds.addFloat(this.value.pos.y);
     ds.addFloat(this.value.pos.z);
@@ -527,37 +527,37 @@ Tundra.createAttribute = function(typeId) {
     switch (typeId)
     {
     case Tundra.cAttributeString:
-        return new AttributeString();
+        return new Tundra.AttributeString();
     case Tundra.cAttributeInt:
-        return new AttributeInt();
+        return new Tundra.AttributeInt();
     case Tundra.cAttributeReal:
-        return new AttributeReal();
+        return new Tundra.AttributeReal();
     case Tundra.cAttributeColor:
-        return new AttributeColor();
+        return new Tundra.AttributeColor();
     case Tundra.cAttributeFloat2:
-        return new AttributeFloat2();
+        return new Tundra.AttributeFloat2();
     case Tundra.cAttributeFloat3:
-        return new AttributeFloat3();
+        return new Tundra.AttributeFloat3();
     case Tundra.cAttributeFloat4:
-        return new AttributeFloat4();
+        return new Tundra.AttributeFloat4();
     case Tundra.cAttributeBool:
-        return new AttributeBool();
+        return new Tundra.AttributeBool();
     case Tundra.cAttributeUInt:
-        return new AttributeUInt();
+        return new Tundra.AttributeUInt();
     case Tundra.cAttributeQuat:
-        return new AttributeQuat();
+        return new Tundra.AttributeQuat();
     case Tundra.cAttributeAssetReference:
-        return new AttributeAssetReference();
+        return new Tundra.AttributeAssetReference();
     case Tundra.cAttributeAssetReferenceList:
-        return new AttributeAssetReferenceList();
+        return new Tundra.AttributeAssetReferenceList();
     case Tundra.cAttributeEntityReference:
-        return new AttributeEntityReference();
+        return new Tundra.AttributeEntityReference();
     case Tundra.cAttributeQVariant:
-        return new AttributeQVariant();
+        return new Tundra.AttributeQVariant();
     case Tundra.cAttributeQVariantList:
-        return new AttributeQVariantList();
+        return new Tundra.AttributeQVariantList();
     case Tundra.cAttributeTransform:
-        return new AttributeTransform();
+        return new Tundra.AttributeTransform();
     case Tundra.cAttributeQPoint:
         return new AttributeQPoint();
     default:

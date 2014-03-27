@@ -1,6 +1,6 @@
-var client = new WebSocketClient();
-var scene = new Scene();
-var syncManager = new SyncManager(client, scene);
+var client = new Tundra.WebSocketClient();
+var scene = new Tundra.Scene();
+var syncManager = new Tundra.SyncManager(client, scene);
 var loginData = {"name": "Test User"};
 
 // Connect to a localhost Tundra server, once connected start making scene changes
@@ -84,5 +84,5 @@ function manipulateEntities2() {
     // Trigger a remote entity action on the fifth entity
     var params = ["Param1", "Param2", "Param3"];
     ent = scene.entityByName("Entity5");
-    ent.triggerAction("TestAction", params, Tundra.cExecTypeServer | cExecTypePeers);
+    ent.triggerAction("TestAction", params, Tundra.cExecTypeServer | Tundra.cExecTypePeers);
 }

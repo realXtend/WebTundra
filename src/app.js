@@ -1,8 +1,7 @@
 "use strict";
 /* jslint browser: true, globalstrict: true, devel: true, debug: true */
 /* global requestAnimationFrame */
-/* global ThreeView, WebTundraModel */
-/* global EC_Mesh, EC_Placeable */
+/* global Tundra */
 /* global THREE, THREEx, signals, Stats, Detector */
 
 // For conditions of distribution and use, see copyright notice in LICENSE
@@ -39,7 +38,7 @@ Application.prototype = {
 
         // MODEL
         this.connected = false;
-        this.dataConnection = new WebTundraModel(this);
+        this.dataConnection = new Tundra.WebTundraModel(this);
         this.dataConnection.client.connected.add(this.onConnected.bind(this));
         this.dataConnection.client.disconnected.add(this.onDisconnected.bind(this));
         this.dataConnection.scene.componentAdded.add(this.viewer.onComponentAddedOrChanged.bind(this.viewer));
@@ -61,7 +60,7 @@ Application.prototype = {
     },
 
     createViewer: function() {
-        return new ThreeView();
+        return new Tundra.ThreeView();
     },
 
     start: function() {
