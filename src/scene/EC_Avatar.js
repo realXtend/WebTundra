@@ -1,10 +1,16 @@
+"use strict";
+/* jslint browser: true, globalstrict: true, devel: true, debug: true */
+/* globals signals */
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-var cComponentTypeAvatar = 1;
+if (Tundra === undefined)
+    var Tundra = {};
 
-function EC_Avatar() {
+Tundra.cComponentTypeAvatar = 1;
+
+Tundra.EC_Avatar = function() {
     
-    Tundra.Component.call(this, cComponentTypeAvatar);
+    Tundra.Component.call(this, Tundra.cComponentTypeAvatar);
     this.addAttribute(Tundra.cAttributeAssetReference, "appearanceRef", "Reference to avatar file");
     
     // Root entity for avatar.
@@ -22,9 +28,9 @@ function EC_Avatar() {
     
 };
 
-EC_Avatar.prototype = new Tundra.Component(cComponentTypeAvatar);
+Tundra.EC_Avatar.prototype = new Tundra.Component(Tundra.cComponentTypeAvatar);
 
-EC_Avatar.prototype.handleAssetRefChange = function ( attr, changeType ) {
+Tundra.EC_Avatar.prototype.handleAssetRefChange = function ( attr, changeType ) {
     
     if ( attr.id === "appearanceRef" ) {
         
@@ -35,7 +41,7 @@ EC_Avatar.prototype.handleAssetRefChange = function ( attr, changeType ) {
     
 };
 
-EC_Avatar.prototype.releaseAssets = function () {
+Tundra.EC_Avatar.prototype.releaseAssets = function () {
     
     var scene = this.parentEntity.parentScene;
     for( var i = 0; i < this.parts.length; ++i ) {
@@ -53,7 +59,7 @@ EC_Avatar.prototype.releaseAssets = function () {
     
 };
 
-EC_Avatar.prototype.requestAsset = function () {
+Tundra.EC_Avatar.prototype.requestAsset = function () {
     
     if (this.appearanceRef.ref === "")
         return;
@@ -95,7 +101,7 @@ EC_Avatar.prototype.requestAsset = function () {
     
 };
 
-EC_Avatar.prototype.setupAppearance = function ( avatarData ) {
+Tundra.EC_Avatar.prototype.setupAppearance = function ( avatarData ) {
     
     // If old avatar exists release it.
     if ( this.parts.length > 0 )
@@ -108,7 +114,7 @@ EC_Avatar.prototype.setupAppearance = function ( avatarData ) {
     }
     
     /*if (this.parentEntity.name !== undefined)
-        this.parentEntity.Tundra.createComponent(0, cComponentTypeName);
+        this.parentEntity.Tundra.createComponent(0, Tundra.cComponentTypeName);
     this.parentEntity.name.name = data.name;*/
     this.parentEntity.name = data.name;
     
@@ -120,7 +126,7 @@ EC_Avatar.prototype.setupAppearance = function ( avatarData ) {
     this.createGeometry( this.parentEntity, data, true );
     
     if ( data.animations !== undefined )
-        component = this.parentEntity.Tundra.createComponent(0, cComponentTypeAnimation);
+        component = this.parentEntity.Tundra.createComponent(0, Tundra.cComponentTypeAnimation);
     
     if ( data.parts !== undefined ) {
         
@@ -138,7 +144,7 @@ EC_Avatar.prototype.setupAppearance = function ( avatarData ) {
     
 };
 
-EC_Avatar.prototype.createChild = function ( child ) {
+Tundra.EC_Avatar.prototype.createChild = function ( child ) {
     
     if ( child.name === undefined || child.geometry === undefined ||
         child.transform === undefined )
@@ -151,14 +157,14 @@ EC_Avatar.prototype.createChild = function ( child ) {
     
     this.createPlaceable( childEntity, this.parentEntity, child );
     
-    component = this.createGeometry( childEntity, child, false );
+    var component = this.createGeometry( childEntity, child, false );
     
     if ( child.animations !== undefined )
-        component = this.parentEntity.Tundra.createComponent(0, cComponentTypeAnimation);
+        component = this.parentEntity.Tundra.createComponent(0, Tundra.cComponentTypeAnimation);
     
 };
 
-EC_Avatar.prototype.createGeometry = function ( entity, data, useNodeTransform ) {
+Tundra.EC_Avatar.prototype.createGeometry = function ( entity, data, useNodeTransform ) {
 
     var component = entity.Tundra.createComponent(0, Tundra.cComponentTypeMesh);
     var meshRef = component.meshRef;
@@ -203,7 +209,7 @@ EC_Avatar.prototype.createGeometry = function ( entity, data, useNodeTransform )
 
 };
 
-EC_Avatar.prototype.createPlaceable = function ( entity, parent, data ) {
+Tundra.EC_Avatar.prototype.createPlaceable = function ( entity, parent, data ) {
 
     var component = entity.Tundra.createComponent(0, Tundra.cComponentTypePlaceable);
     
@@ -231,7 +237,7 @@ EC_Avatar.prototype.createPlaceable = function ( entity, parent, data ) {
 };
 
 
-EC_Avatar.prototype.checkAvatarAssets = function() {
+Tundra.EC_Avatar.prototype.checkAvatarAssets = function() {
     
     for (var i in this.assetQuery)
     {
@@ -271,4 +277,4 @@ EC_Avatar.prototype.checkAvatarAssets = function() {
     
 };
 
-Tundra.registerComponent(cComponentTypeAvatar, "Avatar", function(){ return new EC_Avatar(); });
+Tundra.registerComponent(Tundra.cComponentTypeAvatar, "Avatar", function(){ return new Tundra.EC_Avatar(); });

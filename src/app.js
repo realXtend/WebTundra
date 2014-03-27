@@ -199,7 +199,7 @@ function check() {
 }
 
 Application.prototype.onRigidBodyPossiblyAdded = function(entity, component) {
-    if (! (component instanceof EC_RigidBody))
+    if (! (component instanceof Tundra.EC_RigidBody))
         return;
 
 

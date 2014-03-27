@@ -820,10 +820,6 @@ if (true) {
     Tundra.check = check;
     Tundra.checkDefined = checkDefined;
     Tundra.Skeleton = Skeleton;
-    Tundra.EC_Light = EC_Light;
-    Tundra.EC_Camera = EC_Camera;
-    Tundra.LT_Spot = LT_Spot;
-    Tundra.EC_AnimationController = EC_AnimationController;
     Tundra.Entity = Entity;
 }
 

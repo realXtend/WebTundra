@@ -50,7 +50,7 @@ Tundra.EC_Mesh.prototype.updateNodeTransform = function ( ) {  };
 // Check if placeable parentRef or parentBone has changed and update parent
 // child hierachy based on the change.
 Tundra.EC_Mesh.prototype.updateParentRef = function () {
-    
+    var pEntity;
     var placeable = this.parentEntity.componentByType("Placeable");
     if ( placeable === null )
         return;
@@ -70,7 +70,7 @@ Tundra.EC_Mesh.prototype.updateParentRef = function () {
         
         this.parentBone.detach(this);
         
-        var pEntity = this.parentEntity.parentScene.entityById( placeable.parentRef );
+        pEntity = this.parentEntity.parentScene.entityById( placeable.parentRef );
         if (pEntity)
             placeable.setParentEntity( pEntity );
         
@@ -80,7 +80,7 @@ Tundra.EC_Mesh.prototype.updateParentRef = function () {
     
     // Check if parent entity or mesh asset is ready. If not wait until they are created
     
-    var pEntity = this.parentEntity.parentScene.entityById( placeable.parentRef );
+    pEntity = this.parentEntity.parentScene.entityById( placeable.parentRef );
     
     if ( pEntity === null ) {
         

@@ -1,12 +1,12 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-var cComponentTypeDynamicComponent = 25;
+Tundra.cComponentTypeDynamicComponent = 25;
 
-function EC_DynamicComponent() {
-    Tundra.Component.call(this, cComponentTypeDynamicComponent);
+Tundra.EC_DynamicComponent = function () {
+    Tundra.Component.call(this, Tundra.cComponentTypeDynamicComponent);
     this.supportsDynamicAttributes = true;
-}
+};
 
-EC_DynamicComponent.prototype = new Tundra.Component(cComponentTypeDynamicComponent);
+Tundra.EC_DynamicComponent.prototype = new Tundra.Component(Tundra.cComponentTypeDynamicComponent);
 
-Tundra.registerComponent(cComponentTypeDynamicComponent, "DynamicComponent", function(){ return new EC_DynamicComponent(); });
+Tundra.registerComponent(Tundra.cComponentTypeDynamicComponent, "DynamicComponent", function(){ return new Tundra.EC_DynamicComponent(); });

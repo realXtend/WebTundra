@@ -255,7 +255,7 @@ Entity.prototype = {
 
     get name()
     {
-        var nameComp = this.componentByType(cComponentTypeName);
+        var nameComp = this.componentByType(Tundra.cComponentTypeName);
         if (nameComp) {
             var nameAttr = nameComp.attributeById("name");
             return nameAttr.value;
@@ -267,9 +267,9 @@ Entity.prototype = {
     set name(value)
     {
         // Name exists in its own component, create if doesn't exist
-        var nameComp = this.componentByType(cComponentTypeName);
+        var nameComp = this.componentByType(Tundra.cComponentTypeName);
         if (nameComp == null)
-            nameComp = this.Tundra.createComponent(0, cComponentTypeName, "");
+            nameComp = this.Tundra.createComponent(0, Tundra.cComponentTypeName, "");
         var nameAttr = nameComp.attributeById("name");
         nameAttr.value = value;
     }

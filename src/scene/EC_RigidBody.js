@@ -1,9 +1,9 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-var cComponentTypeRigidBody = 23;
+Tundra.cComponentTypeRigidBody = 23;
 
-function EC_RigidBody() {
-    Tundra.Component.call(this, cComponentTypeRigidBody);
+Tundra.EC_RigidBody = function () {
+    Tundra.Component.call(this, Tundra.cComponentTypeRigidBody);
     this.addAttribute(Tundra.cAttributeReal, "mass", "Mass", 0.0);
     this.addAttribute(Tundra.cAttributeInt, "shapeType", "Shape type");
     this.addAttribute(Tundra.cAttributeFloat3, "size", "Size");
@@ -21,10 +21,10 @@ function EC_RigidBody() {
     this.addAttribute(Tundra.cAttributeFloat3, "angularVelocity", "Angular velocity");
     this.addAttribute(Tundra.cAttributeInt, "collisionLayer", "Collision Layer", -1);
     this.addAttribute(Tundra.cAttributeInt, "collisionMask", "Collision Mask", -1);
-    this.addAttribute(Tundra.cAttributeReal, "rollingFriction", "Rolling Friction", 0.5)
+    this.addAttribute(Tundra.cAttributeReal, "rollingFriction", "Rolling Friction", 0.5);
     this.addAttribute(Tundra.cAttributeBool, "useGravity", "Use gravity", true);
-}
+};
 
-EC_RigidBody.prototype = new Tundra.Component(cComponentTypeRigidBody);
+Tundra.EC_RigidBody.prototype = new Tundra.Component(Tundra.cComponentTypeRigidBody);
 
-Tundra.registerComponent(cComponentTypeRigidBody, "RigidBody", function(){ return new EC_RigidBody(); });
+Tundra.registerComponent(Tundra.cComponentTypeRigidBody, "RigidBody", function(){ return new Tundra.EC_RigidBody(); });
