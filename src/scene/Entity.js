@@ -40,7 +40,7 @@ Tundra.Entity.prototype = {
 
         if (this.componentById(id))
         {
-            console.log("Tundra.Component id " + id + " in entity " + this.id + " already exists, can not create");
+            console.log("Component id " + id + " in entity " + this.id + " already exists, can not create");
             return null;
         }
         var newComp = Tundra.createComponent(typeId);
@@ -98,7 +98,7 @@ Tundra.Entity.prototype = {
             }
         }
         else
-            console.log("Tundra.Component id " + id + " in entity " + this.id + " does not exist, can not remove");
+            console.log("Component id " + id + " in entity " + this.id + " does not exist, can not remove");
     },
 
     removeAllComponents: function(changeType) {
@@ -123,7 +123,7 @@ Tundra.Entity.prototype = {
             var comp = this.components[oldId];
             if (comp == null)
             {
-                console.log("Tundra.Component id " + oldId + " not found, can not assign new id");
+                console.log("Component id " + oldId + " not found, can not assign new id");
                 return;
             }
             delete this.components[oldId];

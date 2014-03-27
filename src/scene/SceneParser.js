@@ -133,7 +133,7 @@ Tundra.SceneParser.prototype.parseDocXml3D = function(doc) {
     lightEnt.createComponent(0, Tundra.cComponentTypePlaceable,
                         "", Tundra.AttributeChange.LocalOnly);
     lightEnt.createComponent(0, Tundra.cComponentTypeLight, "", Tundra.AttributeChange.LocalOnly);
-    console.log("Tundra.SceneParser: created placeholder light");
+    console.log("SceneParser: created placeholder light");
     
     var x3Nodes = doc.getElementsByTagName("xml3d");
     if (x3Nodes.length < 1) {

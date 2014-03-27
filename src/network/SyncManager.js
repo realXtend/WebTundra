@@ -398,7 +398,7 @@ Tundra.SyncManager.prototype = {
             var compId = dd.readVLE();
             var component = entity.componentById(compId);
             if (component == null) {
-                console.log("Tundra.Component id " + compId + " not found in entity id " + entityId + " when handling EditAttributes message");
+                console.log("Component id " + compId + " not found in entity id " + entityId + " when handling EditAttributes message");
                 return;
             }
             var compDataSize = dd.readVLE();
@@ -443,7 +443,7 @@ Tundra.SyncManager.prototype = {
             var compId = dd.readVLE();
             var component = entity.componentById(compId);
             if (component == null) {
-                console.log("Tundra.Component id " + compId + " not found in entity id " + entityId + " when handling CreateAttributes message");
+                console.log("Component id " + compId + " not found in entity id " + entityId + " when handling CreateAttributes message");
                 return;
             }
             var attrIndex = dd.readU8();

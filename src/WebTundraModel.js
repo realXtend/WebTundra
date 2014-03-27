@@ -38,7 +38,7 @@ Tundra.signalWhenAttributePreconditionOk = function (
 entity, componentTypeId, targetAttributeId, condFunc, mySignal) {
     var onGotComponent = function(entity, component) {
         if (entity.id == Tundra.watchEntity)
-            console.log("Tundra.watchEntity precond 2");
+            console.log("watchEntity precond 2");
 
         var currentAttribute = component.attributeById(targetAttributeId);
         if (currentAttribute !== null) {
@@ -50,7 +50,7 @@ entity, componentTypeId, targetAttributeId, condFunc, mySignal) {
         }
         var onAttributeChanged = function(changedAttribute, changeType) {
             if (entity.id == Tundra.watchEntity)
-                console.log("Tundra.watchEntity precond 3.1", changedAttribute);
+                console.log("watchEntity precond 3.1", changedAttribute);
             if (targetAttributeId !== changedAttribute.id)
                 return;
             var status = condFunc(changedAttribute);
@@ -63,7 +63,7 @@ entity, componentTypeId, targetAttributeId, condFunc, mySignal) {
 
         var onAttributeAdded = function(changedComponent, changedAttribute, changeType) {
             if (entity.id == Tundra.watchEntity)
-                console.log("Tundra.watchEntity precond 3.2");
+                console.log("watchEntity precond 3.2");
             if (targetAttributeId !== changedAttribute.id)
                 return;
             var status = condFunc(changedAttribute);
@@ -76,7 +76,7 @@ entity, componentTypeId, targetAttributeId, condFunc, mySignal) {
         component.attributeAdded.add(onAttributeAdded);
     };
     if (entity.id == Tundra.watchEntity)
-        console.log("Tundra.watchEntity precond 1", entity.componentByType(componentTypeId));
+        console.log("watchEntity precond 1", entity.componentByType(componentTypeId));
     var gotComponentSig = new signals.Signal();
     gotComponentSig.add(onGotComponent);
     /* rely on signalWhenComponenTypePresent to handle the case where
@@ -99,13 +99,13 @@ Tundra.signalWhenComponentTypePresent = function(entity, typeId, mySignal) {
             return;
         }
         if (entity.id == Tundra.watchEntity)
-            console.log("Tundra.watchEntity present 2");
+            console.log("watchEntity present 2");
         if (newComponent.typeId === typeId) {
             mySignal.dispatch(entity, newComponent);
             entity.componentAdded.remove(onComponentAdded);
         }
     };
     if (entity.id == Tundra.watchEntity)
-        console.log("Tundra.watchEntity present 1");
+        console.log("watchEntity present 1");
     entity.componentAdded.add(onComponentAdded);
 };

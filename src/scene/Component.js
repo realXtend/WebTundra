@@ -47,7 +47,7 @@ Tundra.Component.prototype = {
     // Create a dynamic attribute during runtime
     createAttribute: function(index, typeId, name, value, changeType) {
         if (!this.supportsDynamicAttributes) {
-            console.log("Tundra.Component " + this.typeName + " does not support adding dynamic attributes");
+            console.log("Component " + this.typeName + " does not support adding dynamic attributes");
             return null;
         }
         var newAttr = createAttribute(typeId);
@@ -103,7 +103,7 @@ Tundra.Component.prototype = {
     // Remove a dynamic attribute during runtime
     removeAttribute : function(index, changeType) {
         if (!this.supportsDynamicAttributes) {
-            console.log("Tundra.Component " + this.typeName + " does not support dynamic attributes");
+            console.log("Component " + this.typeName + " does not support dynamic attributes");
             return null;
         }
         if (index < this.attributes.length && this.attributes[index] != null) {

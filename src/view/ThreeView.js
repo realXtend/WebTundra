@@ -149,7 +149,7 @@ Tundra.ThreeView.prototype = {
         else if (component instanceof Tundra.EC_AnimationController)
             this.onAnimatorAddedOrChanged(threeGroup, component);
         else
-            console.log("Tundra.Component not handled by ThreeView:", entity, component);
+            console.log("Component not handled by ThreeView:", entity, component);
     },
     
     OnEntityAction : function( name, params, execType ) {
