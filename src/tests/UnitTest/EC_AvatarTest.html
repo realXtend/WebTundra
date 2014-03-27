@@ -1,0 +1,109 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Unit Test</title>
+  <link rel="stylesheet" href="css/qunit-1.14.0.css">
+</head>
+<body>
+  <div id="qunit"></div>
+  <div id="qunit-fixture"></div>
+  <script src="js/qunit-1.14.0.js"></script>
+  
+  <div id="ThreeJS" style="z-index: 1; left:0px; top:0px"></div>
+
+  <!-- EC -->
+  <script src="../../../src/util/Signals.js"></script>
+  <script src="../../../src/util/CompoundSignal.js"></script>
+  <script src="../../../src/network/DataSerializer.js"></script>
+  <script src="../../../src/network/DataDeserializer.js"></script>
+  <script src="../../../src/network/WebSocketClient.js"></script>
+  <script src="../../../src/network/SyncManager.js"></script>
+  <script src="../../../src/scene/UniqueIdGenerator.js"></script>
+  <script src="../../../src/scene/Attribute.js"></script>
+  <script src="../../../src/scene/Component.js"></script>
+  <script src="../../../src/scene/Entity.js"></script>
+  <script src="../../../src/scene/Scene.js"></script>
+  <script src="../../../src/scene/EC_DynamicComponent.js"></script>
+  <script src="../../../src/scene/EC_EnvironmentLight.js"></script>
+  <script src="../../../src/scene/EC_Mesh.js"></script>
+  <script src="../../../src/scene/Bone.js"></script>
+  <script src="../../../src/scene/EC_Name.js"></script>
+  <script src="../../../src/scene/EC_Placeable.js"></script>
+  <script src="../../../src/scene/EC_RigidBody.js"></script>
+  <script src="../../../src/scene/EC_Script.js"></script>
+  <script src="../../../src/scene/EC_Sky.js"></script>
+  <script src="../../../src/scene/EC_Light.js"></script>
+  <script src="../../../src/scene/EC_Camera.js"></script>
+  <script src="../../../src/scene/EC_Sound.js"></script>
+  <script src="../../../src/scene/EC_AnimationController.js"></script>
+  <script src="../../../src/scene/EC_Avatar.js"></script>
+
+  <script src="../../../src/view/js/Three.js"></script>
+  <script src="../../../src/view/js/Detector.js"></script>
+  <script src="../../../src/view/js/Stats.js"></script>
+  <script src="../../../src/view/js/THREEx.KeyboardState.js"></script>
+  <script src="../../../src/view/js/THREEx.FullScreen.js"></script>
+  <script src="../../../src/view/js/THREEx.WindowResize.js"></script>
+
+  <script src="../../../src/scene/SceneParser.js"></script>
+  <script src="../../../src/WebTundraModel.js"></script>
+  <script src="../../../src/view/ThreeView.js"></script>
+  <script src="../../../src/view/EC_AnimationControllerView.js"></script>
+  <script src="../../../src/view/EC_PlaceableView.js"></script>
+  <script src="../../../src/view/BoneView.js"></script>
+  
+  <!-- Create viewer and hide render window -->
+  
+  
+  <script>
+      
+    "use strict";
+
+    var useSignals = true;
+
+    // VIEWER
+    var viewer = new ThreeView();
+    viewer.renderer.setClearColor( 0x9999D6, 1 );
+    viewer.renderer.domElement.style.display = 'none';
+    viewer.stats.domElement.style.display = 'none';
+
+    // MODEL
+    var connected = false;
+    var dataConnection = new WebTundraModel();
+    dataConnection.scene.componentAdded.add(viewer.onComponentAddedOrChanged.bind(viewer));
+    dataConnection.scene.componentRemoved.add(viewer.onComponentRemoved.bind(viewer));
+    dataConnection.scene.threeScene = viewer.scene;
+
+    var debugOnCheckFail = false;
+
+    function checkDefined() {
+        for (var i = 0; i < arguments.length; i++) {
+            if (arguments[i] === undefined) {
+                if (debugOnCheckFail) {
+                    debugger;
+                } else {
+                    throw ("undefined value, arg #" + i);
+                }
+            }
+        }
+    }
+
+    function check() {
+        for (var i = 0; i < arguments.length; i++)
+            if (arguments[i] !== true) {
+                if (debugOnCheckFail) {
+                    debugger;
+                } else {
+                    throw ("untrue value" + arguments[i] + ", arg #" + i);
+                }
+        }
+    }
+    
+  </script>
+
+  <!-- Unit tests -->
+
+  <script src="EC_Avatar/test.js"></script>
+
+</body>
+</html>
