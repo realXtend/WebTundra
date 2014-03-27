@@ -28,7 +28,7 @@ Scene.prototype = {
         // If zero ID, assign ID now
         if (id == 0)
         {
-            if (changeType == AttributeChange.LocalOnly)
+            if (changeType == Tundra.AttributeChange.LocalOnly)
                 id = this.entityIdGenerator.allocateLocal();
             else
                 id = this.entityIdGenerator.allocateUnacked();
@@ -44,9 +44,9 @@ Scene.prototype = {
         newEntity.id = id;
         this.entities[id] = newEntity;
 
-        if (changeType == null || changeType == AttributeChange.Default)
-            changeType = newEntity.local ? AttributeChange.LocalOnly : AttributeChange.Replicate;
-        if (changeType != AttributeChange.Disconnected)
+        if (changeType == null || changeType == Tundra.AttributeChange.Default)
+            changeType = newEntity.local ? Tundra.AttributeChange.LocalOnly : Tundra.AttributeChange.Replicate;
+        if (changeType != Tundra.AttributeChange.Disconnected)
             this.entityCreated.dispatch(newEntity, changeType);
 
         return newEntity;
@@ -59,16 +59,16 @@ Scene.prototype = {
             var entity = this.entities[id];
             delete this.entities[id];
 
-            if (changeType == null || changeType == AttributeChange.Default)
-                changeType = entity.local ? AttributeChange.LocalOnly : AttributeChange.Replicate;
-            if (changeType != AttributeChange.Disconnected) {
+            if (changeType == null || changeType == Tundra.AttributeChange.Default)
+                changeType = entity.local ? Tundra.AttributeChange.LocalOnly : Tundra.AttributeChange.Replicate;
+            if (changeType != Tundra.AttributeChange.Disconnected) {
                 this.entityRemoved.dispatch(entity, changeType);
                 entity.removeAllComponents(changeType);
             }
             
             // Make the removed entity unparented
             if (entity.parent != null)
-                entity.setParent(null, AttributeChange.Disconnected);
+                entity.setParent(null, Tundra.AttributeChange.Disconnected);
 
             // Remove child entities. Possibly recursive
             entity.removeAllChildren(changeType);
@@ -128,35 +128,35 @@ Scene.prototype = {
 
     // Trigger scene-level attribute change signal. Called by Component
     emitAttributeChanged : function(comp, attr, changeType) {
-        if (changeType == AttributeChange.Disconnected)
+        if (changeType == Tundra.AttributeChange.Disconnected)
             return;
         this.attributeChanged.dispatch(comp, attr, changeType);
     },
 
     // Trigger scene-level attribute added signal. Called by Component
     emitAttributeAdded : function(comp, attr, changeType) {
-        if (changeType == AttributeChange.Disconnected)
+        if (changeType == Tundra.AttributeChange.Disconnected)
             return;
         this.attributeAdded.dispatch(comp, attr, changeType);
     },
 
     // Trigger scene-level attribute removed signal. Called by Component
     emitAttributeRemoved : function(comp, attr, changeType) {
-        if (changeType == AttributeChange.Disconnected)
+        if (changeType == Tundra.AttributeChange.Disconnected)
             return;
         this.attributeRemoved.dispatch(comp, attr, changeType);
     },
     
     // Trigger scene-level component added signal. Called by Entity
     emitComponentAdded : function(entity, comp, changeType) {
-        if (changeType == AttributeChange.Disconnected)
+        if (changeType == Tundra.AttributeChange.Disconnected)
             return;
         this.componentAdded.dispatch(entity, comp, changeType);
     },
 
     // Trigger scene-level component removed signal. Called by Entity
     emitComponentRemoved : function(entity, comp, changeType) {
-        if (changeType == AttributeChange.Disconnected)
+        if (changeType == Tundra.AttributeChange.Disconnected)
             return;
         this.componentRemoved.dispatch(entity, comp, changeType);
     },

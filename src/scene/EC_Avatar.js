@@ -40,16 +40,16 @@ EC_Avatar.prototype.releaseAssets = function () {
     var scene = this.parentEntity.parentScene;
     for( var i = 0; i < this.parts.length; ++i ) {
 
-        scene.removeEntity(this.parts[i], AttributeChange.LocalOnly);
+        scene.removeEntity(this.parts[i], Tundra.AttributeChange.LocalOnly);
         
     }
     this.parts = [];
     
     if ( this.parentEntity.animationController !== undefined )
-        this.parentEntity.removeComponent(this.parentEntity.animationController.id, AttributeChange.LocalOnly);
+        this.parentEntity.removeComponent(this.parentEntity.animationController.id, Tundra.AttributeChange.LocalOnly);
     
     if ( this.parentEntity.mesh !== undefined )
-        this.parentEntity.removeComponent(this.parentEntity.mesh.id, AttributeChange.LocalOnly);
+        this.parentEntity.removeComponent(this.parentEntity.mesh.id, Tundra.AttributeChange.LocalOnly);
     
 };
 

@@ -8,7 +8,7 @@
 /* global THREE, THREEx, signals */
 /* global WebSocketClient, Scene, SyncManager */
 /* global EC_Mesh, EC_Placeable, EC_Light, EC_Camera */
-/* global cComponentTypePlaceable, cComponentTypeMesh, componentTypeIds */
+/* global cComponentTypePlaceable, cComponentTypeMesh, Tundra.componentTypeIds */
 
 var scene = null; // for networking code
 var watchEntity = null;
@@ -88,7 +88,7 @@ entity, componentTypeId, targetAttributeId, condFunc, mySignal) {
 
 function signalWhenComponentTypePresent(entity, typeId, mySignal) {
     if (typeof typeId == 'string' || typeId instanceof String)
-        typeId = componentTypeIds[typeId];
+        typeId = Tundra.componentTypeIds[typeId];
 
     var currentComponent = entity.componentByType(typeId);
     if (currentComponent !== null) {

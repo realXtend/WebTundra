@@ -32,7 +32,7 @@ Entity.prototype = {
         if (id == 0)
         {
             // If entity itself is local, create only local components
-            if (this.local == true || changeType == AttributeChange.LocalOnly)
+            if (this.local == true || changeType == Tundra.AttributeChange.LocalOnly)
                 id = this.componentIdGenerator.allocateLocal();
             else
                 id = this.componentIdGenerator.allocateUnacked();
@@ -52,7 +52,7 @@ Entity.prototype = {
                 newComp.name = name;
             this.components[id] = newComp;
             // Register direct access by type
-            var propName = sanitatePropertyName(newComp.typeName);
+            var propName = Tundra.sanitatePropertyName(newComp.typeName);
             if (this[propName] === undefined)
                 this[propName] = newComp;
             newComp.parentEntitySet.dispatch(newComp, this);
@@ -62,9 +62,9 @@ Entity.prototype = {
             return null;
         }
                 
-        if (changeType == null || changeType == AttributeChange.Default)
-            changeType = newComp.local ? AttributeChange.LocalOnly : AttributeChange.Replicate;
-        if (changeType != AttributeChange.Disconnected)
+        if (changeType == null || changeType == Tundra.AttributeChange.Default)
+            changeType = newComp.local ? Tundra.AttributeChange.LocalOnly : Tundra.AttributeChange.Replicate;
+        if (changeType != Tundra.AttributeChange.Disconnected)
         {
             // Trigger scene level signal
             if (this.parentScene)
@@ -82,13 +82,13 @@ Entity.prototype = {
             var comp = this.components[id];
             delete this.components[id];
             // Remove direct access by type
-            var propName = sanitatePropertyName(comp.typeName);
+            var propName = Tundra.sanitatePropertyName(comp.typeName);
             if (this[propName] === comp)
                 delete this[propName];
                 
-            if (changeType == null || changeType == AttributeChange.Default)
-                changeType = comp.local ? AttributeChange.LocalOnly : AttributeChange.Replicate;
-            if (changeType != AttributeChange.Disconnected)
+            if (changeType == null || changeType == Tundra.AttributeChange.Default)
+                changeType = comp.local ? Tundra.AttributeChange.LocalOnly : Tundra.AttributeChange.Replicate;
+            if (changeType != Tundra.AttributeChange.Disconnected)
             {
                 // Trigger scene level signal
                 if (this.parentScene)
@@ -147,7 +147,7 @@ Entity.prototype = {
     componentByType: function(typeId, name) {
         // Convert typename to numeric ID if necessary
         if (typeof typeId == 'string' || typeId instanceof String)
-            typeId = componentTypeIds[typeId];
+            typeId = Tundra.componentTypeIds[typeId];
         for (var compId in this.components) {
             if (this.components.hasOwnProperty(compId) && this.components[compId].typeId == typeId) {
                 if (name == null || this.components[compId].name == name)
@@ -229,9 +229,9 @@ Entity.prototype = {
         this.parent = newParent;
 
         // Signal
-        if (changeType == null || changeType == AttributeChange.Default)
-            changeType = this.local ? AttributeChange.LocalOnly : AttributeChange.Replicate;
-        if (changeType != AttributeChange.Disconnected) {
+        if (changeType == null || changeType == Tundra.AttributeChange.Default)
+            changeType = this.local ? Tundra.AttributeChange.LocalOnly : Tundra.AttributeChange.Replicate;
+        if (changeType != Tundra.AttributeChange.Disconnected) {
             this.parentChanged.dispatch(this, newParent, changeType);
             if (this.parentScene)
                 this.parentScene.emitEntityParentChanged(this, newParent, changeType);

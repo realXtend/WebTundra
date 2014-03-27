@@ -66,7 +66,7 @@ var attributeTypeNames = [
     Tundra.cAttributeQPointTypeName
 ];
 
-var attributeTypeIds = {
+Tundra.attributeTypeIds = {
     "" : Tundra.cAttributeNone,
     "string" : Tundra.cAttributeString,
     "int" : Tundra.cAttributeInt,
@@ -87,7 +87,7 @@ var attributeTypeIds = {
     "QPoint" : Tundra.cAttributeQPoint
 };
 
-var AttributeChange = {
+Tundra.AttributeChange = {
     Default : 0,
     Disconnected : 1,
     LocalOnly : 2,
@@ -120,7 +120,7 @@ Attribute.prototype = {
     },
 
     set value(newValue){
-        this.set(newValue, AttributeChange.Default);
+        this.set(newValue, Tundra.AttributeChange.Default);
     }
 }
 
@@ -519,10 +519,10 @@ AttributeQPoint.prototype.toBinary = function(ds){
     ds.addS32(this.value.y);
 };
 
-function createAttribute(typeId) {
+Tundra.createAttribute = function(typeId) {
     // Convert typename to numeric ID if necessary
     if (typeof typeId == 'string' || typeId instanceof String)
-        typeId = attributeTypeIds[typeId];
+        typeId = Tundra.attributeTypeIds[typeId];
 
     switch (typeId)
     {
@@ -566,6 +566,6 @@ function createAttribute(typeId) {
     }
 }
 
-function sanitatePropertyName(name) {
+Tundra.sanitatePropertyName = function(name) {
     return (name.substring(0, 1).toLowerCase() + name.substring(1)).trim();
 }

@@ -118,9 +118,9 @@ SceneParser.prototype.parseDoc = function(doc) {
 };
 
 SceneParser.prototype.createEntityWithPlaceable = function() {
-    var entity = this.ecModel.scene.createEntity(0, AttributeChange.LocalOnly);
+    var entity = this.ecModel.scene.createEntity(0, Tundra.AttributeChange.LocalOnly);
     var placeable = entity.createComponent(0, cComponentTypePlaceable,
-                                           "", AttributeChange.LocalOnly);
+                                           "", Tundra.AttributeChange.LocalOnly);
     placeable.parentRef = 0; // won't get added to three scene until this is initialized
     return entity;
 };
@@ -128,8 +128,8 @@ SceneParser.prototype.createEntityWithPlaceable = function() {
 SceneParser.prototype.parseDocXml3D = function(doc) {
     var lightEnt = this.ecModel.scene.createEntity(0, name);
     lightEnt.createComponent(0, cComponentTypePlaceable,
-                        "", AttributeChange.LocalOnly);
-    lightEnt.createComponent(0, cComponentTypeLight, "", AttributeChange.LocalOnly);
+                        "", Tundra.AttributeChange.LocalOnly);
+    lightEnt.createComponent(0, cComponentTypeLight, "", Tundra.AttributeChange.LocalOnly);
     console.log("SceneParser: created placeholder light");
     
     var x3Nodes = doc.getElementsByTagName("xml3d");
@@ -191,7 +191,7 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
             var src = xmesh.getAttribute("src");
             var meshName = xmesh.getAttribute("id") || groupId;
             var ecmesh = entity.createComponent(0, cComponentTypeMesh, meshName,
-                                                AttributeChange.LocalOnly);
+                                                Tundra.AttributeChange.LocalOnly);
             ecmesh.meshRef = { ref: src };
             console.log("made mesh for id " + meshName + " entity " + entity.id);
            
@@ -214,7 +214,7 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
             } else {
                 setPlaceableFromGroupNode(placeable, group);
             }
-            ecCamera = entity.createComponent(0, cComponentTypeCamera, viewId || "camera", AttributeChange.LocalOnly);
+            ecCamera = entity.createComponent(0, cComponentTypeCamera, viewId || "camera", Tundra.AttributeChange.LocalOnly);
           
             //console.log("in-group camera added to entity " + entity.id);
             //placeable.debug = true;
@@ -235,10 +235,10 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
         viewId = xview.getAttribute("id");
         viewPosition = xview.getAttribute("position");
         viewOrientation = xview.getAttribute("orientation");
-        var camEntity = this.ecModel.scene.createEntity(0, AttributeChange.LocalOnly);
+        var camEntity = this.ecModel.scene.createEntity(0, Tundra.AttributeChange.LocalOnly);
         var placeable = camEntity.createComponent(0, cComponentTypePlaceable,
-                                               "", AttributeChange.LocalOnly);
-        ecCamera = camEntity.createComponent(0, cComponentTypeCamera, viewId || "camera", AttributeChange.LocalOnly);
+                                               "", Tundra.AttributeChange.LocalOnly);
+        ecCamera = camEntity.createComponent(0, cComponentTypeCamera, viewId || "camera", Tundra.AttributeChange.LocalOnly);
         var px = placeable.transform;
         if (viewPosition) {
             //console.log("have view pos");
