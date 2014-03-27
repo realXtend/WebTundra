@@ -61,24 +61,24 @@ var attributeTypeNames = [
 ];
 
 var attributeTypeIds = {
-    cAttributeNoneTypeName : cAttributeNone,
-    cAttributeStringTypeName : cAttributeString,
-    cAttributeIntTypeName : cAttributeInt,
-    cAttributeRealTypeName : cAttributeReal,
-    cAttributeColorTypeName : cAttributeColor,
-    cAttributeFloat2TypeName : cAttributeFloat2,
-    cAttributeFloat3TypeName : cAttributeFloat3,
-    cAttributeFloat4TypeName : cAttributeFloat4,
-    cAttributeBoolTypeName : cAttributeBool,
-    cAttributeUIntTypeName : cAttributeUInt,
-    cAttributeQuatTypeName : cAttributeQuat,
-    cAttributeAssetReferenceTypeName : cAttributeAssetReference,
-    cAttributeAssetReferenceListTypeName : cAttributeAssetReferenceList,
-    cAttributeEntityReferenceTypeName : cAttributeEntityReference,
-    cAttributeQVariantTypeName : cAttributeQVariant,
-    cAttributeQVariantListTypeName : cAttributeQVariantList,
-    cAttributeTransformTypeName : cAttributeTransform,
-    cAttributeQPointTypeName : cAttributeQPoint
+    "" : cAttributeNone,
+    "string" : cAttributeString,
+    "int" : cAttributeInt,
+    "real" : cAttributeReal,
+    "Color" : cAttributeColor,
+    "float2" : cAttributeFloat2,
+    "float3" : cAttributeFloat3,
+    "float4" : cAttributeFloat4,
+    "bool" : cAttributeBool,
+    "uint" : cAttributeUInt,
+    "Quat" : cAttributeQuat,
+    "AssetReference" : cAttributeAssetReference,
+    "AssetReferenceList" : cAttributeAssetReferenceList,
+    "EntityReference" : cAttributeEntityReference,
+    "QVariant" : cAttributeQVariant,
+    "QVariantList" : cAttributeQVariantList,
+    "Transform" : cAttributeTransform,
+    "QPoint" : cAttributeQPoint
 };
 
 var AttributeChange = {

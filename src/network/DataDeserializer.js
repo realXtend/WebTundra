@@ -48,7 +48,7 @@ DataDeserializer.prototype = {
     readS32 : function() {
         var valueS32 = this.readU32();
         if (valueS32 >= 0x80000000)
-            valueS32 -= 0x80000000;
+            valueS32 -= 0x100000000;
         return valueS32;
     },
 

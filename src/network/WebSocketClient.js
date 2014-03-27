@@ -3,6 +3,10 @@
 var cLoginMessage = 100;
 var cLoginReply = 101;
 
+var cProtocolOriginal = 1;
+var cProtocolCustomComponents = 2;
+var cHighestSupportedProtocolVersion = cProtocolCustomComponents;
+
 function WebSocketClient() {
     this.webSocket = null;
     this.url = "";
@@ -13,6 +17,7 @@ function WebSocketClient() {
     this.loginData = null;
     this.userID = 0;
     this.loginReplyData = null;
+    this.protocolVersion = cHighestSupportedProtocolVersion;
 }
 
 WebSocketClient.prototype = {
@@ -23,6 +28,7 @@ WebSocketClient.prototype = {
             this.loginData = loginData;
         this.userID = 0;
         this.loginReplyData = null;
+        this.protocolVersion = cHighestSupportedProtocolVersion;
 
         this.connected.add(this.onConnect, this);
         this.messageReceived.add(this.onMessageReceived, this); // For handling LoginReply
@@ -98,6 +104,8 @@ WebSocketClient.prototype = {
             var ds = this.startNewMessage(cLoginMessage, 1024);
             var loginText = JSON.stringify(this.loginData);
             ds.addUtf8String(loginText);
+            // Send suggestion to serve to use the highest protocol known to client, see what the client responds
+            ds.addVLE(cHighestSupportedProtocolVersion);
             this.endAndQueueMessage(ds);
         }
     },
@@ -110,6 +118,13 @@ WebSocketClient.prototype = {
             if (success > 0) {
                 this.userID = dd.readVLE();
                 this.loginReply = JSON.parse(dd.readStringU16()); /// \todo Should use UTF8-encoding
+                // Read server's reply protocol version if it exists, otherwise assume original
+                if (dd.bytesLeft)
+                    this.protocolVersion = dd.readVLE();
+                else
+                    this.protocolVersion = cProtocolOriginal;
+                console.log("Protocol version was set to " + this.protocolVersion);
+
                 this.loginReplyReceived.dispatch();
             }
             else {

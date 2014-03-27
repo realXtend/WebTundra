@@ -26,14 +26,15 @@ Application.prototype = {
         this.clock = new THREE.Clock();
 
         // SCENE
-        this.scene = new THREE.Scene();
+        // moved to viewer
 
         // CAMERA
-        // moved to ThreeView
+        // moved to viewer
 
         // VIEWER
-        this.viewer = new ThreeView(this.scene);
+        this.viewer = this.createViewer();
         this.viewer.objectClicked.add(this.onObjectClicked.bind(this));
+		this.viewer.renderer.setClearColor( 0x9999D6, 1 );
 
         // MODEL
         this.connected = false;
@@ -43,6 +44,10 @@ Application.prototype = {
         this.dataConnection.scene.componentAdded.add(this.viewer.onComponentAddedOrChanged.bind(this.viewer));
         this.dataConnection.scene.componentRemoved.add(this.viewer.onComponentRemoved.bind(this.viewer));
 
+
+        this.dataConnection.scene.componentAdded.add(
+            this.onRigidBodyPossiblyAdded.bind(this));
+
         // an alternative to hooking per component attributeChanged signals,
         // would simplify business registering/unregistering handlers in
         // component lifetime mgmt:
@@ -50,6 +55,10 @@ Application.prototype = {
         // this.dataConnection.scene.attributeChanged.add(function(comp, attr, ctype) {
         //     this.onComponentAddedOrChanged(comp.parentEntity, comp, ctype, attr);
         // }.bind(this.viewer));
+    },
+
+    createViewer: function() {
+        return new ThreeView();
     },
 
     start: function() {
@@ -105,7 +114,7 @@ Application.prototype = {
             this.update();
         }.bind(this));
 
-        this.viewer.render();
+        this.viewer.render(delta);
         this.frameCount++;
     },
 
@@ -155,7 +164,10 @@ Application.prototype = {
 
     onObjectClicked: function(entID, params) {
         var ent = this.dataConnection.scene.entityById(entID);
-        ent.triggerAction("MousePress", params, cExecTypeServer);
+        if (ent === null)
+            console.log("objectClicked got nonexistent entity id " + entID);
+        else
+            ent.triggerAction("MousePress", params, cExecTypeServer);
     },
 
 };
@@ -184,28 +196,33 @@ function check() {
             }
 }
 
+Application.prototype.onRigidBodyPossiblyAdded = function(entity, component) {
+    if (! (component instanceof EC_RigidBody))
+        return;
 
-// Todo: move or remove below 
 
-function attributeValues(o) {
-    var out = [];
-    for (var key in o) {
-        if (!o.hasOwnProperty(key))
-            continue;
-        out.push(o[key]);
-    }
-    return out;
-}
-
-function EventCounter() {
-    this.events = {};
-}
-
-EventCounter.prototype.add = function(key) {
-    var count = this.events[key];
-    if (count === undefined)
-        count = 0;
-    count++;
-    this.events[key] = count;
-    return count;
+    var onRigidBodyAttributeChanged = function(changedAttr, changeType) {
+        //console.log("onRigidBodyAddedOrChanged due to attributeChanged ->", changedAttr.ref);
+        if (component.shapeType !== 0) {
+            console.log("unhandled shape type " + component.shapeType);
+            return;
+        }
+        var physiCube = component.physiCube;
+        if (!physiCube) {
+            component.physiCube = physiCube = new THREE.Mesh(
+                new THREE.CubeGeometry(1, 1, 1),
+                this.viewer.wireframeMaterial);
+            physiCube.mass = 0;
+            var threeGroup = this.viewer.o3dByEntityId[entity.id];
+            threeGroup.add(physiCube);
+        }
+        console.log("ok, have cube");
+        var boxSize = component.size;
+        if (!(boxSize.x && boxSize.y && boxSize.z))
+            console.log("RigidBody of entitity " + entity.id + ": one or more dimensions are zero");
+        physiCube.scale.set(boxSize.x, boxSize.y, boxSize.z);
+        console.log("box updated");
+    }.bind(this);
+    onRigidBodyAttributeChanged();
+    component.attributeChanged.add(onRigidBodyAttributeChanged);
 };
