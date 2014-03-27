@@ -9,19 +9,13 @@
  */
 
 var app = new Application();
-
-var host = "localhost"; // hostname of the Tundra server
-var port = 2345; // and port to the server
-
 app.start();
-loadXml3d(app.dataConnection, "xml3d-scene-suzanne.html");
+var parser = new SceneParser(app.dataConnection);
+parser.parseDocXml3D(document);
 
 function setupEditorControls() {
     var controls = new THREE.EditorControls(app.viewer.camera, app.viewer.renderer.domElement);
 }
-function loadXml3d(model, docurl) {
-    var parser = new SceneParser(model);
-    parser.parseFromUrlXml3D(docurl);
-}
+
 // hack to get the right xml3d-created camera and not the default one.
 window.setTimeout(setupEditorControls, 2000);
