@@ -14,6 +14,7 @@
  */
 
 var useSignals = true; // todo: remove (along with EC_* refs in jslint settings)
+var trackRigidBodyBoxes = false;
 
 function Application() {}
 
@@ -46,8 +47,9 @@ Application.prototype = {
         this.dataConnection.scene.threeScene = this.viewer.scene;
 
 
-        this.dataConnection.scene.componentAdded.add(
-            this.onRigidBodyPossiblyAdded.bind(this));
+        if (trackRigidBodyBoxes)
+            this.dataConnection.scene.componentAdded.add(
+                this.onRigidBodyPossiblyAdded.bind(this));
 
         // an alternative to hooking per component attributeChanged signals,
         // would simplify business registering/unregistering handlers in
@@ -220,7 +222,7 @@ Application.prototype.onRigidBodyPossiblyAdded = function(entity, component) {
         console.log("ok, have cube");
         var boxSize = component.size;
         if (!(boxSize.x && boxSize.y && boxSize.z))
-            console.log("RigidBody of entitity " + entity.id + ": one or more dimensions are zero");
+            console.log("RigidBody of entity " + entity.id + ": one or more dimensions are zero");
         physiCube.scale.set(boxSize.x, boxSize.y, boxSize.z);
         console.log("box updated");
     }.bind(this);
