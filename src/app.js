@@ -14,6 +14,7 @@
  */
 
 var useSignals = true; // todo: remove (along with EC_* refs in jslint settings)
+var trackRigidBodyBoxes = false;
 
 function Application() {}
 
@@ -44,6 +45,11 @@ Application.prototype = {
         this.dataConnection.scene.componentAdded.add(this.viewer.onComponentAddedOrChanged.bind(this.viewer));
         this.dataConnection.scene.componentRemoved.add(this.viewer.onComponentRemoved.bind(this.viewer));
         this.dataConnection.scene.threeScene = this.viewer.scene;
+
+
+        if (trackRigidBodyBoxes)
+            this.dataConnection.scene.componentAdded.add(
+                this.onRigidBodyPossiblyAdded.bind(this));
 
         // an alternative to hooking per component attributeChanged signals,
         // would simplify business registering/unregistering handlers in
@@ -193,3 +199,33 @@ function check() {
             }
 }
 
+Application.prototype.onRigidBodyPossiblyAdded = function(entity, component) {
+    if (! (component instanceof EC_RigidBody))
+        return;
+
+
+    var onRigidBodyAttributeChanged = function(changedAttr, changeType) {
+        //console.log("onRigidBodyAddedOrChanged due to attributeChanged ->", changedAttr.ref);
+        if (component.shapeType !== 0) {
+            console.log("unhandled shape type " + component.shapeType);
+            return;
+        }
+        var physiCube = component.physiCube;
+        if (!physiCube) {
+            component.physiCube = physiCube = new THREE.Mesh(
+                new THREE.CubeGeometry(1, 1, 1),
+                this.viewer.wireframeMaterial);
+            physiCube.mass = 0;
+            var threeGroup = this.viewer.o3dByEntityId[entity.id];
+            threeGroup.add(physiCube);
+        }
+        console.log("ok, have cube");
+        var boxSize = component.size;
+        if (!(boxSize.x && boxSize.y && boxSize.z))
+            console.log("RigidBody of entity " + entity.id + ": one or more dimensions are zero");
+        physiCube.scale.set(boxSize.x, boxSize.y, boxSize.z);
+        console.log("box updated");
+    }.bind(this);
+    onRigidBodyAttributeChanged();
+    component.attributeChanged.add(onRigidBodyAttributeChanged);
+};
