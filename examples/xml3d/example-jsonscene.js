@@ -10,15 +10,9 @@
 
 var app = new Application();
 app.start();
-
-loadXml3d(app.dataConnection, "xml3d-scene-jsonscene.html");
-
-
-function loadXml3d(model, docurl) {
-    var parser = new SceneParser(model);
-    parser.parseFromUrlXml3D(docurl);
-    console.log("parse done");
-}
+var parser = new SceneParser(app.dataConnection);
+parser.parseDocXml3D(document);
+console.log("parse done");
 
 function setupEditorControls() {
     var controls = new THREE.EditorControls(app.viewer.camera, app.viewer.renderer.domElement);
