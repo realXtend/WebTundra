@@ -39,7 +39,7 @@ Tundra.Scene.prototype = {
             console.log("Entity id " + id + " already exists in scene, can not create");
             return null;
         }
-        var newEntity = new Entity();
+        var newEntity = new Tundra.Entity();
         newEntity.parentScene = this;
         newEntity.id = id;
         this.entities[id] = newEntity;

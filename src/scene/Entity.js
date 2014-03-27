@@ -11,7 +11,7 @@ Tundra.cExecTypeLocal = 1;
 Tundra.cExecTypeServer = 2;
 Tundra.cExecTypePeers = 4;
 
-function Entity() {
+Tundra.Entity = function () {
     this.components = {};
     this.children = [];
     this.parentScene = null;
@@ -24,9 +24,9 @@ function Entity() {
     this.actionTriggered = new signals.Signal();
     this.componentIdChanged = new signals.Signal();
     this.parentChanged = new signals.Signal();
-}
+};
 
-Entity.prototype = {
+Tundra.Entity.prototype = {
     createComponent: function(id, typeId, name, changeType) {
         // If zero ID, assign ID now
         if (id == 0)
@@ -269,7 +269,7 @@ Entity.prototype = {
         // Name exists in its own component, create if doesn't exist
         var nameComp = this.componentByType(Tundra.cComponentTypeName);
         if (nameComp == null)
-            nameComp = this.Tundra.createComponent(0, Tundra.cComponentTypeName, "");
+            nameComp = this.createComponent(0, Tundra.cComponentTypeName, "");
         var nameAttr = nameComp.attributeById("name");
         nameAttr.value = value;
     }

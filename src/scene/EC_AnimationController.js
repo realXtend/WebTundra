@@ -142,7 +142,7 @@ Tundra.EC_AnimationController.prototype.stopAll = function ( fadeoutTime )
      for(var id in this.animations) {
 
          anim = this.animations[id];
-         if (anim instanceof AnimationState)
+         if (anim instanceof Tundra.AnimationState)
             this.stop(anim.name, fadeoutTime);
 
      }
@@ -175,7 +175,7 @@ Tundra.EC_AnimationController.prototype.setAnimSpeed = function ( name, speed ) 
  */
 Tundra.EC_AnimationController.prototype.createAnimation = function( name ) {
     
-    var anim = new AnimationState();
+    var anim = new Tundra.AnimationState();
     anim.name = name;
     this.animations[name] = anim;
     return anim;
@@ -196,7 +196,7 @@ Tundra.EC_AnimationController.prototype.addMesh = function( mesh ) {
     
     }
     
-    var animationMesh = new AnimationMeshInfo( this, mesh );
+    var animationMesh = new Tundra.AnimationMeshInfo( this, mesh );
     
     this.animatingMeshes.push(animationMesh);
     
@@ -231,7 +231,7 @@ Tundra.EC_AnimationController.prototype.animationState = function( name ) {
     for ( var i in this.animations ) {
         
         state = this.animations[i];
-        if ( state instanceof AnimationState ) {
+        if ( state instanceof Tundra.AnimationState ) {
             
             if (state.name === name)
                 return state;

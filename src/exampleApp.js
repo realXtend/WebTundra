@@ -8,7 +8,7 @@
  *      Date: 2013
  */
 
-var app = new Application();
+var app = new Tundra.Application();
 
 var host = "localhost"; // hostname of the Tundra server
 var port = 2345; // and port to the server

@@ -188,9 +188,9 @@ var AnimationController_setAnimSpeed = function( name, speed ) {
 
 var AnimationController_createAnimations = function( mesh ) {
     
-    checkDefined( mesh, mesh.threeMesh );
+    Tundra.checkDefined( mesh, mesh.threeMesh );
     var geometry = mesh.threeMesh.geometry;
-    checkDefined(geometry);
+    Tundra.checkDefined(geometry);
 
     // Create Three animations and AnimationState objects.
 

@@ -208,16 +208,16 @@ Bone.prototype.enableAnimation = function ( enable, recursive ) {
     
 };
 
-function Skeleton () {
+Tundra.Skeleton = function() {
     
     this.bones = [];
     
-}
+};
 
 // Add new bone to skeleton
 /* @param {Bone} new bone.
  */
-Skeleton.prototype.addBone = function( bone ) {
+Tundra.Skeleton.prototype.addBone = function( bone ) {
     
     bone.skeleton = this;
     this.bones.push(bone);
@@ -227,7 +227,7 @@ Skeleton.prototype.addBone = function( bone ) {
 // Get bone by name
 /* @param {string} name bone name
  */
-Skeleton.prototype.getBone = function ( name ) {
+Tundra.Skeleton.prototype.getBone = function ( name ) {
     
     if ( this.rootBone !== undefined )
         return null;
@@ -243,7 +243,7 @@ Skeleton.prototype.getBone = function ( name ) {
 
 };
 
-Skeleton.prototype.isMatch = function( skeleton ) {
+Tundra.Skeleton.prototype.isMatch = function( skeleton ) {
     
     if ( skeleton === null ) {
         return false;
@@ -257,7 +257,7 @@ Skeleton.prototype.isMatch = function( skeleton ) {
     
 };
 
-Skeleton.prototype.hasAttachments = function( ) {
+Tundra.Skeleton.prototype.hasAttachments = function( ) {
     
     for ( var i in this.bones ) {
         
@@ -270,7 +270,7 @@ Skeleton.prototype.hasAttachments = function( ) {
     
 };
 
-Skeleton.prototype.checkBones = function( bone1, bone2 ) {
+Tundra.Skeleton.prototype.checkBones = function( bone1, bone2 ) {
     
     if ( bone1.children.length !== bone2.children.length || bone1.name !== bone2.name )
         return false;

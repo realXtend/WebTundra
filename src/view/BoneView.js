@@ -1,5 +1,7 @@
 "use strict";
 // For conditions of distribution and use, see copyright notice in LICENSE
+if (Tundra === undefined)
+    var Tundra = {};
 
 Tundra.Bone.prototype.setPosition = function ( position ) {
 
@@ -18,7 +20,7 @@ Tundra.Bone.prototype.getPosition = function () {
     vector.z = this.threeBone.position.z;
     return vector;
     
-}
+};
 
 Tundra.Bone.prototype.setRotation = function ( euler ) {
 
@@ -37,7 +39,7 @@ Tundra.Bone.prototype.getRotation = function () {
     vector.z = this.threeBone.rotation.z;
     return vector;
     
-}
+};
 
 Tundra.Bone.prototype.setScale = function ( scale ) {
 
@@ -56,4 +58,4 @@ Tundra.Bone.prototype.getScale = function () {
     vector.z = this.threeBone.scale.z;
     return vector;
     
-}
+};

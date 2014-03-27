@@ -8,7 +8,7 @@
  *      Date: 2013
  */
 
-var app = new Application();
+var app = new Tundra.Application();
 app.start();
 
 function setupEditorControls() {
@@ -16,7 +16,7 @@ function setupEditorControls() {
 }
 
 function loadXml3d(model, docurl) {
-    var parser = new SceneParser(model);
+    var parser = new Tundra.SceneParser(model);
     parser.parseFromUrlXml3D(docurl);
     console.log("parse done");
 }

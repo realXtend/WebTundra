@@ -34,8 +34,8 @@ function manipulateEntities() {
     
     // Create components to the second entity
     ent = scene.entityByName("Entity2");
-    ent.Tundra.createComponent(0, Tundra.cComponentTypePlaceable, "");
-    var rigidBody = ent.Tundra.createComponent(0, Tundra.cComponentTypeRigidBody, "");
+    ent.createComponent(0, Tundra.cComponentTypePlaceable, "");
+    var rigidBody = ent.createComponent(0, Tundra.cComponentTypeRigidBody, "");
     // Modify the "mass" attribute of the rigidbody to make it movable on the server
     rigidBody.mass = 1.0;
     // Also give it a valid (nonzero) size
@@ -43,14 +43,14 @@ function manipulateEntities() {
 
     // Create a dynamic component to the third entity
     ent = scene.entityByName("Entity3");
-    var dc = ent.Tundra.createComponent(0, Tundra.cComponentTypeDynamicComponent, "");
+    var dc = ent.createComponent(0, Tundra.cComponentTypeDynamicComponent, "");
     dc.createAttribute(0, Tundra.cAttributeString, "Test String", "test");
     dc.createAttribute(1, Tundra.cAttributeInt, "Test Int", 100);
     dc.createAttribute(2, Tundra.cAttributeBool, "Test Bool", false);
 
     // Create component to the fourth entity, which we will remove later
     ent = scene.entityByName("Entity4");
-    ent.Tundra.createComponent(0, Tundra.cComponentTypePlaceable, "");
+    ent.createComponent(0, Tundra.cComponentTypePlaceable, "");
 
     // Send the modifications to server
     syncManager.sendChanges();

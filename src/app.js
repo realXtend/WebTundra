@@ -12,14 +12,16 @@
  *      Date: 2013
  */
 
-var useSignals = true; // todo: remove (along with EC_* refs in jslint settings)
-var trackRigidBodyBoxes = false;
+if (Tundra === undefined)
+    var Tundra = {};
 
-function Application() {}
+Tundra.trackRigidBodyBoxes = false;
 
-Application.prototype = {
+Tundra.Application = function() {};
 
-    constructor: Application,
+Tundra.Application.prototype = {
+
+    constructor: Tundra.Application,
 
     init: function() {
         this.keyboard = new THREEx.KeyboardState();
@@ -46,7 +48,7 @@ Application.prototype = {
         this.dataConnection.scene.threeScene = this.viewer.scene;
 
 
-        if (trackRigidBodyBoxes)
+        if (Tundra.trackRigidBodyBoxes)
             this.dataConnection.scene.componentAdded.add(
                 this.onRigidBodyPossiblyAdded.bind(this));
 
@@ -78,8 +80,8 @@ Application.prototype = {
         for (var i = 0; i < this.cubeCount; i++) {
             var ent = scene.createEntity(i + 1000);
             this.testEntities.push(ent);
-            var placeable = ent.Tundra.createComponent("placeable", "Placeable", "");
-            var mesh = ent.Tundra.createComponent("mesh", "Mesh", "placeable");
+            var placeable = ent.createComponent("placeable", "Placeable", "");
+            var mesh = ent.createComponent("mesh", "Mesh", "placeable");
             placeable.transform.pos.x = i * 150;
             placeable.transform.pos.y = 150;
 
@@ -107,8 +109,6 @@ Application.prototype = {
         var delta = this.clock.getDelta(); // seconds
 
         this.logicUpdate(delta);
-        if (!useSignals)
-            this.dataToViewerUpdate();
 
         this.viewer.stats.update();
 
@@ -122,7 +122,7 @@ Application.prototype = {
 
     logicUpdate: function() {
         var posIncrement;
-        checkDefined(this.frameCount);
+        Tundra.checkDefined(this.frameCount);
         if (this.frameCount % 100 === 0) {
             posIncrement = 50;
         } else {
@@ -130,37 +130,9 @@ Application.prototype = {
         }
         for (var i = 0; i < this.testEntities.length; i++) {
             var ent = this.testEntities[i];
-            checkDefined(ent);
+            Tundra.checkDefined(ent);
             ent.components.placeable.transform.pos.y += posIncrement;
             ent.components.placeable.transform.rot.y += 0.01;
-        }
-    },
-
-    dataToViewerUpdate: function() {
-        var sceneData = this.dataConnection.scene;
-        for (var i in sceneData.entities) {
-            if (!sceneData.entities.hasOwnProperty(i))
-                continue;
-            var entity = sceneData.entities[i];
-            checkDefined(entity);
-            var placeable = entity.componentByType("Placeable");
-            var meshes = [];
-            var j;
-            for (j in entity.components) {
-                if (!entity.components.hasOwnProperty(j))
-                    continue;
-                var comp = entity.components[j];
-                checkDefined(comp);
-                if (comp instanceof Tundra.EC_Mesh)
-                    meshes.push(comp);
-                else if (comp instanceof EC_Placeable)
-                    placeable = comp;
-            }
-            if (placeable !== null) {
-                for (j in Object.keys(meshes)) {
-                    this.viewer.addOrUpdate(entity, placeable, meshes[j]);
-                }
-            }
         }
     },
 
@@ -174,31 +146,31 @@ Application.prototype = {
 
 };
 
-var debugOnCheckFail = true;
+Tundra.debugOnCheckFail = true;
 
-function checkDefined() {
+Tundra.checkDefined = function() {
     for (var i = 0; i < arguments.length; i++) {
         if (arguments[i] === undefined) {
-            if (debugOnCheckFail) {
+            if (Tundra.debugOnCheckFail) {
                 debugger;
             } else {
                 throw ("undefined value, arg #" + i);
             }
         }
     }
-}
+};
 
-function check() {
+Tundra.check = function() {
     for (var i = 0; i < arguments.length; i++)
         if (arguments[i] !== true)
-            if (debugOnCheckFail) {
+            if (Tundra.debugOnCheckFail) {
                 debugger;
             } else {
                 throw ("untrue value" + arguments[i] + ", arg #" + i);
             }
-}
+};
 
-Application.prototype.onRigidBodyPossiblyAdded = function(entity, component) {
+Tundra.Application.prototype.onRigidBodyPossiblyAdded = function(entity, component) {
     if (! (component instanceof Tundra.EC_RigidBody))
         return;
 

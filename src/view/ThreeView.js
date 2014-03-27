@@ -814,15 +814,6 @@ Tundra.ThreeView.prototype = {
 };
 
 
-
-if (true) {
-    // transitioning to namespace
-    Tundra.check = check;
-    Tundra.checkDefined = checkDefined;
-    Tundra.Skeleton = Skeleton;
-    Tundra.Entity = Entity;
-}
-
 Tundra.EC_Placeable.prototype.toString = function() {
     var t = this.transform;
     return "[Placeable pos:" + t.pos.x + " " + t.pos.y + " " + t.pos.z + ", rot:" + t.rot.x + " " + t.rot.y + " " + t.rot.z + ", scale:" + t.scale.x + " " + t.scale.y + " " + t.scale.z + "]";

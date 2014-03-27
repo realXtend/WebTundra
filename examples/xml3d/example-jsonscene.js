@@ -8,14 +8,14 @@
  *      Date: 2013
  */
 
-var app = new Application();
+var app = new Tundra.Application();
 app.start();
 
 loadXml3d(app.dataConnection, "xml3d-scene-jsonscene.html");
 
 
 function loadXml3d(model, docurl) {
-    var parser = new SceneParser(model);
+    var parser = new Tundra.SceneParser(model);
     parser.parseFromUrlXml3D(docurl);
     console.log("parse done");
 }

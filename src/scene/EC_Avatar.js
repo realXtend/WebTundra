@@ -114,19 +114,19 @@ Tundra.EC_Avatar.prototype.setupAppearance = function ( avatarData ) {
     }
     
     /*if (this.parentEntity.name !== undefined)
-        this.parentEntity.Tundra.createComponent(0, Tundra.cComponentTypeName);
+        this.parentEntity.createComponent(0, Tundra.cComponentTypeName);
     this.parentEntity.name.name = data.name;*/
     this.parentEntity.name = data.name;
     
     var component;
     component = this.parentEntity.placeable;
     if ( component === undefined )
-        component = this.parentEntity.Tundra.createComponent(0, Tundra.cComponentTypePlaceable);
+        component = this.parentEntity.createComponent(0, Tundra.cComponentTypePlaceable);
     
     this.createGeometry( this.parentEntity, data, true );
     
     if ( data.animations !== undefined )
-        component = this.parentEntity.Tundra.createComponent(0, Tundra.cComponentTypeAnimation);
+        component = this.parentEntity.createComponent(0, Tundra.cComponentTypeAnimation);
     
     if ( data.parts !== undefined ) {
         
@@ -160,13 +160,13 @@ Tundra.EC_Avatar.prototype.createChild = function ( child ) {
     var component = this.createGeometry( childEntity, child, false );
     
     if ( child.animations !== undefined )
-        component = this.parentEntity.Tundra.createComponent(0, Tundra.cComponentTypeAnimation);
+        component = this.parentEntity.createComponent(0, Tundra.cComponentTypeAnimation);
     
 };
 
 Tundra.EC_Avatar.prototype.createGeometry = function ( entity, data, useNodeTransform ) {
 
-    var component = entity.Tundra.createComponent(0, Tundra.cComponentTypeMesh);
+    var component = entity.createComponent(0, Tundra.cComponentTypeMesh);
     var meshRef = component.meshRef;
     meshRef.ref = data.geometry;
     component.meshRef = meshRef;
@@ -211,7 +211,7 @@ Tundra.EC_Avatar.prototype.createGeometry = function ( entity, data, useNodeTran
 
 Tundra.EC_Avatar.prototype.createPlaceable = function ( entity, parent, data ) {
 
-    var component = entity.Tundra.createComponent(0, Tundra.cComponentTypePlaceable);
+    var component = entity.createComponent(0, Tundra.cComponentTypePlaceable);
     
     var newTrans = component.transform;
 

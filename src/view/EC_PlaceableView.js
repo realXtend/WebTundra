@@ -2,13 +2,13 @@
 
 Tundra.ThreeView.prototype.PlaceableIntialize = function ( entity, component ) {
     
-    component.setParentEntity = placeable_SetParentEntity;
+    component.setParentEntity = Tundra.placeable_SetParentEntity;
     
-    component.updateTransform = placeable_UpdateTransform;
+    component.updateTransform = Tundra.placeable_UpdateTransform;
     
-    component.setVisible = placeable_setVisible;
+    component.setVisible = Tundra.placeable_setVisible;
     
-    component.setPosition = placeable_setPosition;
+    component.setPosition = Tundra.placeable_setPosition;
     component.setPositionVector = function( vector3 ) {
         component.setPosition( vector3.x, vector3.y, vector3.z );
     };
@@ -20,7 +20,7 @@ Tundra.ThreeView.prototype.PlaceableIntialize = function ( entity, component ) {
 };
 
 // TODO! Optimize this by using cache for position, rotation and scale objects.
-var placeable_UpdateTransform = function() {
+Tundra.placeable_UpdateTransform = function() {
     
     var threeGroup = this.parentEntity.threeGroup;
     if (threeGroup === undefined)
@@ -45,7 +45,7 @@ var placeable_UpdateTransform = function() {
     
 };
 
-var placeable_SetParentEntity = function ( entity ) {
+Tundra.placeable_SetParentEntity = function ( entity ) {
 
     // Remove from old parent.
 
@@ -72,13 +72,13 @@ var placeable_SetParentEntity = function ( entity ) {
 
 };
 
-var placeable_setVisible = function ( visible ) {
+Tundra.placeable_setVisible = function ( visible ) {
     
     this.parentEntity.threeGroup.traverse( function ( object ) { object.visible = visible; } );
 
 };
 
-var placeable_setPosition = function ( x, y, z ) {
+Tundra.placeable_setPosition = function ( x, y, z ) {
     
     var transform = this.transform;
     transform.pos.x = x;
