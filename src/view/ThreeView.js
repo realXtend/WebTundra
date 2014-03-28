@@ -1,8 +1,6 @@
 "use strict";
 /* jslint browser: true, globalstrict: true, devel: true, debug: true */
 /* global THREE, THREEx, signals, Stats, Detector */
-/* global check, checkDefined, EC_Placeable, EC_Mesh, EC_Camera, EC_Light,
-   LT_Point, LT_Spot, LT_Directional */
 
 // For conditions of distribution and use, see copyright notice in LICENSE
 /*
@@ -11,9 +9,12 @@
  *      @author Toni Alatalo
  */
 
-var useCubes = false;
+if (Tundra === undefined)
+    var Tundra = {};
 
-function ThreeView() {
+Tundra.useCubes = false;
+
+Tundra.ThreeView = function() {
     
     this.o3dByEntityId = {}; // Three.Object3d's that correspond to Placeables and have Meshes etc as children
 
@@ -89,19 +90,19 @@ function ThreeView() {
 
     this.meshReadySig = new signals.Signal();
     this.componentRemovedSig = new signals.Signal();
-    this.assetLoader = new ThreeAssetLoader();
-}
+    this.assetLoader = new Tundra.ThreeAssetLoader();
+};
 
-ThreeView.prototype = {
+Tundra.ThreeView.prototype = {
 
-    constructor: ThreeView,
+    constructor: Tundra.ThreeView,
 
     createScene: function() {
         return new THREE.Scene();
     },
 
     render: function(delta) {
-        // checkDefined(this.scene, this.camera);
+        // Tundra.checkDefined(this.scene, this.camera);
 
         this.updateInterpolations(delta);
         
@@ -111,11 +112,11 @@ ThreeView.prototype = {
     },
 
     onComponentAddedOrChanged: function(entity, component, changeType, changedAttr) {
-        check(component instanceof Component);
-        check(entity instanceof Entity);
+        Tundra.check(component instanceof Tundra.Component);
+        Tundra.check(entity instanceof Tundra.Entity);
         var threeGroup = this.o3dByEntityId[entity.id];
         if (!threeGroup) {
-            check(entity.id > 0);
+            Tundra.check(entity.id > 0);
             console.log("Create three Object3d " + entity.id);
             this.o3dByEntityId[entity.id] = threeGroup = new THREE.Object3D();
             //console.log("created new o3d group id=" + threeGroup.id);
@@ -132,20 +133,20 @@ ThreeView.prototype = {
             //console.log("got cached o3d group " + threeGroup.id + " for entity " + entity.id);
         }
 
-        if (component instanceof EC_Placeable) {
+        if (component instanceof Tundra.EC_Placeable) {
             
             this.connectToPlaceable( threeGroup, component );
             this.PlaceableIntialize( entity, component );
             
         }
-        else if (component instanceof EC_Mesh) {
+        else if (component instanceof Tundra.EC_Mesh) {
             // console.log("mesh changed or added for o3d " + threeGroup.userData.entityId);
             this.onMeshAddedOrChanged(threeGroup, component);
-        } else if (component instanceof EC_Camera)
+        } else if (component instanceof Tundra.EC_Camera)
             this.onCameraAddedOrChanged(threeGroup, component);
-        else if (component instanceof EC_Light)
+        else if (component instanceof Tundra.EC_Light)
             this.onLightAddedOrChanged(threeGroup, component);
-        else if (component instanceof EC_AnimationController)
+        else if (component instanceof Tundra.EC_AnimationController)
             this.onAnimatorAddedOrChanged(threeGroup, component);
         else
             console.log("Component not handled by ThreeView:", entity, component);
@@ -169,9 +170,9 @@ ThreeView.prototype = {
     },
 
     onComponentRemovedInternal: function(entity, component) {
-        checkDefined(component, entity);
+        Tundra.checkDefined(component, entity);
 
-        if (component instanceof EC_Placeable) {
+        if (component instanceof Tundra.EC_Placeable) {
             var threeGroup = this.o3dByEntityId[entity.id];
             threeGroup.parent.remove(threeGroup);
             
@@ -180,17 +181,17 @@ ThreeView.prototype = {
             
             delete entity.threeGroup;
             delete this.o3dByEntityId[entity.id];
-        } else if (component instanceof EC_Mesh) {
+        } else if (component instanceof Tundra.EC_Mesh) {
             
             this.onMeshRelease(entity, component);
             
-        } else if (component instanceof EC_Camera) {
+        } else if (component instanceof Tundra.EC_Camera) {
             
             this.onCameraRelease( entity, component );
             
-        } else if (component instanceof EC_Light) {
+        } else if (component instanceof Tundra.EC_Light) {
             // this.onLightAddedOrChanged(threeGroup, component);
-        } else if (component instanceof EC_AnimationController) {
+        } else if (component instanceof Tundra.EC_AnimationController) {
             
             this.onAnimatorRelease(entity, component);
             
@@ -206,7 +207,7 @@ ThreeView.prototype = {
             /* remove previous mesh if it existed */
             /* async hazard: what if two changes for same mesh come in
                order A, B and loads finish in order B, A */
-            if (!useCubes) {
+            if (!Tundra.useCubes) {
                 threeGroup.remove(meshComp.threeMesh);
                 //console.log("removing prev three mesh on ec_mesh attr change");
             }
@@ -260,7 +261,7 @@ ThreeView.prototype = {
 
     onMeshLoaded: function(threeParent, meshComp, geometry, material) {
         
-        if (!useCubes && geometry === undefined) {
+        if (!Tundra.useCubes && geometry === undefined) {
             
             console.log("mesh load failed");
             return;
@@ -269,7 +270,7 @@ ThreeView.prototype = {
         
         var mesh;
         
-        if (useCubes) {
+        if (Tundra.useCubes) {
             
             /*if (meshComp.meshRef.ref === "") {
                 console.log("useCubes ignoring empty meshRef");
@@ -297,7 +298,7 @@ ThreeView.prototype = {
                 var bone;
                 var parentBone = null;
 
-                meshComp.skeleton = new Skeleton();
+                meshComp.skeleton = new Tundra.Skeleton();
 
                 for ( var i = 0; i < bones.length; ++i ) {
 
@@ -305,7 +306,7 @@ ThreeView.prototype = {
                         parentBone = meshComp.skeleton.getBone(bones[i].parent.name);
                     }
 
-                    bone = new Bone(bones[i].name, parentBone);
+                    bone = new Tundra.Bone(bones[i].name, parentBone);
                     bone.threeBone = bones[i];
 
                     // Add attach bone function to bone object
@@ -337,7 +338,7 @@ ThreeView.prototype = {
                             }
                             parent = parent.parent;
 
-                        } while ( parent !== undefined )
+                        } while (parent !== undefined);
 
                         this.threeBone.add(placeable.parentEntity.threeGroup);
 
@@ -361,7 +362,7 @@ ThreeView.prototype = {
                                 else
                                     break;
                                 parent = parent.parent;
-                            } while( parent !== undefined )
+                            } while(parent !== undefined);
 
                         }
 
@@ -371,7 +372,7 @@ ThreeView.prototype = {
                     
                     bone.enableAnimation = function( enable, recursive ) {
                         
-                        Bone.prototype.enableAnimation.call(this, enable, recursive);
+                        Tundra.Bone.prototype.enableAnimation.call(this, enable, recursive);
                         
                         this.threeBone.enableAnimations = enable;
                         
@@ -383,9 +384,9 @@ ThreeView.prototype = {
             
         } else {
             
-            checkDefined(geometry, material, meshComp, threeParent);
+            Tundra.checkDefined(geometry, material, meshComp, threeParent);
             mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(material));
-            checkDefined(threeParent, meshComp, geometry, material);
+            Tundra.checkDefined(threeParent, meshComp, geometry, material);
             
         }
         
@@ -401,8 +402,8 @@ ThreeView.prototype = {
             
         };
         
-        checkDefined(meshComp.parentEntity);
-        check(threeParent.userData.entityId === meshComp.parentEntity.id);
+        Tundra.checkDefined(meshComp.parentEntity);
+        Tundra.check(threeParent.userData.entityId === meshComp.parentEntity.id);
 
         meshComp.threeMesh = mesh;
 
@@ -437,18 +438,18 @@ ThreeView.prototype = {
         
         if (component.threeMesh !== undefined) {
             
-            var mesh = component.threeMesh;
+            var i, mesh = component.threeMesh;
             
             if (component.parentEntity.threeGroup !== undefined)
                 component.parentEntity.threeGroup.remove( mesh );
             
             mesh.geometry.dispose();
-            for ( var i in mesh.geometry )
+            for (i in mesh.geometry )
                 delete mesh.geometry[i];
             
             if (mesh.material !== undefined) {
                 
-                for ( var i = 0; i < mesh.material.materials.length; ++i ) {
+                for (i = 0; i < mesh.material.materials.length; ++i ) {
                     mesh.material.materials[i].dispose();
                 }
                 
@@ -461,7 +462,7 @@ ThreeView.prototype = {
     },
 
     onSceneLoaded: function(threeParent, meshComp, scene) {
-        checkDefined(scene);
+        Tundra.checkDefined(scene);
         threeParent.add(scene);
     },
 
@@ -471,7 +472,7 @@ ThreeView.prototype = {
             // console.log("removed existing light");
             threeGroup.remove(prevThreeLight);
         }
-        if (lightComp.type != LT_Point) {
+        if (lightComp.type != Tundra.LT_Point) {
             console.log("not implemented: light type " + lightComp.type);
             return;
         }
@@ -638,7 +639,7 @@ ThreeView.prototype = {
 
     updateFromTransform: function(threeMesh, placeable) {
         
-        checkDefined(placeable, threeMesh);
+        Tundra.checkDefined(placeable, threeMesh);
         var ptv = placeable.transform;
 
         // INTERPOLATION
@@ -732,9 +733,9 @@ ThreeView.prototype = {
     },
 
     parentForPlaceable: function(placeable) {
-        var parent;
+        var parent, parentOb;
         if (placeable.parentRef) {
-            var parentOb = this.o3dByEntityId[placeable.parentRef];
+            parentOb = this.o3dByEntityId[placeable.parentRef];
             if (!parentOb) {
                 console.log("ThreeView parentForPlaceable ERROR: adding object but parent not there yet -- even though this is called only after the parent was reported being there in the EC scene data. Falling back to add to scene.");
                 parent = this.scene;
@@ -742,7 +743,7 @@ ThreeView.prototype = {
                 parent = parentOb;
             }
         } else if (placeable.parentEntity.parent) {
-            var parentOb = this.o3dByEntityId[placeable.parentEntity.parent.id];
+            parentOb = this.o3dByEntityId[placeable.parentEntity.parent.id];
             if (!parentOb) {
                 console.log("ThreeView parentForPlaceable ERROR: adding object but parent not there yet. Falling back to add to scene.");
                 parent = this.scene;
@@ -812,7 +813,8 @@ ThreeView.prototype = {
     }
 };
 
-EC_Placeable.prototype.toString = function() {
+
+Tundra.EC_Placeable.prototype.toString = function() {
     var t = this.transform;
     return "[Placeable pos:" + t.pos.x + " " + t.pos.y + " " + t.pos.z + ", rot:" + t.rot.x + " " + t.rot.y + " " + t.rot.z + ", scale:" + t.scale.x + " " + t.scale.y + " " + t.scale.z + "]";
 };
@@ -837,11 +839,11 @@ function tundraToThreeEuler(src, dst) {
     dst.set(degToRad(src.x), degToRad(src.y), degToRad(src.z), 'ZYX');
 }
 
-function ThreeAssetLoader() {
+Tundra.ThreeAssetLoader = function() {
     this.pendingLoads = {};
 }
 
-ThreeAssetLoader.prototype.cachedLoadAsset = function(url, loadedCallback) {
+Tundra.ThreeAssetLoader.prototype.cachedLoadAsset = function(url, loadedCallback) {
     var loadedSig = this.pendingLoads[url];
     if (loadedSig === undefined) {
         loadedSig = new signals.Signal();
@@ -851,7 +853,7 @@ ThreeAssetLoader.prototype.cachedLoadAsset = function(url, loadedCallback) {
         loadedSig.addOnce(loadedCallback);
     }
 
-    check(typeof(url) === "string");
+    Tundra.check(typeof(url) === "string");
     if (url === "") {
         loadedCallback();
         return;
@@ -864,26 +866,26 @@ ThreeAssetLoader.prototype.cachedLoadAsset = function(url, loadedCallback) {
                 color: 0x808080
             });
         }
-        checkDefined(geometry);
+        Tundra.checkDefined(geometry);
         loadedCallback(geometry, material);
         delete thisIsThis.pendingLoads[url];
     }, {});
 };
 
-ThreeAssetLoader.prototype.load = function(url, completedCallback) {
-    check(typeof url === "string");
+Tundra.ThreeAssetLoader.prototype.load = function(url, completedCallback) {
+    Tundra.check(typeof url === "string");
     if (url === "") {
         completedCallback();
         return;
     }
     var fn;
-    if (suffixMatch(url, ".ctm"))
+    if (Tundra.suffixMatch(url, ".ctm"))
         fn = this.loadCtm;
-    else if (suffixMatch(url, ".json") || suffixMatch(url, ".js"))
+    else if (Tundra.suffixMatch(url, ".json") || Tundra.suffixMatch(url, ".js"))
         fn = this.loadJson;
-    else if (suffixMatch(url, ".gltf"))
+    else if (Tundra.suffixMatch(url, ".gltf"))
         fn = this.loadGltf;
-    else if (suffixMatch(url, ".jsonscene"))
+    else if (Tundra.suffixMatch(url, ".jsonscene"))
         fn = this.loadJsonScene;
     else
         throw "don't know url suffix " + url;
@@ -891,31 +893,31 @@ ThreeAssetLoader.prototype.load = function(url, completedCallback) {
     fn(url, completedCallback);
 };
 
-ThreeAssetLoader.prototype.loadCtm = function(url, completedCallback) {
+Tundra.ThreeAssetLoader.prototype.loadCtm = function(url, completedCallback) {
     var loader = new THREE.CTMLoader();
     loader.load(url, completedCallback, {
         useWorker: false
     });
 };
 
-ThreeAssetLoader.prototype.loadJson = function(url, completedCallback) {
+Tundra.ThreeAssetLoader.prototype.loadJson = function(url, completedCallback) {
     var loader = new THREE.JSONLoader();
     loader.load(url, completedCallback);
 };
 
-ThreeAssetLoader.prototype.loadJsonScene = function(url, completedCallback) {
+Tundra.ThreeAssetLoader.prototype.loadJsonScene = function(url, completedCallback) {
     var loader = new THREE.SceneLoader();
     loader.load(url, completedCallback);
 };
 
-ThreeAssetLoader.prototype.loadGltf = function(url, completedCallback) {
-    var loader = new THREE.glTFLoader;
+Tundra.ThreeAssetLoader.prototype.loadGltf = function(url, completedCallback) {
+    var loader = new THREE.glTFLoader();
     loader.useBufferGeometry = true;
     loader.load(url, completedCallback);
 };
 
-function suffixMatch(str, suffix) {
+Tundra.suffixMatch = function(str, suffix) {
     str = str.toLowerCase();
     suffix = suffix.toLowerCase();
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
-}
+};

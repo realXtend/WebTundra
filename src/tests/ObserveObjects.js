@@ -1,6 +1,6 @@
-var client = new WebSocketClient();
-var scene = new Scene();
-var syncManager = new SyncManager(client, scene);
+var client = new Tundra.WebSocketClient();
+var scene = new Tundra.Scene();
+var syncManager = new Tundra.SyncManager(client, scene);
 var loginData = {"name": "Test User"};
 var gotEntityAction = false;
 

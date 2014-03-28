@@ -1,17 +1,22 @@
+"use strict";
+/* jslint browser: true, globalstrict: true, devel: true, debug: true */
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-var cComponentTypeMesh = 17;
+if (Tundra === undefined)
+    var Tundra = {};
 
-function EC_Mesh() {
+Tundra.cComponentTypeMesh = 17;
+
+Tundra.EC_Mesh = function () {
     
-    Component.call(this, cComponentTypeMesh);
-    this.addAttribute(cAttributeTransform, "nodeTransformation", "Transform");
-    this.addAttribute(cAttributeAssetReference, "meshRef", "Mesh ref");
-    this.addAttribute(cAttributeAssetReference, "skeletonRef", "Skeleton ref");
-    this.addAttribute(cAttributeAssetReferenceList, "meshMaterial", "Mesh materials");
-    this.addAttribute(cAttributeReal, "drawDistance", "Draw distance");
-    this.addAttribute(cAttributeBool, "castShadows", "Cast shadows", false);
-    this.addAttribute(cAttributeBool, "useInstancing", "Use instancing", false);
+    Tundra.Component.call(this, Tundra.cComponentTypeMesh);
+    this.addAttribute(Tundra.cAttributeTransform, "nodeTransformation", "Transform");
+    this.addAttribute(Tundra.cAttributeAssetReference, "meshRef", "Mesh ref");
+    this.addAttribute(Tundra.cAttributeAssetReference, "skeletonRef", "Skeleton ref");
+    this.addAttribute(Tundra.cAttributeAssetReferenceList, "meshMaterial", "Mesh materials");
+    this.addAttribute(Tundra.cAttributeReal, "drawDistance", "Draw distance");
+    this.addAttribute(Tundra.cAttributeBool, "castShadows", "Cast shadows", false);
+    this.addAttribute(Tundra.cAttributeBool, "useInstancing", "Use instancing", false);
     
     this.assetReady = false;
     
@@ -21,12 +26,12 @@ function EC_Mesh() {
 
     this.meshAssetReady = new signals.Signal();
     
-}
+};
 
-EC_Mesh.prototype = new Component(cComponentTypeMesh);
+Tundra.EC_Mesh.prototype = new Tundra.Component(Tundra.cComponentTypeMesh);
 
 // AttributeChanged event listener.
-EC_Mesh.prototype.onAttributeChanged = function ( attr, changeType ) {
+Tundra.EC_Mesh.prototype.onAttributeChanged = function ( attr, changeType ) {
     
     if ( attr.id === "nodeTransformation" ) {
         
@@ -36,12 +41,12 @@ EC_Mesh.prototype.onAttributeChanged = function ( attr, changeType ) {
     
 };
 
-EC_Mesh.prototype.updateNodeTransform = function ( ) {  };
+Tundra.EC_Mesh.prototype.updateNodeTransform = function ( ) {  };
 
 // Check if placeable parentRef or parentBone has changed and update parent
 // child hierachy based on the change.
-EC_Mesh.prototype.updateParentRef = function () {
-    
+Tundra.EC_Mesh.prototype.updateParentRef = function () {
+    var pEntity;
     var placeable = this.parentEntity.componentByType("Placeable");
     if ( placeable === null )
         return;
@@ -61,7 +66,7 @@ EC_Mesh.prototype.updateParentRef = function () {
         
         placeable.targetBone.detach( placeable );
         
-        var pEntity = this.parentEntity.parentScene.entityById( placeable.parentRef );
+        pEntity = this.parentEntity.parentScene.entityById( placeable.parentRef );
         if (pEntity)
             placeable.setParentEntity( pEntity );
         
@@ -71,7 +76,7 @@ EC_Mesh.prototype.updateParentRef = function () {
     
     // Check if parent entity or mesh asset is ready. If not wait until they are created
     
-    var pEntity = this.parentEntity.parentScene.entityById( placeable.parentRef );
+    pEntity = this.parentEntity.parentScene.entityById( placeable.parentRef );
     
     if ( pEntity === null ) {
         
@@ -105,11 +110,11 @@ EC_Mesh.prototype.updateParentRef = function () {
     
 };
 
-EC_Mesh.prototype.checkParentEntity = function( entity, component, chnageType ) {
+Tundra.EC_Mesh.prototype.checkParentEntity = function( entity, component, chnageType ) {
     
     if (this.placeable !== undefined) {
         
-        if (entity.id === this.placeable.parentRef && component instanceof EC_Mesh ) {
+        if (entity.id === this.placeable.parentRef && component instanceof Tundra.EC_Mesh ) {
         
             this.parentEntity.parentScene.componentAdded.remove(this.checkParentEntity, this);
             this.updateParentRef();
@@ -120,18 +125,95 @@ EC_Mesh.prototype.checkParentEntity = function( entity, component, chnageType ) 
     
 };
 
-registerComponent(cComponentTypeMesh, "Mesh", function(){ return new EC_Mesh(); });
+Tundra.registerComponent(Tundra.cComponentTypeMesh, "Mesh", function(){ return new Tundra.EC_Mesh(); });
 
-function Skeleton () {
+function Bone ( name, parent ) {
+    
+    this.name = name;
+    
+    this.parent = parent;
+    
+    // Child bones
+    
+    this.children = new Array();
+    
+    // List of attachments objects added to this bone.
+    
+    this.attachments = new Array();
+    
+    if ( this.parent !== undefined && this.parent !== null ) {
+        
+        var parentChildren = this.parent.children;
+        var alreadyAdded = false;
+        
+        for (var i = 0; i < parentChildren; i++) {
+            
+            if (parentChildren[i] === this)
+                alreadyAdded = true;
+            
+        }
+        
+        if ( !alreadyAdded )
+            this.parent.children.push(this);
+        
+    }
+    
+}
+
+Bone.prototype.attach = function ( mesh ) {
+    
+    if ( mesh instanceof Tundra.EC_Mesh === false && !mesh.assetReady )
+        debugger;
+    
+    if (mesh.parentBone !== null)
+        mesh.parentBone.detach(mesh);
+        
+    mesh.parentBone = this;
+    
+    this.attachments.push( mesh.parentEntity.id );
+    
+};
+
+Bone.prototype.detach = function ( mesh ) {
+
+    if ( mesh instanceof Tundra.EC_Mesh === false && !mesh.assetReady )
+        debugger;
+    
+    mesh.parentBone = null;
+    
+    for ( var i = 0; i < this.attachments.length; ++i ) {
+        
+        if ( this.attachments[i] === mesh.parentEntity.id )
+            this.attachments.splice( i, 0 );
+        
+    }
+
+};
+
+Bone.prototype.enableAnimation = function ( enable, recursive ) {
+    
+    if (recursive !== undefined && recursive === true) {
+        
+        for (var i = 0; i < this.children; i++) {
+
+            this.children[i].enableAnimation( enable, recursive );
+
+        }
+        
+    }
+    
+};
+
+Tundra.Skeleton = function() {
     
     this.bones = [];
     
-}
+};
 
 // Add new bone to skeleton
 /* @param {Bone} new bone.
  */
-Skeleton.prototype.addBone = function( bone ) {
+Tundra.Skeleton.prototype.addBone = function( bone ) {
     
     bone.skeleton = this;
     this.bones.push(bone);
@@ -141,7 +223,7 @@ Skeleton.prototype.addBone = function( bone ) {
 // Get bone by name
 /* @param {string} name bone name
  */
-Skeleton.prototype.getBone = function ( name ) {
+Tundra.Skeleton.prototype.getBone = function ( name ) {
     
     if ( this.rootBone !== undefined )
         return null;
@@ -157,7 +239,7 @@ Skeleton.prototype.getBone = function ( name ) {
 
 };
 
-Skeleton.prototype.isMatch = function( skeleton ) {
+Tundra.Skeleton.prototype.isMatch = function( skeleton ) {
     
     if ( skeleton === null ) {
         return false;
@@ -171,7 +253,7 @@ Skeleton.prototype.isMatch = function( skeleton ) {
     
 };
 
-Skeleton.prototype.hasAttachments = function( ) {
+Tundra.Skeleton.prototype.hasAttachments = function( ) {
     
     for ( var i in this.bones ) {
         
@@ -184,7 +266,7 @@ Skeleton.prototype.hasAttachments = function( ) {
     
 };
 
-Skeleton.prototype.checkBones = function( bone1, bone2 ) {
+Tundra.Skeleton.prototype.checkBones = function( bone1, bone2 ) {
     
     if ( bone1.children.length !== bone2.children.length || bone1.name !== bone2.name )
         return false;

@@ -1,16 +1,16 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-var cComponentTypeAnimation = 14;
+Tundra.cComponentTypeAnimation = 14;
 
 /// Enumeration of animation phase
-var AnimationPhase = {
+Tundra.AnimationPhase = {
     PHASE_PLAY : 0,
     PHASE_STOP : 1,
     PHASE_FREE : 2 
 };
 
 // TODO not fully implemented.
-function AnimationState() {
+Tundra.AnimationState = function() {
     
     /// Animation name.
     this.name = "";
@@ -37,11 +37,11 @@ function AnimationState() {
     //this.priority = 0;
 
     /// current phase
-    this.phase = AnimationPhase.PHASE_STOP;
+    this.phase = Tundra.AnimationPhase.PHASE_STOP;
     
 };
 
-function AnimationMeshInfo( animationController, mesh ) {
+Tundra.AnimationMeshInfo = function ( animationController, mesh ) {
     
     this.animationController = animationController;
     this.mesh = mesh;
@@ -89,19 +89,19 @@ function AnimationMeshInfo( animationController, mesh ) {
     
 };
 
-function EC_AnimationController() {
-    Component.call(this, cComponentTypeAnimation);
-    this.addAttribute(cAttributeString, "animationState", "", "");
-    this.addAttribute(cAttributeBool, "drawDebug", "", false);
+Tundra.EC_AnimationController = function () {
+    Tundra.Component.call(this, Tundra.cComponentTypeAnimation);
+    this.addAttribute(Tundra.cAttributeString, "animationState", "", "");
+    this.addAttribute(Tundra.cAttributeBool, "drawDebug", "", false);
 
     // Map of animations that have their name as variable id.
     this.animations = new Object;
     
     // List of meshes we wish to animate.
     this.animatingMeshes = [];
-}
+};
 
-EC_AnimationController.prototype = new Component(cComponentTypeAnimation);
+Tundra.EC_AnimationController.prototype = new Tundra.Component(Tundra.cComponentTypeAnimation);
 
 // Play animation. If cross fade is set to true all playing animations are stopped
 // and their fadeOutTime time is same as fadeInTime.
@@ -110,14 +110,14 @@ EC_AnimationController.prototype = new Component(cComponentTypeAnimation);
  * @param {bool} crossFade
  * @param {bool} looped
  */
-EC_AnimationController.prototype.play = function ( name, fadeInTime, crossFade, looped ) {};
+Tundra.EC_AnimationController.prototype.play = function ( name, fadeInTime, crossFade, looped ) {};
 
 // Play in loop animation
 /* @param {string} animation name
  * @param {float} fadeInTime
  * @param {bool} crossFade
  */
-EC_AnimationController.prototype.playLooped = function ( name, fadeInTime, crossFade )
+Tundra.EC_AnimationController.prototype.playLooped = function ( name, fadeInTime, crossFade )
 {
     
     this.play( name, fadeInTime, crossFade, true );
@@ -129,12 +129,12 @@ EC_AnimationController.prototype.playLooped = function ( name, fadeInTime, cross
 /* @param {string} name Animation name
  * @param {float} fadeoutTime how long it takes to fade out the animation.
  */
-EC_AnimationController.prototype.stop = function ( name, fadeoutTime ) {};
+Tundra.EC_AnimationController.prototype.stop = function ( name, fadeoutTime ) {};
 
 // Stop all playing animations
 /* @param {float} fadeoutTime how long it takes to fade out the animations.
  */
-EC_AnimationController.prototype.stopAll = function ( fadeoutTime )
+Tundra.EC_AnimationController.prototype.stopAll = function ( fadeoutTime )
 {
     
      fadeoutTime = Number(fadeoutTime);
@@ -142,7 +142,7 @@ EC_AnimationController.prototype.stopAll = function ( fadeoutTime )
      for(var id in this.animations) {
 
          anim = this.animations[id];
-         if (anim instanceof AnimationState)
+         if (anim instanceof Tundra.AnimationState)
             this.stop(anim.name, fadeoutTime);
 
      }
@@ -153,29 +153,29 @@ EC_AnimationController.prototype.stopAll = function ( fadeoutTime )
 // Implemention in EC_AnimationControllerView
 /* @param {float} deltaTime time elapse.
  */
-EC_AnimationController.prototype.update = function ( deltaTime ) {};
+Tundra.EC_AnimationController.prototype.update = function ( deltaTime ) {};
 
 // Set new animation weight to animation
 // Implemention in EC_AnimationControllerView
 /*@param {string} name animation name.
  *@param {float} weight animation weight range [0-1].
  */
-EC_AnimationController.prototype.setAnimWeight = function ( name, weight ) {};
+Tundra.EC_AnimationController.prototype.setAnimWeight = function ( name, weight ) {};
 
 // Implements the SetAnimSpeed action
 // Implemention in EC_AnimationControllerView
 /* @param {string} name animation name
  * @param {float} speed animation playback speed if negative play backward.
  */
-EC_AnimationController.prototype.setAnimSpeed = function ( name, speed ) {};
+Tundra.EC_AnimationController.prototype.setAnimSpeed = function ( name, speed ) {};
     
 // Create new instance of AnimationState object and add it to animations map.
 /* @param {string} name animation name
  * @return {AnimationState} new animation state object.
  */
-EC_AnimationController.prototype.createAnimation = function( name ) {
+Tundra.EC_AnimationController.prototype.createAnimation = function( name ) {
     
-    var anim = new AnimationState();
+    var anim = new Tundra.AnimationState();
     anim.name = name;
     this.animations[name] = anim;
     return anim;
@@ -184,7 +184,7 @@ EC_AnimationController.prototype.createAnimation = function( name ) {
 
 // Add new mesh to animated by this component.
 // Note! all meshes need to have identical skeleton defined.
-EC_AnimationController.prototype.addMesh = function( mesh ) {
+Tundra.EC_AnimationController.prototype.addMesh = function( mesh ) {
     
     for ( var i = 0; i < this.animatingMeshes.length; ++i ) {
     
@@ -196,7 +196,7 @@ EC_AnimationController.prototype.addMesh = function( mesh ) {
     
     }
     
-    var animationMesh = new AnimationMeshInfo( this, mesh );
+    var animationMesh = new Tundra.AnimationMeshInfo( this, mesh );
     
     this.animatingMeshes.push(animationMesh);
     
@@ -205,7 +205,7 @@ EC_AnimationController.prototype.addMesh = function( mesh ) {
 // Remove mesh from animation controller.
 /* @param {EC_Mesh} mesh that we dont want to animate
  */
-EC_AnimationController.prototype.removeMesh = function( mesh ) {
+Tundra.EC_AnimationController.prototype.removeMesh = function( mesh ) {
     
     for ( var i = 0; i < this.animatingMeshes.length; ++i ) {
         
@@ -225,13 +225,13 @@ EC_AnimationController.prototype.removeMesh = function( mesh ) {
  * @return {AnimationState} return animation state object if found othervice
  *         return null.
  */
-EC_AnimationController.prototype.animationState = function( name ) {
+Tundra.EC_AnimationController.prototype.animationState = function( name ) {
     
     var state;
     for ( var i in this.animations ) {
         
         state = this.animations[i];
-        if ( state instanceof AnimationState ) {
+        if ( state instanceof Tundra.AnimationState ) {
             
             if (state.name === name)
                 return state;
@@ -244,13 +244,13 @@ EC_AnimationController.prototype.animationState = function( name ) {
 };
 
 // If new mesh components are added to entity, add them to animation controller.
-EC_AnimationController.prototype.onComponentAdded = function ( newComp, changeType ) {
+Tundra.EC_AnimationController.prototype.onComponentAdded = function ( newComp, changeType ) {
     
-    if (newComp instanceof EC_Mesh)
+    if (newComp instanceof Tundra.EC_Mesh)
         this.addMesh(newComp);
     
 };
 
-EC_AnimationController.prototype.createAnimations = function( mesh ) {};
+Tundra.EC_AnimationController.prototype.createAnimations = function( mesh ) {};
 
-registerComponent(cComponentTypeAnimation, "AnimationController", function(){ return new EC_AnimationController(); });
+Tundra.registerComponent(Tundra.cComponentTypeAnimation, "AnimationController", function(){ return new Tundra.EC_AnimationController(); });

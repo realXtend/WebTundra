@@ -1,16 +1,16 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-var cComponentTypeScript = 5;
+Tundra.cComponentTypeScript = 5;
 
-function EC_Script() {
-    Component.call(this, cComponentTypeScript);
-    this.addAttribute(cAttributeAssetReferenceList, "scriptRef", "Script ref");
-    this.addAttribute(cAttributeBool, "runOnLoad", "Run on load", false);
-    this.addAttribute(cAttributeInt, "runMode", "Run mode");
-    this.addAttribute(cAttributeString, "applicationName", "Script application name");
-    this.addAttribute(cAttributeString, "className", "Script class name");
-}
+Tundra.EC_Script = function () {
+    Tundra.Component.call(this, Tundra.cComponentTypeScript);
+    this.addAttribute(Tundra.cAttributeAssetReferenceList, "scriptRef", "Script ref");
+    this.addAttribute(Tundra.cAttributeBool, "runOnLoad", "Run on load", false);
+    this.addAttribute(Tundra.cAttributeInt, "runMode", "Run mode");
+    this.addAttribute(Tundra.cAttributeString, "applicationName", "Script application name");
+    this.addAttribute(Tundra.cAttributeString, "className", "Script class name");
+};
 
-EC_Script.prototype = new Component(cComponentTypeScript);
+Tundra.EC_Script.prototype = new Tundra.Component(Tundra.cComponentTypeScript);
 
-registerComponent(cComponentTypeScript, "Script", function(){ return new EC_Script(); });
+Tundra.registerComponent(Tundra.cComponentTypeScript, "Script", function(){ return new Tundra.EC_Script(); });
