@@ -15,7 +15,7 @@ function setupEditorControls() {
 function loadxml3d() {
     var app = new Tundra.Application();
     app.start();
-    var parser = new SceneParser(app.dataConnection);
+    var parser = new Tundra.SceneParser(app.dataConnection);
     parser.parseDocXml3D(document);
 
     // hack to get the right xml3d-created camera and not the default one.
