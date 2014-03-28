@@ -5,23 +5,20 @@
  *      @author Tapani Jamsa
  *      @author Erno Kuusela
  *      @author Toni Alatalo
- *      Date: 2013
+ *      Date: 2014
  */
 
 var app = new Tundra.Application();
-app.start();
-
-loadXml3d(app.dataConnection, "xml3d-scene-jsonscene.html");
-
-
-function loadXml3d(model, docurl) {
-    var parser = new Tundra.SceneParser(model);
-    parser.parseFromUrlXml3D(docurl);
-    console.log("parse done");
-}
 
 function setupEditorControls() {
     var controls = new THREE.EditorControls(app.viewer.camera, app.viewer.renderer.domElement);
 }
 
-window.setTimeout(setupEditorControls, 2000);
+function loadxml3d() {
+    app.start();
+    var parser = new Tundra.SceneParser(app.dataConnection);
+    parser.parseDocXml3D(document);
+
+    // hack to get the right xml3d-created camera and not the default one.
+    window.setTimeout(setupEditorControls, 2000);
+}

@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>xml3d parser example scene</title>
+    <title>Three.js "JSON Scene" format</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 </head>
@@ -48,11 +48,46 @@
 <script src="../../src/view/EC_AnimationControllerView.js"></script>
 <script src="../../src/scene/Bone.js"></script>
 <script src="../../src/view/BoneView.js"></script>
+<script src="loadxml3d.js"></script>
 
 <!-- ------------------------------------------------------------ -->
 
 <div id="ThreeJS" style="z-index: 1; position: absolute; left:0px; top:0px"></div>
-<script src="example-jsonscene.js"></script>
+
+        <xml3d id="MyXml3d" activeView="#defaultView" class="xml3d"
+               style="width: 600px; height: 400px;" >
+            <defs id="mainDef">
+
+            <transform id="t_Lamp"
+                       rotation="0.205942 0.331517 0.920698 1.926274"
+                       scale="1.000000 1.000000 1.000000"
+                       translation="4.076245 1.005454 5.903862"></transform>
+
+            <lightshader id="ls_Spot" script="urn:xml3d:lightshader:point">
+              <bool name="castShadow">true</bool>
+              <float3 name="attenuation">1.000000 0.033333 0.000000</float3>
+              <float3 name="intensity">1.000000 1.000000 1.000000</float3>
+            </lightshader>
+
+            <transform id="t_camera" translation="0 0 10" rotation="0 0 1 0"></transform>
+
+            </defs>
+
+            <group id="viewGroup" transform="#t_camera">
+              <view id="defaultView"></view>
+            </group>
+            <group shader="#Material">
+              <mesh id="oulu" src="http://webtundra.s3-external-3.amazonaws.com/oulu9-jsonscene/Masterscene.jsonscene" type="triangles"></mesh>
+            </group>
+
+            <group transform="#t_Lamp">
+              <light shader="#ls_Spot"></light>
+            </group>
+        </xml3d>
+  
+<script>
+    loadxml3d();
+</script>
 
 </body>
 </html>
