@@ -53,11 +53,11 @@
     <div id="ThreeJS" style="z-index: 1; position: absolute; left:0px; top:0px"></div>
 	<script>
 
-	"use strict";
+    "use strict";
+    
+    var useSignals = true;
 
-	var useSignals = true;
-
-	var keyboard = new THREEx.KeyboardState();
+    var keyboard = new THREEx.KeyboardState();
     var clock = new THREE.Clock();
 
     // VIEWER
@@ -71,8 +71,7 @@
     dataConnection.scene.componentRemoved.add(viewer.onComponentRemoved.bind(viewer));
     dataConnection.scene.threeScene = viewer.scene;
 
-	var debugOnCheckFail = false;
-    
+    var debugOnCheckFail = false;
     
     CreateScene();
     Update();
@@ -109,7 +108,6 @@
         }
         
         return entity;
-        
     }
     
     var avatar;
@@ -128,10 +126,9 @@
         
         cam = CreateBasicEntity( scene, { camera:"" } );
         cam.placeable.setPosition(0, 5, 20);
-		cam.camera.lookAt(avatar.placeable.transform.pos);
+        cam.camera.lookAt(avatar.placeable.transform.pos);
         
-        animator = avatar.animationController;
-        
+        animator = avatar.animationController;        
     }
     
     function Update() {
@@ -143,14 +140,10 @@
             Update();
         }.bind(this));
         
-        if ( !playRun && avatar.mesh && avatar.mesh.assetReady ) {
-            
-            playRun = true;
-            
+        if ( !playRun && avatar.mesh && avatar.mesh.assetReady ) {         
+            playRun = true;            
             avatar.animationController.playLooped("Run");
-            
         }   
-
     }
 
     function checkDefined() {
