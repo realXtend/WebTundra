@@ -50,7 +50,7 @@ Tundra.Component.prototype = {
             console.log("Component " + this.typeName + " does not support adding dynamic attributes");
             return null;
         }
-        var newAttr = createAttribute(typeId);
+        var newAttr = Tundra.createAttribute(typeId);
         if (newAttr != null) {
             newAttr.name = name;
             newAttr.id = name; // For dynamic attributes name == id
