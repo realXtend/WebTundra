@@ -62,42 +62,40 @@
     var useSignals = true;
 
     // VIEWER
-    var viewer = new ThreeView();
+    var viewer = new Tundra.ThreeView();
     viewer.renderer.setClearColor( 0x9999D6, 1 );
     viewer.renderer.domElement.style.display = 'none';
     viewer.stats.domElement.style.display = 'none';
 
     // MODEL
-    var connected = false;
-    var dataConnection = new WebTundraModel();
+    var dataConnection = new Tundra.WebTundraModel();
     dataConnection.scene.componentAdded.add(viewer.onComponentAddedOrChanged.bind(viewer));
     dataConnection.scene.componentRemoved.add(viewer.onComponentRemoved.bind(viewer));
     dataConnection.scene.threeScene = viewer.scene;
 
-    var debugOnCheckFail = false;
+    Tundra.debugOnCheckFail = false;
 
-    function checkDefined() {
+    Tundra.checkDefined = function() {
         for (var i = 0; i < arguments.length; i++) {
             if (arguments[i] === undefined) {
-                if (debugOnCheckFail) {
+                if (Tundra.debugOnCheckFail) {
                     debugger;
                 } else {
                     throw ("undefined value, arg #" + i);
                 }
             }
         }
-    }
+    };
 
-    function check() {
+    Tundra.check = function() {
         for (var i = 0; i < arguments.length; i++)
-            if (arguments[i] !== true) {
-                if (debugOnCheckFail) {
+            if (arguments[i] !== true)
+                if (Tundra.debugOnCheckFail) {
                     debugger;
                 } else {
                     throw ("untrue value" + arguments[i] + ", arg #" + i);
                 }
-        }
-    }
+    };
     
   </script>
 

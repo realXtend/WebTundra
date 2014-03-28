@@ -127,83 +127,6 @@ Tundra.EC_Mesh.prototype.checkParentEntity = function( entity, component, chnage
 
 Tundra.registerComponent(Tundra.cComponentTypeMesh, "Mesh", function(){ return new Tundra.EC_Mesh(); });
 
-function Bone ( name, parent ) {
-    
-    this.name = name;
-    
-    this.parent = parent;
-    
-    // Child bones
-    
-    this.children = new Array();
-    
-    // List of attachments objects added to this bone.
-    
-    this.attachments = new Array();
-    
-    if ( this.parent !== undefined && this.parent !== null ) {
-        
-        var parentChildren = this.parent.children;
-        var alreadyAdded = false;
-        
-        for (var i = 0; i < parentChildren; i++) {
-            
-            if (parentChildren[i] === this)
-                alreadyAdded = true;
-            
-        }
-        
-        if ( !alreadyAdded )
-            this.parent.children.push(this);
-        
-    }
-    
-}
-
-Bone.prototype.attach = function ( mesh ) {
-    
-    if ( mesh instanceof Tundra.EC_Mesh === false && !mesh.assetReady )
-        debugger;
-    
-    if (mesh.parentBone !== null)
-        mesh.parentBone.detach(mesh);
-        
-    mesh.parentBone = this;
-    
-    this.attachments.push( mesh.parentEntity.id );
-    
-};
-
-Bone.prototype.detach = function ( mesh ) {
-
-    if ( mesh instanceof Tundra.EC_Mesh === false && !mesh.assetReady )
-        debugger;
-    
-    mesh.parentBone = null;
-    
-    for ( var i = 0; i < this.attachments.length; ++i ) {
-        
-        if ( this.attachments[i] === mesh.parentEntity.id )
-            this.attachments.splice( i, 0 );
-        
-    }
-
-};
-
-Bone.prototype.enableAnimation = function ( enable, recursive ) {
-    
-    if (recursive !== undefined && recursive === true) {
-        
-        for (var i = 0; i < this.children; i++) {
-
-            this.children[i].enableAnimation( enable, recursive );
-
-        }
-        
-    }
-    
-};
-
 Tundra.Skeleton = function() {
     
     this.bones = [];
@@ -239,6 +162,10 @@ Tundra.Skeleton.prototype.getBone = function ( name ) {
 
 };
 
+// Checks if two skeletons have same hierarchy and their names match up.
+/* @param {Skeleton} skelton object
+ * @return {bool} return true if skeletons are identical.
+ */
 Tundra.Skeleton.prototype.isMatch = function( skeleton ) {
     
     if ( skeleton === null ) {
@@ -253,6 +180,9 @@ Tundra.Skeleton.prototype.isMatch = function( skeleton ) {
     
 };
 
+// Checks any attachments are added to skeleton.
+/* @return {bool} return true one or more attachments are found from the skeleton.
+ */
 Tundra.Skeleton.prototype.hasAttachments = function( ) {
     
     for ( var i in this.bones ) {
@@ -266,6 +196,7 @@ Tundra.Skeleton.prototype.hasAttachments = function( ) {
     
 };
 
+// Checks if two bones and their children bones match up.
 Tundra.Skeleton.prototype.checkBones = function( bone1, bone2 ) {
     
     if ( bone1.children.length !== bone2.children.length || bone1.name !== bone2.name )

@@ -72,11 +72,11 @@ var avatarTest = {
 
         this.scene = dataConnection.scene;
 
-        this.entity = scene.createEntity( 0 );
+        this.entity = this.scene.createEntity( 0 );
 
-        this.entity.createComponent( 0, cComponentTypePlaceable );
+        this.entity.createComponent( 0, Tundra.cComponentTypePlaceable );
 
-        this.avatar = this.entity.createComponent( 0, cComponentTypeAvatar );
+        this.avatar = this.entity.createComponent( 0, Tundra.cComponentTypeAvatar );
         this.avatar.setupAppearance( this.data );
         
     },
