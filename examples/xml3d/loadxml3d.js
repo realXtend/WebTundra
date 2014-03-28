@@ -8,12 +8,13 @@
  *      Date: 2014
  */
 
+var app = new Tundra.Application();
+
 function setupEditorControls() {
     var controls = new THREE.EditorControls(app.viewer.camera, app.viewer.renderer.domElement);
 }
 
 function loadxml3d() {
-    var app = new Tundra.Application();
     app.start();
     var parser = new Tundra.SceneParser(app.dataConnection);
     parser.parseDocXml3D(document);
