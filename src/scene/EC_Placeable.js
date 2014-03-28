@@ -27,7 +27,7 @@ Tundra.EC_Placeable = function() {
     this.parentEntitySet.add(this.connectToEntity.bind(this));
 
     this.parentRefReady = new signals.Signal();
-}
+};
 
 Tundra.EC_Placeable.prototype = new Tundra.Component(Tundra.cComponentTypePlaceable);
 
@@ -35,7 +35,7 @@ Tundra.EC_Placeable.prototype.connectToEntity = function() {
     // When we are first added to the entity, check parent ref. Also re-check it if the entity is re-parented
     this.parentEntity.parentChanged.add(this.checkParentRef, this);
     this.checkParentRef();
-}
+};
 
 Tundra.EC_Placeable.prototype.checkParentRef = function() {
 
@@ -56,7 +56,7 @@ Tundra.EC_Placeable.prototype.checkParentRef = function() {
 
         } else {
 
-            this.parentEntity.parentScene.entityCreated.add(this.waitParent);
+            this.parentEntity.parentScene.entityCreated.add(this.waitParent, this);
 
         }
         
@@ -66,7 +66,7 @@ Tundra.EC_Placeable.prototype.checkParentRef = function() {
         this.targetEntity = this.parentEntity.parent;
         this.parentRefReady.dispatch();
     }
-}
+};
 
 Tundra.EC_Placeable.prototype.onAttributeChanged = function(attr, changeType) {
     
@@ -105,7 +105,7 @@ Tundra.EC_Placeable.prototype.waitParent = function(addedEntity, changeType) {
         //console.log("placeable parent was there later");
         this.parentRefReady.dispatch();
         
-        this.parentEntity.parentScene.entityCreated.remove(this.waitParent);
+        this.parentEntity.parentScene.entityCreated.remove(this.waitParent, this);
         
         this.targetEntity = this.parentEntity.parentScene.entityById(this.parentRef);
         
@@ -115,7 +115,7 @@ Tundra.EC_Placeable.prototype.waitParent = function(addedEntity, changeType) {
     
 };
 
-Tundra.EC_Placeable.prototype.updateTransform = function() {}
+Tundra.EC_Placeable.prototype.updateTransform = function() {};
 
 Tundra.EC_Placeable.prototype.setParentEntity = function ( entity ) {};
 
