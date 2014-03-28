@@ -60,48 +60,42 @@
     var clock = new THREE.Clock();
 
     // VIEWER
-    var viewer = new ThreeView();
+    var viewer = new Tundra.ThreeView();
     viewer.renderer.setClearColor( 0x9999D6, 1 );
 
     // MODEL
     var connected = false;
-    var dataConnection = new WebTundraModel();
+    var dataConnection = new Tundra.WebTundraModel();
     dataConnection.scene.componentAdded.add(viewer.onComponentAddedOrChanged.bind(viewer));
     dataConnection.scene.componentRemoved.add(viewer.onComponentRemoved.bind(viewer));
     dataConnection.scene.threeScene = viewer.scene;
-
-	var debugOnCheckFail = false;
-    
-    
-    CreateScene();
-    Update();
     
     function CreateBasicEntity( scene, data ) {
         
         var entity = scene.createEntity( 0 );
-        entity.createComponent( 0, cComponentTypePlaceable );
+        entity.createComponent( 0, Tundra.cComponentTypePlaceable );
         
         if ( data.mesh !== undefined ) {
-            var mesh = entity.createComponent(0, cComponentTypeMesh);
+            var mesh = entity.createComponent(0, Tundra.cComponentTypeMesh);
             var ref = mesh.meshRef
             ref.ref = data.mesh;
             mesh.meshRef = ref;
         }
         
         if ( data.animationController !== undefined ) {
-            var animator = entity.createComponent(0, cComponentTypeAnimation);
+            var animator = entity.createComponent(0, Tundra.cComponentTypeAnimation);
         }
         
         if ( data.light !== undefined ) {
-            var light = entity.createComponent(0, cComponentTypeLight);
+            var light = entity.createComponent(0, Tundra.cComponentTypeLight);
         }
         
         if ( data.camera !== undefined ) {
-            var light = entity.createComponent(0, cComponentTypeCamera);
+            var light = entity.createComponent(0, Tundra.cComponentTypeCamera);
         }
         
         if ( data.avatar !== undefined ) {
-            var avatar = entity.createComponent(0, cComponentTypeAvatar);
+            var avatar = entity.createComponent(0, Tundra.cComponentTypeAvatar);
             var ref = avatar.appearanceRef;
             ref.ref = data.avatar;
             avatar.appearanceRef = ref;
@@ -152,27 +146,32 @@
 
     }
 
-    function checkDefined() {
+    Tundra.debugOnCheckFail = true;
+
+    Tundra.checkDefined = function() {
         for (var i = 0; i < arguments.length; i++) {
             if (arguments[i] === undefined) {
-                if (debugOnCheckFail) {
+                if (Tundra.debugOnCheckFail) {
                     debugger;
                 } else {
                     throw ("undefined value, arg #" + i);
                 }
             }
         }
-    }
+    };
 
-    function check() {
+    Tundra.check = function() {
         for (var i = 0; i < arguments.length; i++)
             if (arguments[i] !== true)
-                if (debugOnCheckFail) {
+                if (Tundra.debugOnCheckFail) {
                     debugger;
                 } else {
                     throw ("untrue value" + arguments[i] + ", arg #" + i);
                 }
-    }
+    };
+    
+    CreateScene();
+    Update();
 
 	</script>
 
