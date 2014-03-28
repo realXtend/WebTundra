@@ -83,8 +83,6 @@ var avatarTest = {
     
     release: function()  {
         
-        this.entity.removeComponent(this.avatar.id);
-        
         //this.scene.removeEntity(this.entity.id);
         
         this.scene = null;
@@ -140,7 +138,10 @@ var avatarTest = {
             if ( eData.geometry ) {
 
                 ok(entity.mesh != null, eData.name + " EC_Mesh created");
-                ok(entity.mesh.meshRef.ref == eData.geometry, eData.name + " Check mesh geometry reference")
+                ok(entity.mesh.meshRef.ref == eData.geometry, eData.name + " check mesh geometry reference");
+                if (eData.transform.parentBone != null)
+                    ok(entity.placeable.parentBone == eData.transform.parentBone, eData.name + " check parent bone reference");
+                ok(entity.mesh.assetReady == true, eData.name + " mesh geometry asset loaded");
 
             }
 
