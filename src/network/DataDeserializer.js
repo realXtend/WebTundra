@@ -1,16 +1,19 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-// For reading non-aligned floats
-var floatReadDataView = new DataView(new ArrayBuffer(4));
+if (Tundra === undefined)
+    var Tundra = {};
 
-function DataDeserializer(arrayBuffer) {
+// For reading non-aligned floats
+Tundra.floatReadDataView = new DataView(new ArrayBuffer(4));
+
+Tundra.DataDeserialier = function (arrayBuffer) {
     this.dataView = new DataView(arrayBuffer);
     this.bitPos = 0;
     this.bytePos = 0;
     this.size = arrayBuffer.byteLength;
-}
+};
 
-DataDeserializer.prototype = {
+Tundra.DataDeserialier.prototype = {
     resetTraversal: function() {
         this.bitPos = 0;
         this.bytePos = 0;
@@ -61,8 +64,8 @@ DataDeserializer.prototype = {
         }
         else
         {
-            floatReadDataView.setUint32(0, this.readBits(32), true);
-            return floatReadDataView.getFloat32(0, true);
+            Tundra.floatReadDataView.setUint32(0, this.readBits(32), true);
+            return Tundra.floatReadDataView.getFloat32(0, true);
         }
     },
 
@@ -198,4 +201,4 @@ DataDeserializer.prototype = {
     get bitsLeft(){
         return this.bytePos >= this.size ? 0 : (this.size - this.bytePos) * 8 - this.bitPos;
     }
-}
+};

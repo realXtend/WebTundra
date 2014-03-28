@@ -1,15 +1,18 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-// For writing non-aligned floats
-var floatWriteDataView = new DataView(new ArrayBuffer(4));
+if (Tundra === undefined)
+    var Tundra = {};
 
-function DataSerializer(lengthBytes) {
+// For writing non-aligned floats
+Tundra.floatWriteDataView = new DataView(new ArrayBuffer(4));
+
+Tundra.DataSerializer = function (lengthBytes) {
     this.dataView = new DataView(new ArrayBuffer(lengthBytes));
     this.bitPos = 0;
     this.bytePos = 0;
-}
+};
 
-DataSerializer.prototype = {
+Tundra.DataSerializer.prototype = {
     addU8 : function(value) {
         if (this.bitPos == 0)
         {

@@ -1,6 +1,11 @@
+"use strict";
+/* jslint browser: true, globalstrict: true, devel: true, debug: true */
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-function Bone ( name, parent ) {
+if (Tundra === undefined)
+    var Tundra = {};
+
+Tundra.Bone = function ( name, parent ) {
     
     this.name = name;
     
@@ -31,9 +36,9 @@ function Bone ( name, parent ) {
     
 }
 
-Bone.prototype.attach = function ( mesh ) {
+Tundra.Bone.prototype.attach = function ( mesh ) {
     
-    if ( mesh instanceof EC_Mesh === false && !mesh.assetReady )
+    if ( mesh instanceof Tundra.EC_Mesh === false && !mesh.assetReady )
         debugger;
     
     if (mesh.parentBone !== null)
@@ -45,9 +50,9 @@ Bone.prototype.attach = function ( mesh ) {
     
 };
 
-Bone.prototype.detach = function ( mesh ) {
+Tundra.Bone.prototype.detach = function ( mesh ) {
 
-    if ( mesh instanceof EC_Mesh === false && !mesh.assetReady )
+    if ( mesh instanceof Tundra.EC_Mesh === false && !mesh.assetReady )
         debugger;
     
     mesh.parentBone = null;
@@ -62,7 +67,7 @@ Bone.prototype.detach = function ( mesh ) {
 };
 
 /// Enable/Disable animation from given bone.
-Bone.prototype.enableAnimation = function ( enable, recursive ) {
+Tundra.Bone.prototype.enableAnimation = function ( enable, recursive ) {
     
     recursive = recursive === undefined ? false : recursive;
     if (recursive === true) {
@@ -78,20 +83,24 @@ Bone.prototype.enableAnimation = function ( enable, recursive ) {
 };
 
 /// Set local position
-Bone.prototype.setPosition = function ( position ) {};
+Tundra.Bone.prototype.setPosition = function ( position ) {};
 
 /// Get local position
-Bone.prototype.getPosition = function () {};
+Tundra.Bone.prototype.getPosition = function () {};
 
 /// Set local rotation
-Bone.prototype.setRotation = function ( euler ) {};
+Tundra.Bone.prototype.setRotation = function ( euler ) {};
 
 /// Get local rotation
-Bone.prototype.getRotation = function () {};
+Tundra.Bone.prototype.getRotation = function () {};
 
 /// Set local scale
-Bone.prototype.setScale = function ( scale ) {};
+Tundra.Bone.prototype.setScale = function ( scale ) {};
 
 /// get local scale.
-Bone.prototype.getScale = function () {};
+Tundra.Bone.prototype.getScale = function () {};
 
+if (true) {
+    // transitioning to namespace
+    var Bone = Tundra.Bone;
+}

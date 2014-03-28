@@ -13,7 +13,7 @@ function setupEditorControls() {
 }
 
 function loadxml3d() {
-    var app = new Application();
+    var app = new Tundra.Application();
     app.start();
     var parser = new SceneParser(app.dataConnection);
     parser.parseDocXml3D(document);

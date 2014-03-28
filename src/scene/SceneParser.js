@@ -1,6 +1,6 @@
 "use strict";
 /* jslint browser: true, globalstrict: true, devel: true, debug: true */
-
+/* globals Tundra */
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 /**
@@ -11,39 +11,42 @@
  *
  */
 
-function SceneParser(ecModel) {
+if (Tundra === undefined)
+    var Tundra = {};
+
+Tundra.SceneParser = function(ecModel) {
     this.ecModel = ecModel;
-}
+};
 
-var logParserDebug = true;
-function parserDebug(msg) {
-    logParserDebug && console.log(msg);
-}
+Tundra.logParserDebug = true;
+Tundra.parserDebug = function(msg) {
+    Tundra.logParserDebug && console.log(msg);
+};
 
-SceneParser.prototype.parseFromUrl = function(url) {
+Tundra.SceneParser.prototype.parseFromUrl = function(url) {
     // console.log("________________________________________" );
     var xhttp = new XMLHttpRequest();
     xhttp.overrideMimeType('text/xml');
     xhttp.open("GET", url, false);
     xhttp.send(null);
     var doc = xhttp.responseXML;
-    check(doc !== null);
+    Tundra.check(doc !== null);
     return this.parseDocXml3D(doc);
 };
 
-SceneParser.prototype.parseFromUrlXml3D = function(url) {
-    checkDefined(url);
+Tundra.SceneParser.prototype.parseFromUrlXml3D = function(url) {
+    Tundra.checkDefined(url);
     // console.log("________________________________________" );
     var xhttp = new XMLHttpRequest();
     //xhttp.overrideMimeType('text/xml');
-    check(typeof(url) === "string");
+    Tundra.check(typeof(url) === "string");
     console.log("xhr start");
     xhttp.onreadystatechange = function() {
         console.log("xhr callback");
         if (xhttp.readyState == 4) {
             if (xhttp.status == 200) {
                 var doc = xhttp.response;
-                check(doc !== null);               
+                Tundra.check(doc !== null);               
                 this.parseDocXml3D(doc);
             }
         } else {
@@ -56,12 +59,12 @@ SceneParser.prototype.parseFromUrlXml3D = function(url) {
     xhttp.send(null);
 };
 
-SceneParser.prototype.parseFromString = function(xmlstring) {
+Tundra.SceneParser.prototype.parseFromString = function(xmlstring) {
     var doc = new window.DOMParser().parseFromString(xmlstring, "text/xml");  
     return this.parseDoc(doc);
 };
 
-SceneParser.prototype.parseDoc = function(doc) {
+Tundra.SceneParser.prototype.parseDoc = function(doc) {
     var entities = doc.getElementsByTagName("entity");  
     for (var i = 0; i < entities.length; i++) {
         var entity = entities[i];
@@ -117,19 +120,19 @@ SceneParser.prototype.parseDoc = function(doc) {
     return this.ecModel;
 };
 
-SceneParser.prototype.createEntityWithPlaceable = function() {
-    var entity = this.ecModel.scene.createEntity(0, AttributeChange.LocalOnly);
-    var placeable = entity.createComponent(0, cComponentTypePlaceable,
-                                           "", AttributeChange.LocalOnly);
+Tundra.SceneParser.prototype.createEntityWithPlaceable = function() {
+    var entity = this.ecModel.scene.createEntity(0, Tundra.AttributeChange.LocalOnly);
+    var placeable = entity.createComponent(0, Tundra.cComponentTypePlaceable,
+                                           "", Tundra.AttributeChange.LocalOnly);
     placeable.parentRef = 0; // won't get added to three scene until this is initialized
     return entity;
 };
 
-SceneParser.prototype.parseDocXml3D = function(doc) {
+Tundra.SceneParser.prototype.parseDocXml3D = function(doc) {
     var lightEnt = this.ecModel.scene.createEntity(0, name);
-    lightEnt.createComponent(0, cComponentTypePlaceable,
-                        "", AttributeChange.LocalOnly);
-    lightEnt.createComponent(0, cComponentTypeLight, "", AttributeChange.LocalOnly);
+    lightEnt.createComponent(0, Tundra.cComponentTypePlaceable,
+                        "", Tundra.AttributeChange.LocalOnly);
+    lightEnt.createComponent(0, Tundra.cComponentTypeLight, "", Tundra.AttributeChange.LocalOnly);
     console.log("SceneParser: created placeholder light");
     
     var x3Nodes = doc.getElementsByTagName("xml3d");
@@ -141,13 +144,13 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
         console.log("handling only first of " + x3Nodes.length);
     }
     
-    var groups = getDirectChildNodesByTagName(x3Nodes[0], "group");  
+    var groups = Tundra.getDirectChildNodesByTagName(x3Nodes[0], "group");  
     console.log("handling " + groups.length + " groups");
 
-    var transformDefs = wtFindTransformDefs(doc);
+    var transformDefs = Tundra.wtFindTransformDefs(doc);
 
     var setPlaceableFromGroupNode = function(placeable, groupNode) {
-        check(!!groupNode);
+        Tundra.check(!!groupNode);
         var xTransform = groupNode.getAttribute("transform");
         if (!xTransform)
             return false;
@@ -155,7 +158,7 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
             console.log("don't know how to handle this kind of transform: " + xTransform);
             return false;
         }
-        var transformId = wtTrimLeft(xTransform, "#");
+        var transformId = Tundra.wtTrimLeft(xTransform, "#");
         var setter = transformDefs[transformId];
         if (!setter) {
             console.log("no transfrom def found:" + transformId);
@@ -176,7 +179,7 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
 
         entity = this.createEntityWithPlaceable();
         placeable = entity.componentByType("Placeable");
-        check(!!placeable);
+        Tundra.check(!!placeable);
         var gotTransform = setPlaceableFromGroupNode(placeable, group);
         if (!gotTransform)
             console.log("using default transform for group", group);
@@ -190,8 +193,8 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
             var type = xmesh.getAttribute("type");
             var src = xmesh.getAttribute("src");
             var meshName = xmesh.getAttribute("id") || groupId;
-            var ecmesh = entity.createComponent(0, cComponentTypeMesh, meshName,
-                                                AttributeChange.LocalOnly);
+            var ecmesh = entity.createComponent(0, Tundra.cComponentTypeMesh, meshName,
+                                                Tundra.AttributeChange.LocalOnly);
             ecmesh.meshRef = { ref: src };
             console.log("made mesh for id " + meshName + " entity " + entity.id);
            
@@ -214,17 +217,17 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
             } else {
                 setPlaceableFromGroupNode(placeable, group);
             }
-            ecCamera = entity.createComponent(0, cComponentTypeCamera, viewId || "camera", AttributeChange.LocalOnly);
+            ecCamera = entity.createComponent(0, Tundra.cComponentTypeCamera, viewId || "camera", Tundra.AttributeChange.LocalOnly);
           
             //console.log("in-group camera added to entity " + entity.id);
             //placeable.debug = true;
         }
     }
 
-    var grouplessViews = wtNodeListToArray(doc.getElementsByTagName("view"));
+    var grouplessViews = Tundra.wtNodeListToArray(doc.getElementsByTagName("view"));
     for (i = grouplessViews.length; i >= 0; i--) {
-        if (wtArrayContains(viewsInGroups, grouplessViews[i]))
-            wtRemoveElementAtIndex(grouplessViews, i);
+        if (Tundra.wtArrayContains(viewsInGroups, grouplessViews[i]))
+            Tundra.wtRemoveElementAtIndex(grouplessViews, i);
     }
     
     if (grouplessViews.length > 0) {
@@ -235,18 +238,18 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
         viewId = xview.getAttribute("id");
         viewPosition = xview.getAttribute("position");
         viewOrientation = xview.getAttribute("orientation");
-        var camEntity = this.ecModel.scene.createEntity(0, AttributeChange.LocalOnly);
-        var placeable = camEntity.createComponent(0, cComponentTypePlaceable,
-                                               "", AttributeChange.LocalOnly);
-        ecCamera = camEntity.createComponent(0, cComponentTypeCamera, viewId || "camera", AttributeChange.LocalOnly);
+        var camEntity = this.ecModel.scene.createEntity(0, Tundra.AttributeChange.LocalOnly);
+        var placeable = camEntity.createComponent(0, Tundra.cComponentTypePlaceable,
+                                               "", Tundra.AttributeChange.LocalOnly);
+        ecCamera = camEntity.createComponent(0, Tundra.cComponentTypeCamera, viewId || "camera", Tundra.AttributeChange.LocalOnly);
         var px = placeable.transform;
         if (viewPosition) {
             //console.log("have view pos");
-            wtSplitToXyz(viewPosition, px.pos);
+            Tundra.wtSplitToXyz(viewPosition, px.pos);
          }
         if (viewOrientation) {
             console.log("viewOrientation conversion " + viewOrientation);
-            wtSplitAxisAngleToEulerXyz(viewOrientation, px.rot);
+            Tundra.wtSplitAxisAngleToEulerXyz(viewOrientation, px.rot);
             //console.log("have view orientation, x=" + px.rot.x);
         }
         ecCamera.aspectRatio = ecCamera.aspectRatio;
@@ -260,7 +263,7 @@ SceneParser.prototype.parseDocXml3D = function(doc) {
  
 };
 
-function getDirectChildNodesByTagName(node, tagName) {
+Tundra.getDirectChildNodesByTagName = function(node, tagName) {
     var out = [];
     tagName = tagName.toLowerCase();
     for (var i = 0; i < node.childNodes.length; i++) {
@@ -271,9 +274,9 @@ function getDirectChildNodesByTagName(node, tagName) {
     return out;
 }
 
-function xyzAngleToQuaternion(nums) {
+Tundra.xyzAngleToQuaternion = function(nums) {
     /* formula from xml3d.js's rotation.js */
-    check(nums.length === 4);
+    Tundra.check(nums.length === 4);
     var axisVec = new THREE.Vector3(nums[0], nums[1], nums[2]);
     var axisLength = axisVec.length();
     var quatXyzw;
@@ -284,36 +287,36 @@ function xyzAngleToQuaternion(nums) {
         var w = Math.cos(nums[3] / 2);
         quatXyzw = [nums[0] * s, nums[1] * s, nums[2] * s, w];
     }
-    return new THREE.Quaternion(quatXyzw[0], quatXyzw[1], quatXyzw[2], quatXyzw[3])
-}
+    return new THREE.Quaternion(quatXyzw[0], quatXyzw[1], quatXyzw[2], quatXyzw[3]);
+};
 
-function wtRemoveElementAtIndex(arr, i) {
+Tundra.wtRemoveElementAtIndex = function(arr, i) {
     arr.splice(i, 1);
-}
+};
 
-function wtNodeListToArray(nodeList) {  
+Tundra.wtNodeListToArray = function(nodeList) {
     var out = [];
     out.push.apply(out, nodeList);
-    check(out.length === nodeList.length);
+    Tundra.check(out.length === nodeList.length);
     return out;
-}
+};
 
-function wtFlattenArrays(arrayOfArrays) {
+Tundra.wtFlattenArrays = function(arrayOfArrays) {
     var arr = [];
     return arr.concat.apply(arrayOfArrays);
-}
+};
 
-function wtArrayContains(arr, elt) {
+Tundra.wtArrayContains = function(arr, elt) {
     for (var i = 0; i < arr.length; i++) {
         if (arr[i] === elt)
             return true;
     }
     return false;
-}
+};
 
 
 
-var wtFindTransformDefs = function(root) {
+Tundra.wtFindTransformDefs = function(root) {
     var allDefsNodes = root.getElementsByTagName("defs");
     if (allDefsNodes.length < 1) {
         console.log("can't find defs node");
@@ -324,11 +327,11 @@ var wtFindTransformDefs = function(root) {
         var setter = function(placeable) {
             var px = placeable.transform;
             if (trans)
-                wtSplitToXyz(trans, px.pos);
+                Tundra.wtSplitToXyz(trans, px.pos);
             if (rot)
-                wtSplitAxisAngleToEulerXyz(rot, px.rot);
+                Tundra.wtSplitAxisAngleToEulerXyz(rot, px.rot);
             if (scale)
-                wtSplitToXyz(scale, px.scale);
+                Tundra.wtSplitToXyz(scale, px.scale);
             placeable.transform = px; // trigger signals
             placeable.parentRef = 0;
             console.log("pos for transform= " + [px.pos.x, px.pos.y, px.pos.z]);
@@ -340,7 +343,7 @@ var wtFindTransformDefs = function(root) {
     for (i = 0; i < allDefsNodes.length; i++) {
         var thisDefTransforms = allDefsNodes[i].getElementsByTagName("transform")
         transformNodes = transformNodes.concat(
-            wtNodeListToArray(thisDefTransforms));
+            Tundra.wtNodeListToArray(thisDefTransforms));
     }
     console.log("found " + transformNodes.length + " transforms accross all defs");
     for (i = 0; i < transformNodes.length; i++) {
@@ -353,39 +356,39 @@ var wtFindTransformDefs = function(root) {
             console.log("incomplete transform " + transformId + ":", trans, rot, scale);
         }
         console.log("transform: " + transformId);
-        check(!!(trans || rot || scale));
+        Tundra.check(!!(trans || rot || scale));
         foundTransforms[transformId] = makeSetter(trans, rot, scale);
     }
     console.log("transform finding finished");
     return foundTransforms;
 };
 
-function wtSplitToXyz(s, v3) {
+Tundra.wtSplitToXyz = function(s, v3) {
     var nums = s.split(/\s+/).map(parseFloat);
-    check(nums.length === 3);
+    Tundra.check(nums.length === 3);
     v3.x = nums[0]; v3.y = nums[1]; v3.z = nums[2];
     // console.log("wtSplitToXyz: " + nums);
 };
-function wtSplitAxisAngleToEulerXyz(s, xfrmRot) {
+Tundra.wtSplitAxisAngleToEulerXyz = function(s, xfrmRot) {
     var nums = s.split(/\s+/).map(parseFloat);
     var euler = new THREE.Euler();
-    check(nums.length === 4);
-    var q = xyzAngleToQuaternion(nums);
+    Tundra.check(nums.length === 4);
+    var q = Tundra.xyzAngleToQuaternion(nums);
     euler.setFromQuaternion(q);
     /* ec convention is degrees */
-    xfrmRot.x = wtRadToDeg(euler.x);
-    xfrmRot.y = wtRadToDeg(euler.y);
-    xfrmRot.z = wtRadToDeg(euler.z);
+    xfrmRot.x = Tundra.wtRadToDeg(euler.x);
+    xfrmRot.y = Tundra.wtRadToDeg(euler.y);
+    xfrmRot.z = Tundra.wtRadToDeg(euler.z);
     //console.log("quat:", q, "euler:", euler);
-}
+};
 
-function wtTrimLeft(s, trimChar) {
+Tundra.wtTrimLeft = function(s, trimChar) {
     while (s.length && s[0] === trimChar) {
         s = s.substring(1, s.length);
     }
     return s;
-}
+};
 
-var wtRadToDeg = function(val) {
+Tundra.wtRadToDeg = function(val) {
     return val * (180.0 / Math.PI);
 };
