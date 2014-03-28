@@ -1,33 +1,38 @@
 "use strict";
+/* jslint browser: true, globalstrict: true, devel: true, debug: true */
+/* global signals, Tundra */
 
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-var cExecTypeLocal = 1;
-var cExecTypeServer = 2;
-var cExecTypePeers = 4;
+if (Tundra === undefined)
+    var Tundra = {};
 
-function Entity() {
+Tundra.cExecTypeLocal = 1;
+Tundra.cExecTypeServer = 2;
+Tundra.cExecTypePeers = 4;
+
+Tundra.Entity = function () {
     this.components = {};
     this.children = [];
     this.parentScene = null;
     this.parent = null;
     this.id = 0;
     this.temporary = false;
-    this.componentIdGenerator = new UniqueIdGenerator();
+    this.componentIdGenerator = new Tundra.UniqueIdGenerator();
     this.componentAdded = new signals.Signal();
     this.componentRemoved = new signals.Signal();
     this.actionTriggered = new signals.Signal();
     this.componentIdChanged = new signals.Signal();
     this.parentChanged = new signals.Signal();
-}
+};
 
-Entity.prototype = {
+Tundra.Entity.prototype = {
     createComponent: function(id, typeId, name, changeType) {
         // If zero ID, assign ID now
         if (id == 0)
         {
             // If entity itself is local, create only local components
-            if (this.local == true || changeType == AttributeChange.LocalOnly)
+            if (this.local == true || changeType == Tundra.AttributeChange.LocalOnly)
                 id = this.componentIdGenerator.allocateLocal();
             else
                 id = this.componentIdGenerator.allocateUnacked();
@@ -38,7 +43,7 @@ Entity.prototype = {
             console.log("Component id " + id + " in entity " + this.id + " already exists, can not create");
             return null;
         }
-        var newComp = createComponent(typeId);
+        var newComp = Tundra.createComponent(typeId);
         if (newComp)
         {
             newComp.id = id;
@@ -47,7 +52,7 @@ Entity.prototype = {
                 newComp.name = name;
             this.components[id] = newComp;
             // Register direct access by type
-            var propName = sanitatePropertyName(newComp.typeName);
+            var propName = Tundra.sanitatePropertyName(newComp.typeName);
             if (this[propName] === undefined)
                 this[propName] = newComp;
             newComp.parentEntitySet.dispatch(newComp, this);
@@ -57,9 +62,9 @@ Entity.prototype = {
             return null;
         }
                 
-        if (changeType == null || changeType == AttributeChange.Default)
-            changeType = newComp.local ? AttributeChange.LocalOnly : AttributeChange.Replicate;
-        if (changeType != AttributeChange.Disconnected)
+        if (changeType == null || changeType == Tundra.AttributeChange.Default)
+            changeType = newComp.local ? Tundra.AttributeChange.LocalOnly : Tundra.AttributeChange.Replicate;
+        if (changeType != Tundra.AttributeChange.Disconnected)
         {
             // Trigger scene level signal
             if (this.parentScene)
@@ -77,13 +82,13 @@ Entity.prototype = {
             var comp = this.components[id];
             delete this.components[id];
             // Remove direct access by type
-            var propName = sanitatePropertyName(comp.typeName);
+            var propName = Tundra.sanitatePropertyName(comp.typeName);
             if (this[propName] === comp)
                 delete this[propName];
                 
-            if (changeType == null || changeType == AttributeChange.Default)
-                changeType = comp.local ? AttributeChange.LocalOnly : AttributeChange.Replicate;
-            if (changeType != AttributeChange.Disconnected)
+            if (changeType == null || changeType == Tundra.AttributeChange.Default)
+                changeType = comp.local ? Tundra.AttributeChange.LocalOnly : Tundra.AttributeChange.Replicate;
+            if (changeType != Tundra.AttributeChange.Disconnected)
             {
                 // Trigger scene level signal
                 if (this.parentScene)
@@ -104,7 +109,7 @@ Entity.prototype = {
 
     triggerAction: function(name, params, execType) {
         if (execType == null)
-            execType = cExecTypeLocal;
+            execType = Tundra.cExecTypeLocal;
         this.actionTriggered.dispatch(name, params, execType);
         // Trigger scene level signal
         if (this.parentScene)
@@ -142,7 +147,7 @@ Entity.prototype = {
     componentByType: function(typeId, name) {
         // Convert typename to numeric ID if necessary
         if (typeof typeId == 'string' || typeId instanceof String)
-            typeId = componentTypeIds[typeId];
+            typeId = Tundra.componentTypeIds[typeId];
         for (var compId in this.components) {
             if (this.components.hasOwnProperty(compId) && this.components[compId].typeId == typeId) {
                 if (name == null || this.components[compId].name == name)
@@ -224,9 +229,9 @@ Entity.prototype = {
         this.parent = newParent;
 
         // Signal
-        if (changeType == null || changeType == AttributeChange.Default)
-            changeType = this.local ? AttributeChange.LocalOnly : AttributeChange.Replicate;
-        if (changeType != AttributeChange.Disconnected) {
+        if (changeType == null || changeType == Tundra.AttributeChange.Default)
+            changeType = this.local ? Tundra.AttributeChange.LocalOnly : Tundra.AttributeChange.Replicate;
+        if (changeType != Tundra.AttributeChange.Disconnected) {
             this.parentChanged.dispatch(this, newParent, changeType);
             if (this.parentScene)
                 this.parentScene.emitEntityParentChanged(this, newParent, changeType);
@@ -241,16 +246,16 @@ Entity.prototype = {
     },
 
     get local(){
-        return this.id >= cFirstLocalId;
+        return this.id >= Tundra.cFirstLocalId;
     },
 
     get unacked(){
-        return this.id >= cFirstUnackedId && this.id < cFirstLocalId;
+        return this.id >= Tundra.cFirstUnackedId && this.id < Tundra.cFirstLocalId;
     },
 
     get name()
     {
-        var nameComp = this.componentByType(cComponentTypeName);
+        var nameComp = this.componentByType(Tundra.cComponentTypeName);
         if (nameComp) {
             var nameAttr = nameComp.attributeById("name");
             return nameAttr.value;
@@ -262,9 +267,9 @@ Entity.prototype = {
     set name(value)
     {
         // Name exists in its own component, create if doesn't exist
-        var nameComp = this.componentByType(cComponentTypeName);
+        var nameComp = this.componentByType(Tundra.cComponentTypeName);
         if (nameComp == null)
-            nameComp = this.createComponent(0, cComponentTypeName, "");
+            nameComp = this.createComponent(0, Tundra.cComponentTypeName, "");
         var nameAttr = nameComp.attributeById("name");
         nameAttr.value = value;
     }

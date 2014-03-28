@@ -8,7 +8,7 @@
  *      Date: 2013
  */
 
-var app = new Application();
+var app = new Tundra.Application();
 
 var host = "localhost"; // hostname of the Tundra server
 var port = 2345; // and port to the server
@@ -20,7 +20,7 @@ function setupEditorControls() {
     var controls = new THREE.EditorControls(app.viewer.camera, app.viewer.renderer.domElement);
 }
 function loadXml3d(model, docurl) {
-    var parser = new SceneParser(model);
+    var parser = new Tundra.SceneParser(model);
     parser.parseFromUrlXml3D(docurl);
 }
 // hack to get the right xml3d-created camera and not the default one.

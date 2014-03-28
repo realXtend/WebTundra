@@ -8,7 +8,7 @@
  *      Date: 2013
  */
 
-var app = new Application();
+var app = new Tundra.Application();
 app.start();
 app.viewer.meshReadySig.add(function(meshComp, threeMesh) {
     // if (/raf22031\.ctm$/.test(meshComp.meshRef.ref) === false)
@@ -28,7 +28,7 @@ function setupEditorControls() {
     var controls = new THREE.EditorControls(app.viewer.camera, app.viewer.renderer.domElement);
 }
 function loadXml3d(model, docurl) {
-    var parser = new SceneParser(model);
+    var parser = new Tundra.SceneParser(model);
     parser.parseFromUrlXml3D(docurl);
     console.log("parse done");
 }

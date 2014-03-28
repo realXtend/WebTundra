@@ -1,17 +1,17 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-var cComponentTypeSky = 10;
+Tundra.cComponentTypeSky = 10;
 
-function EC_Sky() {
-    Component.call(this, cComponentTypeSky);
-    this.addAttribute(cAttributeAssetReference, "materialRef", "Material");
-    this.addAttribute(cAttributeAssetReferenceList, "textureRefs", "Texture");
-    this.addAttribute(cAttributeQuat, "orientation", "Orientation");
-    this.addAttribute(cAttributeReal, "distance", "Distance", 999.0);
-    this.addAttribute(cAttributeBool, "drawFirst", "Draw first", true);
-    this.addAttribute(cAttributeBool, "enabled", "Enabled", true);
-}
+Tundra.EC_Sky = function () {
+    Tundra.Component.call(this, Tundra.cComponentTypeSky);
+    this.addAttribute(Tundra.cAttributeAssetReference, "materialRef", "Material");
+    this.addAttribute(Tundra.cAttributeAssetReferenceList, "textureRefs", "Texture");
+    this.addAttribute(Tundra.cAttributeQuat, "orientation", "Orientation");
+    this.addAttribute(Tundra.cAttributeReal, "distance", "Distance", 999.0);
+    this.addAttribute(Tundra.cAttributeBool, "drawFirst", "Draw first", true);
+    this.addAttribute(Tundra.cAttributeBool, "enabled", "Enabled", true);
+};
 
-EC_Sky.prototype = new Component(cComponentTypeSky);
+Tundra.EC_Sky.prototype = new Tundra.Component(Tundra.cComponentTypeSky);
 
-registerComponent(cComponentTypeSky, "Sky", function(){ return new EC_Sky(); });
+Tundra.registerComponent(Tundra.cComponentTypeSky, "Sky", function(){ return new Tundra.EC_Sky(); });

@@ -1,6 +1,6 @@
-var client = new WebSocketClient();
-var scene = new Scene();
-var syncManager = new SyncManager(client, scene);
+var client = new Tundra.WebSocketClient();
+var scene = new Tundra.Scene();
+var syncManager = new Tundra.SyncManager(client, scene);
 var loginData = {"name": "Test User"};
 
 // Connect to a localhost Tundra server, once connected start making scene changes
@@ -34,8 +34,8 @@ function manipulateEntities() {
     
     // Create components to the second entity
     ent = scene.entityByName("Entity2");
-    ent.createComponent(0, cComponentTypePlaceable, "");
-    var rigidBody = ent.createComponent(0, cComponentTypeRigidBody, "");
+    ent.createComponent(0, Tundra.cComponentTypePlaceable, "");
+    var rigidBody = ent.createComponent(0, Tundra.cComponentTypeRigidBody, "");
     // Modify the "mass" attribute of the rigidbody to make it movable on the server
     rigidBody.mass = 1.0;
     // Also give it a valid (nonzero) size
@@ -43,14 +43,14 @@ function manipulateEntities() {
 
     // Create a dynamic component to the third entity
     ent = scene.entityByName("Entity3");
-    var dc = ent.createComponent(0, cComponentTypeDynamicComponent, "");
-    dc.createAttribute(0, cAttributeString, "Test String", "test");
-    dc.createAttribute(1, cAttributeInt, "Test Int", 100);
-    dc.createAttribute(2, cAttributeBool, "Test Bool", false);
+    var dc = ent.createComponent(0, Tundra.cComponentTypeDynamicComponent, "");
+    dc.createAttribute(0, Tundra.cAttributeString, "Test String", "test");
+    dc.createAttribute(1, Tundra.cAttributeInt, "Test Int", 100);
+    dc.createAttribute(2, Tundra.cAttributeBool, "Test Bool", false);
 
     // Create component to the fourth entity, which we will remove later
     ent = scene.entityByName("Entity4");
-    ent.createComponent(0, cComponentTypePlaceable, "");
+    ent.createComponent(0, Tundra.cComponentTypePlaceable, "");
 
     // Send the modifications to server
     syncManager.sendChanges();
@@ -75,7 +75,7 @@ function manipulateEntities2() {
     rigidBody.size = { x: 2.0, y: 2.0, z: 2.0 };
 
     ent = scene.entityByName("Entity4");
-    ent.removeComponent(ent.componentByType(cComponentTypePlaceable).id);
+    ent.removeComponent(ent.componentByType(Tundra.cComponentTypePlaceable).id);
 
     syncManager.sendChanges();
 
@@ -84,5 +84,5 @@ function manipulateEntities2() {
     // Trigger a remote entity action on the fifth entity
     var params = ["Param1", "Param2", "Param3"];
     ent = scene.entityByName("Entity5");
-    ent.triggerAction("TestAction", params, cExecTypeServer | cExecTypePeers);
+    ent.triggerAction("TestAction", params, Tundra.cExecTypeServer | Tundra.cExecTypePeers);
 }

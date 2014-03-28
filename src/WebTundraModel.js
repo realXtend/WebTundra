@@ -6,40 +6,38 @@
  */
 /* jslint browser: true, globalstrict: true, devel: true, debug: true */
 /* global THREE, THREEx, signals */
-/* global WebSocketClient, Scene, SyncManager */
-/* global EC_Mesh, EC_Placeable, EC_Light, EC_Camera */
-/* global cComponentTypePlaceable, cComponentTypeMesh, componentTypeIds */
 
-var scene = null; // for networking code
-var watchEntity = null;
+if (Tundra === undefined)
+    var Tundra = {};
 
-function WebTundraModel() {
-    this.client = new WebSocketClient();
-    this.scene = new Scene();
-    scene = this.scene;
-    this.syncManager = new SyncManager(this.client, this.scene);
+Tundra.watchEntity = null;
+
+Tundra.WebTundraModel = function() {
+    this.client = new Tundra.WebSocketClient();
+    this.scene = new Tundra.Scene();
+    this.syncManager = new Tundra.SyncManager(this.client, this.scene);
     this.syncManager.logDebug = false;
     this.loginData = {
         "name": "Test User"
     };
 }
 
-WebTundraModel.prototype = {
-    constructor: WebTundraModel,
+Tundra.WebTundraModel.prototype = {
+    constructor: Tundra.WebTundraModel,
 
     connectClient: function(host, port) {
         this.client.connect(host, port, this.loginData);
     }
 };
 
-function signalWhenAttributePreconditionOk(
+Tundra.signalWhenAttributePreconditionOk = function (
 /* Notes:
        - this can be used even when the component is not present yet
        - this is multi-shot (subsequent attribute changes)
     */
 entity, componentTypeId, targetAttributeId, condFunc, mySignal) {
     var onGotComponent = function(entity, component) {
-        if (entity.id == watchEntity)
+        if (entity.id == Tundra.watchEntity)
             console.log("watchEntity precond 2");
 
         var currentAttribute = component.attributeById(targetAttributeId);
@@ -51,7 +49,7 @@ entity, componentTypeId, targetAttributeId, condFunc, mySignal) {
             }
         }
         var onAttributeChanged = function(changedAttribute, changeType) {
-            if (entity.id == watchEntity)
+            if (entity.id == Tundra.watchEntity)
                 console.log("watchEntity precond 3.1", changedAttribute);
             if (targetAttributeId !== changedAttribute.id)
                 return;
@@ -64,7 +62,7 @@ entity, componentTypeId, targetAttributeId, condFunc, mySignal) {
         component.attributeChanged.add(onAttributeChanged);
 
         var onAttributeAdded = function(changedComponent, changedAttribute, changeType) {
-            if (entity.id == watchEntity)
+            if (entity.id == Tundra.watchEntity)
                 console.log("watchEntity precond 3.2");
             if (targetAttributeId !== changedAttribute.id)
                 return;
@@ -77,7 +75,7 @@ entity, componentTypeId, targetAttributeId, condFunc, mySignal) {
 
         component.attributeAdded.add(onAttributeAdded);
     };
-    if (entity.id == watchEntity)
+    if (entity.id == Tundra.watchEntity)
         console.log("watchEntity precond 1", entity.componentByType(componentTypeId));
     var gotComponentSig = new signals.Signal();
     gotComponentSig.add(onGotComponent);
@@ -86,9 +84,9 @@ entity, componentTypeId, targetAttributeId, condFunc, mySignal) {
     signalWhenComponentTypePresent(entity, componentTypeId, gotComponentSig);
 }
 
-function signalWhenComponentTypePresent(entity, typeId, mySignal) {
+Tundra.signalWhenComponentTypePresent = function(entity, typeId, mySignal) {
     if (typeof typeId == 'string' || typeId instanceof String)
-        typeId = componentTypeIds[typeId];
+        typeId = Tundra.componentTypeIds[typeId];
 
     var currentComponent = entity.componentByType(typeId);
     if (currentComponent !== null) {
@@ -100,14 +98,14 @@ function signalWhenComponentTypePresent(entity, typeId, mySignal) {
             // can happen with unknown component type from server
             return;
         }
-        if (entity.id == watchEntity)
+        if (entity.id == Tundra.watchEntity)
             console.log("watchEntity present 2");
         if (newComponent.typeId === typeId) {
             mySignal.dispatch(entity, newComponent);
             entity.componentAdded.remove(onComponentAdded);
         }
     };
-    if (entity.id == watchEntity)
+    if (entity.id == Tundra.watchEntity)
         console.log("watchEntity present 1");
     entity.componentAdded.add(onComponentAdded);
-}
+};

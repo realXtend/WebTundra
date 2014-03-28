@@ -1,6 +1,6 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-ThreeView.prototype.OnAnimatorInitialize = function( threeParent, animComp ) {
+Tundra.ThreeView.prototype.OnAnimatorInitialize = function( threeParent, animComp ) {
     
     animComp.parentEntity.componentAdded.add(animComp.onComponentAdded, animComp);
     
@@ -59,7 +59,7 @@ ThreeView.prototype.OnAnimatorInitialize = function( threeParent, animComp ) {
     animComp.initialized = true;
 };
 
-ThreeView.prototype.onAnimatorAddedOrChanged = function( threeParent, animComp ) {
+Tundra.ThreeView.prototype.onAnimatorAddedOrChanged = function( threeParent, animComp ) {
     
     if ( animComp.initialized === undefined )
         this.OnAnimatorInitialize(threeParent, animComp);
@@ -70,7 +70,7 @@ ThreeView.prototype.onAnimatorAddedOrChanged = function( threeParent, animComp )
     
 };
 
-ThreeView.prototype.onAnimatorRelease = function( entity, animComp ) {
+Tundra.ThreeView.prototype.onAnimatorRelease = function( entity, animComp ) {
     
     animComp.parentEntity.componentAdded.remove(animComp.onComponentAdded, animComp);
     
@@ -107,14 +107,14 @@ var AnimationController_play = function(name, fadeInTime, crossFade, looped) {
         for( var i in this.animations ) {
             
             tAnim = this.animations[i];
-            if (tAnim.name !== name && tAnim.phase === AnimationPhase.PHASE_PLAY)
+            if (tAnim.name !== name && tAnim.phase === Tundra.AnimationPhase.PHASE_PLAY)
                 this.stop(tAnim.name, animation.fade_period);
             
         }
         
     }
 
-    animation.phase = AnimationPhase.PHASE_PLAY;
+    animation.phase = Tundra.AnimationPhase.PHASE_PLAY;
     if (animation !== undefined) {
         
         for ( var i in animation.threeAnimations ) {
@@ -134,7 +134,7 @@ var AnimationController_stop = function(name, fadeoutTime) {
     if ( animation !== undefined ) {
 
         animation.fade_period = fadeoutTime !== undefined ? fadeoutTime : 0;
-        animation.phase = AnimationPhase.PHASE_STOP;
+        animation.phase = Tundra.AnimationPhase.PHASE_STOP;
 
         for ( var i in animation.threeAnimations )
             animation.threeAnimations[i].stop(animation.fade_period);
@@ -188,9 +188,9 @@ var AnimationController_setAnimSpeed = function( name, speed ) {
 
 var AnimationController_createAnimations = function( mesh ) {
     
-    checkDefined( mesh, mesh.threeMesh );
+    Tundra.checkDefined( mesh, mesh.threeMesh );
     var geometry = mesh.threeMesh.geometry;
-    checkDefined(geometry);
+    Tundra.checkDefined(geometry);
 
     // Create Three animations and AnimationState objects.
 
@@ -228,7 +228,7 @@ var AnimationController_createAnimations = function( mesh ) {
 
 var AnimationController_removeMesh = function( mesh ) {
     
-    EC_AnimationController.prototype.removeMesh.call( this, mesh );
+    Tundra.EC_AnimationController.prototype.removeMesh.call( this, mesh );
     
     for ( var i in this.animations ) {
         
