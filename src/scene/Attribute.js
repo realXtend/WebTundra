@@ -45,7 +45,7 @@ Tundra.cAttributeTransform = 16;
 Tundra.cAttributeQPoint = 17;
 Tundra.cNumAttributeTypes = 18;
 
-var Tundra.attributeTypeNames = [
+Tundra.attributeTypeNames = [
     Tundra.cAttributeNoneTypeName,
     Tundra.cAttributeStringTypeName,
     Tundra.cAttributeIntTypeName,
