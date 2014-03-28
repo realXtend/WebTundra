@@ -45,7 +45,7 @@ Tundra.cAttributeTransform = 16;
 Tundra.cAttributeQPoint = 17;
 Tundra.cNumAttributeTypes = 18;
 
-var attributeTypeNames = [
+var Tundra.attributeTypeNames = [
     Tundra.cAttributeNoneTypeName,
     Tundra.cAttributeStringTypeName,
     Tundra.cAttributeIntTypeName,
@@ -101,7 +101,7 @@ Tundra.Attribute = function(typeId) {
     this.valueInternal = null;
     this.index = 0;
     this.typeId = typeId;
-    this.typeName = attributeTypeNames[typeId];
+    this.typeName = Tundra.attributeTypeNames[typeId];
     this.dynamic = false;
 }
 
