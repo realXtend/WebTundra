@@ -177,17 +177,24 @@ var avatarTest = {
     }
 };
 
-module("EC_Avatar");
+function RunAvatarTest() {
+  
+    module("EC_Avatar");
+    
+    avatarTest.setup();
 
-avatarTest.setup();
+    avatarTest.test1();
+    avatarTest.avatar.avatarLoaded.add( function () {
+        avatarTest.test2();
+    } );
 
-avatarTest.test1();
-avatarTest.avatar.avatarLoaded.add( function () {
-    avatarTest.test2();
-} );
+    QUnit.moduleDone(function( details ) {
+        avatarTest.release();
+        delete avatarTest;
+        delete avatarTestData;
+        TestCompleted.dispatch();
+    });
+    
+}
 
-QUnit.moduleDone(function( details ) {
-    avatarTest.release();
-    delete avatarTest;
-    delete avatarTestData;
-});
+addUnitTest(RunAvatarTest);

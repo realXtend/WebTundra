@@ -74,6 +74,21 @@
     dataConnection.scene.threeScene = viewer.scene;
 
     Tundra.debugOnCheckFail = false;
+    
+    var tests = [];
+    var testIndex = 0;
+    function addUnitTest( testFunction ) {
+        tests.push(testFunction);
+    }
+    
+    function runNextTest() {
+        if (tests[testIndex] != null)
+            tests[testIndex].call();
+        testIndex++;
+    }
+    
+    var TestCompleted = new signals.Signal();
+    TestCompleted.add(runNextTest);
 
     Tundra.checkDefined = function() {
         for (var i = 0; i < arguments.length; i++) {
@@ -99,9 +114,16 @@
     
   </script>
 
-  <!-- Unit tests -->
+  <!-- Define unit tests -->
 
   <script src="EC_Avatar/test.js"></script>
+  <script src="EC_AnimationController/test.js"></script>
+  
+  <!-- Run unit tests -->
+  
+  <script>
+      runNextTest();
+  </script>
 
 </body>
 </html>
