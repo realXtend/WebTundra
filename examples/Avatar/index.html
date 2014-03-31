@@ -55,26 +55,9 @@
 
     "use strict";
     
-    var useSignals = true;
-
-    var keyboard = new THREEx.KeyboardState();
-    var clock = new THREE.Clock();
-
-    // VIEWER
-    var viewer = new Tundra.ThreeView();
-    viewer.renderer.setClearColor( 0x9999D6, 1 );
-
-    // MODEL
-    var connected = false;
-    var dataConnection = new Tundra.WebTundraModel();
-    dataConnection.scene.componentAdded.add(viewer.onComponentAddedOrChanged.bind(viewer));
-    dataConnection.scene.componentRemoved.add(viewer.onComponentRemoved.bind(viewer));
-    dataConnection.scene.threeScene = viewer.scene;
-
-    var debugOnCheckFail = false;
-    
+    var app = new Tundra.Application();
+    app.start();
     CreateScene();
-    Update();
     
     function CreateBasicEntity( scene, data ) {
         
@@ -110,16 +93,15 @@
         return entity;
     }
     
-    var avatar;
-    var cam;
-    var animator;
-    var playRun = false;
+    var avatar, cam, animator;
     
     function CreateScene() {
         
-        var scene = dataConnection.scene;
+        var scene = app.dataConnection.scene;
         
         avatar = CreateBasicEntity( scene, { avatar:"Avatar1.json" } );
+        
+        avatar.avatar.avatarLoaded.add(OnAvatarLoaded);
         
         var light = CreateBasicEntity( scene, { light:"" } );
         light.placeable.setPosition(0, 2, 0);
@@ -131,41 +113,12 @@
         animator = avatar.animationController;        
     }
     
-    function Update() {
+    function OnAvatarLoaded() {
         
-        var delta = clock.getDelta();
-        viewer.render(delta);
-
-        requestAnimationFrame(function() {
-            Update();
-        }.bind(this));
-        
-        if ( !playRun && avatar.mesh && avatar.mesh.assetReady ) {         
-            playRun = true;            
+        if ( avatar.mesh && avatar.mesh.assetReady ) {         
             avatar.animationController.playLooped("Run");
-        }   
-    }
-
-    function checkDefined() {
-        for (var i = 0; i < arguments.length; i++) {
-            if (arguments[i] === undefined) {
-                if (debugOnCheckFail) {
-                    debugger;
-                } else {
-                    throw ("undefined value, arg #" + i);
-                }
-            }
         }
-    }
-
-    function check() {
-        for (var i = 0; i < arguments.length; i++)
-            if (arguments[i] !== true)
-                if (debugOnCheckFail) {
-                    debugger;
-                } else {
-                    throw ("untrue value" + arguments[i] + ", arg #" + i);
-                }
+        
     }
 
 	</script>
