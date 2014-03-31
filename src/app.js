@@ -27,12 +27,6 @@ Tundra.Application.prototype = {
         this.keyboard = new THREEx.KeyboardState();
         this.clock = new THREE.Clock();
 
-        // SCENE
-        // moved to viewer
-
-        // CAMERA
-        // moved to viewer
-
         // VIEWER
         this.viewer = this.createViewer();
         this.viewer.objectClicked.add(this.onObjectClicked.bind(this));
@@ -51,14 +45,6 @@ Tundra.Application.prototype = {
         if (Tundra.trackRigidBodyBoxes)
             this.dataConnection.scene.componentAdded.add(
                 this.onRigidBodyPossiblyAdded.bind(this));
-
-        // an alternative to hooking per component attributeChanged signals,
-        // would simplify business registering/unregistering handlers in
-        // component lifetime mgmt:
-        //
-        // this.dataConnection.scene.attributeChanged.add(function(comp, attr, ctype) {
-        //     this.onComponentAddedOrChanged(comp.parentEntity, comp, ctype, attr);
-        // }.bind(this.viewer));
     },
 
     createViewer: function() {
@@ -73,21 +59,6 @@ Tundra.Application.prototype = {
     },
 
     logicInit: function() {
-        this.cubeCount = 0;
-        var scene = this.dataConnection.scene;
-        this.testEntities = [];
-        console.log("in makeEntities");
-        for (var i = 0; i < this.cubeCount; i++) {
-            var ent = scene.createEntity(i + 1000);
-            this.testEntities.push(ent);
-            var placeable = ent.createComponent("placeable", "Placeable", "");
-            var mesh = ent.createComponent("mesh", "Mesh", "placeable");
-            placeable.transform.pos.x = i * 150;
-            placeable.transform.pos.y = 150;
-
-            setXyz(placeable.transform.scale, 1, 1, 1);
-            mesh.meshRef.ref = "http://kek";
-        }
     },
 
     connect: function(host, port) {
@@ -121,19 +92,6 @@ Tundra.Application.prototype = {
     },
 
     logicUpdate: function() {
-        var posIncrement;
-        Tundra.checkDefined(this.frameCount);
-        if (this.frameCount % 100 === 0) {
-            posIncrement = 50;
-        } else {
-            posIncrement = -0.5;
-        }
-        for (var i = 0; i < this.testEntities.length; i++) {
-            var ent = this.testEntities[i];
-            Tundra.checkDefined(ent);
-            ent.components.placeable.transform.pos.y += posIncrement;
-            ent.components.placeable.transform.rot.y += 0.01;
-        }
     },
 
     onObjectClicked: function(entID, params) {
