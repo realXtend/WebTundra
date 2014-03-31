@@ -24,15 +24,9 @@ app.viewer.meshReadySig.add(function(meshComp, threeMesh) {
     console.log("swapped custom material");
 });
 
-function setupEditorControls() {
-    var controls = new THREE.EditorControls(app.viewer.camera, app.viewer.renderer.domElement);
-}
-function loadXml3d(model, docurl) {
-    var parser = new Tundra.SceneParser(model);
-    parser.parseFromUrlXml3D(docurl);
-    console.log("parse done");
-}
+/* unlike the other xml3d loading examples, this loads the scene from an external file */
+var parser = new Tundra.SceneParser(app.dataConnection);
+parser.parseFromUrlXml3D("xml3d-scene-ctm.html");
 
-loadXml3d(app.dataConnection, "xml3d-scene-ctm.html");
 // hack to get the right xml3d-created camera and not the default one.
 window.setTimeout(setupEditorControls, 2000);
