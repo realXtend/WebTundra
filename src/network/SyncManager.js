@@ -753,7 +753,7 @@ Tundra.SyncManager.prototype = {
             var ds = this.client.startNewMessage(Tundra.cEntityAction, 4096);
             ds.addU32(entity.id);
             ds.addString(name);
-            ds.addU8(execType & (Tundra.cExecTypeServer | cExecTypePeers));
+            ds.addU8(execType & (Tundra.cExecTypeServer | Tundra.cExecTypePeers));
             if (params != null) {
                 ds.addU8(params.length);
                 for (var i = 0; i < params.length; i++)
