@@ -58,8 +58,8 @@ Tundra.DataSerializer.prototype = {
         }
         else
         {
-            floatWriteDataView.setFloat32(0, value, true);
-            this.addBits(32, floatWriteDataView.getUint32(0, true));
+            Tundra.floatWriteDataView.setFloat32(0, value, true);
+            this.addBits(32, Tundra.floatWriteDataView.getUint32(0, true));
         }
     },
 
