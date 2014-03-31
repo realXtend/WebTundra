@@ -182,7 +182,7 @@ Tundra.Entity.prototype = {
 
     removeAllChildren: function(changeType) {
         while (this.children.length > 0)
-            removeChild(this.children[this.children.length - 1], changeType);
+            this.removeChild(this.children[this.children.length - 1], changeType);
     },
 
     detachChild: function(child, changeType) {
