@@ -447,7 +447,7 @@ Tundra.ThreeView.prototype = {
             for (i in mesh.geometry )
                 delete mesh.geometry[i];
             
-            if (mesh.material !== undefined) {
+            if (mesh.material !== undefined && mesh.material.materials !== undefined) {
                 
                 for (i = 0; i < mesh.material.materials.length; ++i ) {
                     mesh.material.materials[i].dispose();
