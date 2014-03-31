@@ -14,7 +14,7 @@
 var useCubes = false;
 
 function ThreeView() {
-    
+
     this.o3dByEntityId = {}; // Three.Object3d's that correspond to Placeables and have Meshes etc as children
 
     // SCENE
@@ -27,7 +27,7 @@ function ThreeView() {
         ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT,
         NEAR = 0.1,
         FAR = 20000;
-    
+
     this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
     this.scene.add(this.camera);
     this.camera.position.set(0, 20, 50);
@@ -104,7 +104,7 @@ ThreeView.prototype = {
         // checkDefined(this.scene, this.camera);
 
         this.updateInterpolations(delta);
-        
+
         THREE.AnimationHandler.update(delta);
 
         this.renderer.render(this.scene, this.camera);
@@ -120,25 +120,24 @@ ThreeView.prototype = {
             this.o3dByEntityId[entity.id] = threeGroup = new THREE.Object3D();
             //console.log("created new o3d group id=" + threeGroup.id);
             threeGroup.userData.entityId = entity.id;
-            
+
             entity.actionTriggered.add(this.OnEntityAction.bind(entity));
             entity.actionFuntionMap = {};
-            
+
             entity.threeGroup = threeGroup;
             this.scene.add(entity.threeGroup);
-            
+
             //console.log("registered o3d for entity", entity.id);
         } else {
             //console.log("got cached o3d group " + threeGroup.id + " for entity " + entity.id);
         }
 
         if (component instanceof EC_Placeable) {
-            
-            this.connectToPlaceable( threeGroup, component );
-            this.PlaceableIntialize( entity, component );
-            
-        }
-        else if (component instanceof EC_Mesh) {
+
+            this.connectToPlaceable(threeGroup, component);
+            this.PlaceableIntialize(entity, component);
+
+        } else if (component instanceof EC_Mesh) {
             // console.log("mesh changed or added for o3d " + threeGroup.userData.entityId);
             this.onMeshAddedOrChanged(threeGroup, component);
         } else if (component instanceof EC_Camera)
@@ -150,12 +149,12 @@ ThreeView.prototype = {
         else
             console.log("Component not handled by ThreeView:", entity, component);
     },
-    
-    OnEntityAction : function( name, params, execType ) {
-        
+
+    OnEntityAction: function(name, params, execType) {
+
         var sender = this;
         var call = sender.actionFuntionMap[name];
-        if ( typeof call === "function" )
+        if (typeof call === "function")
             call(params);
 
     },
@@ -174,26 +173,26 @@ ThreeView.prototype = {
         if (component instanceof EC_Placeable) {
             var threeGroup = this.o3dByEntityId[entity.id];
             threeGroup.parent.remove(threeGroup);
-            
+
             entity.actionTriggered.remove(this.OnEntityAction.bind(entity));
             entity.actionFuntionMap = {};
-            
+
             delete entity.threeGroup;
             delete this.o3dByEntityId[entity.id];
         } else if (component instanceof EC_Mesh) {
-            
+
             this.onMeshRelease(entity, component);
-            
+
         } else if (component instanceof EC_Camera) {
-            
-            this.onCameraRelease( entity, component );
-            
+
+            this.onCameraRelease(entity, component);
+
         } else if (component instanceof EC_Light) {
             // this.onLightAddedOrChanged(threeGroup, component);
         } else if (component instanceof EC_AnimationController) {
-            
+
             this.onAnimatorRelease(entity, component);
-            
+
         } else {
             console.log("view doesn't know about removed component " + component);
         }
@@ -202,6 +201,7 @@ ThreeView.prototype = {
     },
 
     onMeshAddedOrChanged: function(threeGroup, meshComp) {
+
         if (meshComp.threeMesh) {
             /* remove previous mesh if it existed */
             /* async hazard: what if two changes for same mesh come in
@@ -220,9 +220,9 @@ ThreeView.prototype = {
         meshComp.assetReady = false;
 
         var url = meshComp.meshRef.ref;
-        
+
         // If mesh asset ref is empty dont try to load asset.
-        
+
         if (url === "")
             return;
 
@@ -239,67 +239,66 @@ ThreeView.prototype = {
                 thisIsThis.onMeshLoaded(threeGroup, meshComp, geometry, material);
             }
         });
-        
+
         var animation = meshComp.parentEntity.animationController;
-        if ( animation !== undefined )
+        if (animation !== undefined)
             this.onAnimatorAddedOrChanged(threeGroup, animation);
     },
-    
-    onMeshAttributeChanged : function(changedAttr, changeType) {
-        
+
+    onMeshAttributeChanged: function(changedAttr, changeType) {
+
         if (changedAttr.id !== "meshRef")
             return;
-            
+
         var mesh = changedAttr.owner;
-        if ( mesh === undefined )
+        if (mesh === undefined)
             return;
-            //console.log("onMeshAddedOrChanged due to attributeChanged ->", changedAttr.ref);
+        //console.log("onMeshAddedOrChanged due to attributeChanged ->", changedAttr.ref);
         this.onMeshAddedOrChanged(mesh.parentEntity.threeGroup, mesh);
-            
+
     },
 
     onMeshLoaded: function(threeParent, meshComp, geometry, material) {
-        
+
         if (!useCubes && geometry === undefined) {
-            
+
             console.log("mesh load failed");
             return;
-            
+
         }
-        
+
         var mesh;
-        
+
         if (useCubes) {
-            
+
             /*if (meshComp.meshRef.ref === "") {
                 console.log("useCubes ignoring empty meshRef");
                 return; //hackish fix to avoid removing the cube when the ref gets the data later
             }*/
             mesh = new THREE.Mesh(this.cubeGeometry, this.wireframeMaterial);
-            
-        }
-        else if ( geometry.bones !== undefined && geometry.bones.length > 0 ) {
-            
+
+        } else if (geometry.bones !== undefined && geometry.bones.length > 0) {
+
             // Set material skinning to true or skeletal animation wont work.
-            
+
             var newMaterial = new THREE.MeshFaceMaterial(material);
             newMaterial.materials[0].skinning = true;
-            
+
             mesh = new THREE.SkinnedMesh(geometry, newMaterial, false);
-            
+
             // Create skeleton bones and add them to mesh component.
-            
+
             meshComp.skeleton = null;
-            
-            if ( mesh.bones.length > 0 ) {
-            
+
+            if (mesh.bones.length > 0) {
+
                 var bones = mesh.bones;
                 var bone;
                 var parentBone = null;
 
                 meshComp.skeleton = new Skeleton();
 
-                for ( var i = 0; i < bones.length; ++i ) {
+                for (var i = 0; i < bones.length; ++i) {
 
                     if (bones[i].parent !== null) {
                         parentBone = meshComp.skeleton.getBone(bones[i].parent.name);
@@ -310,12 +309,12 @@ ThreeView.prototype = {
 
                     // Add attach bone function to bone object
 
-                    bone.attach = function( mesh ) {
+                    bone.attach = function(mesh) {
 
                         Bone.prototype.attach.call(this, mesh);
 
                         mesh.threeMesh.update = function() {};
-                        mesh.parentEntity.threeGroup.update = function ( parentSkinMatrix, forceUpdate ) {
+                        mesh.parentEntity.threeGroup.update = function(parentSkinMatrix, forceUpdate) {
 
                             this.updateMatrixWorld(true);
 
@@ -325,7 +324,7 @@ ThreeView.prototype = {
                         do {
                             if (parent instanceof THREE.Bone) {
 
-                                parent.update = function( parentSkinMatrix, forceUpdate ) {
+                                parent.update = function(parentSkinMatrix, forceUpdate) {
                                     THREE.Bone.prototype.update.call(this, parentSkinMatrix, forceUpdate);
                                     this.updateMatrixWorld(true);
                                 };
@@ -337,7 +336,7 @@ ThreeView.prototype = {
                             }
                             parent = parent.parent;
 
-                        } while ( parent !== undefined )
+                        } while (parent !== undefined)
 
                         this.threeBone.add(mesh.parentEntity.threeGroup);
 
@@ -345,119 +344,119 @@ ThreeView.prototype = {
 
                     // Add detach bone function to bone object
 
-                    bone.detach = function( mesh ) {
+                    bone.detach = function(mesh) {
 
                         Bone.prototype.detach.call(this, mesh);
 
                         delete mesh.threeMesh.update;
                         delete mesh.parentEntity.threeGroup.update;
-                        
-                        if ( this.skeleton.hasAttachments() ) {
+
+                        if (this.skeleton.hasAttachments()) {
 
                             var parent = this.threeBone;
                             do {
-                                if (parent instanceof THREE.Bone) 
+                                if (parent instanceof THREE.Bone)
                                     delete parent.update;
                                 else
                                     break;
                                 parent = parent.parent;
-                            } while( parent !== undefined )
+                            } while (parent !== undefined)
 
                         }
 
                         this.threeBone.remove(mesh.parentEntity.threeGroup);
 
                     };
-                    
-                    bone.enableAnimation = function( enable, recursive ) {
-                        
+
+                    bone.enableAnimation = function(enable, recursive) {
+
                         Bone.prototype.enableAnimation.call(this, enable, recursive);
-                        
+
                         this.threeBone.enableAnimations = enable;
-                        
+
                     };
 
                     meshComp.skeleton.addBone(bone);
                 }
             }
-            
+
         } else {
-            
+
             checkDefined(geometry, material, meshComp, threeParent);
             mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(material));
             checkDefined(threeParent, meshComp, geometry, material);
-            
+
         }
-        
-        meshComp.updateNodeTransform = function () {
-          
+
+        meshComp.updateNodeTransform = function() {
+
             var trans = this.nodeTransformation;
-          
+
             // TODO use cache variables.
-          
+
             this.threeMesh.position = new THREE.Vector3(trans.pos.x, trans.pos.y, trans.pos.z);
             this.threeMesh.rotation = new THREE.Euler(THREE.Math.degToRad(trans.rot.x), THREE.Math.degToRad(trans.rot.y), THREE.Math.degToRad(trans.rot.z), 'ZYX');
             this.threeMesh.scale = new THREE.Vector3(trans.scale.x, trans.scale.y, trans.scale.z);
-            
+
         };
-        
+
         checkDefined(meshComp.parentEntity);
         check(threeParent.userData.entityId === meshComp.parentEntity.id);
 
         meshComp.threeMesh = mesh;
 
-        if ( threeParent.visible === false )
+        if (threeParent.visible === false)
             meshComp.threeMesh.visible = false;
 
         threeParent.add(mesh);
         this.meshReadySig.dispatch(meshComp, mesh);
         mesh.needsUpdate = 1;
-        
+
         meshComp.assetReady = true;
         meshComp.updateParentRef();
         meshComp.updateNodeTransform();
         meshComp.meshAssetReady.dispatch(meshComp);
-        
+
         console.log("added mesh to o3d id=" + threeParent.id);
         // threeParent.needsUpdate = 1;
 
         // do we need to set up signal that does
         // mesh.applyMatrix(threeParent.matrixWorld) when placeable
         // changes?
-        
+
     },
-    
+
     onMeshRelease: function(entity, component) {
-        
+
         var animation = entity.componentByType("AnimationController");
         if (animation !== null)
             animation.stopAll();
-        
+
         component.attributeChanged.remove(this.onMeshAttributeChanged, this);
-        
+
         if (component.threeMesh !== undefined) {
-            
+
             var mesh = component.threeMesh;
-            
+
             if (component.parentEntity.threeGroup !== undefined)
-                component.parentEntity.threeGroup.remove( mesh );
-            
+                component.parentEntity.threeGroup.remove(mesh);
+
             mesh.geometry.dispose();
-            for ( var i in mesh.geometry )
+            for (var i in mesh.geometry)
                 delete mesh.geometry[i];
-            
+
             if (mesh.material !== undefined) {
-                
-                for ( var i = 0; i < mesh.material.materials.length; ++i ) {
+
+                for (var i = 0; i < mesh.material.materials.length; ++i) {
                     mesh.material.materials[i].dispose();
                 }
-                
+
             }
-            
+
             delete component.threeMesh;
-            
+
         }
-        
+
     },
 
     onSceneLoaded: function(threeParent, meshComp, scene) {
@@ -487,77 +486,77 @@ ThreeView.prototype = {
         if (!lightComp.attributeChanged.has(this.onLightAttributeChanged, this))
             lightComp.attributeChanged.add(this.onLightAttributeChanged, this);
     },
-            
+
     onLightAttributeChanged: function(changedAttr, changeType) {
-    
+
         console.log(changedAttr.id);
         var id = changedAttr.id;
         if (id === "range" || id === "brightness" ||
             id === "diffColor" || id === "type")
             this.onLightAddedOrChanged(changedAttr.owner.parentEntity.threeGroup, changedAttr.owner);
-        
+
     },
 
     onCameraAddedOrChanged: function(threeGroup, cameraComp) {
-        
+
         var prevThreeCamera = cameraComp.threeCamera;
         if (prevThreeCamera) {
             threeGroup.remove(prevThreeCamera);
             console.log("removing previous camera");
         }
-        
+
         var threeAspectRatio = cameraComp.aspectRatio;
         if (threeAspectRatio === "") {
-            
+
             // If no aspect ration is defined use target window width and height
             // to calculate correct aspect ration, so that geometry wont stretch.
-            
+
             threeAspectRatio = window.innerWidth / window.innerHeight;
-        
+
         }
-        
+
         cameraComp.threeCamera = new THREE.PerspectiveCamera(
             cameraComp.verticalFov, threeAspectRatio,
             cameraComp.nearPlane, cameraComp.farPlane);
-            
-        cameraComp.lookAt = function ( vector3 ) {
-            
+
+        cameraComp.lookAt = function(vector3) {
+
             // TODO use transform rotation instead.
-            cameraComp.threeCamera.lookAt( new THREE.Vector3(vector3.x, vector3.y, vector3.z) );
+            cameraComp.threeCamera.lookAt(new THREE.Vector3(vector3.x, vector3.y, vector3.z));
 
         };
 
         this.camera = cameraComp.threeCamera;
 
-        cameraComp.parentEntity.threeGroup.add( cameraComp.threeCamera );
+        cameraComp.parentEntity.threeGroup.add(cameraComp.threeCamera);
 
         if (!cameraComp.attributeChanged.has(this.onCameraAttributeChanged, this))
             cameraComp.attributeChanged.add(this.onCameraAttributeChanged, this);
-        
+
         if (!cameraComp.setCameraActive.has(this.setActiveCamera, this))
             cameraComp.setCameraActive.add(this.setActiveCamera, this);
-        
+
         if (cameraComp.setActive === undefined) {
-            
-            cameraComp.setActive = function () {
-                
-                this.setCameraActive.dispatch( this );
-                
+
+            cameraComp.setActive = function() {
+
+                this.setCameraActive.dispatch(this);
+
             }
-            
+
         }
-        
+
         console.log(this.scene.matrixWorldNeedsUpdate);
         this.scene.matrixWorldNeedsUpdate = true;
-        
+
     },
-            
-    setActiveCamera: function( camera ) {
-        
+
+    setActiveCamera: function(camera) {
+
         this.camera = camera.threeCamera;
-        
+
     },
-            
+
     onCameraAttributeChanged: function(changedAttr, changeType) {
 
         var id = changedAttr.id;
@@ -565,21 +564,21 @@ ThreeView.prototype = {
             id === "nearPlane" || id === "farPlane") {
             this.onCameraAddedOrChanged(changedAttr.owner.parentEntity.threeGroup, changedAttr.owner);
         }
-        
+
     },
-            
-    onCameraRelease: function( entity, component ) {
-        
+
+    onCameraRelease: function(entity, component) {
+
         component.attributeChanged.remove(this.onCameraAttributeChanged, this);
         component.setCameraActive.remove(this.setActiveCamera, this);
-        
+
         entity.threeGroup.remove(component.threeCamera);
-        
-        if ( this.camera === component.threeCamera )
+
+        if (this.camera === component.threeCamera)
             this.camera = this.defaultCamera;
-        
+
         delete component.threeCamera;
-        
+
     },
 
     updateInterpolations: function(delta) {
@@ -638,7 +637,6 @@ ThreeView.prototype = {
     },
 
     updateFromTransform: function(threeMesh, placeable) {
-        
         checkDefined(placeable, threeMesh);
         var ptv = placeable.transform;
 
@@ -669,9 +667,19 @@ ThreeView.prototype = {
         // but still start an interpolation period, so that on the next update we detect that an interpolation is going on,
         // and will interpolate normally
         if (!previous) {
+            // Position
             copyXyz(ptv.pos, threeMesh.position);
+
+            // Rotation
+            var quat = new THREE.Quaternion();
+            var euler = new THREE.Euler();
+            //euler.order = 'XYZ'; //not needed as tundraToThreeEuler defines it too
+            tundraToThreeEuler(ptv.rot, euler);
+            quat.setFromEuler(euler, true);
+            threeMesh.quaternion = quat;
+
+            // Scale
             copyXyz(ptv.scale, threeMesh.scale);
-            tundraToThreeEuler(ptv.rot, threeMesh.rotation);
         }
 
         // Create new interpolation
@@ -683,7 +691,7 @@ ThreeView.prototype = {
         // rotation
         var endRot = new THREE.Quaternion();
         var euler = new THREE.Euler();
-        euler.order = 'XYZ';
+        //euler.order = 'XYZ'; ////not needed as tundraToThreeEuler defines it too
         tundraToThreeEuler(ptv.rot, euler);
         endRot.setFromEuler(euler, true);
 
