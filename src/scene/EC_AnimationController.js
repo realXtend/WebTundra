@@ -16,7 +16,7 @@ Tundra.AnimationState = function() {
     this.name = "";
     
     /// Autostop at end (default false)
-    this.auto_stop = false;
+    //this.auto_stop = false;
 
     /// Time in milliseconds it takes to fade in/out an animation completely
     this.fade_period = 0.0;
