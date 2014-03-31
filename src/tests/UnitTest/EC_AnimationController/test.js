@@ -32,14 +32,14 @@ var animationTest = {
     
     setup: function() {
 
-        this.scene = dataConnection.scene;
+        this.scene = app.dataConnection.scene;
 
         this.entity = this.scene.createEntity( 0 );
         this.entity.createComponent( 0, Tundra.cComponentTypePlaceable );
         
         var mesh = this.entity.createComponent(0, Tundra.cComponentTypeMesh);
         var ref = mesh.meshRef
-        ref.ref = "EC_AnimationController/Assets/robot.json";
+        ref.ref = "Assets/robot.json";
         mesh.meshRef = ref;
         
         this.entity.createComponent(0, Tundra.cComponentTypeAnimation);
@@ -163,5 +163,3 @@ function RunAnimationTest() {
     });
     
 }
-
-addUnitTest(RunAnimationTest);

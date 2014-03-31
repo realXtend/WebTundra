@@ -1,6 +1,6 @@
 var avatarTestData = {
     name      : "TestAvatar",
-    geometry  : "EC_Avatar/Assets/robot.json",
+    geometry  : "Assets/robot.json",
 
     transform :
     {
@@ -19,7 +19,7 @@ var avatarTestData = {
     [
         {
             name      : "Sword",
-            geometry  : "EC_Avatar/Assets/Sword.json",
+            geometry  : "Assets/Sword.json",
 
             transform :
             {
@@ -37,7 +37,7 @@ var avatarTestData = {
         },
         {
             name      : "Pants",
-            geometry  : "EC_Avatar/Assets/robot_pants.json",
+            geometry  : "Assets/robot_pants.json",
 
             transform :
             {
@@ -70,7 +70,7 @@ var avatarTest = {
     
     setup: function() {
 
-        this.scene = dataConnection.scene;
+        this.scene = app.dataConnection.scene;
 
         this.entity = this.scene.createEntity( 0 );
 
@@ -196,5 +196,3 @@ function RunAvatarTest() {
     });
     
 }
-
-addUnitTest(RunAvatarTest);
