@@ -633,7 +633,7 @@ Tundra.SyncManager.prototype = {
         ds.addString(comp.name);
 
         // Create nested dataserializer for writing the attribute data
-        var compDs = new DataSerializer(16 * 1024);
+        var compDs = new Tundra.DataSerializer(16 * 1024);
 
         for (var i = 0; i < comp.attributes.length; i++) {
             var attr = comp.attributes[i];
