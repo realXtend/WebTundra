@@ -140,7 +140,7 @@ Tundra.EC_Avatar.prototype.setupAppearance = function ( avatarData ) {
     
     // set avatar invisible untill all asset are loaded.
     
-    this.parentEntity.placeable.visible = false;
+    this.parentEntity.placeable.setVisible(false);
     
 };
 
@@ -247,7 +247,7 @@ Tundra.EC_Avatar.prototype.checkAvatarAssets = function() {
         
     }
     
-    this.parentEntity.placeable.visible = true;
+    this.parentEntity.placeable.setVisible(true);
     
     // Check if we need to add child mesh to AnimationController.
     // Only add meshes that have same skeleton as parent mesh.
