@@ -1,3 +1,4 @@
+// Run animation test data. Data was recorded at time of 0.1.
 var animationData = {
     "hips":{"pos":{"x":-0.0134038,"y":4.4761992853748565,"z":-0.20005383920934272},"rot":{"x":0,"y":0,"z":0},"scale":{"x":1,"y":1,"z":1}},
     "spine":{"pos":{"x":0,"y":0.633603,"z":0.144693},"rot":{"x":0,"y":0,"z":0},"scale":{"x":1,"y":1,"z":1}},
@@ -47,6 +48,8 @@ var animationTest = {
     },
     
     release: function()  {
+        
+        this.scene.removeEntity(this.entity.id);
         
         this.scene = null;
         this.entity = null;
@@ -156,7 +159,7 @@ function RunAnimationTest() {
     } );
 
     QUnit.moduleDone(function( details ) {
-        //animationTest.release();
+        animationTest.release();
         delete animationTest;
         delete animationData;
         TestCompleted.dispatch();

@@ -83,7 +83,7 @@ var avatarTest = {
     
     release: function()  {
         
-        //this.scene.removeEntity(this.entity.id);
+        this.scene.removeEntity(this.entity.id);
         
         this.scene = null;
         this.entity = null;
