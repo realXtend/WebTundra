@@ -9,6 +9,7 @@ if (Tundra === undefined)
 Tundra.cComponentTypePlaceable = 20;
 
 Tundra.EC_Placeable = function() {
+    
     Tundra.Component.call(this, Tundra.cComponentTypePlaceable);
     this.addAttribute(Tundra.cAttributeTransform, "transform", "Transform");
     this.addAttribute(Tundra.cAttributeBool, "drawDebug", "Show bounding box", false);
@@ -27,6 +28,7 @@ Tundra.EC_Placeable = function() {
     this.parentEntitySet.add(this.connectToEntity.bind(this));
 
     this.parentRefReady = new signals.Signal();
+    
 };
 
 Tundra.EC_Placeable.prototype = new Tundra.Component(Tundra.cComponentTypePlaceable);
@@ -89,10 +91,9 @@ Tundra.EC_Placeable.prototype.onAttributeChanged = function(attr, changeType) {
     }
 
     if (attr.id === "parentRef" || attr.id === "parentBone") {
-        
-        if ( this.parentEntity.mesh !== undefined )
-            this.parentEntity.mesh.updateParentRef();
-            
+
+        this._updateParentRef();
+
     }
 };
 
@@ -118,6 +119,91 @@ Tundra.EC_Placeable.prototype.waitParent = function(addedEntity, changeType) {
 Tundra.EC_Placeable.prototype.updateTransform = function() {};
 
 Tundra.EC_Placeable.prototype.setParentEntity = function ( entity ) {};
+
+Tundra.EC_Placeable.prototype._targetMeshReady = function() {
+    
+    this._updateParentRef();
+    
+};
+    
+Tundra.EC_Placeable.prototype._targetEntityComponentAdded = function(entity, component) {
+    
+    if (entity.id == this.parentRef && component instanceof Tundra.EC_Mesh)
+        this._updateParentRef();
+    
+};
+
+// Check if placeable parentRef or parentBone has changed and update parent
+// child hierachy based on the change.
+Tundra.EC_Placeable.prototype._updateParentRef = function() {
+    
+    var placeable = this;
+    if ( placeable == null )
+        return;
+
+    // If parent mesh id is set to null detach mesh from bone.
+
+    var targetEntity;
+
+    if ( placeable.parentRef == "" ) {
+
+        if ( placeable.targetBone != null ) {
+            placeable.targetBone.detach( placeable );
+        }
+
+        placeable.setParentEntity(null);
+        return;
+
+    } else if ( placeable.parentBone == "" && placeable.targetBone != null) {
+
+        placeable.targetBone.detach( placeable );
+
+        targetEntity = placeable.parentEntity.parentScene.entityById( placeable.parentRef );
+        if (targetEntity)
+            placeable.setParentEntity( targetEntity );
+
+        return;
+
+    }
+
+    // Check if parent entity or mesh asset is ready. If not wait until they are created
+
+    targetEntity = placeable.parentEntity.parentScene.entityById( placeable.parentRef );
+    
+    if (placeable.parentEntity.parentScene.componentAdded.has( this._targetEntityComponentAdded, this ))
+        placeable.parentEntity.parentScene.componentAdded.remove( this._targetEntityComponentAdded, this );
+    
+    if ( targetEntity == null ) {
+
+        placeable.parentEntity.parentScene.componentAdded.add( this._targetEntityComponentAdded, this );
+        return;
+
+    } else if ( targetEntity.mesh != null && !targetEntity.mesh.assetReady ) {
+
+        targetEntity.mesh.meshAssetReady.addOnce( this._targetMeshReady, this );
+        return;
+
+    }
+
+    // Check if we need to attach this mesh to bone.
+
+    if ( placeable.parentBone == "" ) {
+
+        placeable.setParentEntity( targetEntity );
+
+    } else if ( targetEntity.mesh.skeleton != null ) {
+
+        var bone = targetEntity.mesh.skeleton.getBone(placeable.parentBone);
+        if ( bone != null) {
+
+            bone.attach( placeable );
+            return;
+
+        }
+
+    }
+
+};
 
 Tundra.registerComponent(Tundra.cComponentTypePlaceable, "Placeable", function(){ return new Tundra.EC_Placeable(); });
         

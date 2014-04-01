@@ -415,7 +415,6 @@ Tundra.ThreeView.prototype = {
         mesh.needsUpdate = 1;
         
         meshComp.assetReady = true;
-        meshComp.updateParentRef();
         meshComp.updateNodeTransform();
         meshComp.meshAssetReady.dispatch(meshComp);
         
@@ -491,7 +490,6 @@ Tundra.ThreeView.prototype = {
             
     onLightAttributeChanged: function(changedAttr, changeType) {
     
-        console.log(changedAttr.id);
         var id = changedAttr.id;
         if (id === "range" || id === "brightness" ||
             id === "diffColor" || id === "type")
