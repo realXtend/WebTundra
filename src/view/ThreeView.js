@@ -447,7 +447,7 @@ Tundra.ThreeView.prototype = {
             for (i in mesh.geometry )
                 delete mesh.geometry[i];
             
-            if (mesh.material !== undefined) {
+            if (mesh.material !== undefined && mesh.material.materials !== undefined) {
                 
                 for (i = 0; i < mesh.material.materials.length; ++i ) {
                     mesh.material.materials[i].dispose();
@@ -669,9 +669,19 @@ Tundra.ThreeView.prototype = {
         // but still start an interpolation period, so that on the next update we detect that an interpolation is going on,
         // and will interpolate normally
         if (!previous) {
+            // Position
             copyXyz(ptv.pos, threeMesh.position);
+
+            // Rotation
+            var quat = new THREE.Quaternion();
+            var euler = new THREE.Euler();
+            //euler.order = 'XYZ'; //not needed as tundraToThreeEuler defines it too
+            tundraToThreeEuler(ptv.rot, euler);
+            quat.setFromEuler(euler, true);
+            threeMesh.quaternion = quat;
+
+            // Scale
             copyXyz(ptv.scale, threeMesh.scale);
-            tundraToThreeEuler(ptv.rot, threeMesh.rotation);
         }
 
         // Create new interpolation
@@ -683,7 +693,7 @@ Tundra.ThreeView.prototype = {
         // rotation
         var endRot = new THREE.Quaternion();
         var euler = new THREE.Euler();
-        euler.order = 'XYZ';
+        //euler.order = 'XYZ'; ////not needed as tundraToThreeEuler defines it too
         tundraToThreeEuler(ptv.rot, euler);
         endRot.setFromEuler(euler, true);
 

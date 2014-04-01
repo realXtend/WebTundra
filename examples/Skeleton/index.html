@@ -69,6 +69,7 @@
 	<script src="../../src/view/js/THREEx.FullScreen.js"></script>
 	<script src="../../src/view/js/THREEx.WindowResize.js"></script>
 
+    <script src="../../src/app.js"></script>
 	<script src="../../src/scene/SceneParser.js"></script>
 	<script src="../../src/WebTundraModel.js"></script>
 	<script src="../../src/view/ThreeView.js"></script>
@@ -82,27 +83,9 @@
 
 	"use strict";
 
-	var useSignals = true;
-
-	var keyboard = new THREEx.KeyboardState();
-    var clock = new THREE.Clock();
-
-    // VIEWER
-    var viewer = new Tundra.ThreeView();
-    viewer.renderer.setClearColor( 0x9999D6, 1 );
-
-    // MODEL
-    var connected = false;
-    var dataConnection = new Tundra.WebTundraModel();
-    dataConnection.scene.componentAdded.add(viewer.onComponentAddedOrChanged.bind(viewer));
-    dataConnection.scene.componentRemoved.add(viewer.onComponentRemoved.bind(viewer));
-    dataConnection.scene.threeScene = viewer.scene;
-
-	var debugOnCheckFail = false;
-    
-    
+    var app = new Tundra.Application();
+    app.start();
     CreateScene();
-    Update();
     
     function CreateBasicEntity( scene, data ) {
         
@@ -132,16 +115,14 @@
         
     }
     
-    var robot;
-    var cam;
-    var animator;
-    var playRun = false;
+    var robot, cam, animator;
     
     function CreateScene() {
         
-        var scene = dataConnection.scene;
+        var scene = app.dataConnection.scene;
         
         robot = CreateBasicEntity( scene, { mesh:"robot.json", animationController:"" } );
+        robot.mesh.meshAssetReady.add(OnMeshLoaded);
         
         var light = CreateBasicEntity( scene, { light:"" } );
         light.placeable.setPosition(0, 2, 0);
@@ -154,38 +135,25 @@
         
     }
     
-    function Update() {
-        
-        var delta = clock.getDelta();
-        viewer.render(delta);
+    function OnMeshLoaded() {
+            
+        var bone = robot.mesh.skeleton.getBone("hips");
+        bone.enableAnimation(false);
 
-        requestAnimationFrame(function() {
-            Update();
-        }.bind(this));
-        
-        if ( !playRun && robot.mesh.assetReady ) {
-            
-            playRun = true;
-            
-            var bone = robot.mesh.skeleton.getBone("hips");
-            bone.enableAnimation(false);
-            
-            var bone = robot.mesh.skeleton.getBone("thigh.R");
-            bone.enableAnimation(false, true);
-            var rot = bone.getRotation();
-            rot.z += -90 * (Math.PI / 180);
-            bone.setRotation(rot);
-            
-            bone = robot.mesh.skeleton.getBone("thigh.L");
-            bone.enableAnimation(false, true);
-            rot = bone.getRotation();
-            rot.z += 90 * (Math.PI / 180);
-            bone.setRotation(rot);
-            
-            animator.playLooped("Run");
-            
-        }   
+        var bone = robot.mesh.skeleton.getBone("thigh.R");
+        bone.enableAnimation(false, true);
+        var rot = bone.getRotation();
+        rot.z += -90 * (Math.PI / 180);
+        bone.setRotation(rot);
 
+        bone = robot.mesh.skeleton.getBone("thigh.L");
+        bone.enableAnimation(false, true);
+        rot = bone.getRotation();
+        rot.z += 90 * (Math.PI / 180);
+        bone.setRotation(rot);
+
+        animator.playLooped("Run");
+        
     }
 
 	</script>

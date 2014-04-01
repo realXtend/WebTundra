@@ -83,7 +83,7 @@ Tundra.EC_Mesh.prototype.updateParentRef = function () {
         this.parentEntity.parentScene.componentAdded.add(this.checkParentEntity, this);
         return;
         
-    } else if ( pEntity.mesh === undefined ) {
+    } else if ( pEntity.mesh !== undefined ) {
         
         pEntity.mesh.meshAssetReady.addOnce(this.updateParentRef, this);
         return;

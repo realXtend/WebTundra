@@ -11,7 +11,14 @@
 var app = new Tundra.Application();
 
 function setupEditorControls() {
-    var controls = new THREE.EditorControls(app.viewer.camera, app.viewer.renderer.domElement);
+    var v = app.viewer;
+    v.defaultCamera.position = v.camera.parent.position;
+    v.defaultCamera.rotation = v.camera.parent.rotation;
+    v.defaultCamera.scale = v.camera.parent.scale;
+    v.defaultCamera.lookAt(new THREE.Vector3());
+
+    app.viewer.setActiveCamera({'threeCamera': v.defaultCamera});
+    var controls = new THREE.EditorControls(v.defaultCamera, v.renderer.domElement);
 }
 
 function loadxml3d() {
