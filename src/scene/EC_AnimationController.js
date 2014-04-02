@@ -59,13 +59,6 @@ Tundra.AnimationMeshInfo = function ( animationController, mesh ) {
         
     };
     
-    this.onAttributeChanged = function ( attr, changeType ) {
-
-        if (attr.id === "meshRef")
-            this.release();
-        
-    };
-    
     this.release = function () {
         
         this.mesh.meshAssetReady.remove( this.onAssetReady, this );
@@ -80,7 +73,6 @@ Tundra.AnimationMeshInfo = function ( animationController, mesh ) {
     };
     
     this.mesh.parentEntity.componentRemoved.add( this.onComponentRemoved, this );
-    this.mesh.attributeChanged.add( this.onAttributeChanged, this );
     
     if (mesh.assetReady)
         animationController.createAnimations( mesh );
@@ -174,7 +166,7 @@ Tundra.EC_AnimationController.prototype.setAnimSpeed = function ( name, speed ) 
  * @return {AnimationState} new animation state object.
  */
 Tundra.EC_AnimationController.prototype.createAnimation = function( name ) {
-    
+
     var anim = new Tundra.AnimationState();
     anim.name = name;
     this.animations[name] = anim;
