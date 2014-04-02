@@ -63,7 +63,6 @@ Tundra.AnimationMeshInfo = function ( animationController, mesh ) {
         
         this.mesh.meshAssetReady.remove( this.onAssetReady, this );
         this.mesh.parentEntity.componentRemoved.remove( this.onComponentRemoved, this );
-        this.mesh.attributeChanged.remove( this.onAttributeChanged, this );
         
         animationController.removeMesh( this.mesh );
         
