@@ -83,11 +83,13 @@ var avatarTest = {
     
     release: function()  {
         
-        this.scene.removeEntity(this.entity.id);
-        
-        this.scene = null;
-        this.entity = null;
-        this.avatar = null;
+        if (this.entity != null) {
+            this.scene.removeEntity(this.entity.id);
+
+            this.scene = null;
+            this.entity = null;
+            this.avatar = null;
+        }
         
     },
     
@@ -189,10 +191,15 @@ function RunAvatarTest() {
     } );
 
     QUnit.moduleDone(function( details ) {
-        avatarTest.release();
-        delete avatarTest;
-        delete avatarTestData;
-        TestCompleted.dispatch();
+        
+        var releaseTest = function() {
+            avatarTest.release();
+            delete avatarTest;
+            delete avatarTestData;
+            TestCompleted.dispatch();
+        }
+        
+        window.setTimeout(releaseTest,500);
     });
     
 }

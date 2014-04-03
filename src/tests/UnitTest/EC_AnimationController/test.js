@@ -30,29 +30,33 @@ var animationTest = {
     data: animationData,
     scene: null,
     entity: null,
+    mesh: null,
     
     setup: function() {
 
         this.scene = app.dataConnection.scene;
 
         this.entity = this.scene.createEntity( 0 );
+        
         this.entity.createComponent( 0, Tundra.cComponentTypePlaceable );
-        
-        var mesh = this.entity.createComponent(0, Tundra.cComponentTypeMesh);
-        var ref = mesh.meshRef
-        ref.ref = "Assets/robot.json";
-        mesh.meshRef = ref;
-        
+        this.mesh = this.entity.createComponent(0, Tundra.cComponentTypeMesh);
         this.entity.createComponent(0, Tundra.cComponentTypeAnimation);
+        
+        var ref = this.mesh.meshRef
+        ref.ref = "Assets/robot.json";
+        this.mesh.meshRef = ref;
         
     },
     
     release: function()  {
         
-        this.scene.removeEntity(this.entity.id);
-        
-        this.scene = null;
-        this.entity = null;
+        if (this.entity != null) {
+            this.scene.removeEntity(this.entity.id);
+
+            this.scene = null;
+            this.entity = null;
+            this.mesh = null;
+        }
         
     },
     
@@ -89,7 +93,7 @@ var animationTest = {
 
         var entity = this.entity;
         var data = this.data;
-        var skeleton = this.entity.mesh.skeleton;
+        var skeleton = this.mesh.skeleton;
         
         var compareVector = function( vector1, vector2, epsilon ) {
         
@@ -159,10 +163,15 @@ function RunAnimationTest() {
     } );
 
     QUnit.moduleDone(function( details ) {
-        animationTest.release();
-        delete animationTest;
-        delete animationData;
-        TestCompleted.dispatch();
+        
+        var releaseTest = function() {
+            animationTest.release();
+            delete animationTest;
+            delete animationData;
+            TestCompleted.dispatch();
+        }
+        
+        window.setTimeout(releaseTest,500);
     });
     
 }
