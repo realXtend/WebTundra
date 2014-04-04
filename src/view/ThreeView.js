@@ -203,6 +203,10 @@ Tundra.ThreeView.prototype = {
     },
 
     onMeshAddedOrChanged: function(threeGroup, meshComp) {
+        if (threeGroup === undefined) {
+            console.warn("threeGroup is undefined! (Issue #45)");
+            return;
+        }
         if (meshComp.threeMesh) {
             /* remove previous mesh if it existed */
             /* async hazard: what if two changes for same mesh come in
