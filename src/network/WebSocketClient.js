@@ -1,9 +1,19 @@
+"use strict";
+/* jslint browser: true, globalstrict: true, devel: true, debug: true */
 // For conditions of distribution and use, see copyright notice in LICENSE
+if (Tundra === undefined)
+    var Tundra = {};
 
-var cLoginMessage = 100;
-var cLoginReply = 101;
+Tundra.cLoginMessage = 100;
+Tundra.cLoginReply = 101;
 
-function WebSocketClient() {
+Tundra.cProtocolOriginal = 1;
+Tundra.cProtocolCustomComponents = 2;
+Tundra.cProtocolHierarchicScene = 3;
+
+Tundra.cHighestSupportedProtocolVersion = Tundra.cProtocolHierarchicScene;
+
+Tundra.WebSocketClient = function () {
     this.webSocket = null;
     this.url = "";
     this.connected = new signals.Signal();
@@ -13,9 +23,10 @@ function WebSocketClient() {
     this.loginData = null;
     this.userID = 0;
     this.loginReplyData = null;
+    this.protocolVersion = Tundra.cHighestSupportedProtocolVersion;
 }
 
-WebSocketClient.prototype = {
+Tundra.WebSocketClient.prototype = {
     // Connect to a Tundra server. Specify optional login data map which will be sent after connect
     connect : function(host, port, loginData) {
         this.url = "ws://" + host + ":" + port;
@@ -23,6 +34,7 @@ WebSocketClient.prototype = {
             this.loginData = loginData;
         this.userID = 0;
         this.loginReplyData = null;
+        this.protocolVersion = Tundra.cHighestSupportedProtocolVersion;
 
         this.connected.add(this.onConnect, this);
         this.messageReceived.add(this.onMessageReceived, this); // For handling LoginReply
@@ -53,7 +65,7 @@ WebSocketClient.prototype = {
         }.bind(this);
 
         this.webSocket.onmessage = function(evt) {
-            var dd = new DataDeserializer(evt.data);
+            var dd = new Tundra.DataDeserialier(evt.data);
             var msgId = dd.readU16();
             this.messageReceived.dispatch(msgId, dd);
         }.bind(this);
@@ -76,7 +88,7 @@ WebSocketClient.prototype = {
 
     // Begin a new message. Returns the DataSerializer to which the message payload can be written.
     startNewMessage : function(msgId, maxBytes) {
-        var ds = new DataSerializer(maxBytes);
+        var ds = new Tundra.DataSerializer(maxBytes);
         ds.addU16(msgId);
         return ds;
     },
@@ -95,21 +107,30 @@ WebSocketClient.prototype = {
     onConnect : function() {
         if (this.loginData != null) {
             console.log("Sending login message");
-            var ds = this.startNewMessage(cLoginMessage, 1024);
+            var ds = this.startNewMessage(Tundra.cLoginMessage, 1024);
             var loginText = JSON.stringify(this.loginData);
             ds.addUtf8String(loginText);
+            // Send suggestion to server to use the highest protocol known to client, see what the server responds
+            ds.addVLE(Tundra.cHighestSupportedProtocolVersion);
             this.endAndQueueMessage(ds);
         }
     },
 
     onMessageReceived : function(msgId, dd) {
-        if (msgId == cLoginReply) {
+        if (msgId == Tundra.cLoginReply) {
             // Do not need to intercept further events
             this.messageReceived.remove(this.onMessageReceived, this);
             var success = dd.readU8();
             if (success > 0) {
                 this.userID = dd.readVLE();
                 this.loginReply = JSON.parse(dd.readStringU16()); /// \todo Should use UTF8-encoding
+                // Read server's reply protocol version if it exists, otherwise assume original
+                if (dd.bytesLeft)
+                    this.protocolVersion = dd.readVLE();
+                else
+                    this.protocolVersion = Tundra.cProtocolOriginal;
+                console.log("Protocol version was set to " + this.protocolVersion);
+
                 this.loginReplyReceived.dispatch();
             }
             else {

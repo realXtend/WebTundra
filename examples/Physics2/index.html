@@ -31,6 +31,7 @@
 <script src="../../src/scene/EC_DynamicComponent.js"></script>
 <script src="../../src/scene/EC_EnvironmentLight.js"></script>
 <script src="../../src/scene/EC_Mesh.js"></script>
+<script src="../../src/scene/Bone.js"></script>
 <script src="../../src/scene/EC_Name.js"></script>
 <script src="../../src/scene/EC_Placeable.js"></script>
 <script src="../../src/scene/EC_RigidBody.js"></script>
@@ -39,18 +40,22 @@
 <script src="../../src/scene/EC_Light.js"></script>
 <script src="../../src/scene/EC_Camera.js"></script>
 <script src="../../src/scene/EC_Sound.js"></script>
+<script src="../../src/scene/EC_AnimationController.js"></script>
 
 <!-- APP -->
 <script src="../../src/app.js"></script>
 <script src="../../src/WebTundraModel.js"></script>
 <script src="../../src/view/ThreeView.js"></script>
+<script src="../../src/view/EC_AnimationControllerView.js"></script>
+<script src="../../src/view/EC_PlaceableView.js"></script>
+<script src="../../src/view/BoneView.js"></script>
 
 <!-- ------------------------------------------------------------ -->
 
 <div id="ThreeJS" style="z-index: 1; position: absolute; left:0px; top:0px"></div>
 <script>
 // APP
-var app = new Application();
+var app = new Tundra.Application();
 
 var host = "localhost";
 var port = 2345;
@@ -59,7 +64,7 @@ app.start();
 
 // FREE LOOK
 var freeLookCtrl = new THREE.FreeLookControls(app.viewer.camera, app.viewer.renderer.domElement);
-app.scene.add(freeLookCtrl.getObject());
+app.viewer.scene.add(freeLookCtrl.getObject());
 // An object in freeLookCtrl that carries the camera. Set it's position instead of setting camera position directly
 freeLookCtrl.getObject().position.set(0, 8.50, 28.50);
 

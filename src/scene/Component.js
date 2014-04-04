@@ -1,10 +1,18 @@
+"use strict";
+/* jslint browser: true, globalstrict: true, devel: true, debug: true */
+/* global signals, Tundra */
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-var componentTypeNames = {};
-var componentTypeIds = {};
-var componentFactories = {};
+if (Tundra === undefined)
+    var Tundra = {};
 
-function Component(typeId) {
+Tundra.componentTypeNames = {};
+Tundra.componentTypeIds = {};
+Tundra.componentFactories = {};
+Tundra.customComponentTypes = {};
+Tundra.customComponentRegistered = new signals.Signal();
+
+Tundra.Component = function(typeId) {
     this.parentEntity = null;
     this.typeId = typeId;
     this.name = "";
@@ -14,12 +22,13 @@ function Component(typeId) {
     this.attributeChanged = new signals.Signal();
     this.attributeAdded = new signals.Signal();
     this.attributeRemoved = new signals.Signal();
-}
+    this.parentEntitySet = new signals.Signal();
+};
 
-Component.prototype = {
+Tundra.Component.prototype = {
     // Add a new static attribute at initialization
     addAttribute: function(typeId, id, name, value) {
-        var newAttr = createAttribute(typeId);
+        var newAttr = Tundra.createAttribute(typeId);
         if (newAttr != null) {
             newAttr.name = name;
             newAttr.id = id;
@@ -41,7 +50,7 @@ Component.prototype = {
             console.log("Component " + this.typeName + " does not support adding dynamic attributes");
             return null;
         }
-        var newAttr = createAttribute(typeId);
+        var newAttr = Tundra.createAttribute(typeId);
         if (newAttr != null) {
             newAttr.name = name;
             newAttr.id = name; // For dynamic attributes name == id
@@ -61,9 +70,9 @@ Component.prototype = {
 
             this.registerAttributeAsProperty(newAttr.id, newAttr);
 
-            if (changeType == null || changeType == AttributeChange.Default)
-                changeType = this.local ? AttributeChange.LocalOnly : AttributeChange.Replicate;
-            if (changeType != AttributeChange.Disconnected)
+            if (changeType == null || changeType == Tundra.AttributeChange.Default)
+                changeType = this.local ? Tundra.AttributeChange.LocalOnly : Tundra.AttributeChange.Replicate;
+            if (changeType != Tundra.AttributeChange.Disconnected)
             {
                 // Trigger scene level signal
                 if (this.parentEntity && this.parentEntity.parentScene)
@@ -79,7 +88,7 @@ Component.prototype = {
     },
 
     registerAttributeAsProperty : function(id, attr) {
-        var propName = sanitatePropertyName(id);
+        var propName = Tundra.sanitatePropertyName(id);
         //based on http://stackoverflow.com/questions/1894792/determining-if-a-javascript-object-has-a-given-property
         //instead of hasOwnProperty to not create confusion if someone creates an EC called 'prototype' or so.
         if (!(propName in this)) {
@@ -101,7 +110,7 @@ Component.prototype = {
             var attr = this.attributes[index];
 
             // Remove direct named access
-            var propName = sanitatePropertyName(attr.id);
+            var propName = Tundra.sanitatePropertyName(attr.id);
             if (this[propName] === attr)
                 delete this[propName];
             if (index == this.attributes.length - 1)
@@ -109,9 +118,9 @@ Component.prototype = {
             else
                 this.attributes[index] = null; // Leave hole if necessary
 
-            if (changeType == null || changeType == AttributeChange.Default)
-                changeType = this.local ? AttributeChange.LocalOnly : AttributeChange.Replicate;
-            if (changeType != AttributeChange.Disconnected)
+            if (changeType == null || changeType == Tundra.AttributeChange.Default)
+                changeType = this.local ? Tundra.AttributeChange.LocalOnly : Tundra.AttributeChange.Replicate;
+            if (changeType != Tundra.AttributeChange.Disconnected)
             {
                 // Trigger scene level signal
                 if (this.parentEntity && this.parentEntity.parentScene)
@@ -142,22 +151,22 @@ Component.prototype = {
     },
 
     get typeName(){
-        return componentTypeNames[this.typeId];
+        return Tundra.componentTypeNames[this.typeId];
     },
 
     get local(){
-        return this.id >= cFirstLocalId;
+        return this.id >= Tundra.cFirstLocalId;
     },
 
     get unacked(){
-        return this.id >= cFirstUnackedId && this.id < cFirstLocalId;
+        return this.id >= Tundra.cFirstUnackedId && this.id < Tundra.cFirstLocalId;
     },
     
     // Trigger attribute change signal. Called by Attribute
     emitAttributeChanged : function(attr, changeType) {
-        if (changeType == null || changeType == AttributeChange.Default)
-            changeType = this.local ? AttributeChange.LocalOnly : AttributeChange.Replicate;
-        if (changeType == AttributeChange.Disconnected)
+        if (changeType == null || changeType == Tundra.AttributeChange.Default)
+            changeType = this.local ? Tundra.AttributeChange.LocalOnly : Tundra.AttributeChange.Replicate;
+        if (changeType == Tundra.AttributeChange.Disconnected)
             return;
 
         // Trigger scene level signal
@@ -169,22 +178,87 @@ Component.prototype = {
     }
 }
 
-function registerComponent(typeId, typeName, factory) {
-    console.log("Registering component typeid " + typeId + " typename " + typeName);
-    componentTypeNames[typeId] = typeName;
-    componentTypeIds[typeName] = typeId;
-    componentFactories[typeId] = factory;
+// This function is meant for ordinary components that have a C++ counterpart in the Tundra server
+Tundra.registerComponent = function(typeId, typeName, factory) {
+    console.log("Registering component typeId " + typeId + " typename " + typeName);
+    Tundra.componentTypeNames[typeId] = typeName;
+    Tundra.componentTypeIds[typeName] = typeId;
+    Tundra.componentFactories[typeId] = factory;
+};
+
+// This function registers a static-structured component without C++ counterpart in the server.
+// A blueprint component needs to be provided. SyncManager will replicate the attribute structure
+// to the server when joining
+Tundra.registerCustomComponent = function(typeName, blueprintComponent, changeType) {
+    if (blueprintComponent == null)
+        return;
+
+    if (changeType == null)
+        changeType = Tundra.AttributeChange.Default;
+
+    // In WebTundra the convention is to use component typenames without EC_ prefix
+    typeName = Tundra.ensureTypeNameWithoutPrefix(typeName);
+
+    // Calculate typeId if necessary
+    var typeId = blueprintComponent.typeId;
+    if (typeId === undefined || typeId === null || typeId == 0 || typeId == 0xffffffff)
+        typeId = Tundra.generateComponentTypeId(typeName)
+
+    console.log("Registering custom component typeId " + typeId + " typename " + typeName);
+
+    Tundra.componentTypeNames[typeId] = typeName;
+    Tundra.componentTypeIds[typeName] = typeId;
+    Tundra.componentFactories[typeId] = function() {
+        var comp = new Tundra.Component(typeId);
+        var attributes = blueprintComponent.attributes;
+
+        for (var i = 0; i < attributes.length; ++i)
+            comp.addAttribute(attributes[i].typeId, attributes[i].id, attributes[i].name);
+
+        return comp;
+    }
+
+    // Remember the type and signal for the SyncManager
+    Tundra.customComponentTypes[typeId] = typeName;
+    Tundra.customComponentRegistered.dispatch(typeId, typeName, changeType);
+};
+
+Tundra.ensureTypeNameWithPrefix = function(typeName) {
+    if (typeName.indexOf("EC_") != 0)
+        return "EC_" + typeName;
+    else
+        return typeName;
 }
 
-function createComponent(typeId) {
+Tundra.ensureTypeNameWithoutPrefix = function(typeName) {
+    if (typeName.indexOf("EC_") == 0)
+        return typeName.substring(3);
+    else
+        return typeName;
+}
+
+Tundra.generateComponentTypeId = function(typeName)
+{
+    typeName = Tundra.ensureTypeNameWithoutPrefix(typeName).toLowerCase();
+    // SDBM hash function
+    var h = 0;
+    for (var i = 0; i < typeName.length; ++i) {
+        h = typeName.charCodeAt(i) + (h << 6) + (h << 16) - h;
+    }
+    h &= 0xffff;
+    h |= 0x10000;
+    return h;
+};
+
+Tundra.createComponent = function(typeId) {
     // Convert typename to numeric ID if necessary
     if (typeof typeId == 'string' || typeId instanceof String)
-        typeId = componentTypeIds[typeId];
-    if (componentFactories.hasOwnProperty(typeId))
-        return componentFactories[typeId]();
+        typeId = Tundra.componentTypeIds[Tundra.ensureTypeNameWithoutPrefix(typeId)];
+    if (Tundra.componentFactories.hasOwnProperty(typeId))
+        return Tundra.componentFactories[typeId]();
     else
     {
         console.log("Could not create unknown component " + typeId);
         return null;
     }
-}
+};
