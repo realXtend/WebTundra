@@ -49,10 +49,12 @@ Tundra.placeable_SetParentEntity = function ( entity ) {
 
     // Remove from old parent.
 
-    if ( this.parentEntity.threeGroup.parent !== undefined ) {
+    if ( this.parentEntity.threeGroup !== undefined && this.parentEntity.threeGroup.parent !== undefined ) {
 
          this.parentEntity.threeGroup.parent.remove(this.parentEntity.threeGroup);
 
+    } else {
+        console.warn("Parent of the threeGroup is not removed! (Issue #41)");
     }
 
     // If entity is set to null we add this object as child of scene.
@@ -74,8 +76,13 @@ Tundra.placeable_SetParentEntity = function ( entity ) {
 
 Tundra.placeable_setVisible = function ( visible ) {
     
-    this.parentEntity.threeGroup.traverse( function ( object ) { object.visible = visible; } );
-
+    if (this.parentEntity.threeGroup) {
+        this.parentEntity.threeGroup.traverse(function(object) {
+            object.visible = visible;
+        });
+    } else {
+        console.warn("Object is not set to visible. (Issue #41)");
+    }
 };
 
 Tundra.placeable_setPosition = function ( x, y, z ) {
