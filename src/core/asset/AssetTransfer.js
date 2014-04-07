@@ -331,13 +331,14 @@ var AssetTransfer = Class.$extend(
     {
         /** @todo Take an educated guess with type and suffix.
             There should be logic to ask the request data type either 
-            from the AssetFactory or the IAsset class it instantiates. */
+            from the AssetFactory or the IAsset class it instantiates.
+            And/or have option to override the data type in AssetAPI.RequestAsset. */
         if (this.type === "Binary")
             return "arraybuffer";
-        else if (this.type === "Text" && this.suffix !== ".xml")
-            return "text";
-        else if (this.type === "Text" && this.suffix === ".xml")
+        else if (this.type === "Text" && this.suffix === ".xml" || this.suffix === ".txml")
             return "xml";
+        else if (this.type === "Text")
+            return "text";
         return undefined;
     },
 

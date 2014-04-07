@@ -494,8 +494,14 @@ var AssetAPI = Class.$extend(
             }
         }
         // Point relative refs to default storage.
+        // If not known (not connected to server) use relative from page.
         else if (!CoreStringUtils.startsWith(ref, "http"))
-            ref = this.defaultStorage.src + ref;
+        {
+            if (this.defaultStorage != null && typeof this.defaultStorage.src === "string")
+                ref = this.defaultStorage.src + ref;
+            else
+                ref = this.localStoragePath + ref;
+        }
 
         // If an asset proxy implementation has been registered, ask it for the proxy url.
         // Otherwise the original url is used for the request, meaning its the hosting partys
