@@ -15,7 +15,7 @@ var TundraDomIntegrationPlugin = ITundraPlugin.$extend(
     initialize : function()
     {
         this.framework.client.setDomIntegration(new TundraDomIntegration());
-    },
+    }
 });
 
 TundraSDK.registerPlugin(new TundraDomIntegrationPlugin());

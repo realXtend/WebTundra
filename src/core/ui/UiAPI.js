@@ -23,6 +23,7 @@ var UiAPI = Class.$extend(
         this.numContextMenus = 0;
         this.loadingScreen = null;
 
+        this.loadingScreenEnabled = (params.loadingScreen === false ? false : true);
         this.createTaskbar(params.taskbar);
         this.createConsole(params.console);
 
@@ -579,7 +580,7 @@ var UiAPI = Class.$extend(
 
     showLoadingScreen : function()
     {
-        if (this.loadingScreen != null)
+        if (!this.loadingScreenEnabled || this.loadingScreen != null)
             return;
 
         this.loadingScreen = { done: false };
@@ -687,7 +688,7 @@ var UiAPI = Class.$extend(
         if (TundraSDK.framework.client.websocket === null)
             return;
 
-        if (this.loadingScreen == null || this.loadingScreen.done)
+        if (!this.loadingScreenEnabled || this.loadingScreen == null || this.loadingScreen.done)
             return;
 
         if (text != null && this.loadingScreen.text != null)
