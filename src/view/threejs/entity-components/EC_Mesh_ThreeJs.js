@@ -2,13 +2,14 @@
 define([
         "lib/three",
         "core/framework/TundraSDK",
+        "core/framework/CoreStringUtils",
         "core/scene/Scene",
         "entity-components/EC_Mesh",
         "core/scene/Attribute",
         "core/math/Transform",
         "core/asset/AssetTransfer",
         "core/asset/IAsset"
-    ], function(THREE, TundraSDK, Scene, EC_Mesh,
+    ], function(THREE, TundraSDK, CoreStringUtils, Scene, EC_Mesh,
                 Attribute, Transform, AssetTransfer, IAsset) {
 
 /**
@@ -110,8 +111,13 @@ var EC_Mesh_ThreeJs = EC_Mesh.$extend(
             var meshRef = this.attributes.meshRef.get();
             if (meshRef != null && meshRef != "")
             {
+                // Support force requesting three.js meshes with correct type
+                var forcedType = undefined;
+                if (CoreStringUtils.endsWith(meshRef, ".json", true) || CoreStringUtils.endsWith(meshRef, ".js", true))
+                    forcedType = "ThreeJsonMesh";
+
                 this.meshRequested = true;
-                var transfer = TundraSDK.framework.asset.requestAsset(meshRef);
+                var transfer = TundraSDK.framework.asset.requestAsset(meshRef, forcedType);
                 if (transfer != null)
                     transfer.onCompleted(this, this._meshAssetLoaded);
             }
