@@ -16,18 +16,38 @@ define([
 */
 var AssetFactory = Class.$extend(
 {
-    __init__ : function(assetType, assetClass, typeExtensions)
+    __init__ : function(assetType, assetClass, typeExtensions, defaultDataType)
     {
         if (typeof assetType !== "string")
             console.error("AssetFactory constructor 'assetType' needs to be a string!");
         if (assetClass === undefined || assetClass === null)
             console.error("AssetFactory constructor 'assetClass' is not a valid object!");
-        if (typeExtensions !== undefined && !Array.isArray(typeExtensions))
-            console.error("AssetFactory constructor 'typeExtensions' is not a list!");
+        if (typeExtensions !== undefined && Array.isArray(typeExtensions))
+            console.error("AssetFactory constructor 'typeExtensions' must be a object mapping suffix to request data type!");
+        else if (typeExtensions !== undefined && typeof typeExtensions !== "object")
+            console.error("AssetFactory constructor 'typeExtensions' must be a object mapping suffix to request data type!");
 
         this.assetType = assetType;
         this.assetClass = assetClass;
         this.typeExtensions = typeExtensions;
+        this.defaultDataType = defaultDataType;
+    },
+
+    /**
+        Returns the data type for the network request for a particular suffix.
+
+        @method requestDataType
+        @param {String} extension File type extension.
+        @return {String}
+    */
+    requestDataType : function(suffix)
+    {
+        var dataType = this.typeExtensions[suffix.toLowerCase()];
+        if (typeof dataType === "string")
+            return dataType;
+        else if (typeof this.defaultDataType === "string")
+            return this.defaultDataType;
+        return undefined;
     },
 
     /**

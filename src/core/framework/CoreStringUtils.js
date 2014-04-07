@@ -53,7 +53,7 @@ var CoreStringUtils =
     {
         return (str.trim ? str.trim() : str.replace(/^\s+/, '').replace(/\s+$/, ''));
     },
-
+   
     /**
         Trims all white space from the left end of input string.
         @method trimLeft
@@ -66,6 +66,21 @@ var CoreStringUtils =
     },
 
     /**
+        Trims all instances of trimStr from the left side of the string.
+        @method trimStringLeft
+        @param {String} str String to trim.
+        @param {String} trimStr String to trim.
+        @return {String} Resulting string.
+    */
+    trimStringLeft : function(str, trimStr)
+    {
+        var trimLen = trimStr.length;
+        while (str.length > 0 && str.substring(0, trimLen) === trimStr)
+            str = str.substring(trimLen);
+        return str;
+    },
+
+    /**
         Trims all white space from the right end of input string.
         @method trimRight
         @param {String} str String to trim.
@@ -74,6 +89,21 @@ var CoreStringUtils =
     trimRight : function(str)
     {
         return (str.trimRight ? str.trimRight() : str.replace(/\s+$/, ''));
+    },
+
+    /**
+        Trims all instances of trimStr from the left side of the string.
+        @method trimStringRight
+        @param {String} str String to trim.
+        @param {String} trimStr String to trim.
+        @return {String} Resulting string.
+    */
+    trimStringRight : function(str, trimStr)
+    {
+        var trimLen = trimStr.length;
+        while (str.length > 0 && str.substring(str.length-trimLen) === trimStr)
+            str = str.substring(0, str.length-trimLen);
+        return str;
     },
 
     /**

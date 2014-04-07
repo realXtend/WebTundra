@@ -73,8 +73,13 @@ var AssetAPI = Class.$extend(
         this.maxActiveTransfersPerType = {};
 
         // Register core asset factories
-        this.registerAssetFactory(new AssetFactory("Text", TextAsset, [ ".json", ".xml", ".txt" ]));
-        this.registerAssetFactory(new AssetFactory("Binary", BinaryAsset));
+        this.registerAssetFactory(new AssetFactory("Text", TextAsset, { 
+            ".xml"   : "xml",           ".txml"  : "xml",
+            ".html"  : "document",      ".htm"   : "document",
+            ".json"  : "json",          ".js"    : "json",
+            ".txt"   : "text"
+        }, "text"));
+        this.registerAssetFactory(new AssetFactory("Binary", BinaryAsset, {}, "arraybuffer"));
     },
 
     __classvars__ :
@@ -532,13 +537,13 @@ var AssetAPI = Class.$extend(
         var existingAsset = this.getAsset(ref);
         if (existingAsset !== undefined && existingAsset !== null)
         {
-            transfer = new AssetTransfer(ref, proxyRef, assetType, assetExt);
+            transfer = new AssetTransfer(null, ref, proxyRef, assetType, assetExt);
             this.readyTransfers.push(transfer);
             return transfer;
         }
 
         // 4. Request asset from the source
-        transfer = new AssetTransfer(ref, proxyRef, assetType, assetExt);
+        transfer = new AssetTransfer(factory, ref, proxyRef, assetType, assetExt);
         this.transfers.push(transfer);
 
         if (this.transfersPeak < this.transfers.length)

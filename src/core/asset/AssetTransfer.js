@@ -14,10 +14,16 @@ define([
 */
 var AssetTransfer = Class.$extend(
 {
-    __init__ : function(ref, proxyRef, type, suffix)
+    __init__ : function(factory, ref, proxyRef, type, suffix)
     {
         this.log = TundraLogging.getLogger("AssetTransfer");
 
+        /**
+            Factory that will produce this asset.
+            @property factory
+            @type AssetFactory
+        */
+        this.factory = factory;
         /**
             Full unique asset reference.
             @property ref
@@ -329,6 +335,12 @@ var AssetTransfer = Class.$extend(
 
     _detectRequestDataType : function()
     {
+        var dataType = (this.factory != null ? this.factory.requestDataType(this.suffix) : undefined);
+        if (typeof dataType === "string")
+            return dataType;
+
+        this.log.warn("AssetFactory for", this.ref, "failed to return data type. Guessing from known types.");
+
         /** @todo Take an educated guess with type and suffix.
             There should be logic to ask the request data type either 
             from the AssetFactory or the IAsset class it instantiates.
@@ -337,6 +349,10 @@ var AssetTransfer = Class.$extend(
             return "arraybuffer";
         else if (this.type === "Text" && this.suffix === ".xml" || this.suffix === ".txml")
             return "xml";
+        else if (this.type === "Text" && this.suffix === ".html" || this.suffix === ".html")
+            return "document";
+        else if (this.type === "Text" && this.suffix === ".json")
+            return "json";
         else if (this.type === "Text")
             return "text";
         return undefined;
@@ -363,7 +379,7 @@ var AssetTransfer = Class.$extend(
         if (this.requestDataType === undefined  || this.requestDataType === null || this.requestDataType === "")
             this.requestDataType = this._detectRequestDataType();
 
-        if (this.requestDataType !== "arraybuffer")
+        if (this.requestDataType !== "arraybuffer" && this.requestDataType !== "document")
         {
             $.ajax({
                 type        : "GET",
