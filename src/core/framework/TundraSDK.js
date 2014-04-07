@@ -158,6 +158,54 @@ var TundraSDK =
         isOpera     : navigator !== undefined ? (navigator.userAgent.indexOf("Presto") > -1 || 
                                                  navigator.userAgent.indexOf("Opera")  > -1 ||
                                                  navigator.userAgent.indexOf("OPR/")   > -1) : false,
+    },
+
+    /**
+        Stop debugger when check function fails.
+
+        @property debugOnCheckFail
+        @type Boolean
+        @default false
+        @static
+    */
+    debugOnCheckFail : false,
+    /**
+        Stop debugger when check function fails.
+
+        @property debugOnCheckFail
+        @type Boolean
+        @default false
+        @static
+    */
+    throwOnCheckFail : false,
+
+    checkDefined : function()
+    {
+        if (!TundraSDK.debugOnCheckFail && !TundraSDK.throwOnCheckFail)
+            return;
+        for (var i = 0; i < arguments.length; i++) {
+            if (arguments[i] === undefined) {
+                if (TundraSDK.debugOnCheckFail)
+                    debugger;
+                else if (TundraSDK.throwOnCheckFail)
+                    throw ("undefined value, arg #" + i);
+            }
+        }
+    },
+
+    check : function()
+    {
+        if (!TundraSDK.debugOnCheckFail && !TundraSDK.throwOnCheckFail)
+            return;
+
+        for (var i = 0; i < arguments.length; i++) {
+            if (arguments[i] !== true) {
+                if (TundraSDK.debugOnCheckFail)
+                    debugger;
+                else if (TundraSDK.throwOnCheckFail)
+                    throw ("untrue value" + arguments[i] + ", arg #" + i);
+            }
+        }
     }
 };
 

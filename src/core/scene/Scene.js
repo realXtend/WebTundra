@@ -117,6 +117,16 @@ var Scene = Class.$extend(
         }())
     },
 
+    /**
+        Utility function for log prints. Converts entity's id and name to a string and returns it.
+        @method toString
+        @return {String}
+    */
+    toString : function()
+    {
+        return "id=" + this.id + " entities=" + this.entities.length;
+    },
+
     postInitialize : function()
     {
         this.postInitialized = true;

@@ -7,18 +7,18 @@ define([
     ], function(THREE, OBJLoader, TundraSDK, IAsset) {
 
 /**
-    Represents a OBJ mesh asset. This asset is processed and Three.js rendering engine meshes are generated.
+    Represents a three.js json mesh asset. The input data is processed and Three.js rendering engine meshes are generated.
 
-    @class ObjMeshAsset
+    @class ThreeJsonAsset
     @extends IAsset
     @constructor
     @param {String} name Unique name of the asset, usually this is the asset reference.
 */
-var ObjMeshAsset = IAsset.$extend(
+var ThreeJsonAsset = IAsset.$extend(
 {
     __init__ : function(name)
     {
-        this.$super(name, "ObjMeshAsset");
+        this.$super(name, "ThreeJsonAsset");
 
         this.requiresCloning = true;
         /**
@@ -31,7 +31,7 @@ var ObjMeshAsset = IAsset.$extend(
 
     __classvars__ :
     {
-        Loader : new THREE.OBJLoader()
+        Loader : new THREE.JSONLoader()
     },
 
     isLoaded : function()
@@ -101,7 +101,7 @@ var ObjMeshAsset = IAsset.$extend(
         // The unloading mechanism will check when the geometry uuid is no longer used and
         // is safe to unload.
 
-        var meshAsset = new ObjMeshAsset(newAssetName);
+        var meshAsset = new ThreeJsonAsset(newAssetName);
         meshAsset.mesh = TundraSDK.framework.renderer.createSceneNode();
         for (var i=0, len=this.numSubmeshes(); i<len; ++i)
         {
@@ -135,11 +135,24 @@ var ObjMeshAsset = IAsset.$extend(
     {
         try
         {
-            this.mesh = ObjMeshAsset.Loader.parse(data);
+            var threejsData = ThreeJsonAsset.Loader.parse(data);
+
+            if (threejsData !== undefined && threejsData.geometry !== undefined)
+            {
+                /// @todo Check if a .json mesh can even return a single material and if this code is valid in that case.
+                var material = undefined;
+                if (threejsData.materials !== undefined)
+                    material = (threejsData.materials.length === 1 ? threejsData.materials[0] : new THREE.MeshFaceMaterial(threejsData.materials));
+
+                this.mesh = TundraSDK.framework.renderer.createSceneNode();
+                this.mesh.add(new THREE.Mesh(threejsData.geometry, material));
+            }
+            else
+                this.log.error("Parsing failed, three.js didnt return a valid geometry for", this.name);
         }
         catch(e)
         {
-            this.log.error("Failed to load OBJ mesh", this.name, e.toString());
+            this.log.error("Failed to load JSON mesh", this.name, e.toString());
             this.mesh = undefined;
         }
 
@@ -160,6 +173,6 @@ var ObjMeshAsset = IAsset.$extend(
     }
 });
 
-return ObjMeshAsset;
+return ThreeJsonAsset;
 
 }); // require js

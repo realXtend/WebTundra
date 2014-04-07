@@ -11,6 +11,7 @@ define([
         "core/renderer/RaycastResult",
         "core/asset/AssetFactory",
         "view/threejs/asset/ObjMeshAsset",
+        "view/threejs/asset/ThreeJsonAsset",
         "view/threejs/entity-components/EC_Fog_ThreeJs",
         "view/threejs/entity-components/EC_AnimationController_ThreeJs",
         "view/threejs/entity-components/EC_Camera_ThreeJs",
@@ -18,6 +19,7 @@ define([
         "view/threejs/entity-components/EC_Placeable_ThreeJs"
     ], function(Class, THREE, CSS3DRenderer, TundraSDK, TundraLogging, Scene, Color, IRenderSystem, RaycastResult, AssetFactory,
                 ObjMeshAsset,
+                ThreeJsonAsset,
                 EC_Fog_ThreeJs,
                 EC_AnimationController_ThreeJs,
                 EC_Camera_ThreeJs,
@@ -237,7 +239,11 @@ var ThreeJsRenderer = IRenderSystem.$extend(
 
     registerAssetFactories : function()
     {
-        TundraSDK.framework.asset.registerAssetFactory(new AssetFactory("ObjMesh", ObjMeshAsset, [ ".obj" ]));
+        /** @note It would be too wide of acceptance range if the three.js json accepted all .json file extensions.
+            .3geo is a three.js "standardized" extensions for mesh assets, but not widely used (yet).
+            You can load from .json/.js files via AssetAPI but you need to force the type to "ThreeJsonMesh". */
+        TundraSDK.framework.asset.registerAssetFactory(new AssetFactory("ThreeJsonMesh", ThreeJsonAsset, { ".3geo" : "json", ".json" : "json", ".js" : "json" }));
+        TundraSDK.framework.asset.registerAssetFactory(new AssetFactory("ObjMesh", ObjMeshAsset, { ".obj" : "text" }));
     },
 
     registerComponents : function()
