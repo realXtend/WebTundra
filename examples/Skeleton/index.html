@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Offline Test</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+</head>
+<body>
+
+	<!-- EC -->
+
+<script>
+    var Tundra = Tundra || {};
+    Tundra.checkDefined = function () {
+        for (var i = 0; i < arguments.length; i++) {
+            if (arguments[i] === undefined) {
+                if (debugOnCheckFail) {
+                    debugger;
+                } else {
+                    throw ("undefined value, arg #" + i);
+                }
+            }
+        }
+    }
+
+    Tundra.check = function () {
+        for (var i = 0; i < arguments.length; i++)
+            if (arguments[i] !== true)
+                if (debugOnCheckFail) {
+                    debugger;
+                } else {
+                    throw ("untrue value" + arguments[i] + ", arg #" + i);
+                }
+    }
+
+</script>
+
+
+	<script src="../../src/util/Signals.js"></script>
+	<script src="../../src/util/CompoundSignal.js"></script>
+	<script src="../../src/network/DataSerializer.js"></script>
+	<script src="../../src/network/DataDeserializer.js"></script>
+	<script src="../../src/network/WebSocketClient.js"></script>
+	<script src="../../src/network/SyncManager.js"></script>
+	<script src="../../src/scene/UniqueIdGenerator.js"></script>
+	<script src="../../src/scene/Attribute.js"></script>
+	<script src="../../src/scene/Component.js"></script>
+	<script src="../../src/scene/Entity.js"></script>
+	<script src="../../src/scene/Scene.js"></script>
+	<script src="../../src/scene/EC_DynamicComponent.js"></script>
+	<script src="../../src/scene/EC_EnvironmentLight.js"></script>
+	<script src="../../src/scene/EC_Mesh.js"></script>
+    <script src="../../src/scene/Bone.js"></script>
+	<script src="../../src/scene/EC_Name.js"></script>
+	<script src="../../src/scene/EC_Placeable.js"></script>
+	<script src="../../src/scene/EC_RigidBody.js"></script>
+	<script src="../../src/scene/EC_Script.js"></script>
+	<script src="../../src/scene/EC_Sky.js"></script>
+	<script src="../../src/scene/EC_Light.js"></script>
+	<script src="../../src/scene/EC_Camera.js"></script>
+	<script src="../../src/scene/EC_Sound.js"></script>
+	<script src="../../src/scene/EC_AnimationController.js"></script>
+	<script src="../../src/scene/EC_Avatar.js"></script>
+
+	<script src="../../src/view/js/Three.js"></script>
+	<script src="../../src/view/js/Detector.js"></script>
+	<script src="../../src/view/js/Stats.js"></script>
+	<script src="../../src/view/js/THREEx.KeyboardState.js"></script>
+	<script src="../../src/view/js/THREEx.FullScreen.js"></script>
+	<script src="../../src/view/js/THREEx.WindowResize.js"></script>
+
+    <script src="../../src/app.js"></script>
+	<script src="../../src/scene/SceneParser.js"></script>
+	<script src="../../src/WebTundraModel.js"></script>
+	<script src="../../src/view/ThreeView.js"></script>
+	<script src="../../src/view/EC_AnimationControllerView.js"></script>
+	<script src="../../src/view/EC_PlaceableView.js"></script>
+    <script src="../../src/view/BoneView.js"></script>
+
+	<!-- ------------------------------------------------------------ -->
+    <div id="ThreeJS" style="z-index: 1; position: absolute; left:0px; top:0px"></div>
+	<script>
+
+	"use strict";
+
+    var app = new Tundra.Application();
+    app.start();
+    CreateScene();
+    
+    function CreateBasicEntity( scene, data ) {
+        
+        var entity = scene.createEntity( 0 );
+        entity.createComponent( 0, Tundra.cComponentTypePlaceable );
+        
+        if ( data.mesh !== undefined ) {
+            var mesh = entity.createComponent(0, Tundra.cComponentTypeMesh);
+            var ref = mesh.meshRef
+            ref.ref = data.mesh;
+            mesh.meshRef = ref;
+        }
+        
+        if ( data.animationController !== undefined ) {
+            var animator = entity.createComponent(0, Tundra.cComponentTypeAnimation);
+        }
+        
+        if ( data.light !== undefined ) {
+            var light = entity.createComponent(0, Tundra.cComponentTypeLight);
+        }
+        
+        if ( data.camera !== undefined ) {
+            var light = entity.createComponent(0, Tundra.cComponentTypeCamera);
+        }
+        
+        return entity;
+        
+    }
+    
+    var robot, cam, animator;
+    
+    function CreateScene() {
+        
+        var scene = app.dataConnection.scene;
+        
+        robot = CreateBasicEntity( scene, { mesh:"robot.json", animationController:"" } );
+        robot.mesh.meshAssetReady.add(OnMeshLoaded);
+        
+        var light = CreateBasicEntity( scene, { light:"" } );
+        light.placeable.setPosition(0, 2, 0);
+        
+        cam = CreateBasicEntity( scene, { camera:"" } );
+        cam.placeable.setPosition(0, 5, 20);
+		cam.camera.lookAt(robot.placeable.transform.pos);
+        
+        animator = robot.animationController;
+        
+    }
+    
+    function OnMeshLoaded() {
+            
+        var bone = robot.mesh.skeleton.getBone("hips");
+        bone.enableAnimation(false);
+
+        var bone = robot.mesh.skeleton.getBone("thigh.R");
+        bone.enableAnimation(false, true);
+        var rot = bone.getRotation();
+        rot.z += -90 * (Math.PI / 180);
+        bone.setRotation(rot);
+
+        bone = robot.mesh.skeleton.getBone("thigh.L");
+        bone.enableAnimation(false, true);
+        rot = bone.getRotation();
+        rot.z += 90 * (Math.PI / 180);
+        bone.setRotation(rot);
+
+        animator.playLooped("Run");
+        
+    }
+
+	</script>
+
+	<div id="ThreeJS" style="z-index: 1; position: absolute; left:0px; top:0px"></div>
+
+	</body>
+</html>

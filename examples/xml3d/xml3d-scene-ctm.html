@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Style -->
+    <link rel="stylesheet" type="text/css" media="all" href="../../style/page.css"/>
+    <!-- Scripts -->
+    <script type="text/javascript" src="../../script/xml3d.js"></script>
+
+    <script type="text/javascript" src="./lzma.js"></script>
+    <script type="text/javascript" src="./ctm.js"></script>
+    <script type="text/javascript" src="./openctm-loader.js"></script>
+
+    <script type="text/javascript" src="../../script/xml3d-motion.js"></script>
+    <script type="text/javascript" src="../../script/jquery.min.js"></script>
+    <script type="text/javascript" src="../../script/page.js"></script>
+    <script type="text/javascript">
+        window.addEventListener('load', function () {
+            var controller = new XMOT.ExamineController(document.getElementById("viewGroup"),
+                    {revolveAroundPoint:new XML3DVec3(0, 0, 0), dollySpeed:40, sceneRadius:10});
+            var xml3d = document.getElementById("MyXml3d");
+            xml3d.addEventListener("mousedown", function (e) {
+                controller.start({x:e.clientX, y:e.clientY}, e.button == 2 ? XMOT.ExamineController.DOLLY : XMOT.ExamineController.ROTATE);
+            }, false);
+            window.addEventListener("mouseup", function () {
+                controller.stop();
+            }, false);
+            window.addEventListener("mousemove", function (e) {
+                controller.doAction({x:e.clientX, y:e.clientY});
+            }, false);
+        }, false);
+    </script>
+    <style>
+        .xml3d {
+            background-image: -webkit-linear-gradient(top, #000 0%, #7878f0 100%);
+            background-image: -moz-linear-gradient(top, #000 0%, #7878f0 100%);
+        }
+    </style>
+    <title>XML3D Examples</title>
+
+</head>
+<body>
+<div id="overall">
+    <div id="content">
+        <h1>External Reference in OpenCTM format</h1>
+
+        <xml3d id="MyXml3d" activeView="#defaultView" class="xml3d"
+               style="width: 600px; height: 400px;" >
+            <defs id="mainDef">
+
+            <transform id="t_Lamp"
+                       rotation="0.205942 0.331517 0.920698 1.926274"
+                       scale="1.000000 1.000000 1.000000"
+                       translation="4.076245 1.005454 5.903862"></transform>
+
+            <lightshader id="ls_Spot" script="urn:xml3d:lightshader:point">
+              <bool name="castShadow">true</bool>
+              <float3 name="attenuation">1.000000 0.033333 0.000000</float3>
+              <float3 name="intensity">1.000000 1.000000 1.000000</float3>
+            </lightshader>
+
+
+            <shader id="Material" script="urn:xml3d:shader:phong">
+              <float name="ambientIntensity">0.1</float>
+              <float3 name="diffuseColor">1 1 1</float3>
+              <float3 name="specularColor">0.500000 0.500000 0.500000</float3>
+              <float name="shininess">0.2</float>
+              <texture name="diffuseTexture">
+                <img src="raf22031.jpg" />
+              </texture>
+            </shader>
+
+            <transform id="t_camera" translation="0 0 10" rotation="0 0 1 0"></transform>
+
+            </defs>
+
+            <group id="viewGroup" transform="#t_camera">
+              <view id="defaultView"></view>
+            </group>
+            <group shader="#Material">
+              <mesh id="car" src="./raf22031.ctm" type="triangles"></mesh>
+            </group>
+
+            <group transform="#t_Lamp">
+              <light shader="#ls_Spot"></light>
+            </group>
+        </xml3d>
+
+        <div class="description">
+            The displayed mesh (<a href="http://en.wikipedia.org/wiki/RAF-2203">RAF-22031</a>) is from the <a href="http://openctm.sourceforge.net/">OpenCTM</a> sample set.
+            The model was designed by Alexander V. Belov, and can be found at
+            <a href="http://www.the3dstudio.com/product_details.aspx?id_product=60673">The3dStudio.com</a>.
+            Model is loaded with the open source <a href="http://code.google.com/p/js-openctm/">js-openctm</a> library.
+            <a href="./licenses.txt">Here</a> is the js-openctm license.
+        </div>
+    </div>
+</div>
+</body>
+</html>
