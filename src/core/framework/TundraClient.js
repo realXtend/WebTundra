@@ -69,6 +69,9 @@ define([
                 "Application name" : scriptRef
             },
 
+            // If UI loading screen should be enabled
+            loadingScreen : true,
+
             // If taskbar should be created. Default: true.
             taskbar   : true,
 

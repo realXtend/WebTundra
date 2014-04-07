@@ -59,6 +59,14 @@ require([
              //InputTouchPlugin
              )
 {
+    /** Set to true if you dont want loading screen, login controls
+        and want a free camera to be created when apge loads.
+        Enabled local app development without the need to tweak the client/APIs.
+        @todo Make this clean by removing load screen from core and making it a plugin.
+        @todo Additionally make ICameraApplication listing in TundraClient a plugin, the
+        client is not the right place for it. */
+    var localApp = false;
+
     // Create a new Web Rocket client
     var client = new Client({
         container              : "#webtundra-container-custom",
@@ -66,7 +74,8 @@ require([
         asset : {
             localStoragePath   : "",
             scriptPostFix      : ""
-        }
+        },
+        loadingScreen : !localApp
     });
 
     // Run application. EC_Script is not yet implemented in the WebTundra SDK
@@ -74,6 +83,8 @@ require([
     $.getScript("../src/application/freecamera.js")
         .done(function( script, textStatus ) {
             var freecamera = new FreeCameraApplication();
+            if (localApp)
+                freecamera.createCamera();
         })
         .fail(function( jqxhr, settings, exception ) {
             console.error(exception);
@@ -164,4 +175,7 @@ require([
         loginButton.text("Connect");
         loginControls.fadeIn(1000);
     });
+
+    if (localApp)
+        loginControls.hide();
 });

@@ -139,6 +139,11 @@ var Scene = Class.$extend(
 
     onDumpScene : function(parameters)
     {
+        if (this.entities.length === 0)
+        {
+            this.log.info("Current scene has no entities");
+            return;
+        }
         this.log.info("");
 
         var foundMatch = false;
@@ -172,7 +177,7 @@ var Scene = Class.$extend(
                 }
             }
         }
-        if (!foundMatch)
+        if (!foundMatch && entName !== undefined)
             this.log.error("Failed to find entity '" + entName + "'");
     },
 

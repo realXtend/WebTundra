@@ -20,6 +20,13 @@ var FreeCameraApplication = ICameraApplication.$extend(
 
     onConnected : function()
     {
+        this.createCamera();
+    },
+
+    createCamera : function()
+    {
+        this.onDisconnected();
+
         this.movement = new THREE.Vector3(0,0,0);
         this.movementForce = 10.0;
 
