@@ -64,7 +64,7 @@ var AssetFactory = Class.$extend(
             return false;
 
         var assetRefLower = assetRef.toLowerCase();
-        for (var i=0; i<this.typeExtensions.length; ++i)
+        for (var i in this.typeExtensions)
         {
             if (CoreStringUtils.endsWith(assetRef, this.typeExtensions[i]))
                 return true;
