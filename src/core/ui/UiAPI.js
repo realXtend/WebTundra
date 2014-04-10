@@ -21,9 +21,7 @@ var UiAPI = Class.$extend(
 
         this.buttons = [];
         this.numContextMenus = 0;
-        this.loadingScreen = null;
 
-        this.loadingScreenEnabled = (params.loadingScreen === false ? false : true);
         this.createTaskbar(params.taskbar);
         this.createConsole(params.console);
 
@@ -71,9 +69,6 @@ var UiAPI = Class.$extend(
         this.fps.cachedVisible = false;
 
         this.addWidgetToScene(this.fps);
-
-        // Loading screen
-        this.showLoadingScreen();
 
         // Arrage UI elements
         this.onWindowResizeInternal();
@@ -573,191 +568,13 @@ var UiAPI = Class.$extend(
         }
     },
 
-    isLoadingScreenVisible : function()
-    {
-        return (this.loadingScreen != null);
-    },
-
-    showLoadingScreen : function()
-    {
-        if (!this.loadingScreenEnabled || this.loadingScreen != null)
-            return;
-
-        this.loadingScreen = { done: false };
-
-        this.loadingScreen.screen = $("<div/>", { id : "webtundra-loading-screen" });
-        this.loadingScreen.screen.css({
-            "position"          : "absolute",
-            "width"             : "100%",
-            "height"            : "100%",
-            "background-color"  : "rgb(248,248,248)"
-        });
-
-        if (TundraSDK.browser.isOpera)
-            this.loadingScreen.screen.css("background-image", "-o-linear-gradient(rgb(248,248,248),rgb(190,190,190))");
-        else if (TundraSDK.browser.isFirefox)
-            this.loadingScreen.screen.css("background-image", "-moz-linear-gradient(top, rgb(248,248,248), rgb(190,190,190))");
-        else if (TundraSDK.browser.isChrome || TundraSDK.browser.isSafari)
-            this.loadingScreen.screen.css("background-image", "-webkit-gradient(linear, left top, left bottom, color-stop(0, rgb(248,248,248)), color-stop(0.8, rgb(190,190,190)))");
-
-        this.loadingScreen.text = $("<div/>", {
-            id   : "webtundra-loading-screen-label",
-        }).css({
-            "color"             : "rgb(50,50,50)",
-            "text-align"        : "center",
-            "font-family"       : "Verdana",
-            "font-weight"       : "bold",
-            "font-size"         : "36pt",
-            "text-align"        : "center",
-            "vertical-align"    : "center",
-            "text-decoration"   : "none"
-        });
-        var rexLink = $("<a/>", {
-            text   : "realXtend WebTundra",
-            href   : "https://github.com/realXtend/WebTundra",
-            target : "_blank"
-        });
-        rexLink.css({
-            "color"             : "rgb(50,50,50)",
-            "text-align"        : "center",
-            "font-family"       : "Verdana",
-            "font-weight"       : "bold",
-            "font-size"         : "36pt",
-            "text-align"        : "center",
-            "vertical-align"    : "bottom",
-            "text-decoration"   : "none"
-        });
-        this.loadingScreen.text.append(rexLink);
-
-        this.loadingScreen.progress = $("<div/>", {
-            id   : "webtundra-loading-screen-progress"
-        });
-        this.loadingScreen.progress.css({
-            "color"             : "rgba(50,50,50, 0.0)",
-            "text-align"        : "center",
-            "font-family"       : "Verdana",
-            "font-weight"       : "bold",
-            "font-size"         : "80pt",
-            "vertical-align"    : "center"
-        });
-        this.loadingScreen.progress.hide();
-
-        this.loadingScreen.hideButton = $("<div/>", {
-            id   : "webtundra-loading-screen-hidebutton",
-            html : "Hide Loading Screen"
-        });
-        this.loadingScreen.hideButton.css({
-            "color"             : "rgba(50,50,50,0.6)",
-            "font-family"       : "Verdana",
-            "font-weight"       : "bold",
-            "font-size"         : "7pt",
-            "position"          : "absolute",
-            "top"               : 5,
-            "left"              : 5
-        });
-        this.loadingScreen.hideButton.click( function(e) {
-            if (TundraSDK.framework.ui.loadingScreen.progress.text() != "")
-            {
-                TundraSDK.framework.ui.hideLoadingScreen();
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        });
-
-        this.loadingScreen.screen.append(this.loadingScreen.hideButton);
-        this.loadingScreen.screen.append(this.loadingScreen.text);
-        this.loadingScreen.screen.append(this.loadingScreen.progress);
-
-        this.addWidgetToScene(this.loadingScreen.screen);
-
-        this.loadingScreen.text.hide();
-        this.loadingScreen.text.fadeIn(1000);
-
-        this.onWindowResizeInternal();
-    },
-
-    /**
-        Updates the scene loading screen with your text and progress percentage. Does nothing if loading screen has been hidden.
-        @method updateLoadingScreen
-        @param {String} [text=null] Text to show
-        @param {Number} [progress=null] Progress percentage to show with range 0-100.
-    */
-    updateLoadingScreen : function(text, progress)
-    {
-        // We don't have a network connection, this must be triggered from loading startup applications.
-        if (TundraSDK.framework.client.websocket === null)
-            return;
-
-        if (!this.loadingScreenEnabled || this.loadingScreen == null || this.loadingScreen.done)
-            return;
-
-        if (text != null && this.loadingScreen.text != null)
-            this.loadingScreen.text.text(text);
-        if (progress != null && this.loadingScreen.progress != null)
-        {
-            if (this.loadingScreen.completedOnce !== undefined && this.loadingScreen.completedOnce === true)
-                return;
-
-            var wasVisible = this.loadingScreen.progress.is(":visible");
-            if (progress < 100)
-            {
-                var stop = progress/100.0;
-                if (stop > 0.9) stop = 0.9;
-                this.loadingScreen.progress.html(progress + "<span style='font-size: 20pt;color:rgba(50,50,50," + stop + ");'>%</span>");
-                this.loadingScreen.progress.css("color", "rgba(242,154,41, " + stop + ")");
-            }
-            else
-            {
-                this.loadingScreen.completedOnce = true;
-                this.loadingScreen.text.html("Loading completed<br><span style='color:rgba(50,50,50, 0.4);font-size: 28pt';>Please wait</span>");
-                this.loadingScreen.progress.text("");
-                this.loadingScreen.progress.hide();
-                this.onWindowResizeInternal();
-            }
-
-            if (!wasVisible)
-            {
-                this.loadingScreen.progress.show();
-                this.onWindowResizeInternal();
-            }
-        }
-    },
-
-    /**
-        Hides the loading screen revealing the 3D rendering. Does nothing if the loading screen is already hidden.
-        @method hideLoadingScreen
-    */
-    hideLoadingScreen : function()
-    {
-        // We don't have a network connection, this must be triggered from loading startup applications.
-        if (TundraSDK.framework.client.websocket === null)
-            return;
-
-        if (this.loadingScreen == null || this.loadingScreen.done)
-            return;
-
-        this.loadingScreen.done = true;
-        this.loadingScreen.hideButton.remove();
-
-        var that = this;
-        this.loadingScreen.screen.fadeOut(2000, function() {
-            that.loadingScreen.screen.remove();
-            that.loadingScreen.screen = null;
-            that.loadingScreen = null;
-            that.onWindowResizeInternal();
-        });
-    },
-
     onKeyPress : function(event)
     {
         if (event.key === "1" && event.targetNodeName !== "input")
         {
-            if (this.loadingScreen == null)
-            {
-                if (this.consoleInput.is(":visible") && this.consoleInput.is(":focus"))
-                    return;
-                this.toggleConsole();
-            }
+            if (this.consoleInput.is(":visible") && this.consoleInput.is(":focus"))
+                return;
+            this.toggleConsole();
         }
     },
 
@@ -884,27 +701,6 @@ var UiAPI = Class.$extend(
                 my : "right top",
                 at : "right-20 top",
                 of : TundraSDK.framework.client.container
-            });
-        }
-
-        if (this.loadingScreen != null && !this.loadingScreen.done)
-        {
-            this.loadingScreen.screen.position({
-                my : "left top",
-                at : "left top",
-                of : this.loadingScreen.screen.parent()
-            });
-
-            this.loadingScreen.text.position({
-                my : "left top",
-                at : "left top+100",
-                of : this.loadingScreen.screen
-            });
-
-            this.loadingScreen.progress.position({
-                my : "left top",
-                at : "left bottom+25",
-                of : this.loadingScreen.text
             });
         }
     }

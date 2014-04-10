@@ -296,7 +296,11 @@ var AssetAPI = Class.$extend(
                     if (TundraSDK.framework.asset.transfers.length === 0)
                     {
                         TundraSDK.framework.client.logInfo("[AssetAPI]: All asset transfers done", true);
-                        TundraSDK.framework.ui.hideLoadingScreen();
+
+                        // @todo Move this detection to LoginScreenPlugin.
+                        var loginScreenPlugin = TundraSDK.plugin("LoginScreenPlugin");
+                        if (loginScreenPlugin != null)
+                            loginScreenPlugin.hideLoadingScreen();
 
                         if (TundraSDK.framework.client.networkDebugLogging === true)
                         {
@@ -691,15 +695,19 @@ var AssetAPI = Class.$extend(
             }
         }
 
-        // Update loading screen
-        if (this.transfersPeak > 0)
+        /** @todo This should be moved to LoginScreenPlugin once AssetAPI provides a root level event
+            to detect when a transfer completes/fails or the transfer queue num changes.
+            It is not ideal that a core API knows about a plugin like this. */
+        var loginScreenPlugin = TundraSDK.plugin("LoginScreenPlugin");
+        if (loginScreenPlugin != null && this.transfersPeak > 0)
         {
             // Don' let the progress go below last set %
             var progress = Number(100 - (this.transfers.length / this.transfersPeak) * 100);
             if (progress > this.loadProgress)
             {
                 this.loadProgress = progress;
-                TundraSDK.framework.ui.updateLoadingScreen(null, progress.toFixed(0));
+                console.log(this.loadProgress);
+                loginScreenPlugin.updateLoadingScreen(null, progress.toFixed(0));
             }
         }
     },

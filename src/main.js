@@ -45,19 +45,14 @@ require([
         // Renderer
         "view/threejs/ThreeJsRenderer",
         // Plugins
-        "plugins/dom-integration/TundraDomIntegrationPlugin"
-        // Input plugins
-        //"core/input/InputGamepadPlugin",      /// @todo Check that this works and enable.
-        //"core/input/InputTouchPlugin",        /// @todo Check that this works and enable.
-
+        "plugins/dom-integration/TundraDomIntegrationPlugin",
+        "plugins/login-screen/LoginScreenPlugin"
     ],
     function($, _jqueryUI, _jqueryMW, _jqueryTA,
              Client,
              ThreeJsRenderer,
-             TundraDomIntegrationPlugin
-             //InputGamepadPlugin,
-             //InputTouchPlugin
-             )
+             TundraDomIntegrationPlugin,
+             LoginScreenPlugin)
 {
     /** Set to true if you dont want loading screen, login controls
         and want a free camera to be created when apge loads.
@@ -86,96 +81,8 @@ require([
             if (localApp)
                 freecamera.createCamera();
         })
-        .fail(function( jqxhr, settings, exception ) {
-            console.error(exception);
+        .fail(function(jqxhr, settings, exception) {
+            console.error("Failed to load FreeCamera application:", exception);
         }
     );
-
-    // Create login widgets
-    var loginControls = $("<div/>", {
-        id      : "login-controls"
-    });
-    var loginHost = $("<input/>", {
-        id      : "login-host",
-        type    : "text",
-        value   : "ws://127.0.0.1:2345"
-    });
-    var loginUsername = $("<input/>", {
-        id      : "login-username",
-        type    : "text",
-        value   : "WebTundra User"
-    });
-    var loginButton = $("<button/>", {
-        id : "login-button",
-        text : "Connect",
-        css : {
-            "font-size"   : 12,
-        }
-    }).button();
-
-    loginControls.css({
-        "position"  : "absolute",
-        "top"       : 160,
-        "left"      : 0,
-        "width"     : "100%",
-        "padding"   : 10,
-        "border"    : 0,
-        "z-index"   : 6,
-        "text-align"  : "center",
-        "font-family" : "Arial",
-        "font-size"   : 14,
-        "font-weight" : "bold",
-        "background-color" : "transparent"
-    });
-
-    var inputs = [ loginHost, loginUsername, loginButton ];
-    for (var i = 0; i < inputs.length; i++)
-    {
-        inputs[i].css({
-            "min-width"     : 100,
-            "max-height"    : 25,
-            "margin-left"   : 6,
-            "margin-right"  : 9,
-            "padding"       : inputs[i] === loginButton ? 0 : 3,
-            "border"        : "1px solid lightgrey",
-            "border-radius" : 4
-        });
-    }
-
-    loginControls.append("Host");
-    loginControls.append(loginHost);
-    loginControls.append("Username");
-    loginControls.append(loginUsername);
-    loginControls.append(loginButton);
-    loginControls.fadeIn(1000);
-
-    client.ui.addWidgetToScene(loginControls);
-
-    loginButton.click(function() {
-        if (!client.isConnected())
-            client.connect(loginHost.val(), { username: loginUsername.val() });
-        else
-            client.disconnect();
-    });
-
-    // Connected to server
-    client.onConnected(null, function() {
-        loginHost.attr("disabled", "disabled");
-        loginUsername.attr("disabled", "disabled");
-        loginButton.text("Disconnect");
-        loginControls.hide();
-
-        client.ui.hideLoadingScreen();
-    });
-
-    // Disconnected from server
-    client.onDisconnected(null, function() {
-        loginHost.removeAttr("disabled");
-        loginUsername.removeAttr("disabled");
-        loginButton.text("Connect");
-        loginControls.fadeIn(1000);
-    });
-
-    if (localApp)
-        loginControls.hide();
 });

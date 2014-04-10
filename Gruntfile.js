@@ -102,7 +102,11 @@ module.exports = function(grunt) {
                     name : "core/framework/TundraClient",
 
                     include : [
-                        "view/threejs/ThreeJsRenderer"
+                        // Renderer
+                        "view/threejs/ThreeJsRenderer",
+                        // Plugins for default SDK deployment
+                        "plugins/dom-integration/TundraDomIntegrationPlugin",
+                        "plugins/login-screen/LoginScreenPlugin"
                     ],
 
                     skipProcessingModules : [

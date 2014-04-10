@@ -69,9 +69,6 @@ define([
                 "Application name" : scriptRef
             },
 
-            // If UI loading screen should be enabled
-            loadingScreen : true,
-
             // If taskbar should be created. Default: true.
             taskbar   : true,
 
@@ -776,9 +773,6 @@ var TundraClient = Class.$extend(
         var that = TundraSDK.framework.client;
         that.log.infoC("Server connection established");
 
-        // Show loading screen
-        that.ui.updateLoadingScreen("Loading 3D Space", 0);
-
         // Send login message
         var message = new LoginMessage();
         message.serialize(JSON.stringify(that.loginProperties));
@@ -799,15 +793,10 @@ var TundraClient = Class.$extend(
     {
         var that = TundraSDK.framework.client;
         that.log.infoC("Server connection disconnected");
-
-        // Fire event
-        that.events.send("TundraClient.Disconnected");
+        that.events.send("TundraClient.Disconnected", event);
 
         // Reset client and all APIs
         that.reset();
-
-        // Show loading screen
-        that.ui.showLoadingScreen();
     },
 
     onWebSocketMessage : function(event)
