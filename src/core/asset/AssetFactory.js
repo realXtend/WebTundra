@@ -10,9 +10,11 @@ define([
     @class AssetFactory
     @constructor
     @param {String} name Name of the factory.
-    @param {Array} typeExtensions List of lower cased file extension strings this factory supports.
-    If 'undefined' this asset can only be created via forcing the request type to assetType in AssetAPI.requestAsset. 
     @param {IAsset} assetClass Asset class that new assets are created from. 
+    @param {Object} typeExtensions Map of lower cased file extension to the network request data type.
+    If 'undefined' this asset can only be created via forcing the request type to assetType in AssetAPI.requestAsset.
+    Or you can do more complex logic by overriding requestDataType and canCreate functions.
+    @param {String} defaultDataType Default network request data type for example 'xml', 'text', 'arraybuffer', 'json' etc.
 */
 var AssetFactory = Class.$extend(
 {
@@ -60,13 +62,13 @@ var AssetFactory = Class.$extend(
     */
     canCreate : function(assetRef)
     {
-        if (this.typeExtensions === undefined)
+        if (this.typeExtensions === undefined || this.typeExtensions === null)
             return false;
 
         var assetRefLower = assetRef.toLowerCase();
-        for (var i in this.typeExtensions)
+        for (var supportedSuffix in this.typeExtensions)
         {
-            if (CoreStringUtils.endsWith(assetRef, this.typeExtensions[i]))
+            if (CoreStringUtils.endsWith(assetRef, supportedSuffix))
                 return true;
         }
         return false;
