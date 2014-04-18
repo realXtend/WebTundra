@@ -64,12 +64,8 @@ require([
 
     // Create a new Web Rocket client
     var client = new Client({
-        container              : "#webtundra-container-custom",
-        renderSystem           : ThreeJsRenderer,
-        asset : {
-            localStoragePath   : "",
-            scriptPostFix      : ""
-        },
+        container     : "#webtundra-container-custom",
+        renderSystem  : ThreeJsRenderer,
         loadingScreen : !localApp
     });
 

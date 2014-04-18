@@ -80,10 +80,8 @@ define([
 
             // Asset related information
             asset     : {
-                // Storage path where rocket media files are stored. Default: Same path as the hosted page.
-                localStoragePath : "",
-                // Script postfix for local scripts. With "-production" script ref of "my.js" will become "my-production.js" Default: Empty string.
-                scriptPostFix    : ""
+                // Storage path webtundra:// refs will be resovled to. Default: Same path as the hosted page.
+                localStoragePath : ""
             }
         });
     @param {Object} [params={}] An configuration object that setups the client.
@@ -97,6 +95,7 @@ var TundraClient = Class.$extend(
 
         // Default params
         // @todo Nicer sytax here with 'params.something = params.something || <default-value>;'?
+        // @todo Move these to be done by the code that is expecting the values, stupid to do here.
         if (params === undefined || params === null)
             params = {};
         if (params.renderSystem === undefined || params.renderSystem === null)
@@ -113,8 +112,6 @@ var TundraClient = Class.$extend(
             params.asset = {}
         if (params.asset.localStoragePath === undefined)
             params.asset.localStoragePath = "";
-        if (params.asset.scriptPostFix === undefined)
-            params.asset.scriptPostFix = "";
         if (params.container === undefined || params.container === null)
         {
             /**

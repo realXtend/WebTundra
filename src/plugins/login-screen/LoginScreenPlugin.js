@@ -31,25 +31,62 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
         // Private
         this.ui = {};
         this.loadingScreen = null;
+        this.transfersPeak = 0;
+        this.transfersProgress = -1;
     },
 
     __classvars__ :
     {
-        /** If login controls are enabled and should be shown.
-            LoginScreenPlugin.LoginControlsEnabled = false; */
+        /**
+            If login controls are enabled and should be shown.
+                
+            @property LoginControlsEnabled
+            @type Boolean
+            @static
+        */
         LoginControlsEnabled : true,
-
-        /** If loading screen is enabled and should be shown.
-            LoginScreenPlugin.LoadingScreenEnabled = false; */
+        /** 
+            If loading screen is enabled and should be shown.
+            
+            @property LoadingScreenEnabled
+            @type Boolean
+            @static
+        */
         LoadingScreenEnabled : true,
-
-        /** Text that appears to the loading screen while 
-            the world assets are being loaded */
-        LoadingScreenConnectingText : "Loading 3D Space",
-
-        /// Loading screen header text
+        /** 
+            If loading screen should auto update asset progress.
+            This does not disable hiding loading screen after all 
+            asset transfers have completed.
+            
+            @property LoadingScreenAutoUpdateAssetProgress
+            @type Boolean
+            @static
+        */
+        LoadingScreenAutoUpdateAssetProgress : true,
+        /**
+            Text that appears to the loading screen while 
+            the world assets are being loaded
+            
+            @property LoadingScreenConnectingText
+            @type String
+            @static
+        */
+        LoadingScreenConnectingText : "Loading Scene",
+        /**
+            Loading screen header text.
+            
+            @property LoadingScreenHeaderText
+            @type String
+            @static
+        */
         LoadingScreenHeaderText     : "realXtend WebTundra",
-        /// Loading screen header link url
+        /** 
+            Loading screen header link url.
+            
+            @property LoadingScreenHeaderLinkUrl
+            @type String
+            @static
+        */
         LoadingScreenHeaderLinkUrl  : "https://github.com/realXtend/WebTundra"
     },
 
@@ -58,6 +95,7 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
         this.framework.client.onConnectionError(this, this.onConnectionError);
         this.framework.client.onConnected(this, this.onConnectedToServer);
         this.framework.client.onDisconnected(this, this.onDisconnectedFromServer);
+        this.framework.asset.onActiveAssetTransferCountChanged(this, this.onActiveAssetTransferCountChanged);
         this.framework.ui.onWindowResize(this, this.onWindowResized);
 
         this.createLoginControls();
@@ -175,13 +213,13 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
             this.ui.loginUsername.attr("disabled", "disabled");
             this.ui.loginButton.button("option", "label", "Disconnect");
 
-            this.hideLoginControls();
+            this.hideLoginControls(false);
 
+            /** This is here to hide the screen if no assets from the scene failed to ever
+                get started by AssetAPI. For example it being full of Ogre assets that can't
+                be loaded with WebTundra. */
             setTimeout(function() {
-                /** This is here to hide the screen if no assets from the scene failed to ever
-                    get started by AssetAPI. For example it being full of Ogre assets that can't
-                    be loaded with WebTundra. */
-                if (this.isLoadingScreenVisible() && this.framework.asset.transfers.length === 0)
+                if (this.isLoadingScreenVisible() && this.framework.asset.allTransfersCompleted())
                 {
                     this.log.debug("Seems there are no pending asset transfers, hiding loading screen...");
                     this.hideLoadingScreen();
@@ -212,9 +250,12 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
         this.ui.loginControls.fadeIn(1000);
     },
 
-    hideLoginControls : function()
+    hideLoginControls : function(animate)
     {
-        this.ui.loginControls.fadeOut(500);
+        if (animate === undefined || animate === true)
+            this.ui.loginControls.fadeOut(500);
+        else
+            this.ui.loginControls.hide();
     },
 
     isLoadingScreenVisible : function()
@@ -228,6 +269,8 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
             return;
 
         this.loadingScreen = { done: false };
+        this.transfersPeak = 0;
+        this.transfersProgress = -1;
 
         this.loadingScreen.screen = $("<div/>", { id : "webtundra-loading-screen" });
         this.loadingScreen.screen.css({
@@ -383,6 +426,9 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
         if (this.loadingScreen == null || this.loadingScreen.done)
             return;
 
+        this.transfersPeak = 0;
+        this.transfersProgress = -1;
+
         this.loadingScreen.done = true;
         this.loadingScreen.hideButton.remove();
 
@@ -416,6 +462,34 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
                 at : "left bottom+25",
                 of : this.loadingScreen.text
             });
+        }
+    },
+
+    onActiveAssetTransferCountChanged : function(numTransfers)
+    {
+        if (!LoginScreenPlugin.LoadingScreenEnabled || this.loadingScreen == null || this.loadingScreen.done)
+            return;
+
+        if (this.transfersPeak < numTransfers)
+            this.transfersPeak = numTransfers;
+
+        if (LoginScreenPlugin.LoadingScreenAutoUpdateAssetProgress && this.transfersPeak > 0)
+        {
+            // Don' let the progress go below last previously set %
+            var progress = Number(100 - (numTransfers / this.transfersPeak) * 100);
+            if (progress > this.transfersProgress)
+            {
+                this.transfersProgress = progress;
+                this.updateLoadingScreen(null, progress.toFixed(0));
+            }
+        }
+        if (numTransfers === 0)
+        {
+            // Put a slight delay on transfers completed and hiding the UI
+            setTimeout(function() {
+                if (this.framework.asset.allTransfersCompleted())
+                    this.hideLoadingScreen();
+            }.bind(this), 500)
         }
     }
 });
