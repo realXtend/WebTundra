@@ -176,6 +176,17 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
             this.ui.loginButton.button("option", "label", "Disconnect");
 
             this.hideLoginControls();
+
+            setTimeout(function() {
+                /** This is here to hide the screen if no assets from the scene failed to ever
+                    get started by AssetAPI. For example it being full of Ogre assets that can't
+                    be loaded with WebTundra. */
+                if (this.isLoadingScreenVisible() && this.framework.asset.transfers.length === 0)
+                {
+                    this.log.debug("Seems there are no pending asset transfers, hiding loading screen...");
+                    this.hideLoadingScreen();
+                }
+            }.bind(this), 2500);
         }
     },
 
