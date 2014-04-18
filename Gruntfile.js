@@ -103,10 +103,7 @@ module.exports = function(grunt) {
 
                     include : [
                         // Renderer
-                        "view/threejs/ThreeJsRenderer",
-                        // Plugins for default SDK deployment
-                        "plugins/dom-integration/TundraDomIntegrationPlugin",
-                        "plugins/login-screen/LoginScreenPlugin"
+                        "view/threejs/ThreeJsRenderer"
                     ],
 
                     skipProcessingModules : [
