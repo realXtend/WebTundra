@@ -128,6 +128,12 @@ var AssetAPI = Class.$extend(
         return AssetAPI.httpProxyResolver;
     },
 
+    /**
+        Registers a new asset factory.
+        @method registerAssetFactory
+        @param {AssetFactory} assetFactory
+        @return {Boolean} If registration was successful.
+    */
     registerAssetFactory : function(assetFactory)
     {
         if (!(assetFactory instanceof AssetFactory))
@@ -145,8 +151,8 @@ var AssetAPI = Class.$extend(
             }
         }
         this.factories.push(assetFactory);
-        if (assetFactory.typeExtensions !== undefined)
-            this.log.debug("Registered factory", assetFactory.assetType, assetFactory.typeExtensions);
+        if (assetFactory.typeExtensions !== undefined && assetFactory.supportedSuffixes().length > 0)
+            this.log.debug("Registered factory", assetFactory.assetType, assetFactory.supportedSuffixes());
         else
             this.log.debug("Registered factory", assetFactory.assetType);
         return true;
@@ -199,6 +205,8 @@ var AssetAPI = Class.$extend(
         this.startMonitoring = false;
         this.tranferCheckT = 0.0;
         this.tranferCheckInterval = 0.1;
+
+        this.noFactoryErrors = {};
 
         // Reset static asset transfer tracking data.
         AssetTransfer.reset();
@@ -292,6 +300,8 @@ var AssetAPI = Class.$extend(
                         return;
 
                     this.log.infoC("All asset transfers done");
+                    this.noFactoryErrors = {};
+
                     if (TundraSDK.framework.client.networkDebugLogging === true)
                     {
                         var loadedAssets = {};
@@ -467,10 +477,15 @@ var AssetAPI = Class.$extend(
         var factory = this.getAssetFactory(ref, forcedAssetType);
         if (factory === null)
         {
-            if (typeof forcedAssetType === "string")
-                this.log.error("Failed to find an AssetFactory with type '" + forcedAssetType + "':", ref);
-            else
-                this.log.error("Failed to find an AssetFactory with suffix '" + CoreStringUtils.extension(ref) + "':", ref);
+            var logged = this.noFactoryErrors[ref];
+            if (logged === undefined)
+            {
+                if (typeof forcedAssetType === "string")
+                    this.log.error("No registered AssetFactory for type '" + forcedAssetType + "':", ref);
+                else
+                    this.log.error("No registered AssetFactory for suffix '" + CoreStringUtils.extension(ref) + "':", ref);
+                this.noFactoryErrors[ref] = true;
+            }
             return null;
         }
 

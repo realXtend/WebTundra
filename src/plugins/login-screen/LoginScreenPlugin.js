@@ -102,6 +102,12 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
         this.showLoadingScreen();
     },
 
+    hide : function()
+    {
+        this.hideLoginControls();
+        this.hideLoadingScreen(true);
+    },
+
     createLoginControls : function()
     {
         if (!LoginScreenPlugin.LoginControlsEnabled)
@@ -252,6 +258,9 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
 
     hideLoginControls : function(animate)
     {
+        if (this.ui.loginControls === undefined)
+            return;
+
         if (animate === undefined || animate === true)
             this.ui.loginControls.fadeOut(500);
         else
@@ -417,10 +426,13 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
         Hides the loading screen revealing the 3D rendering. Does nothing if the loading screen is already hidden.
         @method hideLoadingScreen
     */
-    hideLoadingScreen : function()
+    hideLoadingScreen : function(ignoreConnectedState)
     {
+        if (ignoreConnectedState === undefined)
+            ignoreConnectedState = false;
+
         // We don't have a network connection, this must be triggered from loading startup applications.
-        if (TundraSDK.framework.client.websocket === null)
+        if (!ignoreConnectedState && TundraSDK.framework.client.websocket === null)
             return;
 
         if (this.loadingScreen == null || this.loadingScreen.done)

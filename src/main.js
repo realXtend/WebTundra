@@ -45,28 +45,19 @@ require([
         // Renderer
         "view/threejs/ThreeJsRenderer",
         // Plugins
-        "plugins/dom-integration/TundraDomIntegrationPlugin",
+        //"plugins/dom-integration/TundraDomIntegrationPlugin", // Disabled by default for performance reasons
         "plugins/login-screen/LoginScreenPlugin"
     ],
     function($, _jqueryUI, _jqueryMW, _jqueryTA,
              Client,
              ThreeJsRenderer,
-             TundraDomIntegrationPlugin,
+             //TundraDomIntegrationPlugin, // Disabled by default for performance reasons
              LoginScreenPlugin)
 {
-    /** Set to true if you dont want loading screen, login controls
-        and want a free camera to be created when apge loads.
-        Enabled local app development without the need to tweak the client/APIs.
-        @todo Make this clean by removing load screen from core and making it a plugin.
-        @todo Additionally make ICameraApplication listing in TundraClient a plugin, the
-        client is not the right place for it. */
-    var localApp = false;
-
     // Create a new Web Rocket client
     var client = new Client({
         container     : "#webtundra-container-custom",
-        renderSystem  : ThreeJsRenderer,
-        loadingScreen : !localApp
+        renderSystem  : ThreeJsRenderer
     });
 
     // Run application. EC_Script is not yet implemented in the WebTundra SDK
@@ -74,8 +65,10 @@ require([
     $.getScript("../src/application/freecamera.js")
         .done(function( script, textStatus ) {
             var freecamera = new FreeCameraApplication();
-            if (localApp)
-                freecamera.createCamera();
+            /** Uncomment if you want a local camera to be created and activeted
+                before you join a server. */
+            //TundraSDK.plugin("LoginScreenPlugin").hide();
+            //freecamera.createCamera();
         })
         .fail(function(jqxhr, settings, exception) {
             console.error("Failed to load FreeCamera application:", exception);
