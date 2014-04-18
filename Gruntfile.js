@@ -102,6 +102,7 @@ module.exports = function(grunt) {
                     name : "core/framework/TundraClient",
 
                     include : [
+                        // Renderer
                         "view/threejs/ThreeJsRenderer"
                     ],
 
