@@ -45,13 +45,13 @@ require([
         // Renderer
         "view/threejs/ThreeJsRenderer",
         // Plugins
-        "plugins/dom-integration/TundraDomIntegrationPlugin",
+        //"plugins/dom-integration/TundraDomIntegrationPlugin", // Disabled by default for performance reasons
         "plugins/login-screen/LoginScreenPlugin"
     ],
     function($, _jqueryUI, _jqueryMW, _jqueryTA,
              Client,
              ThreeJsRenderer,
-             TundraDomIntegrationPlugin,
+             //TundraDomIntegrationPlugin, // Disabled by default for performance reasons
              LoginScreenPlugin)
 {
     /** Set to true if you dont want loading screen, login controls

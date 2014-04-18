@@ -36,6 +36,15 @@ var AssetFactory = Class.$extend(
     },
 
     /**
+        Returns supported file extensions.
+        @return {Array<string>}
+    */
+    supportedSuffixes : function()
+    {
+        return Object.keys(this.typeExtensions);
+    },
+
+    /**
         Returns the data type for the network request for a particular suffix.
 
         @method requestDataType
