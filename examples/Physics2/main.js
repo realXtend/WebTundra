@@ -31,6 +31,7 @@ require([
         "lib/jquery.titlealert.min",            /// @todo Remove as core dependency (afaik UiAPI)
         // Client
         "core/framework/TundraClient",
+        "core/scene/EntityAction",
         // Renderer
         "view/threejs/ThreeJsRenderer",
         // Plugins
@@ -39,6 +40,7 @@ require([
     ],
     function($, _jqueryUI, _jqueryMW, _jqueryTA,
              Client,
+             EntityAction,
              ThreeJsRenderer,
              LoginScreenPlugin)
 {
@@ -46,18 +48,22 @@ require([
     LoginScreenPlugin.LoadingScreenHeaderText = "WebTundra Physics2 Example";
     LoginScreenPlugin.LoadingScreenHeaderLinkUrl = "https://github.com/realXtend/tundra/tree/tundra2/bin/scenes/Physics2";
 
-    // Create a new Web Rocket client
+    // Create client
     var client = new Client({
         container     : "#webtundra-container-custom",
         renderSystem  : ThreeJsRenderer
     });
 
+    // Configure asset redirects.
     var redirectPlugin = TundraSDK.plugin("AssetRedirectPlugin");
     redirectPlugin.registerAssetTypeSwap(".mesh", ".json", "ThreeJsonMesh");
     redirectPlugin.setupDefaultStorage();
 
+    // App variables
     var freecamera = null;
+    var instructions = null;
 
+    // Start freecam app
     $.getScript("../../src/application/freecamera.js")
         .done(function( script, textStatus ) {
             freecamera = new FreeCameraApplication();
@@ -67,8 +73,54 @@ require([
         }
     );
 
+    // Connected to server
     client.onConnected(null, function() {
+        // Setup initial camera position
         if (freecamera && freecamera.cameraEntity)
             freecamera.cameraEntity.placeable.setPosition(0, 8.50, 28.50);
+
+        instructions = $("<div/>", { 
+            text : "Click on the top sphere to start the physics simulation",
+            css : {
+                "position": "absolute",
+                "width": 360,
+                "background-color": "white",
+                "top": 10,
+                "left": 10,
+                "padding": 10,
+                "border-radius": 10,
+                "text-align": "center"
+            }
+        });
+        client.ui.addWidgetToScene(instructions);
+        instructions.hide();
+        instructions.fadeIn(5000);
+    });
+
+    // Disconnected from server
+    client.onDisconnected(null, function() {
+        if (instructions)
+            instructions.remove()
+        instructions = null;
+    });
+
+    // Mouse pressed
+    client.input.onMousePress(null, function(mouse) {
+        if (!mouse.leftDown)
+            return;
+
+        var result = client.renderer.raycast();
+        if (result.entity != null && result.entity.name === "Boulder")
+        {
+            result.entity.exec(EntityAction.Server, "MousePress");
+            if (instructions)
+            {
+                instructions.text("Good job!");
+                instructions.fadeOut(5000, function() {
+                    instructions.remove();
+                    instructions = null;
+                });
+            }
+        }
     });
 });
