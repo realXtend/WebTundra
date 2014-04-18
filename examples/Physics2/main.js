@@ -1,21 +1,10 @@
-/**
-    This is the main entry point script for RequireJS.
 
-    The file declares all the dependencies, paths and modules that it needs to be ran.
-    For the core SDK we depend on the TundraClient, the renderer that we want to use
-    and any optional plugins.
-
-    RequireJS will make sure all these dependencies can be found and loads them in
-    the correct order for everyones dependencies to be satisfied. Once this is done
-    the function we pass to 'require' will be invoked and the application can start
-    its execution.
-*/
 require.config({
     // Module name
     name    : "main",
     
     // Base for all RequireJS paths
-    baseUrl : "../src",
+    baseUrl : "../../src",
 
     /** Shims for dependency load order. Eg. jquery-ui depends jquery to be loaded so it can attach itself.
         'exports' is a way to note what the module will export to the global window object. */
@@ -45,33 +34,41 @@ require([
         // Renderer
         "view/threejs/ThreeJsRenderer",
         // Plugins
-        //"plugins/dom-integration/TundraDomIntegrationPlugin", // Disabled by default for performance reasons
-        "plugins/login-screen/LoginScreenPlugin"
+        "plugins/login-screen/LoginScreenPlugin",
+        "plugins/asset-redirect/AssetRedirectPlugin"
     ],
     function($, _jqueryUI, _jqueryMW, _jqueryTA,
              Client,
              ThreeJsRenderer,
-             //TundraDomIntegrationPlugin, // Disabled by default for performance reasons
              LoginScreenPlugin)
 {
+    // Setup loading screen
+    LoginScreenPlugin.LoadingScreenHeaderText = "WebTundra Physics2 Example";
+    LoginScreenPlugin.LoadingScreenHeaderLinkUrl = "https://github.com/realXtend/tundra/tree/tundra2/bin/scenes/Physics2";
+
     // Create a new Web Rocket client
     var client = new Client({
         container     : "#webtundra-container-custom",
         renderSystem  : ThreeJsRenderer
     });
 
-    // Run application. EC_Script is not yet implemented in the WebTundra SDK
-    // so we are just going to ensure the scripts dependencies here and run it.
-    $.getScript("../src/application/freecamera.js")
+    var redirectPlugin = TundraSDK.plugin("AssetRedirectPlugin");
+    redirectPlugin.registerAssetTypeSwap(".mesh", ".json", "ThreeJsonMesh");
+    redirectPlugin.setupDefaultStorage();
+
+    var freecamera = null;
+
+    $.getScript("../../src/application/freecamera.js")
         .done(function( script, textStatus ) {
-            var freecamera = new FreeCameraApplication();
-            /** Uncomment if you want a local camera to be created and activeted
-                before you join a server. */
-            //TundraSDK.plugin("LoginScreenPlugin").hide();
-            //freecamera.createCamera();
+            freecamera = new FreeCameraApplication();
         })
         .fail(function(jqxhr, settings, exception) {
             console.error("Failed to load FreeCamera application:", exception);
         }
     );
+
+    client.onConnected(null, function() {
+        if (freecamera && freecamera.cameraEntity)
+            freecamera.cameraEntity.placeable.setPosition(0, 8.50, 28.50);
+    });
 });
