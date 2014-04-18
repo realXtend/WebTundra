@@ -25,6 +25,7 @@ require.config({
 
 require([
         // Core deps
+        "lib/three",
         "lib/jquery",
         "lib/jquery-ui",
         "lib/jquery.mousewheel",                /// @todo Remove as core dependency (afaik UiAPI)
@@ -38,7 +39,7 @@ require([
         "plugins/login-screen/LoginScreenPlugin",
         "plugins/asset-redirect/AssetRedirectPlugin"
     ],
-    function($, _jqueryUI, _jqueryMW, _jqueryTA,
+    function(THREE, $, _jqueryUI, _jqueryMW, _jqueryTA,
              Client,
              EntityAction,
              ThreeJsRenderer,
@@ -95,6 +96,9 @@ require([
         client.ui.addWidgetToScene(instructions);
         instructions.hide();
         instructions.fadeIn(5000);
+
+        var dirLight = new THREE.DirectionalLight();
+        client.renderer.scene.add(dirLight);
     });
 
     // Disconnected from server
