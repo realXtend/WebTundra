@@ -1,5 +1,3 @@
-"use strict";
-
 // For conditions of distribution and use, see copyright notice in LICENSE
 /*
  *      @author Tapani Jamsa
@@ -8,24 +6,107 @@
  *      Date: 2014
  */
 
-var app = new Tundra.Application();
+require.config({
+    // Module name
+    name    : "main",
+    
+    // Base for all RequireJS paths
+    baseUrl : "../../src",
 
-function setupEditorControls() {
-    var v = app.viewer;
-    v.defaultCamera.position = v.camera.parent.position;
-    v.defaultCamera.rotation = v.camera.parent.rotation;
-    v.defaultCamera.scale = v.camera.parent.scale;
-    v.defaultCamera.lookAt(new THREE.Vector3());
+    /** Shims for dependency load order. Eg. jquery-ui depends jquery to be loaded so it can attach itself.
+        'exports' is a way to note what the module will export to the global window object. */
+    shim    :
+    {
+        "lib/jquery"                    : { exports : "$" },
+        "lib/jquery-ui"                 : [ "lib/jquery" ],
+        "lib/jquery.mousewheel"         : [ "lib/jquery" ],
+        "lib/jquery.titlealert.min"     : [ "lib/jquery" ],
+        "lib/jquery.jgestures"          : [ "lib/jquery" ],
+        "lib/jquery.contextmenu"        : [ "lib/jquery" ],
+        "lib/three"                     : { exports : "THREE" },
+        "lib/three/CSS3DRenderer"       : [ "lib/three" ],
+        "lib/three/OBJLoader"           : [ "lib/three" ],
+        "lib/polymer.min"               : { exports : "Polymer" }
+    }
+});
 
-    app.viewer.setActiveCamera({'threeCamera': v.defaultCamera});
-    var controls = new THREE.EditorControls(v.defaultCamera, v.renderer.domElement);
-}
+require([
+        // Core deps
+        "lib/three",
+        "lib/jquery",
+        "lib/jquery-ui",
+        "lib/jquery.mousewheel",                /// @todo Remove as core dependency (afaik UiAPI)
+        "lib/jquery.titlealert.min",            /// @todo Remove as core dependency (afaik UiAPI)
+        // Client
+        "core/framework/TundraClient",
+        // Renderer
+        "view/threejs/ThreeJsRenderer",
+        // Plugins
+        "plugins/scene-parser/SceneParserPlugin",
+        "plugins/asset-redirect/AssetRedirectPlugin"
+    ],
+    function(THREE, $, _jqueryUI, _jqueryMW, _jqueryTA,
+             Client,
+             ThreeJsRenderer,
+             SceneParserPlugin,
+             AssetRedirectPlugin)
+{
+    // Create client
+    var client = new Client({
+        container     : "#webtundra-container-custom",
+        renderSystem  : ThreeJsRenderer
+    });
 
-function loadxml3d() {
-    app.start();
-    var parser = new Tundra.SceneParser(app.dataConnection);
-    parser.parseDocXml3D(document);
+    // Configure asset redirects.
+    var redirectPlugin = TundraSDK.plugin("AssetRedirectPlugin");
+    redirectPlugin.registerAssetTypeSwap(".mesh", ".json", "ThreeJsonMesh");
+    redirectPlugin.setupDefaultStorage();
 
-    // hack to get the right xml3d-created camera and not the default one.
-    window.setTimeout(setupEditorControls, 2000);
-}
+    // App variables
+    var freecamera = null;
+//    var instructions = null;
+
+    // Start freecam app
+    $.getScript("../../src/application/freecamera.js")
+        .done(function( script, textStatus ) {
+            freecamera = new FreeCameraApplication();
+        })
+        .fail(function(jqxhr, settings, exception) {
+            console.error("Failed to load FreeCamera application:", exception);
+        }
+    );
+
+/*
+    // Connected to server
+    client.onConnected(null, function() {
+        // Setup initial camera position
+        if (freecamera && freecamera.cameraEntity)
+            freecamera.cameraEntity.placeable.setPosition(0, 8.50, 28.50);
+
+        instructions = $("<div/>", { 
+            text : "Click on the top sphere to start the physics simulation",
+            css : {
+                "position": "absolute",
+                "width": 360,
+                "background-color": "white",
+                "top": 10,
+                "left": 10,
+                "padding": 10,
+                "border-radius": 10,
+                "text-align": "center"
+            }
+        });
+        client.ui.addWidgetToScene(instructions);
+        instructions.hide();
+        instructions.fadeIn(5000);
+*/
+        var dirLight = new THREE.DirectionalLight();
+        client.renderer.scene.add(dirLight);
+//    });
+
+    var sceneParserPlugin = TundraSDK.plugin("SceneParserPlugin");
+    var xml3dParser = sceneParserPlugin.newXML3DParser(client.scene);
+    $(document).ready(function() {
+        xml3dParser.parseDocXml3D(document);
+    });
+});
