@@ -19,7 +19,7 @@ var avatarTestData = {
     [
         {
             name      : "Sword",
-            geometry  : "Assets/Sword.json",
+            geometry  : "Assets/sword.json",
 
             transform :
             {

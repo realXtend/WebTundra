@@ -19,7 +19,7 @@
     [
         {
             "name"      : "Sword1",
-            "geometry"  : "Sword.json",
+            "geometry"  : "sword.json",
 
             "transform" :
             {
@@ -37,7 +37,7 @@
         },
 		{
             "name"      : "Sword2",
-            "geometry"  : "Sword.json",
+            "geometry"  : "sword.json",
 
             "transform" :
             {
