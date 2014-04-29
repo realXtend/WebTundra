@@ -35,7 +35,8 @@ var Transform = Class.$extend(
 
         // Automatic euler/quaternion updates when our Tundra angle rotation is changed.
         this._rotEuler = new THREE.Euler(THREE.Math.degToRad(this._rot.x),
-            THREE.Math.degToRad(this._rot.y), THREE.Math.degToRad(this._rot.z)
+            THREE.Math.degToRad(this._rot.y), THREE.Math.degToRad(this._rot.z),
+            "ZYX" // This is important for Quaternions to be correctly produced from our euler.
         );
 
         /**
@@ -94,14 +95,8 @@ var Transform = Class.$extend(
     {
         this._updateEuler();
 
-        if (this._orientationMatrix === undefined)
-            this._orientationMatrix = new THREE.Matrix4();
-        this._orientationMatrix.makeTranslation(0,0,0);
-
         var quat = new THREE.Quaternion();
-        this._rotateAroundWorldAxis(this._orientationMatrix, quat, TundraSDK.framework.renderer.axisX, this._rotEuler.x);
-        this._rotateAroundWorldAxis(this._orientationMatrix, quat, TundraSDK.framework.renderer.axisY, this._rotEuler.y);
-        this._rotateAroundWorldAxis(this._orientationMatrix, quat, TundraSDK.framework.renderer.axisZ, this._rotEuler.z);
+        quat.setFromEuler(this._rotEuler, false);
         return quat;
     },
 
@@ -112,19 +107,6 @@ var Transform = Class.$extend(
             THREE.Math.degToRad(this._rot.y % 360.0),
             THREE.Math.degToRad(this._rot.z % 360.0)
         );
-    },
-
-    _rotateAroundWorldAxis : function(matrix, quaternion, axis, radians)
-    {
-        if (this._rotWorldMatrix === undefined)
-            this._rotWorldMatrix = new THREE.Matrix4();
-
-        this._rotWorldMatrix.makeTranslation(0,0,0);
-        this._rotWorldMatrix.makeRotationAxis(axis.normalize(), radians);
-        this._rotWorldMatrix.multiply(matrix); // pre-multiply
-
-        matrix.copy(this._rotWorldMatrix);
-        quaternion.setFromRotationMatrix(this._rotWorldMatrix);
     },
 
     /**
@@ -154,7 +136,7 @@ var Transform = Class.$extend(
     {
         if (x instanceof THREE.Vector3)
         {
-            this._pos = x.clone();
+            this._pos.copy(x);
         }
         else if (typeof x === "number" && typeof y === "number" && typeof z === "number")
         {
@@ -191,19 +173,20 @@ var Transform = Class.$extend(
     setRotation : function(x, y, z)
     {
         if (x instanceof THREE.Vector3)
-            this._rot = x.clone();
+            this._rot.copy(x);
         else if (x instanceof THREE.Quaternion)
         {
-            this._rotEuler.setFromQuaternion(x.normalize());
-            this._rot.x = THREE.Math.radToDeg(this._rotEuler.x);
-            this._rot.y = THREE.Math.radToDeg(this._rotEuler.y);
-            this._rot.z = THREE.Math.radToDeg(this._rotEuler.z);
+            /// @todo Is this now incorrect as this._rotEuler order is "ZYX"?
+            this._rotEuler.setFromQuaternion(x.normalize(), undefined, false);
+            this._rot.x = THREE.Math.radToDeg(this._rotEuler.x) % 360.0;
+            this._rot.y = THREE.Math.radToDeg(this._rotEuler.y) % 360.0;
+            this._rot.z = THREE.Math.radToDeg(this._rotEuler.z) % 360.0;
         }
         else if (x instanceof THREE.Euler)
         {
-            this._rot.x = THREE.Math.radToDeg(x.x);
-            this._rot.y = THREE.Math.radToDeg(x.y);
-            this._rot.z = THREE.Math.radToDeg(x.z);
+            this._rot.x = THREE.Math.radToDeg(x.x) % 360.0;
+            this._rot.y = THREE.Math.radToDeg(x.y) % 360.0;
+            this._rot.z = THREE.Math.radToDeg(x.z) % 360.0;
         }
         else if (typeof x === "number" && typeof y === "number" && typeof z === "number")
         {
@@ -219,7 +202,7 @@ var Transform = Class.$extend(
     {
         if (x instanceof THREE.Vector3)
         {
-            this._scale = x.clone();
+            this._scale.copy(x);
         }
         else if (typeof x === "number" && typeof y === "number" && typeof z === "number")
         {

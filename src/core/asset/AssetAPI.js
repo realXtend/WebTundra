@@ -52,6 +52,17 @@ var AssetAPI = Class.$extend(
         */
         this.factories = [];
         /**
+            If transfers should be processed and started automatically by AssetAPI.
+            If set to false, you need to manually pump the processing by calling
+            AssetAPI.processTransfers() or implementing your own logic that processes
+            the AssetAPI.transfers queue.
+
+            @property autoProcessTransfers
+            @type Boolean
+            @default true
+        */
+        this.autoProcessTransfers = true;
+        /**
             Maximum number of active asset transfers.
             @property transfers
             @type Array of AssetTransfers
@@ -250,13 +261,15 @@ var AssetAPI = Class.$extend(
     */
     forgetAssets : function(doUnload)
     {
-        if (doUnload == null)
+        if (doUnload === undefined || doUnload === null)
             doUnload = true;
 
         var assets = this.cache.getAssets();
         for (var i = 0; i < assets.length; i++)
         {
             var asset = assets[i];
+            if (asset != null)
+                TundraSDK.framework.events.send("AssetAPI.AssetAboutToBeRemoved", asset);
             if (doUnload && asset != null && typeof asset.unload === "function")
             {
                 // Reset the requiresCloning boolean as we really want to unload now.
@@ -282,7 +295,10 @@ var AssetAPI = Class.$extend(
 
         // Process transfers queue
         if (this.transfers.length > 0 && this.activeTransfers.length < this.maxActiveTransfers)
-            this.checkTransfers(frametime);
+        {
+            if (this.autoProcessTransfers === true)
+                this.processTransfers();
+        }
         else if (this.transfers.length == 0 && this.startMonitoring)
         {
             this.startMonitoring = false;
@@ -552,8 +568,11 @@ var AssetAPI = Class.$extend(
         return transfer;
     },
 
-    checkTransfers : function(frametime)
+    processTransfers : function(recursiveUpToMaxActiveTransfers)
     {
+        if (recursiveUpToMaxActiveTransfers === undefined)
+            recursiveUpToMaxActiveTransfers = true;
+
         var allActive = true;
         if (this.transfers.length > 0 && this.activeTransfers.length < this.maxActiveTransfers)
         {
@@ -591,8 +610,8 @@ var AssetAPI = Class.$extend(
             }
         }
 
-        if (!allActive && this.transfers.length > 0 && this.activeTransfers.length < this.maxActiveTransfers)
-            this.checkTransfers();
+        if (recursiveUpToMaxActiveTransfers === true && !allActive && this.transfers.length > 0 && this.activeTransfers.length < this.maxActiveTransfers)
+            this.processTransfers(recursiveUpToMaxActiveTransfers);
     },
 
     maxAssetTransfersForType : function(type)
@@ -743,9 +762,61 @@ var AssetAPI = Class.$extend(
         {
             var asset = factory.createEmptyAsset(assetRef);
             this.cache.set(asset.name, asset);
+            TundraSDK.framework.events.send("AssetAPI.AssetCreated", asset);
             return asset;
         }
         return null;
+    },
+
+    /**
+        Registers a callback for when a new asset is created.
+        This allows code to track asset creations and hook to IAsset events.
+
+        @method onAssetCreated
+        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Function} callback Function to be called.
+        @return {EventSubscription|null} Subscription data or null if parent entity is not set.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+    */
+    onAssetCreated : function(context, callback)
+    {
+        return TundraSDK.framework.events.subscribe("AssetAPI.AssetCreated", context, callback);
+    },
+
+    /**
+        Registers a callback for when asset has been deserialized from data.
+        See {{#crossLink "IAsset/onDeserializedFromData:method"}}IAsset.onDeserializedFromData(){{/crossLink}}.
+
+        @method onAssetDeserializedFromData
+        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Function} callback Function to be called.
+        @return {EventSubscription|null} Subscription data or null if parent entity is not set.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+    */
+    onAssetDeserializedFromData : function(context, callback)
+    {
+        return TundraSDK.framework.events.subscribe("AssetAPI.AssetDeserializedFromData", context, callback);
+    },
+
+    _emitAssetDeserializedFromData : function(asset)
+    {
+        TundraSDK.framework.events.send("AssetAPI.AssetDeserializedFromData", asset);
+        asset._emitDeserializedFromData();
+    },
+
+    /**
+        Registers a callback for when a asset is about to be removed from the asset system
+        and under usual conditions implying that the asset is also being unloaded.
+
+        @method onAssetAboutToBeRemoved
+        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Function} callback Function to be called.
+        @return {EventSubscription|null} Subscription data or null if parent entity is not set.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+    */
+    onAssetAboutToBeRemoved : function(context, callback)
+    {
+        return TundraSDK.framework.events.subscribe("AssetAPI.AssetAboutToBeRemoved", context, callback);
     }
 });
 

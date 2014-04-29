@@ -498,21 +498,7 @@ var AssetTransfer = Class.$extend(
 
         try
         {
-            var succeeded = asset._deserializeFromData(data, this.requestDataType);
-
-            // Load failed synchronously
-            if (!succeeded)
-                TundraSDK.framework.asset.assetTransferFailed(this, "IAsset.deserializeFromData failed loading asset " + this.ref);
-            // Loaded completed synchronously
-            else if (asset.isLoaded())
-                this._assetLoadCompleted(asset);
-            // Load did not fail or complete yet: The asset is fetching dependencies etc.
-            else
-            {
-                this.loading = true;
-                this.subscriptions.push(asset.onLoaded(this, this._assetLoadCompleted));
-                this.subscriptions.push(asset.onDependencyFailed(this, this._assetDependencyFailed));
-            }
+            this._deserializeFromData(asset, data);
         }
         catch(e)
         {
@@ -523,6 +509,25 @@ var AssetTransfer = Class.$extend(
         }
 
         this.active = false;
+    },
+
+    _deserializeFromData : function(asset, data)
+    {
+        var succeeded = asset._deserializeFromData(data, this.requestDataType);
+
+        // Load failed synchronously
+        if (!succeeded)
+            TundraSDK.framework.asset.assetTransferFailed(this, "IAsset.deserializeFromData failed loading asset " + this.ref);
+        // Loaded completed synchronously
+        else if (asset.isLoaded())
+            this._assetLoadCompleted(asset);
+        // Load did not fail or complete yet: The asset is fetching dependencies etc.
+        else
+        {
+            this.loading = true;
+            this.subscriptions.push(asset.onLoaded(this, this._assetLoadCompleted));
+            this.subscriptions.push(asset.onDependencyFailed(this, this._assetDependencyFailed));
+        }
     },
 
     _assetLoadCompleted : function(asset)

@@ -191,16 +191,11 @@ var ICameraApplication = IApplication.$extend(
         quat.normalize();
 
         this.cameraEntity.placeable.setPosition(pos);
-        //this.cameraEntity.placeable.setRotation(quat);
+        this.cameraEntity.placeable.setRotation(quat);
 
-        // This is a hack, we will update transform once the animation is complete!
-        /// @todo Fix EC_Placeable/Transform.setRotation if possible for setting "complex" quats to it.
-        this.cameraEntity.placeable.sceneNode.quaternion = quat;
-        this.cameraEntity.placeable.sceneNode.updateMatrix();
-
-        // This is a hack to set the same degree angle vector to transform that
-        // was set before we started  animating. Using the final quat to do this
-        // breaks rotation.
+        /** This is a hack to set the same degree angle vector to transform that
+            was set before we started  animating. Using the final quat to do this
+            breaks rotation (sometimes flips -180/180 to z-axis). */
         if (t >= 1)
             this.cameraEntity.placeable.setRotation(state.animationStop.rotDegrees);
     },
