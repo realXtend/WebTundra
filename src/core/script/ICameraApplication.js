@@ -50,7 +50,8 @@ var ICameraApplication = IApplication.$extend(
 
         showCameraApplicationInfoTooltip : function(text, timeoutMsec)
         {
-            if (TundraSDK.framework.ui.isLoadingScreenVisible())
+            var loginScreenPlugin = TundraSDK.plugin("LoginScreenPlugin");
+            if (loginScreenPlugin != null && loginScreenPlugin.isLoadingScreenVisible())
                 return;
             if (!ICameraApplication.showCameraApplicationInfoTooltipEnabled)
                 return;

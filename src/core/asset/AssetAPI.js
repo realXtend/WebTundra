@@ -31,7 +31,6 @@ var AssetAPI = Class.$extend(
         this.localStoragePath = params.asset.localStoragePath != null ? params.asset.localStoragePath : "";
         if (this.localStoragePath != "" && !CoreStringUtils.endsWith(this.localStoragePath, "/"))
             this.localStoragePath += "/";
-        this.scriptPostFix = params.asset.scriptPostFix != null ? params.asset.scriptPostFix : "";
 
         /**
             Asset cache where you can find currently loaded assets.
@@ -140,6 +139,12 @@ var AssetAPI = Class.$extend(
         return AssetAPI.httpProxyResolver;
     },
 
+    /**
+        Registers a new asset factory.
+        @method registerAssetFactory
+        @param {AssetFactory} assetFactory
+        @return {Boolean} If registration was successful.
+    */
     registerAssetFactory : function(assetFactory)
     {
         if (!(assetFactory instanceof AssetFactory))
@@ -157,8 +162,8 @@ var AssetAPI = Class.$extend(
             }
         }
         this.factories.push(assetFactory);
-        if (assetFactory.typeExtensions !== undefined)
-            this.log.debug("Registered factory", assetFactory.assetType, assetFactory.typeExtensions);
+        if (assetFactory.typeExtensions !== undefined && assetFactory.supportedSuffixes().length > 0)
+            this.log.debug("Registered factory", assetFactory.assetType, assetFactory.supportedSuffixes());
         else
             this.log.debug("Registered factory", assetFactory.assetType);
         return true;
@@ -209,10 +214,10 @@ var AssetAPI = Class.$extend(
         this.activeTransfers = [];
 
         this.startMonitoring = false;
-        this.transfersPeak = 0;
         this.tranferCheckT = 0.0;
         this.tranferCheckInterval = 0.1;
-        this.loadProgress = -1;
+
+        this.noFactoryErrors = {};
 
         // Reset static asset transfer tracking data.
         AssetTransfer.reset();
@@ -302,35 +307,33 @@ var AssetAPI = Class.$extend(
         else if (this.transfers.length == 0 && this.startMonitoring)
         {
             this.startMonitoring = false;
-            this.transfersPeak = 0;
-            this.loadProgress = -1;
 
             if (TundraSDK.framework.client.websocket !== null)
             {
                 /// Wait a bit and check again if we have completed everything
                 setTimeout(function() {
-                    if (TundraSDK.framework.asset.transfers.length === 0)
-                    {
-                        TundraSDK.framework.client.logInfo("[AssetAPI]: All asset transfers done", true);
-                        TundraSDK.framework.ui.hideLoadingScreen();
+                    if (this.transfers.length > 0)
+                        return;
 
-                        if (TundraSDK.framework.client.networkDebugLogging === true)
+                    this.log.infoC("All asset transfers done");
+                    this.noFactoryErrors = {};
+
+                    if (TundraSDK.framework.client.networkDebugLogging === true)
+                    {
+                        var loadedAssets = {};
+                        var assets = this.cache.getAssets();
+                        for (var i=0, len=assets.length; i<len; i++)
                         {
-                            var loadedAssets = {};
-                            var assets = TundraSDK.framework.asset.cache.getAssets();
-                            for (var i = 0; i < assets.length; i++)
-                            {
-                                var asset = assets[i];
-                                if (loadedAssets[asset.type] === undefined)
-                                    loadedAssets[asset.type] = 1;
-                                else
-                                    loadedAssets[asset.type] += 1;
-                            }
-                            for (var assetType in loadedAssets)
-                                TundraSDK.framework.client.logInfo("[AssetAPI]:   >> " + assetType + " : " + loadedAssets[assetType], true);
+                            var asset = assets[i];
+                            if (loadedAssets[asset.type] === undefined)
+                                loadedAssets[asset.type] = 1;
+                            else
+                                loadedAssets[asset.type] += 1;
                         }
+                        for (var assetType in loadedAssets)
+                            this.log.debug("   >> " + assetType + " : " + loadedAssets[assetType]);
                     }
-                }, 500);
+                }.bind(this), 500);
             }
         }
 
@@ -490,10 +493,15 @@ var AssetAPI = Class.$extend(
         var factory = this.getAssetFactory(ref, forcedAssetType);
         if (factory === null)
         {
-            if (typeof forcedAssetType === "string")
-                this.log.error("Failed to find an AssetFactory with type '" + forcedAssetType + "':", ref);
-            else
-                this.log.error("Failed to find an AssetFactory with suffix '" + CoreStringUtils.extension(ref) + "':", ref);
+            var logged = this.noFactoryErrors[ref];
+            if (logged === undefined)
+            {
+                if (typeof forcedAssetType === "string")
+                    this.log.error("No registered AssetFactory for type '" + forcedAssetType + "':", ref);
+                else
+                    this.log.error("No registered AssetFactory for suffix '" + CoreStringUtils.extension(ref) + "':", ref);
+                this.noFactoryErrors[ref] = true;
+            }
             return null;
         }
 
@@ -505,14 +513,6 @@ var AssetAPI = Class.$extend(
         if (CoreStringUtils.startsWith(ref, "webtundra://"))
         {
             ref = this.localStoragePath + ref.substring(12);
-
-            // Add script postfix to ref
-            if (assetType === "Script" && this.scriptPostFix != "")
-            {
-                var refStart = ref.substring(0, ref.lastIndexOf("."));
-                var refSuffix = ref.substring(ref.lastIndexOf("."));
-                ref = refStart + this.scriptPostFix + refSuffix;
-            }
         }
         // Point relative refs to default storage.
         // If not known (not connected to server) use relative from page.
@@ -562,8 +562,9 @@ var AssetAPI = Class.$extend(
         transfer = new AssetTransfer(factory, ref, proxyRef, assetType, assetExt);
         this.transfers.push(transfer);
 
-        if (this.transfersPeak < this.transfers.length)
-            this.transfersPeak = this.transfers.length;
+        /** @todo Evaluate if this event should fire for 'readyTransfers'
+            that are just dummy transfers of already loaded assets. */
+        TundraSDK.framework.events.send("AssetAPI.ActiveAssetTransferCountChanged", this.numCurrentTransfers());
 
         return transfer;
     },
@@ -710,17 +711,7 @@ var AssetAPI = Class.$extend(
             }
         }
 
-        // Update loading screen
-        if (this.transfersPeak > 0)
-        {
-            // Don' let the progress go below last set %
-            var progress = Number(100 - (this.transfers.length / this.transfersPeak) * 100);
-            if (progress > this.loadProgress)
-            {
-                this.loadProgress = progress;
-                TundraSDK.framework.ui.updateLoadingScreen(null, progress.toFixed(0));
-            }
-        }
+        TundraSDK.framework.events.send("AssetAPI.ActiveAssetTransferCountChanged", this.numCurrentTransfers());
     },
 
     assetTransferCompleted : function(transfer, asset)
@@ -766,6 +757,34 @@ var AssetAPI = Class.$extend(
             return asset;
         }
         return null;
+    },
+
+    numCurrentTransfers : function()
+    {
+        return this.transfers.length;
+    },
+
+    allTransfersCompleted : function()
+    {
+        return (this.numCurrentTransfers() === 0);
+    },
+
+    /**
+        Registers a callback for when asset transfer count changes
+        @example
+            TundraSDK.framework.asset.onActiveAssetTransferCountChanged(null, function(num) {
+                console.log("Transfers remaining:", num);
+            });
+
+        @method onActiveAssetTransferCountChanged
+        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Function} callback Function to be called.
+        @return {EventSubscription|null} Subscription data or null if parent entity is not set.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+    */
+    onActiveAssetTransferCountChanged : function(context, callback)
+    {
+        return TundraSDK.framework.events.subscribe("AssetAPI.ActiveAssetTransferCountChanged", context, callback);
     },
 
     /**

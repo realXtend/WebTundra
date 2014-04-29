@@ -373,8 +373,11 @@ var AssetTransfer = Class.$extend(
         if (this.proxyRef !== undefined && TundraSDK.framework.asset.getHttpProxyResolver() !== undefined)
         {
              var transferMetadata = TundraSDK.framework.asset.getHttpProxyResolver().resolveRequestMetadata(this, this.proxyRef);
-             this.requestDataType = (typeof transferMetadata.dataType === "string" ? transferMetadata.dataType : undefined);
-             this.requestTimeout = (typeof transferMetadata.timeout === "number" ? transferMetadata.timeout : this.requestTimeout);
+             if (transferMetadata !== undefined)
+             {
+                 this.requestDataType = (typeof transferMetadata.dataType === "string" ? transferMetadata.dataType : undefined);
+                 this.requestTimeout = (typeof transferMetadata.timeout === "number" ? transferMetadata.timeout : this.requestTimeout);
+             }
         }
         if (this.requestDataType === undefined  || this.requestDataType === null || this.requestDataType === "")
             this.requestDataType = this._detectRequestDataType();
@@ -458,7 +461,8 @@ var AssetTransfer = Class.$extend(
 
         TundraSDK.framework.asset.assetTransferFailed(this, "Request failed " + this.ref + ": " +
             (jqXHR.status !== 0 ? jqXHR.status : "Request Timed Out") + " " +
-            AssetTransfer.statusCodeName(jqXHR.status)
+            AssetTransfer.statusCodeName(jqXHR.status) +
+            (typeof textStatus === "string" ? " (" + textStatus  + ")": "")
         );
 
         // Cleanup
