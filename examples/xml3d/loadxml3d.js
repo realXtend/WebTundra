@@ -66,13 +66,22 @@ require([
     var freecamera = null;
 //    var instructions = null;
 
-/*
-    // Connected to server
-    client.onConnected(null, function() {
-        // Setup initial camera position
-        if (freecamera && freecamera.cameraEntity)
-            freecamera.cameraEntity.placeable.setPosition(0, 8.50, 28.50);
+    // Start freecam app - the xml3d parser will position current active cam by <view> declaration
+    $.getScript("../../src/application/freecamera.js")
+        .done(function( script, textStatus ) {
+            freecamera = new FreeCameraApplication();
+            freecamera.createCamera();
+            var sceneParserPlugin = TundraSDK.plugin("SceneParserPlugin");
+            var xml3dParser = sceneParserPlugin.newXML3DParser(client.scene);
+            $(document).ready(function() {
+                xml3dParser.parseDocXml3D(document);
+            });
+        })
+        .fail(function(jqxhr, settings, exception) {
+            console.error("Failed to load FreeCamera application:", exception);
+        });
 
+/*
         instructions = $("<div/>", { 
             text : "Click on the top sphere to start the physics simulation",
             css : {
@@ -93,22 +102,4 @@ require([
         var dirLight = new THREE.DirectionalLight();
         client.renderer.scene.add(dirLight);
 //    });
-
-    var sceneParserPlugin = TundraSDK.plugin("SceneParserPlugin");
-    var xml3dParser = sceneParserPlugin.newXML3DParser(client.scene);
-    $(document).ready(function() {
-        xml3dParser.parseDocXml3D(document);
-
-        // Start freecam app - after xml3d parsing because that actually creates the camera for us (from the <view> declaration)
-        $.getScript("../../src/application/freecamera.js")
-            .done(function( script, textStatus ) {
-                freecamera = new FreeCameraApplication();
-                freecamera.cameraEntity = TundraSDK.framework.renderer.activeCamera().parentEntity;
-                freecamera.createCamera(); //doesn't actually create as we just created it but hooks event listeners etc
-            })
-            .fail(function(jqxhr, settings, exception) {
-                console.error("Failed to load FreeCamera application:", exception);
-            }
-            );
-    });
 });
