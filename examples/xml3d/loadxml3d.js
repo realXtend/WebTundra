@@ -66,16 +66,6 @@ require([
     var freecamera = null;
 //    var instructions = null;
 
-    // Start freecam app
-    $.getScript("../../src/application/freecamera.js")
-        .done(function( script, textStatus ) {
-            freecamera = new FreeCameraApplication();
-        })
-        .fail(function(jqxhr, settings, exception) {
-            console.error("Failed to load FreeCamera application:", exception);
-        }
-    );
-
 /*
     // Connected to server
     client.onConnected(null, function() {
@@ -108,5 +98,17 @@ require([
     var xml3dParser = sceneParserPlugin.newXML3DParser(client.scene);
     $(document).ready(function() {
         xml3dParser.parseDocXml3D(document);
+
+        // Start freecam app - after xml3d parsing because that actually creates the camera for us (from the <view> declaration)
+        $.getScript("../../src/application/freecamera.js")
+            .done(function( script, textStatus ) {
+                freecamera = new FreeCameraApplication();
+                freecamera.cameraEntity = TundraSDK.framework.renderer.activeCamera().parentEntity;
+                freecamera.createCamera(); //doesn't actually create as we just created it but hooks event listeners etc
+            })
+            .fail(function(jqxhr, settings, exception) {
+                console.error("Failed to load FreeCamera application:", exception);
+            }
+            );
     });
 });
