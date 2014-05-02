@@ -702,7 +702,7 @@ var TundraClient = Class.$extend(
     },
 
     /**
-        Returns if there is a active connection to a websocket host.
+        Returns if there is a active connection to a WebSocket host.
         @method isConnected
         @return {Boolean}
     */
@@ -716,7 +716,7 @@ var TundraClient = Class.$extend(
     },
 
     /**
-        Connects to a websocket host with login properties and returns if successful.
+        Connects to a WebSocket host with login properties and returns if successful.
         @method connect
         @param {String} host Host with port
         @param {Object} loginProperties This object will get serialized into JSON and sent to the server.

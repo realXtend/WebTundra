@@ -124,6 +124,22 @@ var IAsset = Class.$extend(
     },
 
     /**
+        Registers a callback for asset deserialized event. Note that completing deserializing from data
+        does not equal the asset being loaded. Data has been processed and potential dependencies should have
+        been resolved and possibly requested.
+
+        @method onDeserializedFromData
+        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Function} callback Function to be called.
+        @return {EventSubscription} Subscription data.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+    */
+    onDeserializedFromData : function(context, callback)
+    {
+        return TundraSDK.framework.events.subscribe("IAsset.DeserializedFromData." + this.name, context, callback);
+    },
+
+    /**
         Registers a callback for asset loaded event. See {{#crossLink "IAsset/isLoaded:method"}}isLoaded(){{/crossLink}}.
 
         @method onLoaded
@@ -337,7 +353,10 @@ var IAsset = Class.$extend(
             );
         }
 
-        // Report success
+        // Deserialized
+        if (succeeded)
+            TundraSDK.framework.asset._emitAssetDeserializedFromData(this);
+        // Loaded?
         if (succeeded && this.isLoaded())
             this._emitLoaded();
         return succeeded;
@@ -347,6 +366,11 @@ var IAsset = Class.$extend(
     {
         this.unload();
         this._emiUnloaded();
+    },
+
+    _emitDeserializedFromData : function()
+    {
+        TundraSDK.framework.events.send("IAsset.DeserializedFromData." + this.name, this);
     },
 
     _emitLoaded : function()

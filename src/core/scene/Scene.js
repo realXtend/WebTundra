@@ -58,7 +58,7 @@ var Scene = Class.$extend(
 
             @static
             @method registeredComponent
-            @param {Number} id Component type id.
+            @param {Number|String} id Component type id or name.
             @return {Object|undefined}
         */
         registeredComponent : function(id)

@@ -108,7 +108,6 @@ var EC_WaterPlane = IComponent.$extend(
 
     __classvars__ :
     {
-        /// @todo Remove this and use EC_Fog.Type?
         FogMode :
         {
             NoFog                : 0,
