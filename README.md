@@ -8,4 +8,8 @@ Documentation
 - [Installation and Administration Guide](https://forge.fi-ware.org/plugins/mediawiki/wiki/fiware/index.php/3D-UI_-_WebTundra_-_Installation_and_Administration_Guide)
 - [User and Programmers Guide](https://forge.fi-ware.org/plugins/mediawiki/wiki/fiware/index.php/3D-UI_-_WebTundra_-_User_and_Programmers_Guide)
 
-WebTundra development has been supported by the EU FI-Ware project -- the manual links above take to the official fi-ware wiki.
+Parts of WebTundra development have been supported by the EU FI-Ware project -- the manual links above take to the official fi-ware wiki. 
+
+ - [WebTundra's catalog entry](http://catalogue.fi-ware.org/enablers/3dui-webtundra) in Future Internet ([FIWARE](http://www.fiware.org/)) effort
+
+WebTundra is an implementation of the 3D-UI and Synchronization FIWARE GEs, as described in the catalog entry.
