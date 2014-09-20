@@ -12,4 +12,4 @@ Parts of WebTundra development have been supported by the EU FI-Ware project -- 
 
  - [WebTundra's catalog entry](http://catalogue.fi-ware.org/enablers/3dui-webtundra) in Future Internet ([FIWARE](http://www.fiware.org/)) effort
 
-WebTundra is an implementation of the 3D-UI and Synchronization FIWARE GEs, as described in the catalog entry.
+WebTundra is an implementation of the 3D-UI and Synchronization FIWARE GEs, as described in the catalog entry. The graphics engine <a href="http://threejs.org/">three.js has a nice site with examples and gallery</a> etc.
