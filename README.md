@@ -1,7 +1,7 @@
-WebTundra is a WebGL & WebSockets client for the [realXtend](http://www.realxtend.org/) Tundra multiuser 3d application platform. It includes a binary networking protocol, Entity-Component based scene model and three.js -based rendering functionality.
+WebTundra is a WebGL & WebSockets client for the [realXtend](http://www.realxtend.org/) Tundra multi-user 3D application platform. It includes a binary networking protocol, Entity-Component based scene model and three.js-based rendering functionality.
 
 Requires the Tundra server to be running WebSocketServerModule, initially
-contributed to open source by AdminoTech.
+contributed to open source by Adminotech Oy.
 
 Documentation
 
