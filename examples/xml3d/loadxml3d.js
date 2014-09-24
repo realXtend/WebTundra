@@ -12,9 +12,9 @@ var app = new Tundra.Application();
 
 function setupEditorControls() {
     var v = app.viewer;
-    v.defaultCamera.position = v.camera.parent.position;
-    v.defaultCamera.rotation = v.camera.parent.rotation;
-    v.defaultCamera.scale = v.camera.parent.scale;
+    v.defaultCamera.position.copy(v.camera.parent.position);
+    v.defaultCamera.rotation.copy(v.camera.parent.rotation);
+    v.defaultCamera.scale.copy(v.camera.parent.scale);
     v.defaultCamera.lookAt(new THREE.Vector3());
 
     app.viewer.setActiveCamera({'threeCamera': v.defaultCamera});
