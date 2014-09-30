@@ -14,7 +14,7 @@ Tundra.DataSerializer = function (lengthBytes) {
 
 Tundra.DataSerializer.prototype = {
     addU8 : function(value) {
-        if (this.bitPos == 0)
+        if (this.bitPos === 0)
         {
             this.dataView.setUint8(this.bytePos, value);
             this.bytePos++;
@@ -24,7 +24,7 @@ Tundra.DataSerializer.prototype = {
     },
 
     addU16 : function(value) {
-        if (this.bitPos == 0)
+        if (this.bitPos === 0)
         {
             this.dataView.setUint16(this.bytePos, value, true);
             this.bytePos += 2;
@@ -34,7 +34,7 @@ Tundra.DataSerializer.prototype = {
     },
 
     addU32 : function(value) {
-        if (this.bitPos == 0)
+        if (this.bitPos === 0)
         {
             this.dataView.setUint32(this.bytePos, value, true);
             this.bytePos += 4;
@@ -47,11 +47,11 @@ Tundra.DataSerializer.prototype = {
         var valueU32 = value;
         if (valueU32 < 0)
             valueU32 += 0x80000000;
-        this.addU32(valueU32)
+        this.addU32(valueU32);
     },
 
     addFloat : function(value) {
-        if (this.bitPos == 0)
+        if (this.bitPos === 0)
         {
             this.dataView.setFloat32(this.bytePos, value, true);
             this.bytePos += 4;
@@ -104,7 +104,7 @@ Tundra.DataSerializer.prototype = {
             }
         }
         
-        if (this.bitPos != 0)
+        if (this.bitPos !== 0)
             this.dataView.setUint8(this.bytePos, currentByte);
     },
     
@@ -133,38 +133,37 @@ Tundra.DataSerializer.prototype = {
             this.addU8(value);
         else if (value < 0x800) {
             this.addU8(0xc0 | ((value >> 6) & 0x1f));
-            addU8(0x80 | (value & 0x3f));
+            this.addU8(0x80 | (value & 0x3f));
         }
         else if (value < 0x10000) {
-            addU8(0xe0 | ((value >> 12) & 0xf));
-            addU8(0x80 | ((value >> 6) & 0x3f));
-            addU8(0x80 | (value & 0x3f));
+            this.addU8(0xe0 | ((value >> 12) & 0xf));
+            this.addU8(0x80 | ((value >> 6) & 0x3f));
+            this.addU8(0x80 | (value & 0x3f));
         }
         else if (value < 0x200000) {
-            addU8(0xf0 | ((value >> 18) & 0x7));
-            addU8(0x80 | ((value >> 12) & 0x3f));
-            addU8(0x80 | ((value >> 6) & 0x3f));
-            addU8(0x80 | (value & 0x3f));
+            this.addU8(0xf0 | ((value >> 18) & 0x7));
+            this.addU8(0x80 | ((value >> 12) & 0x3f));
+            this.addU8(0x80 | ((value >> 6) & 0x3f));
+            this.addU8(0x80 | (value & 0x3f));
         }
         else if (value < 0x4000000) {
-            addU8(0xf8 | ((value >> 24) & 0x3));
-            addU8(0x80 | ((value >> 18) & 0x3f));
-            addU8(0x80 | ((value >> 12) & 0x3f));
-            addU8(0x80 | ((value >> 6) & 0x3f));
-            addU8(0x80 | (value & 0x3f));
+            this.addU8(0xf8 | ((value >> 24) & 0x3));
+            this.addU8(0x80 | ((value >> 18) & 0x3f));
+            this.addU8(0x80 | ((value >> 12) & 0x3f));
+            this.addU8(0x80 | ((value >> 6) & 0x3f));
+            this.addU8(0x80 | (value & 0x3f));
         }
         else {
-            addU8(0xfc | ((value >> 30) & 0x1));
-            addU8(0x80 | ((value >> 24) & 0x3f));
-            addU8(0x80 | ((value >> 18) & 0x3f));
-            addU8(0x80 | ((value >> 12) & 0x3f));
-            addU8(0x80 | ((value >> 6) & 0x3f));
-            addU8(0x80 | (value & 0x3f));
+            this.addU8(0xfc | ((value >> 30) & 0x1));
+            this.addU8(0x80 | ((value >> 24) & 0x3f));
+            this.addU8(0x80 | ((value >> 18) & 0x3f));
+            this.addU8(0x80 | ((value >> 12) & 0x3f));
+            this.addU8(0x80 | ((value >> 6) & 0x3f));
+            this.addU8(0x80 | (value & 0x3f));
         }
     },
 
     addUtf8String : function(value) {
-        var len = this.countUtf8ByteSize(value);
         this.addU16(this.countUtf8ByteSize(value));
         for (var i = 0; i < value.length; i++)
             this.addUtf8Char(value.charCodeAt(i));
@@ -193,8 +192,7 @@ Tundra.DataSerializer.prototype = {
 
     addArrayBuffer : function(value, maxLength) {
         var view = new DataView(value);
-        if (maxLength == null)
-            maxLength = value.byteLength;
+        maxLength = maxLength || value.byteLength;
         for (var i = 0; i < maxLength; ++i) {
             this.addU8(view.getUint8(i));
         }
@@ -207,7 +205,7 @@ Tundra.DataSerializer.prototype = {
     },
 
     get bytesFilled(){
-        if (this.bitPos == 0)
+        if (this.bitPos === 0)
             return this.bytePos;
         else
             return this.bytePos + 1;
@@ -216,4 +214,4 @@ Tundra.DataSerializer.prototype = {
     get arrayBuffer(){
         return this.dataView.buffer;
     }
-}
+};
