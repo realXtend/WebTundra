@@ -148,8 +148,8 @@ Tundra.ThreeView.prototype = {
             this.onLightAddedOrChanged(threeGroup, component);
         else if (component instanceof Tundra.EC_AnimationController)
             this.onAnimatorAddedOrChanged(threeGroup, component);
-        else
-            console.log("Component not handled by ThreeView:", entity, component);
+        //else
+            //console.log("Component not handled by ThreeView:", entity, component);
     },
     
     OnEntityAction : function( name, params, execType ) {
@@ -216,7 +216,7 @@ Tundra.ThreeView.prototype = {
                 //console.log("removing prev three mesh on ec_mesh attr change");
             }
         } else {
-            console.log("adding first mesh for o3d id=" + threeGroup.id);
+            //console.log("adding first mesh for o3d id=" + threeGroup.id);
         }
 
         if (!meshComp.attributeChanged.has(this.onMeshAttributeChanged, this))
@@ -400,9 +400,9 @@ Tundra.ThreeView.prototype = {
           
             // TODO use cache variables.
           
-            this.threeMesh.position = new THREE.Vector3(trans.pos.x, trans.pos.y, trans.pos.z);
-            this.threeMesh.rotation = new THREE.Euler(THREE.Math.degToRad(trans.rot.x), THREE.Math.degToRad(trans.rot.y), THREE.Math.degToRad(trans.rot.z), 'ZYX');
-            this.threeMesh.scale = new THREE.Vector3(trans.scale.x, trans.scale.y, trans.scale.z);
+            this.threeMesh.position.set(trans.pos.x, trans.pos.y, trans.pos.z);
+            this.threeMesh.rotation.set(THREE.Math.degToRad(trans.rot.x), THREE.Math.degToRad(trans.rot.y), THREE.Math.degToRad(trans.rot.z), 'ZYX');
+            this.threeMesh.scale.set(trans.scale.x, trans.scale.y, trans.scale.z);
             
         };
         
@@ -680,7 +680,7 @@ Tundra.ThreeView.prototype = {
             //euler.order = 'XYZ'; //not needed as tundraToThreeEuler defines it too
             tundraToThreeEuler(ptv.rot, euler);
             quat.setFromEuler(euler, true);
-            threeMesh.quaternion = quat;
+            threeMesh.quaternion.copy(quat); //is immutable now, this is the new way: https://github.com/mrdoob/three.js/issues/4869
 
             // Scale
             copyXyz(ptv.scale, threeMesh.scale);
