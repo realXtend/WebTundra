@@ -80,14 +80,14 @@ module.exports = function(grunt) {
         compress : {
             build : {
                 options : {
-                    archive : "build/realxtend-webtundra-sdk-<%= pkg.version %>.zip",
+                    archive : "build/realxtend-webtundra-<%= pkg.version %>.zip",
                     pretty  : true,
                     level   : 9
                 },
                 files: [
                     { expand : true, cwd: "build/",
                       src    : [ "**" ],
-                      dest   : "realxtend-webtundra-sdk-<%= pkg.version %>/" }
+                      dest   : "realxtend-webtundra-<%= pkg.version %>/" }
                 ]
             }
         },
@@ -195,7 +195,7 @@ module.exports = function(grunt) {
                     },
 
                     out : function (compiledCode) {
-                        grunt.file.write("build/realxtend-webtundra-sdk.js",
+                        grunt.file.write("build/realxtend-webtundra.js",
                             copyright +
                             grunt.file.read("tools/snippets/SDK.pre.inject.js") +
                             compiledCode +
