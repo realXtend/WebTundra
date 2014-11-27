@@ -58,7 +58,7 @@ var UiAPI = Class.$extend(
             "font-family"       : "Arial",
             "font-size"         : "18pt",
             "font-weight"       : "bold",
-            "z-index"           : parseInt(this.console.css("z-index")) + 1
+            "z-index"           : parseInt(this.console != null ? this.console.css("z-index") : "49") + 1
         });
         this.fps.width(60);
         this.fps.height(30);
@@ -85,7 +85,7 @@ var UiAPI = Class.$extend(
                     this.fps.cachedVisible = true;
                 }
             }
-            else if (!this.console.is(":visible"))
+            else if (this.console != null && !this.console.is(":visible"))
             {
                 this.fps.fadeOut();
                 this.fps.cachedVisible = false;
@@ -126,7 +126,7 @@ var UiAPI = Class.$extend(
 
     onDisconnected : function()
     {
-        if (this.console.is(":visible"))
+        if (this.console != null && this.console.is(":visible"))
             this.toggleConsole();
         this.clearConsole();
     },
@@ -323,7 +323,8 @@ var UiAPI = Class.$extend(
     */
     clearConsole : function()
     {
-        this.console.empty();
+        if (this.console != null)
+            this.console.empty();
     },
 
     /**
@@ -570,7 +571,7 @@ var UiAPI = Class.$extend(
 
     onKeyPress : function(event)
     {
-        if (event.key === "1" && event.targetNodeName !== "input")
+        if (this.console != null && event.key === "1" && event.targetNodeName !== "input")
         {
             if (this.consoleInput.is(":visible") && this.consoleInput.is(":focus"))
                 return;
@@ -678,21 +679,24 @@ var UiAPI = Class.$extend(
             }
         }
 
-        if (this.console.is(":visible"))
+        if (this.console != null)
         {
-            this.console.position({
-                my : "left top",
-                at : "left top",
-                of : this.console.parent()
-            });
-        }
-        if (this.consoleInput.is(":visible"))
-        {
-            this.consoleInput.position({
-                my : "left top",
-                at : "left bottom",
-                of : this.console
-            });
+            if (this.console.is(":visible"))
+            {
+                this.console.position({
+                    my : "left top",
+                    at : "left top",
+                    of : this.console.parent()
+                });
+            }
+            if (this.consoleInput.is(":visible"))
+            {
+                this.consoleInput.position({
+                    my : "left top",
+                    at : "left bottom",
+                    of : this.console
+                });
+            }
         }
 
         if (this.fps !== undefined && this.fps.is(":visible"))
