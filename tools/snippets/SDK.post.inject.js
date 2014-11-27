@@ -9,12 +9,7 @@ tundra.createWebTundraClient = function(params) {
         params.renderSystem = ThreeJsRenderer;
 
     // Instantiate the client
-    tundra.client = new TundraClient({
-        container              : params.container,
-        renderSystem           : params.renderSystem,
-        asset                  : params.asset,
-        applications           : params.applications
-    });
+    tundra.client = new TundraClient(params);
     tundra.TundraSDK = TundraSDK;
 
     return tundra.client;
