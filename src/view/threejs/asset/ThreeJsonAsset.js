@@ -1,10 +1,9 @@
 
 define([
         "lib/three",
-        "lib/three/OBJLoader",
         "core/framework/TundraSDK",
         "core/asset/IAsset"
-    ], function(THREE, OBJLoader, TundraSDK, IAsset) {
+    ], function(THREE, TundraSDK, IAsset) {
 
 /**
     Represents a three.js json mesh asset. The input data is processed and Three.js rendering engine meshes are generated.
