@@ -40,6 +40,8 @@ module.exports = function(grunt) {
         return contents;
     };
 
+    var requirejsOptimization = (grunt.option("no-uglify") === true ? "none" : "uglify");
+
     var globalBuildDependencies = [];
 
     grunt.initConfig({
@@ -97,7 +99,7 @@ module.exports = function(grunt) {
                 options : {
 
                     baseUrl     : "build-temp/",
-                    optimize    : "uglify",
+                    optimize    : requirejsOptimization,
 
                     name : "core/framework/TundraClient",
 
