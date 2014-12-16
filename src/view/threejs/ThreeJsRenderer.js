@@ -117,6 +117,8 @@ var ThreeJsRenderer = IRenderSystem.$extend(
             @type THREE.Projector
         */
         this.projector = new THREE.Projector();
+        if (parseInt(THREE.REVISION) > 68)
+            this.projector.pickingRay = this._threeProjectorPickingRay.bind(this.projector);
 
         /**
             @property raycaster
@@ -217,10 +219,14 @@ var ThreeJsRenderer = IRenderSystem.$extend(
     onSceneMeshLoaded : function(entity, component, meshAsset)
     {
         this._trackingKey = entity.id + "." + component.id;
-        this._sceneObjects[this._trackingKey] = new Array(meshAsset.numSubmeshes());
+        this._sceneObjects[this._trackingKey] = [];
 
         for (var i=0, len=meshAsset.numSubmeshes(); i<len; ++i)
-            this._sceneObjects[this._trackingKey].push(meshAsset.getSubmesh(i));
+        {
+            var submesh = meshAsset.getSubmesh(i);
+            if (submesh !== undefined && submesh !== null)
+                this._sceneObjects[this._trackingKey].push(submesh);
+        }
 
         if (this._meshLoadedSubs[this._trackingKey] !== undefined)
         {
@@ -812,6 +818,21 @@ var ThreeJsRenderer = IRenderSystem.$extend(
         var objects = raycaster.intersectObjects(targets, recursive);
 
         return this._raycastResults(raycaster, objects, this.raycastResult, selectionLayer, ignoreECModel, all)
+    },
+
+    _threeProjectorPickingRay : function(vector, camera)
+    {
+        // set two vectors with opposing z values
+        vector.z = -1.0;
+        var end = new THREE.Vector3( vector.x, vector.y, 1.0 );
+
+        vector.unproject(camera);
+        end.unproject(camera);
+
+        // find direction from vector to end
+        end.sub( vector ).normalize();
+
+        return new THREE.Raycaster( vector, end );
     },
 
     _raycastResults : function(raycaster, objects, raycastResult, selectionLayer, ignoreECModel, all)
