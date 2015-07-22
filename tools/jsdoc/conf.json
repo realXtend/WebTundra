@@ -1,0 +1,41 @@
+{
+    "opts" : {
+        //"template"   : "templates/default",  // same as -t templates/default
+        "template"     : "node_modules/jaguarjs-jsdoc",
+        "encoding"     : "utf8",               // same as -e utf8
+        "recurse"      : true                  // same as -r
+    },
+    "source": {
+        "include" : [
+            "src/core"
+        ],
+        "exclude" : [
+            "src/lib",
+            "src/application"
+        ],
+        "includePattern": ".+\\.js(doc)?$",
+        "excludePattern": "(^|\\/|\\\\)_"
+    },
+    "templates" : {
+        "cleverLinks"    : false,
+        "monospaceLinks" : true,
+
+        "default" : {
+            "includeDate" : false,
+            "outputSourceFiles": false
+        },
+
+        // jaguarjs-jsdoc
+        "linenums": false,
+        "applicationName": "WebTundra ${version}",
+        "meta": {
+            "title": "WebTundra docs",
+            "description": "realXtend WebTundra API documentation",
+            "keyword": "realxtend webtundra api docs doxygen"
+        }
+    },
+    "tags" : {
+        "allowUnknownTags": true
+    },
+    "plugins" : []
+}
