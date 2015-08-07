@@ -81,6 +81,17 @@ var Network = Class.$extend(
             41  : "EC_SlideShow",               52  : "EC_GraphicsViewCanvas",
             42  : "EC_WidgetBillboard",         108 : "EC_StencilGlow",
             43  : "EC_PhysicsMotor"
+        },
+
+        /**
+            Network protocol versions
+        */
+        protocolVersions:
+        {
+            ProtocolOriginal : 1,
+            ProtocolCustomComponents : 2,
+            ProtocolHierarchicScene : 3,
+            ProtocolWebClientRigidBodyMessage : 4
         }
     },
 
