@@ -62,9 +62,10 @@ require([
 
     // Run application. EC_Script is not yet implemented in the WebTundra SDK
     // so we are just going to ensure the scripts dependencies here and run it.
-    $.getScript("../src/application/freecamera.js")
+    $.getScript("../src/application/physics.js")
         .done(function( script, textStatus ) {
-            var freecamera = new FreeCameraApplication();
+            console.log("Testi!!!");
+            var physicsApp = new PhysicsApplication();
             /** Uncomment if you want a local camera to be created and activeted
                 before you join a server. */
             //TundraSDK.plugin("LoginScreenPlugin").hide();

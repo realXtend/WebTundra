@@ -115,7 +115,8 @@ module.exports = function(grunt) {
                         "lib/three/OBJLoader",
                         "lib/loglevel",
                         "lib/signals",
-                        "lib/polymer.min"
+                        "lib/polymer.min",
+                        "lib/ammo"
                     ],
 
                     excludeGlobalModules : [
@@ -129,7 +130,8 @@ module.exports = function(grunt) {
                         "lib/three/OBJLoader",
                         "lib/loglevel",
                         "lib/signals",
-                        "lib/polymer.min"
+                        "lib/polymer.min",
+                        "lib/ammo"
                     ],
 
                     onBuildWrite : function(moduleName, path, contents) {
