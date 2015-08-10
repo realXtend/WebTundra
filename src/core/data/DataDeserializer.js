@@ -407,8 +407,8 @@ var DataDeserializer = Class.$extend(
         }
         else
         {
-            DataDeserializer.floatReadData.setUint32(0, this.readBits(32), true);
-            return DataDeserializer.floatReadData.getFloat32(0, true);
+            this.$class.floatReadData.setUint32(0, this.readBits(32), true);
+            return this.$class.floatReadData.getFloat32(0, true);
         }
     },
 
@@ -427,9 +427,9 @@ var DataDeserializer = Class.$extend(
         }
         else
         {
-            DataDeserializer.floatReadData.setUint32(0, this.readBits(32), true);
-            DataDeserializer.floatReadData.setUint32(4, this.readBits(32), true);
-            return DataDeserializer.floatReadData.getFloat64(0, true);
+            this.$class.floatReadData.setUint32(0, this.readBits(32), true);
+            this.$class.floatReadData.setUint32(4, this.readBits(32), true);
+            return this.$class.floatReadData.getFloat64(0, true);
         }
 
     },
@@ -486,29 +486,29 @@ var DataDeserializer = Class.$extend(
     /**
         Reads a number of bits and returns an unsigned number value.
         @method readBits
-        @param {Number} bitCount Number of bits to read
+        @param {Number} numBits Number of bits to read
         @return {Number} Read unsigned value.
     */
-    readBits : function(bitCount)
+    readBits : function(numBits)
     {
         var ret = 0;
         var shift = 0;
         var currentByte = this.data.getUint8(this.pos);
 
-        while (bitCount > 0) 
+        while (numBits > 0) 
         {
             if (currentByte & (1 << this.bitPos))
                 ret |= (1 << shift);
 
             shift++;
-            bitCount--;
+            numBits--;
             this.bitPos++;
 
             if (this.bitPos > 7)
             {
                 this.bitPos = 0;
                 this.pos++;
-                if (bitCount > 0)
+                if (numBits > 0)
                     currentByte = this.data.getUint8(this.pos);
             }
         }
@@ -547,6 +547,161 @@ var DataDeserializer = Class.$extend(
             }
         }
         return bits;
+    },
+    
+    /**
+        Reads 5 arithmetic encoded values.
+        @method readArithmeticEncoded
+        @param {Number} numBits How many bits to read
+        @param {Number} max1 Maximum value of first value
+        @param {Number} max2 Maximum value of second value
+        @param {Number} max3 Maximum value of third value
+        @param {Number} max4 Maximum value of fourth value
+        @param {Number} max5 Maximum value of fifth value
+        @return {Array} Values as array
+     */
+    readArithmeticEncoded : function(numBits, max1, max2, max3, max4, max5)
+    {
+        var val = this.readBits(numBits);
+        var val5 = val % max5;
+        val = Math.floor(val / max5);
+        var val4 = val % max4;
+        val = Math.floor(val / max4);
+        var val3 = val % max3;
+        val = Math.floor(val / max3);
+        var val2 = val % max2;
+        val = Math.floor(val / max2);
+        var val1 = val % max1;
+        val = Math.floor(val / max1);
+        return [val1, val2, val3, val4, val5];
+    },
+
+    /** Reads a signed fixed point value.
+        @method readSignedFixedPoint
+        @param {Number} numIntegerBits Number of integer bits
+        @param {Number} numDecimalBits Number of decimal bits
+        @return {Number} Value
+     */
+    readSignedFixedPoint : function(numIntegerBits, numDecimalBits)
+    {
+        return this.readUnsignedFixedPoint(numIntegerBits, numDecimalBits) - (1 << (numIntegerBits-1));
+    },
+
+    /** Reads an unsigned fixed point value.
+        @method readUnsignedFixedPoint
+        @param {Number} numIntegerBits Number of integer bits
+        @param {Number} numDecimalBits Number of decimal bits
+        @return {Number} Value
+     */
+    readUnsignedFixedPoint : function(numIntegerBits, numDecimalBits)
+    {
+        var val = this.readBits(numIntegerBits + numDecimalBits);
+        return val / (1 << numDecimalBits);
+    },
+
+    /** Reads a quantized float value.
+        @method readQuantizedFloat
+        @param {Number} minRange Minimum possible value
+        @param {Number} maxRange Maximum possible value
+        @param {Number} numBits Number of bits to read
+        @return {Number} Value
+     */
+    readQuantizedFloat : function(minRange, maxRange, numBits)
+    {
+        var val = this.readBits(numBits);
+        return minRange + val * (maxRange - minRange) / ((1 << numBits) - 1);
+    },
+
+    /** Reads a normalized 2D vector using the specified amount of bits (angle representation)
+        @method readNormalizedVector2D
+        @param {Number} numBits Number of bits to read
+        @return {Object} Object with x & y fields, representing the 2D vector
+     */
+    readNormalizedVector2D : function(numBits)
+    {
+        var ret = {};
+        var angle = this.readQuantizedFloat(-Math.PI, Math.PI, numBits);
+        ret.x = Math.cos(angle);
+        ret.y = Math.sin(angle);
+        return ret;
+    },
+
+    /** Reads a 2D vector using the specified amount of bits.
+        @method readVector2D
+        @param {Number} magnitudeIntegerBits Number of bits for magnitude integer part
+        @param {Number} magnitudeDecimalBits Number of bits for magnitude decimal part
+        @param {Number} directionBits Number of bits for direction
+        @return {Object} Object with x & y fields, representing the 2D vector
+     */
+    readVector2D : function(magnitudeIntegerBits, magnitudeDecimalBits, directionBits)
+    {
+        var ret = {};
+        var fp = this.readBits(magnitudeIntegerBits + magnitudeDecimalBits);
+        if (fp != 0)
+        {
+            var len = fp / (1 << magnitudeDecimalBits);
+            var angle = this.readQuantizedFloat(-Math.PI, Math.PI, directionBits);
+            ret.x = Math.cos(angle) * len;
+            ret.y = Math.sin(angle) * len;
+        }
+        else
+        {
+            // Zero length, direction is not stored
+            ret.x = 0;
+            ret.y = 0;
+        }
+        return ret;
+    },
+
+    /** Reads a normalized 3D vector using the specified amount of bits (angle representation)
+        @method readNormalizedVector3D
+        @param {Number} numBitsYaw Number of bits to read for yaw
+        @param {Number} numBitsPitch Number of bits to read for pitch
+        @return {Object} Object with x, y, z fields, representing the 3D vector
+     */
+    readNormalizedVector3D : function(numBitsYaw, numBitsPitch)
+    {
+        var ret = {};
+        var azimuth = this.readBits(-Math.PI, Math.PI, numBitsYaw);
+        var inclination = this.readBits(-Math.PI/2, Math.PI/2, numBitsPitch);
+        var cx = Math.cos(inclination);
+        ret.x = cx * Math.sin(azimuth);
+        ret.y = -sin(inclination);
+        ret.z = cx * Math.cos(azimuth);
+        return ret;
+    },
+
+    /** Reads a 3D vector using the specified amount of bits.
+        @method readVector3D
+        @param {Number} numBitsYaw Number of bits to read for yaw
+        @param {Number} numBitsPitch Number of bits to read for pitch
+        @param {Number} magnitudeIntegerBits Number of bits for magnitude integer part
+        @param {Number} magnitudeDecimalBits Number of bits for magnitude decimal part
+        @return {Object} Object with x, y, z fields, representing the 3D vector
+     */
+    readVector3D : function(numBitsYaw, numBitsPitch, magnitudeIntegerBits, magnitudeDecimalBits, directionBits)
+    {
+        var ret = {};
+        var fp = this.readBits(magnitudeIntegerBits + magnitudeDecimalBits);
+        if (fp != 0)
+        {
+            var len = fp / (1 << magnitudeDecimalBits);
+            var azimuth = this.readBits(-Math.PI, Math.PI, numBitsYaw);
+            var inclination = this.readBits(-Math.PI/2, Math.PI/2, numBitsPitch);
+            var cx = Math.cos(inclination);
+            ret.x = cx * Math.sin(azimuth) * len;
+            ret.y = -sin(inclination) * len;
+            ret.z = cx * Math.cos(azimuth) * len;
+        }
+        else
+        {
+            // Zero length, direction is not stored
+            ret.x = 0;
+            ret.y = 0;
+            ret.z = 0;
+        }
+
+        return ret;
     }
 });
 
