@@ -42,7 +42,10 @@ var DataDeserializer = Class.$extend(
                     byte &= ~(1 << bi);
             }
             return byte;
-        }
+        },
+
+        /** Utility dataview for reading non-bit aligned float data */
+        floatReadData : new DataView(new ArrayBuffer(8))
     },
 
     /**
@@ -59,10 +62,12 @@ var DataDeserializer = Class.$extend(
         else
             this.data = new DataView(buffer, pos, length);
         this.pos = 0;
+        this.bitPos = 0;
     },
 
     /**
         Read bytes as a new buffer.
+        @note Does not respect bit position
         @method readUint8Array
         @param {Number} numBytes Number of bytes to read.
         @return {Uint8Array} Read buffer.
@@ -93,6 +98,16 @@ var DataDeserializer = Class.$extend(
     bytesLeft : function()
     {
         return (this.data.byteLength - this.pos);
+    },
+    
+    /**
+        Returns how many bits are left.
+        @method bitsLeft
+        @return {Number} Number of bits left.
+    */
+    bitsLeft : function()
+    {
+        return (this.data.byteLength - this.pos) * 8 - this.bitPos;
     },
 
     /**
@@ -199,7 +214,7 @@ var DataDeserializer = Class.$extend(
     },
 
     /**
-        Reads string with lenght.
+        Reads string with length.
         @method readString
         @param {Number} length String length.
         @return {String} Read string.
@@ -225,7 +240,7 @@ var DataDeserializer = Class.$extend(
     },
 
     /**
-        Reads u8 lenght string.
+        Reads u8 length string.
         @method readStringU8
         @return {String} Read string.
     */
@@ -235,7 +250,7 @@ var DataDeserializer = Class.$extend(
     },
 
     /**
-        Reads u16 lenght string.
+        Reads u16 length string.
         @method readStringU16
         @return {String} Read string.
     */
@@ -245,7 +260,7 @@ var DataDeserializer = Class.$extend(
     },
 
     /**
-        Reads u32 lenght string.
+        Reads u32 length string.
         @method readStringU32
         @return {String} Read string.
     */
@@ -261,9 +276,19 @@ var DataDeserializer = Class.$extend(
     */
     readS8 : function()
     {
-        var s8 = this.data.getInt8(this.pos);
-        this.pos += 1;
-        return s8;
+        if (this.bitPos == 0)
+        {
+            var s8 = this.data.getInt8(this.pos);
+            this.pos += 1;
+            return s8;
+        }
+        else
+        {
+            var s8 = this.readBits(8);
+            if (s8 >= 0x80)
+                s8 -= 0x100;
+            return s8;
+        }
     },
 
     /**
@@ -273,9 +298,16 @@ var DataDeserializer = Class.$extend(
     */
     readU8 : function()
     {
-        var u8 = this.data.getUint8(this.pos);
-        this.pos += 1;
-        return u8;
+        if (this.bitPos == 0)
+        {
+            var u8 = this.data.getUint8(this.pos);
+            this.pos += 1;
+            return u8;
+        }
+        else
+        {
+            return this.readBits(8);
+        }
     },
 
     /**
@@ -285,9 +317,19 @@ var DataDeserializer = Class.$extend(
     */
     readS16 : function()
     {
-        var s16 = this.data.getInt16(this.pos, true);
-        this.pos += 2;
-        return s16;
+        if (this.bitPos == 0)
+        {
+            var s16 = this.data.getInt16(this.pos, true);
+            this.pos += 2;
+            return s16;
+        }
+        else
+        {
+            var s16 = this.readBits(16);
+            if (s16 >= 0x8000)
+                s16 -= 0x10000;
+            return s16;
+        }
     },
 
     /**
@@ -297,9 +339,16 @@ var DataDeserializer = Class.$extend(
     */
     readU16 : function()
     {
-        var u16 = this.data.getUint16(this.pos, true);
-        this.pos += 2;
-        return u16;
+        if (this.bitPos == 0)
+        {
+            var u16 = this.data.getUint16(this.pos, true);
+            this.pos += 2;
+            return u16;
+        }
+        else
+        {
+            return this.readBits(16);
+        }
     },
 
     /**
@@ -309,9 +358,19 @@ var DataDeserializer = Class.$extend(
     */
     readS32 : function()
     {
-        var s32 = this.data.getInt32(this.pos, true);
-        this.pos += 4;
-        return s32;
+        if (this.bitPos == 0)
+        {
+            var s32 = this.data.getInt32(this.pos, true);
+            this.pos += 4;
+            return s32;
+        }
+        else
+        {
+            var s32 = this.readBits(32);
+            if (s32 >= 0x80000000)
+                s32 -= 0x100000000;
+            return s32;
+        }
     },
 
     /**
@@ -321,9 +380,16 @@ var DataDeserializer = Class.$extend(
     */
     readU32 : function()
     {
-        var u32 = this.data.getUint32(this.pos, true);
-        this.pos += 4;
-        return u32;
+        if (this.bitPos == 0)
+        {
+            var u32 = this.data.getUint32(this.pos, true);
+            this.pos += 4;
+            return u32;
+        }
+        else
+        {
+            return this.readBits(32);
+        }
     },
 
     /**
@@ -333,9 +399,17 @@ var DataDeserializer = Class.$extend(
     */
     readFloat32 : function()
     {
-        var f32 = this.data.getFloat32(this.pos, true);
-        this.pos += 4;
-        return f32;
+        if (this.bitPos == 0)
+        {
+            var f32 = this.data.getFloat32(this.pos, true);
+            this.pos += 4;
+            return f32;
+        }
+        else
+        {
+            DataDeserializer.floatReadData.setUint32(0, this.readBits(32), true);
+            return DataDeserializer.floatReadData.getFloat32(0, true);
+        }
     },
 
     /**
@@ -345,9 +419,19 @@ var DataDeserializer = Class.$extend(
     */
     readFloat64 : function()
     {
-        var f64 = this.data.getFloat64(this.pos, true);
-        this.pos += 8;
-        return f64;
+        if (this.bitPos == 0)
+        {
+            var f64 = this.data.getFloat64(this.pos, true);
+            this.pos += 8;
+            return f64;
+        }
+        else
+        {
+            DataDeserializer.floatReadData.setUint32(0, this.readBits(32), true);
+            DataDeserializer.floatReadData.setUint32(4, this.readBits(32), true);
+            return DataDeserializer.floatReadData.getFloat64(0, true);
+        }
+
     },
 
     /**
@@ -400,12 +484,55 @@ var DataDeserializer = Class.$extend(
     },
 
     /**
-        Reads bytes as bits.
+        Reads a number of bits and returns an unsigned number value.
+        @method readBits
+        @param {Number} bitCount Number of bits to read
+        @return {Number} Read unsigned value.
+    */
+    readBits : function(bitCount)
+    {
+        var ret = 0;
+        var shift = 0;
+        var currentByte = this.data.getUint8(this.pos);
+
+        while (bitCount > 0) 
+        {
+            if (currentByte & (1 << this.bitPos))
+                ret |= (1 << shift);
+
+            shift++;
+            bitCount--;
+            this.bitPos++;
+
+            if (this.bitPos > 7)
+            {
+                this.bitPos = 0;
+                this.pos++;
+                if (bitCount > 0)
+                    currentByte = this.data.getUint8(this.pos);
+            }
+        }
+
+        return ret;
+    },
+
+    /**
+        Read one bit.
+        @method readBit
+        @return {Number} Read bit value (0/1)
+    */
+    readBit : function()
+    {
+        return this.readBits(1);
+    },
+    
+    /**
+        Reads bytes as bits to a BitArray.
         @method readBits
         @param {Number} bytes How many bytes to read as bits.
         @return {BitArray} Read bits. See http://github.com/bramstein/bit-array
     */
-    readBits : function(bytes)
+    readBitsToArray : function(bytes)
     {
         var bitIndex = 0;
         var bits = new BitArray(bytes*8, 0);
