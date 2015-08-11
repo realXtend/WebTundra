@@ -9,8 +9,10 @@ define([
         "core/scene/Attribute",
         "core/scene/AttributeChange",
         "core/network/Network",
-        "core/data/DataDeserializer"
-    ], function(Class, TundraSDK, TundraLogging, CoreStringUtils, Entity, IComponent, Attribute, AttributeChange, Network, DataDeserializer, DataSerializer) {
+        "core/data/DataDeserializer",
+        "core/data/DataSerializer",
+        "core/math/Transform"
+    ], function(Class, TundraSDK, TundraLogging, CoreStringUtils, Entity, IComponent, Attribute, AttributeChange, Network, DataDeserializer, DataSerializer, Transform) {
 
 /**
     Scene that is accessible from {{#crossLink "TundraClient/scene:property"}}TundraClient.scene{{/crossLink}}
@@ -914,7 +916,10 @@ var Scene = Class.$extend(
     {
         /// @note RigidBody message is differently structured; it may contain multiple entities
         if (message.id === 119)
+        {
             this.handleRigidBodyUpdateMessage(message.ds);
+            return;
+        }
 
         var sceneId = message.ds.readVLE();
         var entityId = message.ds.readVLE();
@@ -959,6 +964,11 @@ var Scene = Class.$extend(
         // New entity
         var entity = this.createEntity(entityId, [], AttributeChange.Replicate, true, true);
         entity.temporary = ds.readBoolean();
+
+        /// Read parent entity ID
+        /// @todo: use properly
+        /// @todo: read protocol version in loginreply, and do not read this if the server does not support the protocol
+        var parentEntityId = ds.readU32();
 
         // Components
         var numComponents = ds.readVLE();
@@ -1144,6 +1154,89 @@ var Scene = Class.$extend(
 
     handleRigidBodyUpdateMessage : function(ds)
     {
+        while (ds.bitsLeft() >= 9)
+        {
+            var entityId = ds.readVLE();
+            var entity = this.entityById(entityId);
+            var placeable = entity ? entity.placeable : null;
+            var t = placeable ? placeable.attributes.transform.get() : new Transform();
+
+            var sendTypes = ds.readArithmeticEncoded(8, 3, 4, 3, 3, 2);
+            var posSendType = sendTypes[0];
+            var rotSendType = sendTypes[1];
+            var scaleSendType = sendTypes[2];
+            var velSendType = sendTypes[3];
+            var angVelSendType = sendTypes[4];
+
+            if (posSendType == 1)
+            {
+                t.setPosition(ds.readSignedFixedPoint(11, 8), ds.readSignedFixedPoint(11, 8), ds.readSignedFixedPoint(11, 8));
+            }
+            else if (posSendType == 2)
+            {
+                t.setPosition(ds.readFloat32(), ds.readFloat32(), ds.readFloat32());
+            }
+
+            if (rotSendType == 1)
+            {
+                var forward2D = ds.readNormalizedVector2D(8);
+                t.lookAt(new THREE.Vector3(0,0,0), new THREE.Vector3(forward2D.x, 0, forward2D.y));
+            }
+            else if (rotSendType == 2)
+            {
+                var forward3D = ds.readNormalizedVector3D(9, 8);
+                t.lookAt(new THREE.Vector3(0,0,0), new THREE.Vector3(forward3D.x, forward3D.y, forward2D.z));
+            }
+            else if (rotSendType == 3)
+            {
+                var quantizedAngle = ds.readBits(10);
+                if (quantizedAngle != 0)
+                {
+                    var angle = quantizedAngle * Math.PI / ((1 << 10) - 1);
+                    var axis = ds.readNormalizedVector3D(11, 10);
+                    var quat = new THREE.Quaternion();
+                    quat.setFromAxisAngle(new THREE.Vector3(axis.x, axis.y, axis.z), angle);
+                    t.setRotation(quat);
+                }
+                else
+                {
+                    t.setRotation(0, 0, 0); // Identity
+                }
+            }
+
+            if (scaleSendType == 1)
+            {
+                var scale = ds.readFloat32();
+                t.setScale(scale, scale, scale);
+            }
+            else if (scaleSendType == 2)
+            {
+                t.setScale(ds.readFloat32(), ds.readFloat32(), ds.readFloat32());
+            }
+
+            /// @todo Apply velocity once physics simulation is in place, now just read the right amount of bits
+            /// @todo Set position/rotation to interpolate, even without physics simulation
+            if (velSendType == 1)
+            {
+                ds.readVector3D(11, 10, 3, 8);
+            }
+            else if (velSendType == 2)
+            {
+                ds.readVector3D(11, 10, 10, 8);
+            }
+
+            if (angVelSendType == 1)
+            {
+                var angle = ds.readBits(10);
+                var axis = ds.readNormalizedVector3D(11, 10);
+            }
+
+            if (placeable && (posSendType != 0 || rotSendType != 0 || scaleSendType != 0))
+            {
+                // Update the transform value if something changed
+                placeable.attributes.transform.set(t, AttributeChange.LocalOnly);
+            }
+        }
     }
 });
 

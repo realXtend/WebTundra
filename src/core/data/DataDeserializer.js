@@ -495,7 +495,7 @@ var DataDeserializer = Class.$extend(
         var shift = 0;
         var currentByte = this.data.getUint8(this.pos);
 
-        while (numBits > 0) 
+        while (numBits > 0)
         {
             if (currentByte & (1 << this.bitPos))
                 ret |= (1 << shift);
@@ -666,7 +666,7 @@ var DataDeserializer = Class.$extend(
         var inclination = this.readBits(-Math.PI/2, Math.PI/2, numBitsPitch);
         var cx = Math.cos(inclination);
         ret.x = cx * Math.sin(azimuth);
-        ret.y = -sin(inclination);
+        ret.y = -Math.sin(inclination);
         ret.z = cx * Math.cos(azimuth);
         return ret;
     },
@@ -690,7 +690,7 @@ var DataDeserializer = Class.$extend(
             var inclination = this.readBits(-Math.PI/2, Math.PI/2, numBitsPitch);
             var cx = Math.cos(inclination);
             ret.x = cx * Math.sin(azimuth) * len;
-            ret.y = -sin(inclination) * len;
+            ret.y = -Math.sin(inclination) * len;
             ret.z = cx * Math.cos(azimuth) * len;
         }
         else
