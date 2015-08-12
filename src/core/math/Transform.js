@@ -214,6 +214,20 @@ var Transform = Class.$extend(
             this.log.error("setScale must be called with a single Three.Vector3 or x,y,z with type of number.", x, y, z);
         return false;
     },
+    
+    setFromQuaternion: function(x, y, z, w)
+    {
+        if (typeof x === "number" && typeof y === "number" &&
+            typeof z === "number" && typeof w === "number")
+        {
+            var quat = new THREE.Quaternion();
+            quat.set(x, y, z, w);
+            this._rotEuler.setFromQuaternion(quat.normalize(), "XYZ");
+            this._rot.x = THREE.Math.radToDeg(this._rotEuler.x) % 360.0;
+            this._rot.y = THREE.Math.radToDeg(this._rotEuler.y) % 360.0;
+            this._rot.z = THREE.Math.radToDeg(this._rotEuler.z) % 360.0;
+        }
+    },
 
     /**
         Returns a clone of this transform.

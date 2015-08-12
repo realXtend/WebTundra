@@ -115,11 +115,21 @@ var EC_RigidBody = IComponent.$extend(
         this.declareAttribute(17, "useGravity", true, Attribute.Bool);
         
         this.btCollisionshape_ = null;
-        this.btRigidbody = null;
+        this.btRigidbody_ = null;
         
         TundraSDK.framework.events.subscribe("IComponent.ParentEntitySet",
                                              this,
                                              this.connectToEntity);
+        
+        /*console.log(Ammo.btMotionState.prototype);
+        
+        var Impl = Ammo.btMotionState.extend("btMotionState", {
+            
+        });
+
+        var instance = new Impl;*/
+        TundraSDK.framework.frame.onUpdate(this, this.update_);
+        
     },
     
     __classvars__: {
@@ -142,6 +152,11 @@ var EC_RigidBody = IComponent.$extend(
     },
     
     updatePosRotFromPlaceable : function()
+    {
+        
+    },
+    
+    isActive: function()
     {
         
     },
@@ -211,11 +226,11 @@ var EC_RigidBody = IComponent.$extend(
     },
     
     createBody : function() {
-        
         if (this.parentEntity.placeable === "undefined" ||
             this.parentEntity.placeable === null)
             return;
         
+        this.removeBody();
         this.createCollisionShape();
         
         var mass = this.attributes.mass.get();
@@ -233,13 +248,20 @@ var EC_RigidBody = IComponent.$extend(
                                                           myMotionState,
                                                           this.btCollisionshape_,
                                                           localInertia);
-        this.btRigidbody = new Ammo.btRigidBody(rbInfo);
+        this.btRigidbody_ = new Ammo.btRigidBody(rbInfo);
+        this.btRigidbody_.activate(false);
         
-        TundraSDK.framework.physicsWorld.world.addRigidBody(this.btRigidbody);
+        TundraSDK.framework.physicsWorld.world.addRigidBody(this.btRigidbody_);
     },
     
     removeBody : function() {
+        if (this.btRigidbody_ === "undefined" ||
+            this.btRigidbody_ === null)
+            return;
         
+        TundraSDK.framework.physicsWorld.world.removeRigidBody(this.btRigidbody_);
+        Ammo.destroy(this.btRigidbody_);
+        this.btRigidbody_ = null;
     },
     
     createCollisionShape : function(){
@@ -268,8 +290,27 @@ var EC_RigidBody = IComponent.$extend(
     },
     
     removeCollisionShape : function() {
-        //if (this.btCollisionshape !== null)
-        //    Ammo.destroy(this.btCollisionshape);
+        if (this.btCollisionshape_ === "undefined" ||
+            this.btCollisionshape_ === null)
+            return;
+        
+        Ammo.destroy(this.btCollisionshape_);
+        this.btCollisionshape_ = null;
+    },
+    
+    update_ : function() {
+        if (this.btRigidbody_ === "undefined" ||
+            this.btRigidbody_ === null)
+            return;
+        
+        var transform = new Ammo.btTransform();
+        transform.setIdentity();
+        this.btRigidbody_.getMotionState().getWorldTransform(transform);
+        var origin = transform.getOrigin();
+        var rot = transform.getRotation();
+        
+        this.parentEntity.placeable.setPosition(origin.x(), origin.y(), origin.z());
+        this.parentEntity.placeable.transform.setFromQuaternion(rot.x(), rot.y(), rot.z(), rot.w());
     }
 });
 

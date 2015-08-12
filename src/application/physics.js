@@ -47,26 +47,20 @@ var PhysicsApplication = ICameraApplication.$extend(
     createScene : function()
     {
         var meshEntity = null;
-        this.entities["Deer"] = this.createMesh("Deer", "webtundra://Box.json");
         
-        meshEntity = this.entities["Deer"];
-        //meshEntity.mesh.materialRefs = ["tundra://cube.material"];
-        //var materials = 
-        //console.log(meshEntity.mesh.materialRefs);
+        this.entities["Box"] = this.createMesh("Box", "webtundra://Box.json");
+        meshEntity = this.entities["Box"];
+        
         var t = meshEntity.placeable.transform;
-        t.pos.y = 2;
-        t.pos.z = -5;
+        t.setPosition(0, 2, -15);
         meshEntity.placeable.transform = t;
         
         this.entities["Plane"] = this.createMesh("Plane", "webtundra://Plane.json");
         meshEntity = this.entities["Plane"];
-        var t = meshEntity.placeable.transform;
-        t.pos.y = 0;
-        t.pos.z = -5;
-        meshEntity.placeable.transform = t;
         
-        console.log("CreateScene");
-        console.log(this.entities["Deer"]);
+        t = meshEntity.placeable.transform;
+        t.setPosition(0, -2, -10);
+        meshEntity.placeable.transform = t;
     },
     
     createMesh : function(name, ref)
@@ -74,7 +68,6 @@ var PhysicsApplication = ICameraApplication.$extend(
         var meshEntity = this.cameraEntity = TundraSDK.framework.scene.createLocalEntity(["Name", "Placeable", "Mesh", "RigidBody"]);
         meshEntity.name = name;
         meshEntity.mesh.meshRef = ref;
-        meshEntity.rigidbody.mass = 1.0;
         
         return meshEntity;
     },
