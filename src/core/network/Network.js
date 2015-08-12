@@ -86,12 +86,12 @@ var Network = Class.$extend(
         /**
             Network protocol versions
         */
-        protocolVersions:
+        protocolVersion:
         {
-            ProtocolOriginal : 1,
-            ProtocolCustomComponents : 2,
-            ProtocolHierarchicScene : 3,
-            ProtocolWebClientRigidBodyMessage : 4
+            Original : 1,
+            CustomComponents : 2,
+            HierarchicScene : 3,
+            WebClientRigidBodyMessage : 4
         }
     },
 

@@ -967,8 +967,11 @@ var Scene = Class.$extend(
 
         /// Read parent entity ID
         /// @todo: use properly
-        /// @todo: read protocol version in loginreply, and do not read this if the server does not support the protocol
-        var parentEntityId = ds.readU32();
+        var parentEntityId = 0;
+        if (TundraSDK.framework.client.protocolVersion >= Network.protocolVersion.HierarchicScene)
+            parentEntityId = ds.readU32();
+        else
+            console.log("Hierarchic scene not supported, skipping parentid");
 
         // Components
         var numComponents = ds.readVLE();
@@ -1161,6 +1164,13 @@ var Scene = Class.$extend(
             var placeable = entity ? entity.placeable : null;
             var t = placeable ? placeable.attributes.transform.get() : new Transform();
 
+            if (entity == null)
+            {
+                if (TundraSDK.framework.client.networkDebugLogging)
+                    this.log.error("Failed to find entity with id " + entityId + " to apply rigid body update to!");
+                // The message parsing will continue regardless, we just read the correct amount of bits
+            }
+
             var sendTypes = ds.readArithmeticEncoded(8, 3, 4, 3, 3, 2);
             var posSendType = sendTypes[0];
             var rotSendType = sendTypes[1];
@@ -1169,13 +1179,9 @@ var Scene = Class.$extend(
             var angVelSendType = sendTypes[4];
             
             if (posSendType == 1)
-            {
                 t.setPosition(ds.readSignedFixedPoint(11, 8), ds.readSignedFixedPoint(11, 8), ds.readSignedFixedPoint(11, 8));
-            }
             else if (posSendType == 2)
-            {
                 t.setPosition(ds.readFloat32(), ds.readFloat32(), ds.readFloat32());
-            }
 
             if (rotSendType == 1)
             {
@@ -1199,9 +1205,7 @@ var Scene = Class.$extend(
                     t.setRotation(quat);
                 }
                 else
-                {
                     t.setRotation(0, 0, 0); // Identity
-                }
             }
 
             if (scaleSendType == 1)
@@ -1210,28 +1214,20 @@ var Scene = Class.$extend(
                 t.setScale(scale, scale, scale);
             }
             else if (scaleSendType == 2)
-            {
                 t.setScale(ds.readFloat32(), ds.readFloat32(), ds.readFloat32());
-            }
 
             /// @todo Apply velocity once physics simulation is in place, now just read the right amount of bits
             /// @todo Set position/rotation to interpolate, even without physics simulation
             if (velSendType == 1)
-            {
                 ds.readVector3D(11, 10, 3, 8);
-            }
             else if (velSendType == 2)
-            {
                 ds.readVector3D(11, 10, 10, 8);
-            }
 
             if (angVelSendType == 1)
             {
                 var angle = ds.readBits(10);
                 if (angle != 0)
-                {
-                    var axis = ds.readNormalizedVector3D(11, 10);
-                }
+                    ds.readNormalizedVector3D(11, 10);
             }
 
             if (placeable && (posSendType != 0 || rotSendType != 0 || scaleSendType != 0))

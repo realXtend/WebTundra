@@ -36,7 +36,8 @@ var LoginMessage = INetworkMessage.$extend(
         this.$super(2 + 2 + DataSerializer.utf8StringByteSize(loginData) + 1);
         this.ds.writeU16(this.id);
         this.ds.writeStringU16(loginData);
-        this.ds.writeVLE(Network.protocolVersions.ProtocolWebClientRigidBodyMessage);
+        // Request highest possible protocol version, see if server supports it
+        this.ds.writeVLE(Network.protocolVersion.WebClientRigidBodyMessage);
     }
 });
 

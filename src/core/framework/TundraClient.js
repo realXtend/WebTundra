@@ -261,6 +261,12 @@ var TundraClient = Class.$extend(
             @type Boolean
         */
         this.networkDebugLogging = params.networkDebugLogging;
+        /**
+            Network protocol version supported by the server
+            @property protocolVersion
+            @type Number
+        */
+        this.protocolVersion = Network.protocolVersion.Original;
 
         // Reset state
         this.reset();

@@ -72,8 +72,9 @@ var TundraMessageHandler = INetworkMessageHandler.$extend(
 
             if (msg.success)
             {
-                // Set the clients connection id.
+                // Set the clients connection id and supported protocol version
                 client.connectionId = msg.connectionId;
+                client.protocolVersion = msg.protocolVersion;
 
                 // Pass storage information to AssetAPI.
                 if (msg.loginReplyData !== "")
