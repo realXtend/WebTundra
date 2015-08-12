@@ -75,7 +75,6 @@ var PhysicsApplication = ICameraApplication.$extend(
         meshEntity.name = name;
         meshEntity.mesh.meshRef = ref;
         meshEntity.rigidbody.mass = 1.0;
-        console.log(meshEntity.rigidbody)
         
         return meshEntity;
     },
