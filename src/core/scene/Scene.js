@@ -1167,7 +1167,7 @@ var Scene = Class.$extend(
             var scaleSendType = sendTypes[2];
             var velSendType = sendTypes[3];
             var angVelSendType = sendTypes[4];
-
+            
             if (posSendType == 1)
             {
                 t.setPosition(ds.readSignedFixedPoint(11, 8), ds.readSignedFixedPoint(11, 8), ds.readSignedFixedPoint(11, 8));
@@ -1185,7 +1185,7 @@ var Scene = Class.$extend(
             else if (rotSendType == 2)
             {
                 var forward3D = ds.readNormalizedVector3D(9, 8);
-                t.lookAt(new THREE.Vector3(0,0,0), new THREE.Vector3(forward3D.x, forward3D.y, forward2D.z));
+                t.lookAt(new THREE.Vector3(0,0,0), new THREE.Vector3(forward3D.x, forward3D.y, forward3D.z));
             }
             else if (rotSendType == 3)
             {
@@ -1228,7 +1228,10 @@ var Scene = Class.$extend(
             if (angVelSendType == 1)
             {
                 var angle = ds.readBits(10);
-                var axis = ds.readNormalizedVector3D(11, 10);
+                if (angle != 0)
+                {
+                    var axis = ds.readNormalizedVector3D(11, 10);
+                }
             }
 
             if (placeable && (posSendType != 0 || rotSendType != 0 || scaleSendType != 0))

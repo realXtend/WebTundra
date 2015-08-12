@@ -570,9 +570,7 @@ var DataDeserializer = Class.$extend(
         var val3 = val % max3;
         val = Math.floor(val / max3);
         var val2 = val % max2;
-        val = Math.floor(val / max2);
-        var val1 = val % max1;
-        val = Math.floor(val / max1);
+        var val1 = Math.floor(val / max2);
         return [val1, val2, val3, val4, val5];
     },
 
@@ -662,8 +660,8 @@ var DataDeserializer = Class.$extend(
     readNormalizedVector3D : function(numBitsYaw, numBitsPitch)
     {
         var ret = {};
-        var azimuth = this.readBits(-Math.PI, Math.PI, numBitsYaw);
-        var inclination = this.readBits(-Math.PI/2, Math.PI/2, numBitsPitch);
+        var azimuth = this.readQuantizedFloat(-Math.PI, Math.PI, numBitsYaw);
+        var inclination = this.readQuantizedFloat(-Math.PI/2, Math.PI/2, numBitsPitch);
         var cx = Math.cos(inclination);
         ret.x = cx * Math.sin(azimuth);
         ret.y = -Math.sin(inclination);
@@ -679,15 +677,15 @@ var DataDeserializer = Class.$extend(
         @param {Number} magnitudeDecimalBits Number of bits for magnitude decimal part
         @return {Object} Object with x, y, z fields, representing the 3D vector
      */
-    readVector3D : function(numBitsYaw, numBitsPitch, magnitudeIntegerBits, magnitudeDecimalBits, directionBits)
+    readVector3D : function(numBitsYaw, numBitsPitch, magnitudeIntegerBits, magnitudeDecimalBits)
     {
         var ret = {};
         var fp = this.readBits(magnitudeIntegerBits + magnitudeDecimalBits);
         if (fp != 0)
         {
             var len = fp / (1 << magnitudeDecimalBits);
-            var azimuth = this.readBits(-Math.PI, Math.PI, numBitsYaw);
-            var inclination = this.readBits(-Math.PI/2, Math.PI/2, numBitsPitch);
+            var azimuth = this.readQuantizedFloat(-Math.PI, Math.PI, numBitsYaw);
+            var inclination = this.readQuantizedFloat(-Math.PI/2, Math.PI/2, numBitsPitch);
             var cx = Math.cos(inclination);
             ret.x = cx * Math.sin(azimuth) * len;
             ret.y = -Math.sin(inclination) * len;
