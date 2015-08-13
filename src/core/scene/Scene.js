@@ -970,8 +970,6 @@ var Scene = Class.$extend(
         var parentEntityId = 0;
         if (TundraSDK.framework.client.protocolVersion >= Network.protocolVersion.HierarchicScene)
             parentEntityId = ds.readU32();
-        else
-            console.log("Hierarchic scene not supported, skipping parentid");
 
         // Components
         var numComponents = ds.readVLE();
@@ -1171,7 +1169,7 @@ var Scene = Class.$extend(
                 // The message parsing will continue regardless, we just read the correct amount of bits
             }
 
-            var sendTypes = ds.readArithmeticEncoded(8, 3, 4, 3, 3, 2);
+            var sendTypes = ds.readArithmeticEncoded5(8, 3, 4, 3, 3, 2);
             var posSendType = sendTypes[0];
             var rotSendType = sendTypes[1];
             var scaleSendType = sendTypes[2];
