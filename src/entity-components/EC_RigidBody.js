@@ -4,15 +4,11 @@ define(["core/framework/TundraSDK",
         "core/scene/Scene",
         "core/scene/IComponent",
         "core/scene/Attribute",
+        "core/scene/AttributeChange",
         "core/physics/PhysicsWorld"
-    ], function(TundraSDK, Ammo, Scene, IComponent, Attribute, PhysicsWorld) {
+    ], function(TundraSDK, Ammo, Scene, IComponent, Attribute, AttributeChange, PhysicsWorld) {
 
 /**
-    This base implementation does not do anything. It declared the static attribute structure of EC_RigidBody
-    in the Tundra protocol.
-
-    Physics implementations need to provide this components functionality, preferably by extending this object.
-
     @class EC_RigidBody
     @extends IComponent
     @constructor
@@ -117,23 +113,21 @@ var EC_RigidBody = IComponent.$extend(
         this.btCollisionshape_ = null;
         this.btRigidbody_ = null;
         
-        TundraSDK.framework.events.subscribe("IComponent.ParentEntitySet",
-                                             this,
-                                             this.connectToEntity);
+        // TODO! use btMotionState if possible
+        TundraSDK.framework.frame.onUpdate(this, this.onFrame_);
         
-        /*console.log(Ammo.btMotionState.prototype);
-        
-        var Impl = Ammo.btMotionState.extend("btMotionState", {
-            
-        });
-
-        var instance = new Impl;*/
-        TundraSDK.framework.frame.onUpdate(this, this.update_);
-        
+        this.ignoreTransformChange_ = false;
+        this.parentChangedEvent_ = null;
     },
     
-    __classvars__: {
-        ShapeType: {
+    reset : function()
+    {
+        this.removeCollisionShape();
+        this.removeBody();
+    },
+    
+    __classvars__ : {
+        ShapeType : {
             Box:0,
             Sphere:1,
             Cylinder:2,
@@ -145,39 +139,20 @@ var EC_RigidBody = IComponent.$extend(
         }
     },
     
-    connectToEntity: function()
+    attributeChanged : function(index, name, value)
     {
-        //TundraSDK.framework.events.subscribe("Scene.AttributeChanged." + this.parentEntity.id.toString() + "." + this.id.toString(), context, callback);
-        this.createBody();
-    },
-    
-    updatePosRotFromPlaceable : function()
-    {
-        
-    },
-    
-    isActive: function()
-    {
-        
-    },
-    
-    active: function()
-    {
-        
-    },
-    
-    attributeChanged: function(index, name, value)
-    {
+        console.log("Attribute '" + name +  "' changed to " + value);
         switch(index)
         {
             case 0: // Mass
+                this.createBody();
                 break;
             case 1: // ShapeType
-                this.createCollisionShape();
+                this.createBody();
                 break;
             case 2: // Size
-                if (this.isPrimitiveShape())
-                    this.createCollisionShape();
+                this.createBody();
+                //this.updateScale();
                 break;    
             case 3: // CollisionMeshRef
                 break;
@@ -212,7 +187,42 @@ var EC_RigidBody = IComponent.$extend(
         }
     },
     
-    isPrimitiveShape : function() {
+    /// Force the body to activate (wake up)
+    activate : function()
+    {
+        if (this.btRigidbody_ === undefined ||
+            this.btRigidbody_ === null)
+            this.btRigidbody_.activate();
+    },
+    
+    setParent : function(entity)
+    {
+        this.$super(entity);
+        
+        if (this.btRigidbody_ === null)
+            this.createBody();
+        
+        if (this.parentChangedEvent_ !== null)
+            TundraSDK.framework.events.unsubscribe(this.parentChangedEvent_.channel,
+                                                   this.parentChangedEvent_.id);
+        
+        if (this.parentEntity !== undefined && this.parentEntity !== null)
+            this.parentChangedEvent_ = this.parentEntity.placeable.onAttributeChanged(this, this.onPlaceableUpdated);
+    },
+    
+    onPlaceableUpdated : function(entity, component, attributeIndex, attributeName, attributeValue)
+    {
+        if (this.btRigidbody_ === undefined ||
+            this.btRigidbody_ === null ||
+            attributeIndex !== 0)
+            return;
+        
+        var pos = this.parentEntity.placeable.position();
+        this.setRigidbodyPosition(pos.x, pos.y, pos.z);
+    },
+    
+    isPrimitiveShape : function()
+    {
         switch(this.attributes.shapeType.get())
         {
             case EC_RigidBody.ShapeType.TriMesh:
@@ -221,12 +231,19 @@ var EC_RigidBody = IComponent.$extend(
                 return false;
                 break;
             default:
-                return true
+                return true;
         }
     },
     
-    createBody : function() {
-        if (this.parentEntity.placeable === "undefined" ||
+    setMass : function(mass){
+        var localInertia = new Ammo.btVector3(0.0, 0.0, 0.0);
+        if (mass > 0.0)
+            this.btCollisionshape_.calculateLocalInertia(mass, localInertia);
+    },
+    
+    createBody : function()
+    {
+        if (this.parentEntity.placeable === undefined ||
             this.parentEntity.placeable === null)
             return;
         
@@ -234,28 +251,36 @@ var EC_RigidBody = IComponent.$extend(
         this.createCollisionShape();
         
         var mass = this.attributes.mass.get();
-        var startTransform = new Ammo.btTransform();        
         var pos = this.parentEntity.placeable.position();
         
-        var localInertia = new Ammo.btVector3(pos.x, pos.y, pos.z);
+        var startTransform = new Ammo.btTransform();
         startTransform.setIdentity();
+        startTransform.setOrigin(pos.x, pos.y, pos.z);
+        //console.log("x:" + pos.x + " y:" + pos.y + " z:" + pos.z + " n:" + this.parentEntity.name);
         
+        var localInertia = new Ammo.btVector3(0.0, 0.0, 0.0);
         if (mass > 0.0)
             this.btCollisionshape_.calculateLocalInertia(mass, localInertia);
         
         var myMotionState = new Ammo.btDefaultMotionState(startTransform);
+        
         var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass,
                                                           myMotionState,
                                                           this.btCollisionshape_,
                                                           localInertia);
         this.btRigidbody_ = new Ammo.btRigidBody(rbInfo);
-        this.btRigidbody_.activate(false);
         
         TundraSDK.framework.physicsWorld.world.addRigidBody(this.btRigidbody_);
+        
+        Ammo.destroy(localInertia);
+        Ammo.destroy(startTransform);
+        localInertia = null;
+        startTransform = null;
     },
     
-    removeBody : function() {
-        if (this.btRigidbody_ === "undefined" ||
+    removeBody : function()
+    {
+        if (this.btRigidbody_ === undefined ||
             this.btRigidbody_ === null)
             return;
         
@@ -264,8 +289,8 @@ var EC_RigidBody = IComponent.$extend(
         this.btRigidbody_ = null;
     },
     
-    createCollisionShape : function(){
-        
+    createCollisionShape : function()
+    {
         this.removeCollisionShape();
         
         var shape = this.attributes.shapeType.get();
@@ -286,11 +311,14 @@ var EC_RigidBody = IComponent.$extend(
         else if (shape === EC_RigidBody.ShapeType.ConvexHull)
             this.btCollisionshape_ = new Ammo.btBoxShape(btSize);*/
         else if (shape === EC_RigidBody.ShapeType.Cone)
-            this.btCollisionshape_ = new Ammo.btConeShape(size.x * 0.5, size.y);;
+            this.btCollisionshape_ = new Ammo.btConeShape(size.x * 0.5, size.y);
+        
+        this.updateScale();
+        return this.btCollisionshape_;
     },
     
     removeCollisionShape : function() {
-        if (this.btCollisionshape_ === "undefined" ||
+        if (this.btCollisionshape_ === undefined ||
             this.btCollisionshape_ === null)
             return;
         
@@ -298,20 +326,82 @@ var EC_RigidBody = IComponent.$extend(
         this.btCollisionshape_ = null;
     },
     
-    update_ : function() {
-        if (this.btRigidbody_ === "undefined" ||
+    onFrame_ : function()
+    {
+        this.updateTransformPosition();
+    },
+    
+    updateTransformPosition : function()
+    {
+        if (this.ignoreTransformChange_ ||
+            this.btRigidbody_ === undefined ||
+            this.btRigidbody_ === null ||
+            this.parentEntity.placeable === undefined ||
+            this.parentEntity.placeable === null)
+            return;
+        
+        this.ignoreTransformChange_ = true;
+        
+        var transform = new Ammo.btTransform();
+        this.rigidbody.getMotionState().getWorldTransform(transform);
+        var origin = transform.getOrigin();
+        var rot = transform.getRotation();
+        console.log("x:" + origin.x() + " y:" + origin.y() + " z:" + origin.z() + " n:" + this.parentEntity.name);
+        
+        var t = this.parentEntity.placeable.transform;
+        t.setPosition(origin.x(), origin.y(), origin.z());
+        t.setFromQuaternion(rot.x(), rot.y(), rot.z(), rot.w());
+        this.parentEntity.placeable.transform = t;
+        
+        this.ignoreTransformChange_ = false;
+    },
+    
+    setRigidbodyPosition : function(x, y, z)
+    {
+        if (this.ignoreTransformChange_ ||
+            this.btRigidbody_ === undefined ||
             this.btRigidbody_ === null)
             return;
         
-        var transform = new Ammo.btTransform();
-        transform.setIdentity();
-        this.btRigidbody_.getMotionState().getWorldTransform(transform);
-        var origin = transform.getOrigin();
-        var rot = transform.getRotation();
+        console.log(x + " " + y  + " " + z);
+        var worldTrans = new Ammo.btTransform();
+        this.btRigidbody_.getWorldTransform(worldTrans);
+        worldTrans.setOrigin(new Ammo.btVector3(x, y, z));
+        console.log(worldTrans.getOrigin().y());
+        this.btRigidbody_.setWorldTransform(worldTrans);
+        this.btRigidbody_.activate();
+        console.log(this.btRigidbody_.getWorldTransform().getOrigin().y());
+                
+        //Ammo.destroy(worldTrans);
+        //worldTrans = null;
+    },
+    
+    updateScale : function()
+    {
+        return;
+        if (this.btCollisionshape_ === undefined ||
+            this.btCollisionshape_ === null ||
+            this.parentEntity.placeable === undefined ||
+            this.parentEntity.placeable === null)
+            return;
         
-        this.parentEntity.placeable.setPosition(origin.x(), origin.y(), origin.z());
-        this.parentEntity.placeable.transform.setFromQuaternion(rot.x(), rot.y(), rot.z(), rot.w());
+        var sizeVec = this.size;
+        var scale = this.parentEntity.placeable.transform.scale;
+        // Sanitate the size
+        if (sizeVec.x < 0.0)
+            sizeVec.x = 0.0;
+        if (sizeVec.y < 0.0)
+            sizeVec.y = 0.0;
+        if (sizeVec.z < 0.0)
+            sizeVec.z = 0.0;
+        
+        if (this.shapeType === EC_RigidBody.ConvexHull ||
+            this.shapeType === EC_RigidBody.TriMesh)
+            this.btCollisionshape_.setLocalScaling(new Ammo.btVector3(scale.x, scale.y, scale.z));
+        else
+            this.btCollisionshape_.setLocalScaling(new Ammo.btVector3(sizeVec.x * scale.x, sizeVec.y * scale.y, sizeVec.z * scale.z));
     }
+    
 });
 
 Scene.registerComponent(23, "EC_RigidBody", EC_RigidBody);

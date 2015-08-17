@@ -9,13 +9,13 @@ var PhysicsApplication = ICameraApplication.$extend(
 
         TundraSDK.framework.client.onConnected(this, this.onConnected);
         TundraSDK.framework.client.onDisconnected(this, this.onDisconnected);
-        
-        this.entities = {};
-        this.createScene();
     },
 
     onConnected : function()
     {
+        this.entities = {};
+        this.createScene();
+        
         this.createCamera();
     },
 
@@ -46,21 +46,30 @@ var PhysicsApplication = ICameraApplication.$extend(
     
     createScene : function()
     {
+        //TundraSDK.framework.physicsWorld.setGravity(0.0, 1.0, 0.0);
+        
         var meshEntity = null;
         
         this.entities["Box"] = this.createMesh("Box", "webtundra://Box.json");
         meshEntity = this.entities["Box"];
         
         var t = meshEntity.placeable.transform;
-        t.setPosition(0, 2, -15);
+        t.setPosition(0, 5, 0);
         meshEntity.placeable.transform = t;
+        meshEntity.rigidbody.size = new THREE.Vector3(1.0, 1.0, 1.0);
+        meshEntity.rigidbody.mass = 1.0;
+        //meshEntity.rigidbody.activate();
         
         this.entities["Plane"] = this.createMesh("Plane", "webtundra://Plane.json");
         meshEntity = this.entities["Plane"];
-        
         t = meshEntity.placeable.transform;
-        t.setPosition(0, -2, -10);
+        t.setPosition(0, -2, 0);
         meshEntity.placeable.transform = t;
+        meshEntity.rigidbody.mass = 0.0;
+        meshEntity.rigidbody.size = new THREE.Vector3(30.0, 1.0, 30.0);
+        
+        this.entities["Box"].rigidbody.mass = 1.0;
+        this.entities["Box"].rigidbody.activate();
     },
     
     createMesh : function(name, ref)
@@ -71,45 +80,6 @@ var PhysicsApplication = ICameraApplication.$extend(
         
         return meshEntity;
     },
-    
-    /*requestSceneAsset : function(url, id)
-    {
-        // Passing in metadata for the callback.
-        var transfer = TundraSDK.framework.asset.requestAsset(url);
-        if (transfer != null)
-        {
-            transfer.onCompleted(this.assets, this.onAssetCompleted, id)
-            transfer.onFailed(this.assets, this.onAssetFailed, id)
-        }
-        // Forcing an asset type for a request.
-        transfer = TundraSDK.framework.asset.requestAsset("http://www.my-assets.com/data/my.json", "Text");
-        if (transfer != null)
-        {
-            transfer.onCompleted(myContext, function(asset) {
-                this.textAsset = asset;              // this === the given context, in this case 'myContext'
-                console.log(JSON.parse(asset.data)); // "Text" forced TextAsset type
-            });
-            transfer.onFailed(myContext, function(transfer, reason, metadata) {
-                console.log("Failed to fetch my json from", transfer.ref, "into", this.name); // this.name === "MyContextObject"
-                console.log("Reason:", + reason);
-                console.log("Metadata id:", metadata); // metadata === 12345
-            }, 12345);
-        }
-    },
-    
-    onAssetCompleted : function(asset, metadata)
-    {
-        this.meshAsset = asset;
-        console.log("Mesh loaded:", asset.name);
-        console.log("My metadata: ", metadata);
-    },
-    
-    onAssetFailed : function(transfer, reason, metadata)
-    {
-        console.log("Failed to fetch my json from", transfer.ref, "into", this.name); // this.name === "MyContextObject"
-        console.log("Reason:", + reason);
-        console.log("Metadata id:", metadata); // metadata === 12345
-    },*/
 
     onDisconnected : function()
     {

@@ -101,7 +101,7 @@ var PhysicsWorld = Class.$extend(
     },
     
     simulate: function(frametime) {
-        if (this.runPhysics_ === false)
+        if (!this.runPhysics_)
             return;
         
         // TODO signal about to update event

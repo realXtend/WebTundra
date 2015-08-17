@@ -273,10 +273,6 @@ var IComponent = Class.$extend(
     {
         this.parentEntity = (entity !== undefined ? entity : null);
         this.parentScene = (entity !== undefined ? entity.parentScene : null);
-        if (this.parentEntity !== null)
-            TundraSDK.framework.events.send("IComponent.ParentEntitySet");
-        else
-            TundraSDK.framework.events.send("IComponent.ParentEntityDetached");
     },
 
     /**
