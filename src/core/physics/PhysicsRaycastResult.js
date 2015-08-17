@@ -1,0 +1,27 @@
+
+define([
+        "lib/classy",
+        "lib/three",
+        "core/framework/TundraSDK",
+        "core/framework/TundraLogging"
+    ], function(Class, THREE, TundraSDK, TundraLogging) {
+
+/**
+    PhysicsWorld raycast result object
+    @class PhysicsRaycastResult
+    @constructor
+*/
+var PhysicsRaycastResult = Class.$extend(
+{
+    __init__ : function(entity, pos, normal, distance)
+    {
+        this.entity = entity === undefined ? null : entity;
+        this.pos = pos instanceof THREE.Vector3 ? pos : new THREE.Vector3();
+        this.normal = normal instanceof THREE.Vector3 ? normal : new THREE.Vector3();
+        this.distance = typeof distance !== 'number' ? 0.0 : distance;
+    }
+});
+
+return PhysicsRaycastResult;
+
+}); // require js

@@ -269,6 +269,9 @@ var EC_RigidBody = IComponent.$extend(
                                                           localInertia);
         this.btRigidbody_ = new Ammo.btRigidBody(rbInfo);
         TundraSDK.framework.physicsWorld.world.addRigidBody(this.btRigidbody_);
+        // Workaround for rigidbody->setUserPointer.
+        // TODO Ugly way to get owner entity when we want to do PhysicsWorld.Raycast
+        this.btRigidbody_.__proto__.__proto__.userPointer = this;
         
         Ammo.destroy(rbInfo);
         Ammo.destroy(localInertia);
@@ -279,7 +282,6 @@ var EC_RigidBody = IComponent.$extend(
         localInertia = null;
         startTransform = null;
         position = null;
-        
     },
     
     removeBody : function()
@@ -388,10 +390,6 @@ var EC_RigidBody = IComponent.$extend(
         worldTrans.setOrigin(new Ammo.btVector3(x, y, z));
         this.btRigidbody_.getMotionState().setWorldTransform(worldTrans);
         this.btRigidbody_.activate();
-        
-        //this.btRigidbody_.updateInertiaTensor();
-        //console.log("SetRigid " + x + " " + y  + " " + z);
-        //console.log("oX:" + worldTrans.getOrigin().x() + " oY:" + worldTrans.getOrigin().y() + " oZ:" + worldTrans.getOrigin().z());
                 
         Ammo.destroy(worldTrans);
         worldTrans = null;
