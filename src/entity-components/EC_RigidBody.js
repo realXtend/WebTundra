@@ -141,7 +141,7 @@ var EC_RigidBody = IComponent.$extend(
     
     attributeChanged : function(index, name, value)
     {
-        console.log("Attribute '" + name +  "' changed to " + value);
+        //console.log("Attribute '" + name +  "' changed to " + value);
         switch(index)
         {
             case 0: // Mass
@@ -152,7 +152,6 @@ var EC_RigidBody = IComponent.$extend(
                 break;
             case 2: // Size
                 this.createBody();
-                //this.updateScale();
                 break;    
             case 3: // CollisionMeshRef
                 break;
@@ -247,16 +246,16 @@ var EC_RigidBody = IComponent.$extend(
             this.parentEntity.placeable === null)
             return;
         
-        this.removeBody();
         this.createCollisionShape();
+        this.removeBody();
         
         var mass = this.attributes.mass.get();
         var pos = this.parentEntity.placeable.position();
         
         var startTransform = new Ammo.btTransform();
         startTransform.setIdentity();
-        startTransform.setOrigin(pos.x, pos.y, pos.z);
-        //console.log("x:" + pos.x + " y:" + pos.y + " z:" + pos.z + " n:" + this.parentEntity.name);
+        var position = new Ammo.btVector3(pos.x, pos.y, pos.z);
+        startTransform.setOrigin(position);
         
         var localInertia = new Ammo.btVector3(0.0, 0.0, 0.0);
         if (mass > 0.0)
@@ -269,13 +268,14 @@ var EC_RigidBody = IComponent.$extend(
                                                           this.btCollisionshape_,
                                                           localInertia);
         this.btRigidbody_ = new Ammo.btRigidBody(rbInfo);
-        
         TundraSDK.framework.physicsWorld.world.addRigidBody(this.btRigidbody_);
         
         Ammo.destroy(localInertia);
         Ammo.destroy(startTransform);
+        Ammo.destroy(position);
         localInertia = null;
         startTransform = null;
+        position = null;
     },
     
     removeBody : function()
@@ -343,10 +343,10 @@ var EC_RigidBody = IComponent.$extend(
         this.ignoreTransformChange_ = true;
         
         var transform = new Ammo.btTransform();
-        this.rigidbody.getMotionState().getWorldTransform(transform);
+        this.btRigidbody_.getMotionState().getWorldTransform(transform);
         var origin = transform.getOrigin();
         var rot = transform.getRotation();
-        console.log("x:" + origin.x() + " y:" + origin.y() + " z:" + origin.z() + " n:" + this.parentEntity.name);
+        //console.log("x:" + origin.x() + " y:" + origin.y() + " z:" + origin.z() + " n:" + this.parentEntity.name);
         
         var t = this.parentEntity.placeable.transform;
         t.setPosition(origin.x(), origin.y(), origin.z());
@@ -363,22 +363,22 @@ var EC_RigidBody = IComponent.$extend(
             this.btRigidbody_ === null)
             return;
         
-        console.log(x + " " + y  + " " + z);
         var worldTrans = new Ammo.btTransform();
-        this.btRigidbody_.getWorldTransform(worldTrans);
+        this.btRigidbody_.getMotionState().getWorldTransform(worldTrans);
         worldTrans.setOrigin(new Ammo.btVector3(x, y, z));
-        console.log(worldTrans.getOrigin().y());
-        this.btRigidbody_.setWorldTransform(worldTrans);
+        this.btRigidbody_.getMotionState().setWorldTransform(worldTrans);
         this.btRigidbody_.activate();
-        console.log(this.btRigidbody_.getWorldTransform().getOrigin().y());
+        
+        //this.btRigidbody_.updateInertiaTensor();
+        //console.log("SetRigid " + x + " " + y  + " " + z);
+        //console.log("oX:" + worldTrans.getOrigin().x() + " oY:" + worldTrans.getOrigin().y() + " oZ:" + worldTrans.getOrigin().z());
                 
-        //Ammo.destroy(worldTrans);
-        //worldTrans = null;
+        Ammo.destroy(worldTrans);
+        worldTrans = null;
     },
     
     updateScale : function()
     {
-        return;
         if (this.btCollisionshape_ === undefined ||
             this.btCollisionshape_ === null ||
             this.parentEntity.placeable === undefined ||

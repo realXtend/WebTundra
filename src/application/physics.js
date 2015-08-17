@@ -46,30 +46,34 @@ var PhysicsApplication = ICameraApplication.$extend(
     
     createScene : function()
     {
-        //TundraSDK.framework.physicsWorld.setGravity(0.0, 1.0, 0.0);
-        
         var meshEntity = null;
-        
-        this.entities["Box"] = this.createMesh("Box", "webtundra://Box.json");
-        meshEntity = this.entities["Box"];
-        
-        var t = meshEntity.placeable.transform;
-        t.setPosition(0, 5, 0);
-        meshEntity.placeable.transform = t;
-        meshEntity.rigidbody.size = new THREE.Vector3(1.0, 1.0, 1.0);
-        meshEntity.rigidbody.mass = 1.0;
-        //meshEntity.rigidbody.activate();
         
         this.entities["Plane"] = this.createMesh("Plane", "webtundra://Plane.json");
         meshEntity = this.entities["Plane"];
         t = meshEntity.placeable.transform;
-        t.setPosition(0, -2, 0);
+        t.setPosition(0, -2, -20);
+        t.setScale(0.5, 0.5, 0.5);
         meshEntity.placeable.transform = t;
         meshEntity.rigidbody.mass = 0.0;
-        meshEntity.rigidbody.size = new THREE.Vector3(30.0, 1.0, 30.0);
+        meshEntity.rigidbody.size = new THREE.Vector3(10.0, 0.1, 10.0);
         
-        this.entities["Box"].rigidbody.mass = 1.0;
-        this.entities["Box"].rigidbody.activate();
+        for (var i = 0; i < 200; i++)
+        {
+            var id = "Box" + i.toString();
+            this.entities[id] = this.createMesh(id, "webtundra://Box.json");
+            meshEntity = this.entities[id];
+
+            var t = meshEntity.placeable.transform;
+            
+            var x = Math.random() * (5 - 1) + 1;
+            var y = 30 + Math.random() * (5 - 1) + 1;
+            var z = -20 + Math.random() * (5 - 1) + 1;
+            t.setPosition(x, y, z);
+            
+            meshEntity.placeable.transform = t;
+            meshEntity.rigidbody.size = new THREE.Vector3(1, 1, 1);
+            meshEntity.rigidbody.mass = 1.0;
+        }
     },
     
     createMesh : function(name, ref)

@@ -109,7 +109,7 @@ var PhysicsWorld = Class.$extend(
         if (clampTimeStep > 0.1)
             clampTimeStep = 0.1;
         
-        this.world.stepSimulation(clampTimeStep, 0, clampTimeStep);
+        this.world.stepSimulation(frametime, 6);
     },
     
     raycast: function(origin, direction, maxDistance, collisionGroup) {
