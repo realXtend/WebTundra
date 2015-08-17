@@ -86,27 +86,32 @@ var PhysicsWorld = Class.$extend(
         
     },
     
-    postInitialize: function() {
+    postInitialize: function()
+    {
         TundraSDK.framework.frame.onUpdate(this, this.simulate);
     },
     
-    setGravity: function(x, y ,z) {
+    setGravity: function(x, y ,z)
+    {
         this.world.setGravity(new Ammo.btVector3(x, y, z));
     },
     
-    setUpdatePeriod: function(updatePeriod) {
+    setUpdatePeriod: function(updatePeriod)
+    {
         // Allow max 1000 fps
         if (updatePeriod <= 0.001)
             updatePeriod = 0.001;
         this.physicsUpdatePeriod = updatePeriod;
     },
     
-    setMaxSubSteps: function(steps) {
+    setMaxSubSteps: function(steps)
+    {
         if (steps > 0)
             this.maxSubSteps = steps;
     },
     
-    simulate: function(frametime) {
+    simulate: function(frametime)
+    {
         if (!this.runPhysics_ ||
             this.world === null)
             return;
@@ -119,7 +124,8 @@ var PhysicsWorld = Class.$extend(
         this.world.stepSimulation(clampTimeStep, 0, clampTimeStep);
     },
     
-    raycast: function(origin, direction, maxDistance, collisionGroup, collisionMask) {
+    raycast: function(origin, direction, maxDistance, collisionGroup, collisionMask)
+    {
         var result = null;
         
         var nDir = new THREE.Vector3(direction.x, direction.y, direction.z);
@@ -128,8 +134,6 @@ var PhysicsWorld = Class.$extend(
         var to = new Ammo.btVector3(origin.x + nDir.x * maxDistance,
                                     origin.y + nDir.y * maxDistance,
                                     origin.z + nDir.z * maxDistance);
-        console.log("from: " + from.x() + " " + from.y() + " " + from.z());
-        console.log("to: " + to.x() + " " + to.y() + " " + to.z());
         
         var rayCallback = new Ammo.ClosestRayResultCallback(from, to);
         if (typeof collisionGroup === 'number')
@@ -161,7 +165,8 @@ var PhysicsWorld = Class.$extend(
         return result;
     },
     
-    reset: function() {
+    reset: function()
+    {
         
     }
 });
