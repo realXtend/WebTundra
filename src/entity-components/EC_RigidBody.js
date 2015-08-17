@@ -151,7 +151,7 @@ var EC_RigidBody = IComponent.$extend(
                 this.createBody();
                 break;
             case 2: // Size
-                this.createBody();
+                this.updateScale();
                 break;    
             case 3: // CollisionMeshRef
                 break;
@@ -359,18 +359,21 @@ var EC_RigidBody = IComponent.$extend(
         var transform = new Ammo.btTransform();
         this.btRigidbody_.getMotionState().getWorldTransform(transform);
         var origin = transform.getOrigin();
+        
+        // TODO remove THREE Quaternion when possible
+        var quat = new THREE.Quaternion();
         var rot = transform.getRotation();
-        //console.log("x:" + origin.x() + " y:" + origin.y() + " z:" + origin.z() + " n:" + this.parentEntity.name);
+        quat.set(rot.x(), rot.y(), rot.z(), rot.w());
         
         var t = this.parentEntity.placeable.transform;
         t.setPosition(origin.x(), origin.y(), origin.z());
-        t.setFromQuaternion(rot.x(), rot.y(), rot.z(), rot.w());
+        t.setRotation(quat);
         this.parentEntity.placeable.transform = t;
-        
-        this.ignoreTransformChange_ = false;
         
         Ammo.destroy(transform);
         transform = null;
+        
+        this.ignoreTransformChange_ = false;
     },
     
     setRigidbodyPosition : function(x, y, z)
@@ -412,11 +415,16 @@ var EC_RigidBody = IComponent.$extend(
         if (sizeVec.z < 0.0)
             sizeVec.z = 0.0;
         
+        var newSize = new Ammo.btVector3();
         if (this.shapeType === EC_RigidBody.ConvexHull ||
             this.shapeType === EC_RigidBody.TriMesh)
-            this.btCollisionshape_.setLocalScaling(new Ammo.btVector3(scale.x, scale.y, scale.z));
+            newSize.setValue(scale.x, scale.y, scale.z);
         else
-            this.btCollisionshape_.setLocalScaling(new Ammo.btVector3(sizeVec.x * scale.x, sizeVec.y * scale.y, sizeVec.z * scale.z));
+            newSize.setValue(sizeVec.x * scale.x, sizeVec.y * scale.y, sizeVec.z * scale.z);
+        this.btCollisionshape_.setLocalScaling(newSize);
+        
+        Ammo.destroy(newSize);
+        newSize = null;
     }
     
 });
