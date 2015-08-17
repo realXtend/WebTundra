@@ -52,7 +52,7 @@ var PhysicsApplication = ICameraApplication.$extend(
         meshEntity = this.entities["Plane"];
         t = meshEntity.placeable.transform;
         t.setPosition(0, -2, -20);
-        t.setScale(0.5, 0.5, 0.5);
+        t.setScale(2.5, 2.5, 2.5);
         meshEntity.placeable.transform = t;
         meshEntity.rigidbody.mass = 0.0;
         meshEntity.rigidbody.size = new THREE.Vector3(10.0, 0.1, 10.0);
@@ -64,14 +64,11 @@ var PhysicsApplication = ICameraApplication.$extend(
             meshEntity = this.entities[id];
 
             var t = meshEntity.placeable.transform;
-            
-            var x = Math.random() * (5 - 1) + 1;
-            var y = 30 + Math.random() * (5 - 1) + 1;
-            var z = -20 + Math.random() * (5 - 1) + 1;
+            var x = -10 + Math.random() * (20 - 1) + 1;
+            var y = 30 + Math.random() * (20 - 1) + 1;
+            var z = -30 + Math.random() * (20 - 1) + 1;
             t.setPosition(x, y, z);
-            
             meshEntity.placeable.transform = t;
-            meshEntity.rigidbody.size = new THREE.Vector3(1, 1, 1);
             meshEntity.rigidbody.mass = 1.0;
         }
     },

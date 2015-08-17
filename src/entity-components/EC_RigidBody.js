@@ -270,12 +270,16 @@ var EC_RigidBody = IComponent.$extend(
         this.btRigidbody_ = new Ammo.btRigidBody(rbInfo);
         TundraSDK.framework.physicsWorld.world.addRigidBody(this.btRigidbody_);
         
+        Ammo.destroy(rbInfo);
         Ammo.destroy(localInertia);
         Ammo.destroy(startTransform);
         Ammo.destroy(position);
+        
+        rbInfo = null;
         localInertia = null;
         startTransform = null;
         position = null;
+        
     },
     
     removeBody : function()
@@ -297,11 +301,21 @@ var EC_RigidBody = IComponent.$extend(
         var size = this.attributes.size.get();
         
         if (shape === EC_RigidBody.ShapeType.Box)
-            this.btCollisionshape_ = new Ammo.btBoxShape(new Ammo.btVector3(size.x, size.y, size.z));
+        {
+            var s = new Ammo.btVector3(1.0, 1.0, 1.0);
+            this.btCollisionshape_ = new Ammo.btBoxShape(s);
+            Ammo.destroy(s);
+            s = null;
+        }
         else if (shape === EC_RigidBody.ShapeType.Sphere)
             this.btCollisionshape_ = new Ammo.btSphereShape(size.x * 0.5);
         else if (shape === EC_RigidBody.ShapeType.Cylinder)
+        {
+            var s = new Ammo.btVector3(1.0, 1.0, 1.0);
             this.btCollisionshape_ = new Ammo.btCylinderShape(new Ammo.btVector3(size.x * 0.5, size.y * 0.5, size.z * 0.5));
+            Ammo.destroy(s);
+            s = null;
+        }
         else if (shape === EC_RigidBody.ShapeType.Capsule)
             this.btCollisionshape_ = new Ammo.btCapsuleShape(size.x * 0.5, size.y * 0.5);
         /*else if (shape === EC_RigidBody.ShapeType.TriMesh)
@@ -354,6 +368,9 @@ var EC_RigidBody = IComponent.$extend(
         this.parentEntity.placeable.transform = t;
         
         this.ignoreTransformChange_ = false;
+        
+        Ammo.destroy(transform);
+        transform = null;
     },
     
     setRigidbodyPosition : function(x, y, z)
