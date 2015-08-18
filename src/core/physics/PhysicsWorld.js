@@ -90,6 +90,11 @@ var PhysicsWorld = Class.$extend(
         this.setGravity(0.0, -10.0, 0.0);
         
         this.ptrToRigidbodyMap = {};
+        
+        this.processPostTickEventId_ = null;
+        this.frameUpdateEventId_ = null;
+        
+        TundraSDK.framework.client.onConnected(this, this.onConnected);
     },
 
     __classvars__ :
@@ -117,6 +122,12 @@ var PhysicsWorld = Class.$extend(
         }
     },
     
+    onConnected : function()
+    {
+        this.processPostTickEventId_ = TundraSDK.framework.frame.onUpdate(this, this.processPostTick);
+        this.frameUpdateEventId_ = TundraSDK.framework.events.subscribe("PhysicsWorld.Update", this, this.simulate);
+    },
+    
     addRigidBody : function(rigidbody)
     {
         var body = rigidbody.rigidbody_;
@@ -133,8 +144,7 @@ var PhysicsWorld = Class.$extend(
     
     postInitialize: function()
     {
-        TundraSDK.framework.frame.onUpdate(this, this.processPostTick);
-        TundraSDK.framework.events.subscribe("PhysicsWorld.Update", this, this.simulate);
+        
     },
     
     /// Step the physics world. May trigger several internal simulation substeps, according to the deltatime given.
@@ -262,7 +272,6 @@ var PhysicsWorld = Class.$extend(
         this.previousCollisions = currentCollisions;
         
         TundraSDK.framework.events.send("PhysicsWorld.Update", subStepTime);
-        //this.simulate(subStepTime);
     },
     
     /**
@@ -400,10 +409,23 @@ var PhysicsWorld = Class.$extend(
         return result;
     },
     
-    
     reset: function()
     {
-        this.ptrToRigidbodyMap = {};
+        if (this.processPostTickEventId_ !== null)
+        {
+            TundraSDK.framework.events.unsubscribe(this.processPostTickEventId_.channel,
+                                                   this.processPostTickEventId_.id);
+            this.processPostTickEventId_ = null;
+        }
+        
+        if (this.frameUpdateEventId_ !== null)
+        {
+            TundraSDK.framework.events.unsubscribe(this.frameUpdateEventId_.channel,
+                                                   this.frameUpdateEventId_.id);
+            this.frameUpdateEventId_ = null;
+        }
+        
+        this.ptrToRigidbodyMap = {}; 
     }
 });
 

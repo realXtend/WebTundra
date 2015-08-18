@@ -60,7 +60,7 @@ var PhysicsApplication = ICameraApplication.$extend(
         TundraSDK.framework.physicsWorld.raycast(new THREE.Vector3(0, 30, -20),
                                                  new THREE.Vector3(0, -1, 0),
                                                  100);
-        this.spawnBoxes(100);
+        this.spawnBoxes(150);
         this.nextTime = TundraSDK.framework.frame.wallClockTime() + 5;
         this.removeList = [];
     },
@@ -81,9 +81,9 @@ var PhysicsApplication = ICameraApplication.$extend(
             t.setPosition(x, y, z);
             meshEntity.placeable.transform = t;
             meshEntity.rigidbody.mass = 1.0;
-            meshEntity.rigidbody.onPhysicsCollision(null, function(entity){
+            /*meshEntity.rigidbody.onPhysicsCollision(null, function(entity){
                 TundraSDK.framework.scene.removeEntity(entity.id);
-            });
+            });*/
         }
     },
     
@@ -128,12 +128,11 @@ var PhysicsApplication = ICameraApplication.$extend(
             this.cameraEntity.placeable.transform = t;
         }
         
-        if (TundraSDK.framework.frame.wallClockTime() > this.nextTime)
+        /*if (TundraSDK.framework.frame.wallClockTime() > this.nextTime)
         {
             this.nextTime = TundraSDK.framework.frame.wallClockTime() + 5;
             this.spawnBoxes(20);
-            console.log("Lol");
-        }
+        }*/
         
         for(var i = 0; i < this.removeList.length; ++i)
         {
