@@ -57,10 +57,9 @@ var PhysicsApplication = ICameraApplication.$extend(
         meshEntity.rigidbody.mass = 0.0;
         meshEntity.rigidbody.size = new THREE.Vector3(10.0, 0.1, 10.0);
         
-        var result = TundraSDK.framework.physicsWorld.raycast(new THREE.Vector3(0, 30, -20),
-                                                              new THREE.Vector3(0, -1, 0),
-                                                              100);
-        console.log(result);
+        TundraSDK.framework.physicsWorld.raycast(new THREE.Vector3(0, 30, -20),
+                                                 new THREE.Vector3(0, -1, 0),
+                                                 100);
         
         for (var i = 0; i < 200; i++)
         {
