@@ -288,6 +288,18 @@ var TundraClient = Class.$extend(
             @type Number
         */
         this.lastPriorityUpdateTime = 0;
+        /**
+            Last observer position sent
+            @property lastObserverPosition
+            @type THREE.Vector3
+         */
+        this.lastObserverPosition = new THREE.Vector3();
+        /**
+            Last observer orientation sent
+            @property lastObserverOrientation
+            @type THREE.Quaternion
+         */
+        this.lastObserverOrientation = new THREE.Quaternion();
 
         // Reset state
         this.reset();
@@ -647,6 +659,7 @@ var TundraClient = Class.$extend(
 
         // Reset frametime
         this.lastTime = performance.now();
+        this.lastPriorityUpdateTime = 0;
 
         this.cameraApplications = [];
         this.cameraApplicationIndex = 0;
@@ -850,10 +863,20 @@ var TundraClient = Class.$extend(
                 var ent = TundraSDK.framework.scene.entityById(this.observerEntityId);
                 if (ent != null && ent.placeable != null)
                 {
-                    var message = new ObserverPositionMessage();
-                    message.serialize(ent.placeable.worldPosition(), ent.placeable.worldOrientation());
-                    TundraSDK.framework.network.send(message);
-                    this.lastPriorityUpdateTime = timeNow;
+                    var worldPosition = ent.placeable.worldPosition();
+                    var worldOrientation = ent.placeable.worldOrientation();
+
+                    if (this.lastPriorityUpdateTime == 0 || !this.lastObserverPosition.equals(worldPosition) ||
+                        !this.lastObserverOrientation.equals(worldOrientation))
+                    {
+                        this.lastObserverPosition.copy(worldPosition);
+                        this.lastObserverOrientation.copy(worldOrientation);
+
+                        var message = new ObserverPositionMessage();
+                        message.serialize(worldPosition, worldOrientation);
+                        TundraSDK.framework.network.send(message);
+                        this.lastPriorityUpdateTime = timeNow;
+                    }
                 }
             }
         }
