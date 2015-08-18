@@ -110,11 +110,11 @@ var EC_RigidBody = IComponent.$extend(
         */
         this.declareAttribute(17, "useGravity", true, Attribute.Bool);
         
-        this.btCollisionshape_ = null;
-        this.btRigidbody_ = null;
+        this.collisionShape_ = null;
+        this.rigidbody_ = null;
         
-        // TODO! use btMotionState if possible
-        TundraSDK.framework.frame.onUpdate(this, this.onFrame_);
+        // TODO! use btMotionState subclass if possible
+        this.updateId_ = TundraSDK.framework.frame.onUpdate(this, this.onFrame_);
         
         this.ignoreTransformChange_ = false;
         this.parentChangedEvent_ = null;
@@ -122,6 +122,8 @@ var EC_RigidBody = IComponent.$extend(
     
     reset : function()
     {
+        TundraSDK.framework.events.remove("EC_Rigidbody." + this.parentEntity.id + ".PhysicsCollision");
+        TundraSDK.framework.events.unsubscribe(this.updateId_.channel, this.updateId_.id);
         this.removeCollisionShape();
         this.removeBody();
     },
@@ -189,16 +191,16 @@ var EC_RigidBody = IComponent.$extend(
     /// Force the body to activate (wake up)
     activate : function()
     {
-        if (this.btRigidbody_ === undefined ||
-            this.btRigidbody_ === null)
-            this.btRigidbody_.activate();
+        if (this.rigidbody_ === undefined ||
+            this.rigidbody_ === null)
+            this.rigidbody_.activate();
     },
     
     setParent : function(entity)
     {
         this.$super(entity);
         
-        if (this.btRigidbody_ === null)
+        if (this.rigidbody_ === null)
             this.createBody();
         
         if (this.parentChangedEvent_ !== null)
@@ -211,8 +213,8 @@ var EC_RigidBody = IComponent.$extend(
     
     onPlaceableUpdated : function(entity, component, attributeIndex, attributeName, attributeValue)
     {
-        if (this.btRigidbody_ === undefined ||
-            this.btRigidbody_ === null ||
+        if (this.rigidbody_ === undefined ||
+            this.rigidbody_ === null ||
             attributeIndex !== 0)
             return;
         
@@ -237,7 +239,7 @@ var EC_RigidBody = IComponent.$extend(
     setMass : function(mass){
         var localInertia = new Ammo.btVector3(0.0, 0.0, 0.0);
         if (mass > 0.0)
-            this.btCollisionshape_.calculateLocalInertia(mass, localInertia);
+            this.collisionShape_.calculateLocalInertia(mass, localInertia);
     },
     
     createBody : function()
@@ -259,19 +261,19 @@ var EC_RigidBody = IComponent.$extend(
         
         var localInertia = new Ammo.btVector3(0.0, 0.0, 0.0);
         if (mass > 0.0)
-            this.btCollisionshape_.calculateLocalInertia(mass, localInertia);
+            this.collisionShape_.calculateLocalInertia(mass, localInertia);
         
         var myMotionState = new Ammo.btDefaultMotionState(startTransform);
         
         var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass,
                                                           myMotionState,
-                                                          this.btCollisionshape_,
+                                                          this.collisionShape_,
                                                           localInertia);
-        this.btRigidbody_ = new Ammo.btRigidBody(rbInfo);
-        TundraSDK.framework.physicsWorld.world.addRigidBody(this.btRigidbody_);
+        this.rigidbody_ = new Ammo.btRigidBody(rbInfo);
+        TundraSDK.framework.physicsWorld.addRigidBody(this);
         // Workaround for rigidbody->setUserPointer.
         // TODO Ugly way to get owner entity when we want to do PhysicsWorld.Raycast
-        this.btRigidbody_.__proto__.__proto__.userPointer = this;
+        //this.rigidbody_.__proto__.__proto__.userPointer = this;
         
         Ammo.destroy(rbInfo);
         Ammo.destroy(localInertia);
@@ -286,13 +288,13 @@ var EC_RigidBody = IComponent.$extend(
     
     removeBody : function()
     {
-        if (this.btRigidbody_ === undefined ||
-            this.btRigidbody_ === null)
+        if (this.rigidbody_ === undefined ||
+            this.rigidbody_ === null)
             return;
         
-        TundraSDK.framework.physicsWorld.world.removeRigidBody(this.btRigidbody_);
-        Ammo.destroy(this.btRigidbody_);
-        this.btRigidbody_ = null;
+        TundraSDK.framework.physicsWorld.removeRigidBody(this);
+        Ammo.destroy(this.rigidbody_);
+        this.rigidbody_ = null;
     },
     
     createCollisionShape : function()
@@ -305,41 +307,41 @@ var EC_RigidBody = IComponent.$extend(
         if (shape === EC_RigidBody.ShapeType.Box)
         {
             var s = new Ammo.btVector3(1.0, 1.0, 1.0);
-            this.btCollisionshape_ = new Ammo.btBoxShape(s);
+            this.collisionShape_ = new Ammo.btBoxShape(s);
             Ammo.destroy(s);
             s = null;
         }
         else if (shape === EC_RigidBody.ShapeType.Sphere)
-            this.btCollisionshape_ = new Ammo.btSphereShape(size.x * 0.5);
+            this.collisionShape_ = new Ammo.btSphereShape(size.x * 0.5);
         else if (shape === EC_RigidBody.ShapeType.Cylinder)
         {
             var s = new Ammo.btVector3(1.0, 1.0, 1.0);
-            this.btCollisionshape_ = new Ammo.btCylinderShape(new Ammo.btVector3(size.x * 0.5, size.y * 0.5, size.z * 0.5));
+            this.collisionShape_ = new Ammo.btCylinderShape(new Ammo.btVector3(size.x * 0.5, size.y * 0.5, size.z * 0.5));
             Ammo.destroy(s);
             s = null;
         }
         else if (shape === EC_RigidBody.ShapeType.Capsule)
-            this.btCollisionshape_ = new Ammo.btCapsuleShape(size.x * 0.5, size.y * 0.5);
+            this.collisionShape_ = new Ammo.btCapsuleShape(size.x * 0.5, size.y * 0.5);
         /*else if (shape === EC_RigidBody.ShapeType.TriMesh)
-            this.btCollisionshape_ = new Ammo.btBoxShape(btSize);
+            this.collisionShape_ = new Ammo.btBoxShape(btSize);
         else if (shape === EC_RigidBody.ShapeType.HeightField)
-            this.btCollisionshape_ = new Ammo.btBoxShape(btSize);
+            this.collisionShape_ = new Ammo.btBoxShape(btSize);
         else if (shape === EC_RigidBody.ShapeType.ConvexHull)
-            this.btCollisionshape_ = new Ammo.btBoxShape(btSize);*/
+            this.collisionShape_ = new Ammo.btBoxShape(btSize);*/
         else if (shape === EC_RigidBody.ShapeType.Cone)
-            this.btCollisionshape_ = new Ammo.btConeShape(size.x * 0.5, size.y);
+            this.collisionShape_ = new Ammo.btConeShape(size.x * 0.5, size.y);
         
         this.updateScale();
-        return this.btCollisionshape_;
+        return this.collisionShape_;
     },
     
     removeCollisionShape : function() {
-        if (this.btCollisionshape_ === undefined ||
-            this.btCollisionshape_ === null)
+        if (this.collisionShape_ === undefined ||
+            this.collisionShape_ === null)
             return;
         
-        Ammo.destroy(this.btCollisionshape_);
-        this.btCollisionshape_ = null;
+        Ammo.destroy(this.collisionShape_);
+        this.collisionShape_ = null;
     },
     
     onFrame_ : function()
@@ -350,8 +352,8 @@ var EC_RigidBody = IComponent.$extend(
     updateTransformPosition : function()
     {
         if (this.ignoreTransformChange_ ||
-            this.btRigidbody_ === undefined ||
-            this.btRigidbody_ === null ||
+            this.rigidbody_ === undefined ||
+            this.rigidbody_ === null ||
             this.parentEntity.placeable === undefined ||
             this.parentEntity.placeable === null)
             return;
@@ -359,7 +361,7 @@ var EC_RigidBody = IComponent.$extend(
         this.ignoreTransformChange_ = true;
         
         var transform = new Ammo.btTransform();
-        this.btRigidbody_.getMotionState().getWorldTransform(transform);
+        this.rigidbody_.getMotionState().getWorldTransform(transform);
         var origin = transform.getOrigin();
         
         // TODO remove THREE Quaternion when possible
@@ -381,15 +383,15 @@ var EC_RigidBody = IComponent.$extend(
     setRigidbodyPosition : function(x, y, z)
     {
         if (this.ignoreTransformChange_ ||
-            this.btRigidbody_ === undefined ||
-            this.btRigidbody_ === null)
+            this.rigidbody_ === undefined ||
+            this.rigidbody_ === null)
             return;
         
         var worldTrans = new Ammo.btTransform();
-        this.btRigidbody_.getMotionState().getWorldTransform(worldTrans);
+        this.rigidbody_.getMotionState().getWorldTransform(worldTrans);
         worldTrans.setOrigin(new Ammo.btVector3(x, y, z));
-        this.btRigidbody_.getMotionState().setWorldTransform(worldTrans);
-        this.btRigidbody_.activate();
+        this.rigidbody_.getMotionState().setWorldTransform(worldTrans);
+        this.rigidbody_.activate();
                 
         Ammo.destroy(worldTrans);
         worldTrans = null;
@@ -397,8 +399,8 @@ var EC_RigidBody = IComponent.$extend(
     
     updateScale : function()
     {
-        if (this.btCollisionshape_ === undefined ||
-            this.btCollisionshape_ === null ||
+        if (this.collisionShape_ === undefined ||
+            this.collisionShape_ === null ||
             this.parentEntity.placeable === undefined ||
             this.parentEntity.placeable === null)
             return;
@@ -419,12 +421,46 @@ var EC_RigidBody = IComponent.$extend(
             newSize.setValue(scale.x, scale.y, scale.z);
         else
             newSize.setValue(sizeVec.x * scale.x, sizeVec.y * scale.y, sizeVec.z * scale.z);
-        this.btCollisionshape_.setLocalScaling(newSize);
+        this.collisionShape_.setLocalScaling(newSize);
         
         Ammo.destroy(newSize);
         newSize = null;
-    }
+    },
     
+    /**
+        Registers a callback for physics collision.
+
+        @example
+            TundraSDK.framework.scene.onPhysicsCollision(null, function(entity, position, normal,
+                                                                        distance, impulse, newCollision)
+            {
+                console.log("on collision: " + entity.id);
+            });
+
+        @method onPhysicsCollision
+        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Function} callback Function to be called.
+        @return {EventSubscription} Subscription data.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+    */
+    onPhysicsCollision : function(context, callback)
+    {
+        return TundraSDK.framework.events.subscribe("EC_Rigidbody." + this.parentEntity.id + ".PhysicsCollision", context, callback);
+    },
+    
+    emitPhysicsCollision : function(entity, position, normal, distance, impulse, newCollision)
+    {
+        if (this.parentEntity === null)
+            return;
+        
+        TundraSDK.framework.events.send("EC_Rigidbody." + this.parentEntity.id + ".PhysicsCollision",
+                                        entity,
+                                        position,
+                                        normal,
+                                        distance,
+                                        impulse,
+                                        newCollision);
+    }
 });
 
 Scene.registerComponent(23, "EC_RigidBody", EC_RigidBody);

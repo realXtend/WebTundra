@@ -60,13 +60,20 @@ var PhysicsApplication = ICameraApplication.$extend(
         TundraSDK.framework.physicsWorld.raycast(new THREE.Vector3(0, 30, -20),
                                                  new THREE.Vector3(0, -1, 0),
                                                  100);
-        
-        for (var i = 0; i < 200; i++)
+        this.spawnBoxes(100);
+        this.nextTime = TundraSDK.framework.frame.wallClockTime() + 5;
+        this.removeList = [];
+    },
+    
+    spawnBoxes : function(count)
+    {
+        this.entities = {};
+        for (var i = 0; i < count; i++)
         {
             var id = "Box" + i.toString();
             this.entities[id] = this.createMesh(id, "webtundra://Box.json");
+            
             meshEntity = this.entities[id];
-
             var t = meshEntity.placeable.transform;
             var x = -10 + Math.random() * (20 - 1) + 1;
             var y = 30 + Math.random() * (20 - 1) + 1;
@@ -74,15 +81,17 @@ var PhysicsApplication = ICameraApplication.$extend(
             t.setPosition(x, y, z);
             meshEntity.placeable.transform = t;
             meshEntity.rigidbody.mass = 1.0;
+            meshEntity.rigidbody.onPhysicsCollision(null, function(entity){
+                TundraSDK.framework.scene.removeEntity(entity.id);
+            });
         }
     },
     
     createMesh : function(name, ref)
     {
-        var meshEntity = this.cameraEntity = TundraSDK.framework.scene.createLocalEntity(["Name", "Placeable", "Mesh", "RigidBody"]);
+        var meshEntity = TundraSDK.framework.scene.createLocalEntity(["Name", "Placeable", "Mesh", "RigidBody"]);
         meshEntity.name = name;
         meshEntity.mesh.meshRef = ref;
-        
         return meshEntity;
     },
 
@@ -104,7 +113,7 @@ var PhysicsApplication = ICameraApplication.$extend(
 
     onUpdate : function(frametime)
     {
-        if (!this.cameraEntity.camera.active)
+        if (this.cameraEntity.camera === null || !this.cameraEntity.camera.active)
             return;
 
         if (this.movement.x != 0 || this.movement.y != 0 || this.movement.z != 0)
@@ -118,6 +127,20 @@ var PhysicsApplication = ICameraApplication.$extend(
             t.pos.z += relativeMovement.z;
             this.cameraEntity.placeable.transform = t;
         }
+        
+        if (TundraSDK.framework.frame.wallClockTime() > this.nextTime)
+        {
+            this.nextTime = TundraSDK.framework.frame.wallClockTime() + 5;
+            this.spawnBoxes(20);
+            console.log("Lol");
+        }
+        
+        for(var i = 0; i < this.removeList.length; ++i)
+        {
+            console.log(this.removeList[i].id);
+            TundraSDK.framework.scene.removeEntity(this.removeList[i].id);
+        }
+        this.removeList = [];
     },
 
     onKeyEvent : function(event)

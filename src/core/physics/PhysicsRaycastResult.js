@@ -19,6 +19,26 @@ var PhysicsRaycastResult = Class.$extend(
         this.pos = pos instanceof THREE.Vector3 ? pos : new THREE.Vector3();
         this.normal = normal instanceof THREE.Vector3 ? normal : new THREE.Vector3();
         this.distance = typeof distance !== 'number' ? 0.0 : distance;
+    },
+    
+    getEntity : function()
+    {
+        return this.entity;
+    },
+    
+    getPosition : function()
+    {
+        return this.pos;
+    },
+    
+    getNormal : function()
+    {
+        return this.normal;
+    },
+    
+    getDistance : function()
+    {
+        return this.distance;
     }
 });
 
