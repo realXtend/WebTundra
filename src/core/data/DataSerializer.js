@@ -608,8 +608,7 @@ var DataSerializer = Class.$extend(
         @note This function performs quantization, which results in lossy serialization/deserialization. */
     writeQuantizedFloat : function(minRange, maxRange, numBits, value)
     {
-        var outVal = (MathUtils.clamp(value, minRange, maxRange) - minRange) * ((1 << numBits)-1) / (maxRange - minRange);
-        // TODO floor(outVal) as it should be u32?
+        var outVal = Math.floor((Math.min(Math.max(value, minRange), maxRange) - minRange) * ((1 << numBits)-1) / (maxRange - minRange));
         this.writeBits(outVal, numBits);
         return outVal;
     },

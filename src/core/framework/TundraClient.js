@@ -25,6 +25,7 @@ define([
         // Network related
         "core/network/TundraMessageHandler",
         "core/network/LoginMessage",
+        "core/network/ObserverPositionMessage",
         // Core Components
         "entity-components/EC_Name",
         "entity-components/EC_Script",
@@ -43,7 +44,7 @@ define([
         Scene,                      AttributeChange,            AssetAPI,
         InputAPI,                   UiAPI,                      FrameAPI,
         // Network messages
-        TundraMessageHandler,       LoginMessage,
+        TundraMessageHandler,       LoginMessage,               ObserverPositionMessage,
         // Core Components
         EC_Name,                    EC_Script,
         EC_Avatar,                  EC_DynamicComponent) {
@@ -267,6 +268,26 @@ var TundraClient = Class.$extend(
             @type Number
         */
         this.protocolVersion = Network.protocolVersion.Original;
+        /**
+            Id for entity that reflects the client's observer position for interest management.
+            Set to nonzero to enable sending the observer position & orientation regularly
+            @property observerEntityId
+            @type Number
+        */
+        this.observerEntityId = 0;
+        /**
+            Send interval in seconds for the observer position & orientation. 
+            Only has relevance when observerEntityId is nonzero. Will be sent only when actually changed.
+            @property priorityUpdatePeriod
+            @type Number
+        */
+        this.priorityUpdatePeriod = 1;
+        /**
+            Time the observer position was last updated
+            @property lastPriorityUpdateTime
+            @type Number
+        */
+        this.lastPriorityUpdateTime = 0;
 
         // Reset state
         this.reset();
@@ -653,6 +674,9 @@ var TundraClient = Class.$extend(
         // Render scene
         that.renderer.update(frametime, frametimeMsec);
 
+        // Update interest management
+        that.updateObserver(timeNow);
+
         that.frame._postUpdate(frametime);
     },
 
@@ -815,6 +839,24 @@ var TundraClient = Class.$extend(
         // String frame, just log it..
         else
             that.log.info("Server sent a unexpected string message '" + event.data + "'");
+    },
+
+    updateObserver : function(timeNow)
+    {
+        if (this.websocket != null && this.observerEntityId > 0)
+        {
+            if (this.lastPriorityUpdateTime == 0 || timeNow - this.lastPriorityUpdateTime >= this.priorityUpdatePeriod * 1000.0)
+            {
+                var ent = TundraSDK.framework.scene.entityById(this.observerEntityId);
+                if (ent != null && ent.placeable != null)
+                {
+                    var message = new ObserverPositionMessage();
+                    message.serialize(ent.placeable.worldPosition(), ent.placeable.worldOrientation());
+                    TundraSDK.framework.network.send(message);
+                    this.lastPriorityUpdateTime = timeNow;
+                }
+            }
+        }
     }
 });
 
