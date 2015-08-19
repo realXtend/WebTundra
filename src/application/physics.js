@@ -48,19 +48,19 @@ var PhysicsApplication = ICameraApplication.$extend(
     {
         var meshEntity = null;
         
-        this.entities["Plane"] = this.createMesh("Plane", "webtundra://Plane.json");
+        this.entities["Plane"] = TundraSDK.framework.scene.createLocalEntity(["Name", "Placeable", "RigidBody"]);
         meshEntity = this.entities["Plane"];
+        meshEntity.name = "Plane"
         t = meshEntity.placeable.transform;
         t.setPosition(0, -2, -20);
         t.setScale(2.5, 2.5, 2.5);
         meshEntity.placeable.transform = t;
         meshEntity.rigidbody.mass = 0.0;
-        meshEntity.rigidbody.size = new THREE.Vector3(10.0, 0.1, 10.0);
-        
+        meshEntity.rigidbody.size = new THREE.Vector3(10000.0, 0.1, 10000.0);
         TundraSDK.framework.physicsWorld.raycast(new THREE.Vector3(0, 30, -20),
                                                  new THREE.Vector3(0, -1, 0),
                                                  100);
-        this.spawnBoxes(150);
+        this.spawnBoxes(100);
         this.nextTime = TundraSDK.framework.frame.wallClockTime() + 5;
         this.removeList = [];
     },
@@ -77,10 +77,17 @@ var PhysicsApplication = ICameraApplication.$extend(
             var t = meshEntity.placeable.transform;
             var x = -10 + Math.random() * (20 - 1) + 1;
             var y = 30 + Math.random() * (20 - 1) + 1;
-            var z = -30 + Math.random() * (20 - 1) + 1;
+            var z = -70 + Math.random() * (20 - 1) + 1;
             t.setPosition(x, y, z);
             meshEntity.placeable.transform = t;
             meshEntity.rigidbody.mass = 1.0;
+            var fx = Math.random() * (25 - 1) + 1;
+            var fy = Math.random() * (100 - 1) + 1;
+            var fz = Math.random() * (25 - 1) + 1;
+            meshEntity.rigidbody.applyForce(new THREE.Vector3(fx, fy, fz));
+            meshEntity.rigidbody.applyTorgue(new THREE.Vector3(fx, fy, fz));
+            /*meshEntity.rigidbody.applyImpulse(new THREE.Vector3(fx, fy, fz));
+            meshEntity.rigidbody.applyTorgueImpulse(new THREE.Vector3(fx, fy, fz));*/
             /*meshEntity.rigidbody.onPhysicsCollision(null, function(entity){
                 TundraSDK.framework.scene.removeEntity(entity.id);
             });*/

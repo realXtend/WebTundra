@@ -254,6 +254,7 @@ var PhysicsWorld = Class.$extend(
             c = collisions[i];
             if (!c.newCollision)
                 continue;
+            
             var entA = c.bodyA.parentEntity;
             var entB = c.bodyB.parentEntity;
             
@@ -262,10 +263,10 @@ var PhysicsWorld = Class.$extend(
                                             c.normal, c.distance, c.impulse,
                                             c.newCollision);
             
-            c.bodyA.emitPhysicsCollision(entA, entB, c.position, c.normal,
+            c.bodyA.emitPhysicsCollision(entB, c.position, c.normal,
                                          c.distance, c.impulse, c.newCollision);
             
-            c.bodyB.emitPhysicsCollision(entB, entA, c.position, c.normal,
+            c.bodyB.emitPhysicsCollision(entB, c.position, c.normal,
                                          c.distance, c.impulse, c.newCollision);
         }
 
@@ -317,7 +318,8 @@ var PhysicsWorld = Class.$extend(
     
     gravity: function()
     {
-        return this.world.getGravity();
+        var gravity = this.world.getGravity();
+        return new THREE.Vector3(gravity.x(), gravity.y(), gravity.z());
     },
     
     setUpdatePeriod: function(updatePeriod)

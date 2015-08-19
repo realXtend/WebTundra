@@ -1,12 +1,13 @@
 
 define(["core/framework/TundraSDK",
         "lib/ammo",
+        "lib/three",
         "core/scene/Scene",
         "core/scene/IComponent",
         "core/scene/Attribute",
         "core/scene/AttributeChange",
         "core/physics/PhysicsWorld"
-    ], function(TundraSDK, Ammo, Scene, IComponent, Attribute, AttributeChange, PhysicsWorld) {
+    ], function(TundraSDK, Ammo, THREE, Scene, IComponent, Attribute, AttributeChange, PhysicsWorld) {
 
 /**
     @class EC_RigidBody
@@ -138,7 +139,10 @@ var EC_RigidBody = IComponent.$extend(
             HeightField:5,
             ConvexHull:6,
             Cone:7
-        }
+        },
+        ForceThresholdSq : 0.0005 * 0.0005,
+        ImpulseThresholdSq : 0.0005 * 0.0005,
+        TorqueThresholdSq : 0.0005 * 0.0005
     },
     
     attributeChanged : function(index, name, value)
@@ -158,6 +162,7 @@ var EC_RigidBody = IComponent.$extend(
             case 3: // CollisionMeshRef
                 break;
             case 4: // Friction
+                this.rigidbody_.setFriction(friction);
                 break;
             case 5: // LinearDamping
                 break;
@@ -168,8 +173,16 @@ var EC_RigidBody = IComponent.$extend(
             case 8: // AngularFactor
                 break;
             case 9: // LinearVelocity
+                var v = new Ammo.btVector3(value.x, value.y, value.z);
+                this.rigidbody_.setLinearVelocity(v);
+                Ammo.destroy(v);
+                v = null;
                 break;
             case 10: // AngularVelocity
+                var v = new Ammo.btVector3(value.x, value.y, value.z);
+                this.rigidbody_.setAngularVelocity(v);
+                Ammo.destroy(v);
+                v = null;
                 break;
             case 11: // Kinematic
                 break;    
@@ -182,13 +195,19 @@ var EC_RigidBody = IComponent.$extend(
             case 15: // CollisionMask
                 break;
             case 16: // RollingFriction
+                this.rigidbody_.setRollingFriction(value);
                 break;
             case 17: // UseGravity
+                this.updateGravity();
                 break;
         }
     },
     
-    /// Force the body to activate (wake up)
+    /**
+        Force the body to activate (wake up)
+
+        @method activate
+    */
     activate : function()
     {
         if (this.rigidbody_ === undefined ||
@@ -211,6 +230,108 @@ var EC_RigidBody = IComponent.$extend(
             this.parentChangedEvent_ = this.parentEntity.placeable.onAttributeChanged(this, this.onPlaceableUpdated);
     },
     
+    /**
+        Apply a force to the body.
+
+        @method applyForce
+        @param {Float3} force vector
+        @param {Float3} force position
+    */
+    applyForce : function(force, position)
+    {
+        if (this.rigidbody_ === null ||
+            force.lengthSq() < EC_RigidBody.ForceThresholdSq)
+            return;
+        
+        this.activate();
+        var f = new Ammo.btVector3(force.x, force.y, force.z);
+        if (typeof position === "number" &&
+            position.length() > 0.0001)
+        {
+            var p = new Ammo.btVector3(position.x, position.y, position.z);
+            this.rigidbody_.applyForce(f, p);
+            Ammo.destroy(p);
+            p = null;
+        }
+        else
+        {
+            this.rigidbody_.applyCentralForce(f);
+        }
+        Ammo.destroy(f);
+        f = null;
+    },
+    
+    /**
+        Apply a torque to the body.
+
+        @method applyTorgue
+        @param {Float3} torgue
+    */
+    applyTorgue : function(torgue)
+    {
+        //var  = new THREE.Vector3(force);
+        if (this.rigidbody_ === null ||
+            torgue.lengthSq() < EC_RigidBody.TorqueThresholdSq)
+            return;
+        
+        this.activate();
+        var f = new Ammo.btVector3(torgue.x, torgue.y, torgue.z);
+        this.rigidbody_.applyTorque(f);
+        Ammo.destroy(f);
+        f = null;
+    },
+    
+    /**
+        Apply an impulse to the body
+
+        @method applyImpulse
+        @param {Float3} impulse
+        @param {Float3} position
+    */
+    applyImpulse : function(impulse, position)
+    {
+        if (this.rigidbody_ === null ||
+            impulse.lengthSq() < EC_RigidBody.ImpulseThresholdSq)
+            return;
+        
+        this.activate();
+        var f = new Ammo.btVector3(impulse.x, impulse.y, impulse.z);
+        if (typeof position === "number" &&
+            position.length() > 0.0001)
+        {
+            var p = new Ammo.btVector3(position.x, position.y, position.z);
+            this.rigidbody_.applyImpulse(f, p);
+            Ammo.destroy(p);
+            p = null;
+        }
+        else
+        {
+            this.rigidbody_.applyCentralImpulse(f);
+        }
+        Ammo.destroy(f);
+        f = null;
+    },
+    
+    /**
+        Apply a torque impulse to the body
+
+        @method applyTorgueImpulse
+        @param {Float3} torgueImpulse
+    */
+    applyTorgueImpulse : function(torgueImpulse)
+    {
+        //var  = new THREE.Vector3(force);
+        if (this.rigidbody_ === null ||
+            torgueImpulse.lengthSq() < EC_RigidBody.TorqueThresholdSq)
+            return;
+        
+        this.activate();
+        var f = new Ammo.btVector3(torgueImpulse.x, torgueImpulse.y, torgueImpulse.z);
+        this.rigidbody_.applyTorqueImpulse(f);
+        Ammo.destroy(f);
+        f = null;
+    },
+    
     onPlaceableUpdated : function(entity, component, attributeIndex, attributeName, attributeValue)
     {
         if (this.rigidbody_ === undefined ||
@@ -222,6 +343,12 @@ var EC_RigidBody = IComponent.$extend(
         this.setRigidbodyPosition(pos.x, pos.y, pos.z);
     },
     
+    /**
+        Returns true if the currently used shape is a primitive shape (box et al.), false otherwise.
+
+        @method isPrimitiveShape
+        @return {Bool}
+    */
     isPrimitiveShape : function()
     {
         switch(this.attributes.shapeType.get())
@@ -236,12 +363,9 @@ var EC_RigidBody = IComponent.$extend(
         }
     },
     
-    setMass : function(mass){
-        var localInertia = new Ammo.btVector3(0.0, 0.0, 0.0);
-        if (mass > 0.0)
-            this.collisionShape_.calculateLocalInertia(mass, localInertia);
-    },
-    
+    /**
+        Create the body. No-op if the scene is not associated with a physics world.
+    */
     createBody : function()
     {
         if (this.parentEntity.placeable === undefined ||
@@ -271,9 +395,6 @@ var EC_RigidBody = IComponent.$extend(
                                                           localInertia);
         this.rigidbody_ = new Ammo.btRigidBody(rbInfo);
         TundraSDK.framework.physicsWorld.addRigidBody(this);
-        // Workaround for rigidbody->setUserPointer.
-        // TODO Ugly way to get owner entity when we want to do PhysicsWorld.Raycast
-        //this.rigidbody_.__proto__.__proto__.userPointer = this;
         
         Ammo.destroy(rbInfo);
         Ammo.destroy(localInertia);
@@ -284,8 +405,13 @@ var EC_RigidBody = IComponent.$extend(
         localInertia = null;
         startTransform = null;
         position = null;
+        
+        this.updateGravity();
     },
     
+    /**
+         Destroy the body
+    */
     removeBody : function()
     {
         if (this.rigidbody_ === undefined ||
@@ -297,6 +423,9 @@ var EC_RigidBody = IComponent.$extend(
         this.rigidbody_ = null;
     },
     
+    /**
+        Create the collision shape.
+    */
     createCollisionShape : function()
     {
         this.removeCollisionShape();
@@ -335,6 +464,9 @@ var EC_RigidBody = IComponent.$extend(
         return this.collisionShape_;
     },
     
+    /**
+        Remove the collision shape.
+    */
     removeCollisionShape : function() {
         if (this.collisionShape_ === undefined ||
             this.collisionShape_ === null)
@@ -425,6 +557,23 @@ var EC_RigidBody = IComponent.$extend(
         
         Ammo.destroy(newSize);
         newSize = null;
+    },
+    
+    updateGravity : function()
+    {
+        if (this.useGravity)
+        {
+            /*var gravity = TundraSDK.framework.physicsWorld.world.getGravity();
+            this.rigidbody_.setGravity(gravity);
+            this.rigidbody_.activate();*/
+        }
+        else
+        {
+            /*var v = new Ammo.btVector3(0.0, 0.0, 0.0);
+            this.rigidbody_.setGravity(v);
+            Ammo.destroy(v);
+            v = null;*/
+        }
     },
     
     /**
