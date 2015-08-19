@@ -140,6 +140,15 @@ var EC_RigidBody = IComponent.$extend(
             ConvexHull:6,
             Cone:7
         },
+        CollisionFlags : { 
+            STATIC_OBJECT : 1, 
+            KINEMATIC_OBJECT : 2, 
+            NO_CONTACT_RESPONSE : 4, 
+            CUSTOM_MATERIAL_CALLBACK : 8, 
+            CHARACTER_OBJECT : 16, 
+            DISABLE_VISUALIZE_OBJECT : 32, 
+            DISABLE_SPU_COLLISION_PROCESSING : 64 
+        },
         ForceThresholdSq : 0.0005 * 0.0005,
         ImpulseThresholdSq : 0.0005 * 0.0005,
         TorqueThresholdSq : 0.0005 * 0.0005
@@ -160,17 +169,22 @@ var EC_RigidBody = IComponent.$extend(
                 this.updateScale();
                 break;    
             case 3: // CollisionMeshRef
+                this.log.warn("Missing implementation for " + name);
                 break;
             case 4: // Friction
                 this.rigidbody_.setFriction(friction);
                 break;
             case 5: // LinearDamping
+                this.createBody();
                 break;
             case 6: // AngularDamping
+                this.createBody();
                 break;
             case 7: // LinearFactor
+                this.log.warn("Missing implementation for " + name);
                 break;
             case 8: // AngularFactor
+                this.log.warn("Missing implementation for " + name);
                 break;
             case 9: // LinearVelocity
                 var v = new Ammo.btVector3(value.x, value.y, value.z);
@@ -185,20 +199,25 @@ var EC_RigidBody = IComponent.$extend(
                 v = null;
                 break;
             case 11: // Kinematic
-                break;    
+                this.createBody();
+                break;
             case 12: // Phantom
+                this.createBody();
                 break;
             case 13: // DrawDebug
+                this.createBody();
                 break;
             case 14: // CollisionLayer
+                this.log.warn("Missing implementation for " + name);
                 break;
             case 15: // CollisionMask
+                this.log.warn("Missing implementation for " + name);
                 break;
             case 16: // RollingFriction
                 this.rigidbody_.setRollingFriction(value);
                 break;
             case 17: // UseGravity
-                this.updateGravity();
+                this.log.logWarning("Missing implementation for " + name);
                 break;
         }
     },
@@ -235,7 +254,7 @@ var EC_RigidBody = IComponent.$extend(
 
         @method applyForce
         @param {Float3} force vector
-        @param {Float3} force position
+        @param {Float3} position
     */
     applyForce : function(force, position)
     {
@@ -375,8 +394,16 @@ var EC_RigidBody = IComponent.$extend(
         this.createCollisionShape();
         this.removeBody();
         
+        // Read component's attribute valeus
         var mass = this.attributes.mass.get();
         var pos = this.parentEntity.placeable.position();
+        var linDamping = this.attributes.linearDamping.get();
+        var angDamping = this.attributes.angularDamping.get();
+        
+        var isKinematic = this.attributes.kinematic.get();
+        var isPhantom = this.attributes.phantom.get();
+        var drawDebug = this.attributes.drawDebug.get();
+        var isDynamic = mass > 0.0;
         
         var startTransform = new Ammo.btTransform();
         startTransform.setIdentity();
@@ -384,7 +411,7 @@ var EC_RigidBody = IComponent.$extend(
         startTransform.setOrigin(position);
         
         var localInertia = new Ammo.btVector3(0.0, 0.0, 0.0);
-        if (mass > 0.0)
+        if (isDynamic)
             this.collisionShape_.calculateLocalInertia(mass, localInertia);
         
         var myMotionState = new Ammo.btDefaultMotionState(startTransform);
@@ -393,7 +420,23 @@ var EC_RigidBody = IComponent.$extend(
                                                           myMotionState,
                                                           this.collisionShape_,
                                                           localInertia);
+        rbInfo.set_m_linearDamping(linDamping);
+        rbInfo.set_m_angularDamping(angDamping);
+        
         this.rigidbody_ = new Ammo.btRigidBody(rbInfo);
+        
+        // Read collision flags
+        var collisionFlags = 0;
+        if (!isDynamic)
+            collisionFlags |= EC_RigidBody.CollisionFlags.STATIC_OBJECT;
+        if (isKinematic)
+            collisionFlags |= EC_RigidBody.CollisionFlags.KINEMATIC_OBJECT;
+        if (isPhantom)
+            collisionFlags |= EC_RigidBody.CollisionFlags.NO_CONTACT_RESPONSE;
+        if (!drawDebug)
+            collisionFlags |= EC_RigidBody.CollisionFlags.DISABLE_VISUALIZE_OBJECT;
+        this.rigidbody_.setCollisionFlags(collisionFlags);
+        
         TundraSDK.framework.physicsWorld.addRigidBody(this);
         
         Ammo.destroy(rbInfo);
@@ -405,8 +448,6 @@ var EC_RigidBody = IComponent.$extend(
         localInertia = null;
         startTransform = null;
         position = null;
-        
-        this.updateGravity();
     },
     
     /**
@@ -557,23 +598,6 @@ var EC_RigidBody = IComponent.$extend(
         
         Ammo.destroy(newSize);
         newSize = null;
-    },
-    
-    updateGravity : function()
-    {
-        if (this.useGravity)
-        {
-            /*var gravity = TundraSDK.framework.physicsWorld.world.getGravity();
-            this.rigidbody_.setGravity(gravity);
-            this.rigidbody_.activate();*/
-        }
-        else
-        {
-            /*var v = new Ammo.btVector3(0.0, 0.0, 0.0);
-            this.rigidbody_.setGravity(v);
-            Ammo.destroy(v);
-            v = null;*/
-        }
     },
     
     /**
