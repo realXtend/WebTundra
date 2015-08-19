@@ -9,6 +9,14 @@ var PhysicsApplication = ICameraApplication.$extend(
 
         TundraSDK.framework.client.onConnected(this, this.onConnected);
         TundraSDK.framework.client.onDisconnected(this, this.onDisconnected);
+        
+        this.CollisionTypes =
+        {
+            NOTHING : 0,
+            BOX : 1,
+            PLANE1 : 2,
+            PLANE2 : 4
+        };
     },
 
     onConnected : function()
@@ -52,14 +60,30 @@ var PhysicsApplication = ICameraApplication.$extend(
         meshEntity = this.entities["Plane"];
         meshEntity.name = "Plane"
         t = meshEntity.placeable.transform;
-        t.setPosition(0, -2, -20);
+        t.setPosition(0, 0, -20);
         t.setScale(2.5, 2.5, 2.5);
         meshEntity.placeable.transform = t;
         meshEntity.rigidbody.mass = 0.0;
         meshEntity.rigidbody.size = new THREE.Vector3(10000.0, 0.1, 10000.0);
+        meshEntity.rigidbody.collisionLayer = this.CollisionTypes.PLANE1;
+        meshEntity.rigidbody.collisionMask = this.CollisionTypes.BOX;
+        
+        this.entities["Plane2"] = TundraSDK.framework.scene.createLocalEntity(["Name", "Placeable", "RigidBody"]);
+        meshEntity = this.entities["Plane2"];
+        meshEntity.name = "Plane2"
+        t = meshEntity.placeable.transform;
+        t.setPosition(0, -10, -20);
+        t.setScale(2.5, 2.5, 2.5);
+        meshEntity.placeable.transform = t;
+        meshEntity.rigidbody.mass = 0.0;
+        meshEntity.rigidbody.size = new THREE.Vector3(10000.0, 0.1, 10000.0);
+        meshEntity.rigidbody.collisionLayer = this.CollisionTypes.PLANE2;
+        meshEntity.rigidbody.collisionMask = this.CollisionTypes.BOX;
+        
         TundraSDK.framework.physicsWorld.raycast(new THREE.Vector3(0, 30, -20),
                                                  new THREE.Vector3(0, -1, 0),
                                                  100);
+                                                 
         this.spawnBoxes(100);
         this.nextTime = TundraSDK.framework.frame.wallClockTime() + 5;
         this.removeList = [];
@@ -86,6 +110,11 @@ var PhysicsApplication = ICameraApplication.$extend(
             var fz = Math.random() * (25 - 1) + 1;
             meshEntity.rigidbody.applyForce(new THREE.Vector3(fx, fy, fz));
             meshEntity.rigidbody.applyTorgue(new THREE.Vector3(fx, fy, fz));
+            meshEntity.rigidbody.collisionLayer = this.CollisionTypes.BOX;
+            if (i % 2 === 0)
+                meshEntity.rigidbody.collisionMask = this.CollisionTypes.PLANE1 | this.CollisionTypes.BOX;
+            else
+                meshEntity.rigidbody.collisionMask = this.CollisionTypes.PLANE2 | this.CollisionTypes.BOX;
             /*meshEntity.rigidbody.applyImpulse(new THREE.Vector3(fx, fy, fz));
             meshEntity.rigidbody.applyTorgueImpulse(new THREE.Vector3(fx, fy, fz));*/
             /*meshEntity.rigidbody.onPhysicsCollision(null, function(entity){

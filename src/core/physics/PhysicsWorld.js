@@ -128,11 +128,21 @@ var PhysicsWorld = Class.$extend(
         this.frameUpdateEventId_ = TundraSDK.framework.events.subscribe("PhysicsWorld.Update", this, this.simulate);
     },
     
-    addRigidBody : function(rigidbody)
+    /**
+        Add rigidbody to physical world.
+
+        @method applyForce
+        @param {Int|null} layer
+        @param {Int|null} mask
+    */
+    addRigidBody : function(rigidbody, layer, mask)
     {
         var body = rigidbody.rigidbody_;
         this.ptrToRigidbodyMap[body.ptr] = rigidbody;
-        this.world.addRigidBody(body);
+        if (typeof layer == "number" && typeof mask == "number")
+            this.world.addRigidBody(body, layer, mask);
+        else
+            this.world.addRigidBody(body);
     },
     
     removeRigidBody : function(rigidbody)
