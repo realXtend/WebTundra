@@ -1,6 +1,7 @@
 
 define([
         "lib/classy",
+        "lib/three",
         "core/framework/TundraSDK",
         "core/framework/TundraLogging",
         "core/framework/CoreStringUtils",
@@ -12,7 +13,7 @@ define([
         "core/data/DataDeserializer",
         "core/data/DataSerializer",
         "core/math/Transform"
-    ], function(Class, TundraSDK, TundraLogging, CoreStringUtils, Entity, IComponent, Attribute, AttributeChange, Network, DataDeserializer, DataSerializer, Transform) {
+    ], function(Class, THREE, TundraSDK, TundraLogging, CoreStringUtils, Entity, IComponent, Attribute, AttributeChange, Network, DataDeserializer, DataSerializer, Transform) {
 
 /**
     Scene that is accessible from {{#crossLink "TundraClient/scene:property"}}TundraClient.scene{{/crossLink}}

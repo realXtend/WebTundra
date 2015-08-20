@@ -25,7 +25,6 @@ define([
         // Network related
         "core/network/TundraMessageHandler",
         "core/network/LoginMessage",
-        "core/network/ObserverPositionMessage",
         // Core Components
         "entity-components/EC_Name",
         "entity-components/EC_Script",
@@ -44,7 +43,7 @@ define([
         Scene,                      AttributeChange,            AssetAPI,
         InputAPI,                   UiAPI,                      FrameAPI,
         // Network messages
-        TundraMessageHandler,       LoginMessage,               ObserverPositionMessage,
+        TundraMessageHandler,       LoginMessage,
         // Core Components
         EC_Name,                    EC_Script,
         EC_Avatar,                  EC_DynamicComponent) {
@@ -275,31 +274,6 @@ var TundraClient = Class.$extend(
             @type Number
         */
         this.observerEntityId = 0;
-        /**
-            Send interval in seconds for the observer position & orientation. 
-            Only has relevance when observerEntityId is nonzero. Will be sent only when actually changed.
-            @property priorityUpdatePeriod
-            @type Number
-        */
-        this.priorityUpdatePeriod = 1;
-        /**
-            Time the observer position was last updated
-            @property lastPriorityUpdateTime
-            @type Number
-        */
-        this.lastPriorityUpdateTime = 0;
-        /**
-            Last observer position sent
-            @property lastObserverPosition
-            @type THREE.Vector3
-         */
-        this.lastObserverPosition = new THREE.Vector3();
-        /**
-            Last observer orientation sent
-            @property lastObserverOrientation
-            @type THREE.Quaternion
-         */
-        this.lastObserverOrientation = new THREE.Quaternion();
 
         // Reset state
         this.reset();
@@ -659,7 +633,9 @@ var TundraClient = Class.$extend(
 
         // Reset frametime
         this.lastTime = performance.now();
-        this.lastPriorityUpdateTime = 0;
+        // Reset observer 
+        this.observerEntityId = 0;
+        this.network.lastObserverSendTime = 0;
 
         this.cameraApplications = [];
         this.cameraApplicationIndex = 0;
@@ -688,7 +664,8 @@ var TundraClient = Class.$extend(
         that.renderer.update(frametime, frametimeMsec);
 
         // Update interest management
-        that.updateObserver(timeNow);
+        if (that.observerEntityId > 0)
+            that.network.updateObserver(timeNow);
 
         that.frame._postUpdate(frametime);
     },
@@ -852,34 +829,6 @@ var TundraClient = Class.$extend(
         // String frame, just log it..
         else
             that.log.info("Server sent a unexpected string message '" + event.data + "'");
-    },
-
-    updateObserver : function(timeNow)
-    {
-        if (this.websocket != null && this.observerEntityId > 0)
-        {
-            if (this.lastPriorityUpdateTime == 0 || timeNow - this.lastPriorityUpdateTime >= this.priorityUpdatePeriod * 1000.0)
-            {
-                var ent = TundraSDK.framework.scene.entityById(this.observerEntityId);
-                if (ent != null && ent.placeable != null)
-                {
-                    var worldPosition = ent.placeable.worldPosition();
-                    var worldOrientation = ent.placeable.worldOrientation();
-
-                    if (this.lastPriorityUpdateTime == 0 || !this.lastObserverPosition.equals(worldPosition) ||
-                        !this.lastObserverOrientation.equals(worldOrientation))
-                    {
-                        this.lastObserverPosition.copy(worldPosition);
-                        this.lastObserverOrientation.copy(worldOrientation);
-
-                        var message = new ObserverPositionMessage();
-                        message.serialize(worldPosition, worldOrientation);
-                        TundraSDK.framework.network.send(message);
-                        this.lastPriorityUpdateTime = timeNow;
-                    }
-                }
-            }
-        }
     }
 });
 

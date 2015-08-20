@@ -1,12 +1,14 @@
 
 define([
         "lib/classy",
+        "lib/three",
         "core/framework/TundraSDK",
         "core/framework/TundraLogging",
         "core/data/DataDeserializer",
         "core/network/INetworkMessageHandler",
-        "core/network/INetworkMessage"
-    ], function(Class, TundraSDK, TundraLogging, DataDeserializer, INetworkMessageHandler, INetworkMessage) {
+        "core/network/INetworkMessage",
+        "core/network/ObserverPositionMessage",
+    ], function(Class, THREE, TundraSDK, TundraLogging, DataDeserializer, INetworkMessageHandler, INetworkMessage, ObserverPositionMessage) {
 
 /**
     Tundra protocol contains utilities and properties for the handling the Tundra protocol.
@@ -20,6 +22,18 @@ var Network = Class.$extend(
         this.log = TundraLogging.getLogger("Network");
 
         this.messageHandlers = [];
+        
+        /**
+            Send interval in seconds for the observer position & orientation. 
+            Only has relevance when observerEntityId in Client is nonzero. Will be sent only when actually changed.
+            @property priorityUpdatePeriod
+            @type Number
+        */
+        this.priorityUpdatePeriod = 1;
+        
+        this.lastObserverSendTime = 0;
+        this.lastObserverPosition = new THREE.Vector3();
+        this.lastObserverOrientation = new THREE.Quaternion();
     },
 
     __classvars__ :
@@ -152,7 +166,7 @@ var Network = Class.$extend(
     {
         var ds = new DataDeserializer(buffer, 0);
         var id = ds.readU16();
-       
+
         /** @todo Figure out if it makes sense to let multiple registered
             handlers to handle the same message id. In this case we would
             need to create copies of the data for each. */
@@ -167,6 +181,41 @@ var Network = Class.$extend(
 
         var msg = new INetworkMessage(id);
         this.log.warn("Received an unhandled network message", msg.name, msg.id);
+    },
+
+    /**
+        Handles sending an observer entity's changed position & orientation to the server at set intervals.
+        Called by Client as part of the frame update.
+
+        @method updateObserver
+        @param {number} timeNow Current frame time in milliseconds
+     */
+    updateObserver : function(timeNow)
+    {
+        if (TundraSDK.framework.client.websocket != null)
+        {
+            if (this.lastObserverSendTime == 0 || timeNow - this.lastObserverSendTime >= this.priorityUpdatePeriod * 1000.0)
+            {
+                var ent = TundraSDK.framework.scene.entityById(TundraSDK.framework.client.observerEntityId);
+                if (ent != null && ent.placeable != null)
+                {
+                    var worldPosition = ent.placeable.worldPosition();
+                    var worldOrientation = ent.placeable.worldOrientation();
+
+                    if (this.lastObserverSendTime == 0 || !this.lastObserverPosition.equals(worldPosition) ||
+                        !this.lastObserverOrientation.equals(worldOrientation))
+                    {
+                        this.lastObserverPosition.copy(worldPosition);
+                        this.lastObserverOrientation.copy(worldOrientation);
+
+                        var message = new ObserverPositionMessage();
+                        message.serialize(worldPosition, worldOrientation);
+                        this.send(message);
+                        this.lastObserverSendTime = timeNow;
+                    }
+                }
+            }
+        }
     }
 });
 
