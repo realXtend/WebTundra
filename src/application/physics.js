@@ -84,7 +84,7 @@ var PhysicsApplication = ICameraApplication.$extend(
                                                  new THREE.Vector3(0, -1, 0),
                                                  100);
                                                  
-        this.spawnBoxes(100);
+        this.spawnBoxes(200);
         this.nextTime = TundraSDK.framework.frame.wallClockTime() + 5;
         this.removeList = [];
     },

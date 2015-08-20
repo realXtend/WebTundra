@@ -391,12 +391,12 @@ var EC_RigidBody = IComponent.$extend(
             this.parentEntity.placeable === null)
             return;
         
+        // Realase the old body
         this.createCollisionShape();
         this.removeBody();
         
         // Read component's attribute valeus
         var mass = this.attributes.mass.get();
-        var pos = this.parentEntity.placeable.position();
         var linDamping = this.attributes.linearDamping.get();
         var angDamping = this.attributes.angularDamping.get();
         var collisionLayer = this.attributes.collisionLayer.get();
@@ -407,16 +407,20 @@ var EC_RigidBody = IComponent.$extend(
         var drawDebug = this.attributes.drawDebug.get();
         var isDynamic = mass > 0.0;
         
-        var startTransform = new Ammo.btTransform();
-        startTransform.setIdentity();
+        // Read placeables position and rotation
+        var pos = this.parentEntity.placeable.position();
+        var rot = this.parentEntity.placeable.attributes.transform.get().orientation();
+        var transform = new Ammo.btTransform();
         var position = new Ammo.btVector3(pos.x, pos.y, pos.z);
-        startTransform.setOrigin(position);
+        var quat = new Ammo.btQuaternion(rot.x, rot.y, rot.z, rot.w);
+        transform.setOrigin(position);
+        transform.setRotation(quat);
         
         var localInertia = new Ammo.btVector3(0.0, 0.0, 0.0);
         if (isDynamic)
             this.collisionShape_.calculateLocalInertia(mass, localInertia);
         
-        var myMotionState = new Ammo.btDefaultMotionState(startTransform);
+        var myMotionState = new Ammo.btDefaultMotionState(transform);
         
         var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass,
                                                           myMotionState,
@@ -427,7 +431,6 @@ var EC_RigidBody = IComponent.$extend(
         
         this.rigidbody_ = new Ammo.btRigidBody(rbInfo);
         
-        // Read collision flags
         var collisionFlags = 0;
         if (!isDynamic)
             collisionFlags |= EC_RigidBody.CollisionFlags.STATIC_OBJECT;
@@ -450,13 +453,15 @@ var EC_RigidBody = IComponent.$extend(
         
         Ammo.destroy(rbInfo);
         Ammo.destroy(localInertia);
-        Ammo.destroy(startTransform);
+        Ammo.destroy(transform);
         Ammo.destroy(position);
+        Ammo.destroy(quat);
         
         rbInfo = null;
         localInertia = null;
-        startTransform = null;
+        transform = null;
         position = null;
+        quat = null;
     },
     
     /**
