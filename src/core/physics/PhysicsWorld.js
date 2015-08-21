@@ -110,6 +110,11 @@ var PhysicsWorld = Class.$extend(
 
     __classvars__ :
     {
+        /**
+            Collsion info object
+
+            @method CollisionSignal
+        */
         CollisionSignal : function() {
             this.bodyA = null;
             this.bodyB = null;
@@ -120,6 +125,13 @@ var PhysicsWorld = Class.$extend(
             this.newCollision = false;
         },
         
+        /**
+            Key value pair
+            
+            @method ObjectPair
+            @param k1
+            @param k2
+        */
         ObjectPair : function(k1, k2)
         {
             this.key1 = k1;

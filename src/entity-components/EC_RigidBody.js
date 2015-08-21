@@ -130,6 +130,12 @@ var EC_RigidBody = IComponent.$extend(
     },
     
     __classvars__ : {
+        /**
+            Shape Type enum
+            @static
+            @property ShapeType
+            @type enum
+        */
         ShapeType : {
             Box:0,
             Sphere:1,
@@ -140,6 +146,13 @@ var EC_RigidBody = IComponent.$extend(
             ConvexHull:6,
             Cone:7
         },
+        
+        /**
+            Collision Flags
+            @static
+            @property CollisionFlags
+            @type enum
+        */
         CollisionFlags : { 
             STATIC_OBJECT : 1, 
             KINEMATIC_OBJECT : 2, 
@@ -149,14 +162,34 @@ var EC_RigidBody = IComponent.$extend(
             DISABLE_VISUALIZE_OBJECT : 32, 
             DISABLE_SPU_COLLISION_PROCESSING : 64 
         },
+        
+        /**
+            Force Threshold
+            @static
+            @property ForceThresholdSq
+            @type Number
+        */
         ForceThresholdSq : 0.0005 * 0.0005,
+        
+        /**
+            Impulse Threshold
+            @static
+            @property ImpulseThresholdSq
+            @type Number
+        */
         ImpulseThresholdSq : 0.0005 * 0.0005,
+        
+        /**
+            Torgue Threshold
+            @static
+            @property TorqueThresholdSq
+            @type Number
+        */
         TorqueThresholdSq : 0.0005 * 0.0005
     },
     
     attributeChanged : function(index, name, value)
     {
-        //console.log("Attribute '" + name +  "' changed to " + value);
         switch(index)
         {
             case 0: // Mass
@@ -253,8 +286,8 @@ var EC_RigidBody = IComponent.$extend(
         Apply a force to the body.
 
         @method applyForce
-        @param {Float3} force vector
-        @param {Float3} position
+        @param {THREE.Vector3} force vector
+        @param {THREE.Vector3} position
     */
     applyForce : function(force, position)
     {
@@ -284,7 +317,7 @@ var EC_RigidBody = IComponent.$extend(
         Apply a torque to the body.
 
         @method applyTorgue
-        @param {Float3} torgue
+        @param {THREE.Vector3} torgue
     */
     applyTorgue : function(torgue)
     {
@@ -304,8 +337,8 @@ var EC_RigidBody = IComponent.$extend(
         Apply an impulse to the body
 
         @method applyImpulse
-        @param {Float3} impulse
-        @param {Float3} position
+        @param {THREE.Vector3} impulse
+        @param {THREE.Vector3} position
     */
     applyImpulse : function(impulse, position)
     {
@@ -335,7 +368,7 @@ var EC_RigidBody = IComponent.$extend(
         Apply a torque impulse to the body
 
         @method applyTorgueImpulse
-        @param {Float3} torgueImpulse
+        @param {THREE.Vector3} torgueImpulse
     */
     applyTorgueImpulse : function(torgueImpulse)
     {
@@ -358,15 +391,14 @@ var EC_RigidBody = IComponent.$extend(
             attributeIndex !== 0)
             return;
         
-        var pos = this.parentEntity.placeable.position();
-        this.setRigidbodyPosition(pos.x, pos.y, pos.z);
+        this.setRigidbodyPosition(this.parentEntity.placeable.position());
     },
     
     /**
         Returns true if the currently used shape is a primitive shape (box et al.), false otherwise.
 
         @method isPrimitiveShape
-        @return {Bool}
+        @return {boolean}
     */
     isPrimitiveShape : function()
     {
@@ -384,6 +416,8 @@ var EC_RigidBody = IComponent.$extend(
     
     /**
         Create the body. No-op if the scene is not associated with a physics world.
+        
+        @method createBody
     */
     createBody : function()
     {
@@ -464,7 +498,9 @@ var EC_RigidBody = IComponent.$extend(
     },
     
     /**
-         Destroy the body
+        Destroy the body
+        
+        @method removeBody
     */
     removeBody : function()
     {
@@ -478,7 +514,9 @@ var EC_RigidBody = IComponent.$extend(
     },
     
     /**
-        Create the collision shape.
+        Create the collision shape
+        
+        @method createCollisionShape
     */
     createCollisionShape : function()
     {
@@ -505,12 +543,12 @@ var EC_RigidBody = IComponent.$extend(
         }
         else if (shape === EC_RigidBody.ShapeType.Capsule)
             this.collisionShape_ = new Ammo.btCapsuleShape(size.x * 0.5, size.y * 0.5);
-        /*else if (shape === EC_RigidBody.ShapeType.TriMesh)
-            this.collisionShape_ = new Ammo.btBoxShape(btSize);
+        else if (shape === EC_RigidBody.ShapeType.TriMesh)
+            this.log.warn("TriMesh collsion shape is not suppoerted");
         else if (shape === EC_RigidBody.ShapeType.HeightField)
-            this.collisionShape_ = new Ammo.btBoxShape(btSize);
+            this.log.warn("HeightField collsion shape is not suppoerted");
         else if (shape === EC_RigidBody.ShapeType.ConvexHull)
-            this.collisionShape_ = new Ammo.btBoxShape(btSize);*/
+            this.log.warn("ConvexHull collsion shape is not suppoerted");
         else if (shape === EC_RigidBody.ShapeType.Cone)
             this.collisionShape_ = new Ammo.btConeShape(size.x * 0.5, size.y);
         
@@ -520,6 +558,8 @@ var EC_RigidBody = IComponent.$extend(
     
     /**
         Remove the collision shape.
+        
+        @method removeCollisionShape
     */
     removeCollisionShape : function() {
         if (this.collisionShape_ === undefined ||
@@ -566,7 +606,13 @@ var EC_RigidBody = IComponent.$extend(
         this.ignoreTransformChange_ = false;
     },
     
-    setRigidbodyPosition : function(x, y, z)
+    /**
+        Change rigidbody position in physics world.
+        
+        @method setRigidbodyPosition
+        @param {THREE.Vector3} position
+    */
+    setRigidbodyPosition : function(position)
     {
         if (this.ignoreTransformChange_ ||
             this.rigidbody_ === undefined ||
@@ -575,7 +621,7 @@ var EC_RigidBody = IComponent.$extend(
         
         var worldTrans = new Ammo.btTransform();
         this.rigidbody_.getMotionState().getWorldTransform(worldTrans);
-        worldTrans.setOrigin(new Ammo.btVector3(x, y, z));
+        worldTrans.setOrigin(new Ammo.btVector3(position.x, position.y, position.z));
         this.rigidbody_.getMotionState().setWorldTransform(worldTrans);
         this.rigidbody_.activate();
                 
