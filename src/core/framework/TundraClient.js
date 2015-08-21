@@ -115,7 +115,7 @@ var TundraClient = Class.$extend(
         if (params.networkDebugLogging === undefined || params.networkDebugLogging === null)
             params.networkDebugLogging = false;
         if (params.asset === undefined || params.asset === null)
-            params.asset = {}
+            params.asset = {};
         if (params.asset.localStoragePath === undefined)
             params.asset.localStoragePath = "";
         if (params.container === undefined || params.container === null)

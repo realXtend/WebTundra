@@ -1,4 +1,4 @@
-define(function() {
+
 // This is ammo.js, a port of Bullet Physics to JavaScript. zlib licensed.
 var AmmoLib = function(Module) {
   Module = Module || {};
@@ -35,6 +35,8 @@ var Hb=[ZF,Ut,bu,Ay,Iu,Rv,Yv,pw,zw,YA,$B,eD,sD,yD,BD,DD,HE,GE,DE,ZF,ZF,ZF,ZF,ZF,
   return Module;
 };
 
-//Ammo = AmmoLib();
-return AmmoLib();
+Ammo = AmmoLib();
+
+define(function() {
+  return Ammo;
 });

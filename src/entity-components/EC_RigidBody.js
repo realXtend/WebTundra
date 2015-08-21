@@ -131,10 +131,17 @@ var EC_RigidBody = IComponent.$extend(
     
     __classvars__ : {
         /**
-            Shape Type enum
-            @static
             @property ShapeType
-            @type enum
+            @static
+            @type Object
+            @param {Number} Box [value=1]
+            @param {Number} Sphere [value=2]
+            @param {Number} Cylinder [value=3]
+            @param {Number} Capsule [value=4]
+            @param {Number} TriMesh [value=5]
+            @param {Number} HeightField [value=6]
+            @param {Number} ConvexHull [value=7]
+            @param {Number} Cone [value=8]
         */
         ShapeType : {
             Box:0,
@@ -148,17 +155,23 @@ var EC_RigidBody = IComponent.$extend(
         },
         
         /**
-            Collision Flags
-            @static
             @property CollisionFlags
-            @type enum
+            @static
+            @type Object
+            @param {Number} STATIC_OBJECT [value=1]
+            @param {Number} KINEMATIC_OBJECT [value=2]
+            @param {Number} NO_CONTACT_RESPONSE [value=4]
+            @param {Number} CUSTOM_MATERIAL_CALLBACK [value=8]
+            @param {Number} CHARACTER_OBJECT [value=16]
+            @param {Number} DISABLE_VISUALIZE_OBJECT [value=32]
+            @param {Number} DISABLE_SPU_COLLISION_PROCESSING [value=64]
         */
         CollisionFlags : { 
             STATIC_OBJECT : 1, 
-            KINEMATIC_OBJECT : 2, 
-            NO_CONTACT_RESPONSE : 4, 
-            CUSTOM_MATERIAL_CALLBACK : 8, 
-            CHARACTER_OBJECT : 16, 
+            KINEMATIC_OBJECT : 2,
+            NO_CONTACT_RESPONSE : 4,
+            CUSTOM_MATERIAL_CALLBACK : 8,
+            CHARACTER_OBJECT : 16,
             DISABLE_VISUALIZE_OBJECT : 32, 
             DISABLE_SPU_COLLISION_PROCESSING : 64 
         },

@@ -1,6 +1,5 @@
 
-define([
-        "lib/classy",
+define(["lib/classy",
         "lib/ammo",
         "lib/three",
         "core/physics/PhysicsRaycastResult",

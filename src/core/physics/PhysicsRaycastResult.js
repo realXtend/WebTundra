@@ -1,6 +1,5 @@
 
-define([
-        "lib/classy",
+define(["lib/classy",
         "lib/three",
         "core/framework/TundraSDK",
         "core/framework/TundraLogging"
