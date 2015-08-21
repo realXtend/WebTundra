@@ -110,9 +110,15 @@ var PhysicsWorld = Class.$extend(
     __classvars__ :
     {
         /**
-            Collsion info object
-
-            @method CollisionSignal
+            @property CollisionSignal Collsion info object
+            @type Function
+            @param {Object|Null} bodyA
+            @param {Object|Null} bodyB
+            @param {THREE.Vector3} position
+            @param {THREE.Vector3} normal
+            @param {Number} distance
+            @param {Number} impulse
+            @param {boolean} newCollision
         */
         CollisionSignal : function() {
             this.bodyA = null;
@@ -125,9 +131,8 @@ var PhysicsWorld = Class.$extend(
         },
         
         /**
-            Key value pair
-            
-            @method ObjectPair
+            @property ObjectPair Key value pair
+            @type Function
             @param k1
             @param k2
         */

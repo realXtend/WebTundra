@@ -21,104 +21,141 @@ var EC_RigidBody = IComponent.$extend(
         this.$super(id, typeId, typeName, name);
 
         /**
+            Mass of the body. Set to 0 to have a static (immovable) object
             @property mass (attribute)
             @type Attribute
+            @default 0.0
         */
         this.declareAttribute(0, "mass", 0.0, Attribute.Real);
         /**
-            @property shapeType (attribute)
+            Shape type, see ShapeType.
+            @property shapeType
             @type Attribute
+            @default ShapeType.Box
         */
         this.declareAttribute(1, "shapeType", EC_RigidBody.ShapeType.Box, Attribute.Int);
         /**
-            @property size (attribute)
+            Size (scaling) of the shape.
+            Size.z is applicable only for box, and size.y is not applicable for sphere. For non-box shapes x == radius and y == height.
+            Shape is further scaled by Placeable scale.
+            @property size
             @type Attribute
+            @default THREE.Vector3(1.0, 1.0, 1.0)
         */
         this.declareAttribute(2, "size", new THREE.Vector3(1.0, 1.0, 1.0), Attribute.Float3);
         /**
-            @property collisionMeshRef (attribute)
+            Collision mesh asset reference, only effective if shapeType is Shape_TriMesh.
+            @property collisionMeshRef
             @type Attribute
+            @default ""
         */
         this.declareAttribute(3, "collisionMeshRef", "", Attribute.AssetReference);
         /**
-            @property friction (attribute)
+            Friction coefficient between 0.0 - 1.0.
+            @property friction
             @type Attribute
+            @default 0.5
         */
         this.declareAttribute(4, "friction", 0.5, Attribute.Real);
         /**
-            @property linearDamping (attribute)
+            Linear damping coefficient of the object (makes it lose velocity even when no force acts on it).
+            @property linearDamping
             @type Attribute
+            @default 0.0
         */
         this.declareAttribute(5, "linearDamping", 0.0, Attribute.Real);
         /**
-            @property angularDamping (attribute)
+            Angular damping coefficient of the object (makes it lose angular velocity even when no force acts on it)
+            @property angularDamping
             @type Attribute
+            @default 0.0
         */
         this.declareAttribute(6, "angularDamping", 0.0, Attribute.Real);
         /**
-            @property linearFactor (attribute)
+            Linear factor. Specifies the axes on which forces can act on the object, making it move.
+            @property linearFactor
             @type Attribute
+            @default THREE.Vector3(1.0, 1.0, 1.0)
         */
         this.declareAttribute(7, "linearFactor", new THREE.Vector3(1.0, 1.0, 1.0), Attribute.Float3);
         /**
-            @property angularFactor (attribute)
+            Angular factor. Defines in which dimensions the object can rotate
+            @property angularFactor
             @type Attribute
+            @default THREE.Vector3(1.0, 1.0, 1.0)
         */
         this.declareAttribute(8, "angularFactor", new THREE.Vector3(1.0, 1.0, 1.0), Attribute.Float3);
         /**
-            @property linearVelocity (attribute)
+            Linear velocity
+            @property linearVelocity
             @type Attribute
+            @default THREE.Vector3(0.0, 0.0, 0.0)
         */
         this.declareAttribute(9, "linearVelocity", new THREE.Vector3(0.0, 0.0, 0.0), Attribute.Float3);
         /**
-            @property angularVelocity (attribute)
+            Specifies the axes on which torques can act on the object, making it rotate.
+            @property angularVelocity
             @type Attribute
+            @default THREE.Vector3(0.0, 0.0, 0.0)
         */
         this.declareAttribute(10, "angularVelocity", new THREE.Vector3(0.0, 0.0, 0.0), Attribute.Float3);
         /**
-            @property kinematic (attribute)
+            Kinematic flag. If true, forces don't affect the object, but it may push other objects around.
+            @property kinematic
             @type Attribute
+            @default false
         */
         this.declareAttribute(11, "kinematic", false, Attribute.Bool);
         /**
-            @property phantom (attribute)
+            Phantom flag. If true, contact response is disabled, ie. there is no collision interaction between this object and others
+            @property phantom
             @type Attribute
+            @default false
         */
         this.declareAttribute(12, "phantom", false, Attribute.Bool);
         /**
-            @property drawDebug (attribute)
+            DrawDebug flag. If true, collision shape will be visualized when physics debug drawing is enabled.
+            @property drawDebug
             @type Attribute
+            @default false
         */
         this.declareAttribute(13, "drawDebug", false, Attribute.Bool);
         /**
-            @property collisionLayer (attribute)
+            The collision layer bitmask of this rigidbody. Several bits can be set. 0 is default (all bits set)
+            @property collisionLayer
             @type Attribute
+            @default -1
         */
         this.declareAttribute(14, "collisionLayer", -1, Attribute.Int);
         /**
-            @property collisionMask (attribute)
+            Tells with which collision layers this rigidbody collides with (a bitmask). 0 is default (all bits set)
+            @property collisionMask
             @type Attribute
+            @default -1
         */
         this.declareAttribute(15, "collisionMask", -1, Attribute.Int);
         /**
-            @property rollingFriction (attribute)
+            Rolling friction coefficient between 0.0 - 1.0.
+            @property rollingFriction
             @type Attribute
+            @default 0.5
         */
         this.declareAttribute(16, "rollingFriction", 0.5, Attribute.Real);
         /**
-            @property useGravity (attribute)
+            Gravity enable. If true (default), the physics world gravity affects the object.
+            @property useGravity
             @type Attribute
+            @default true
         */
         this.declareAttribute(17, "useGravity", true, Attribute.Bool);
         
-        this.collisionShape_ = null;
-        this.rigidbody_ = null;
-        
         // TODO! use btMotionState subclass if possible
         this.updateId_ = TundraSDK.framework.frame.onUpdate(this, this.onFrame_);
-        
         this.ignoreTransformChange_ = false;
         this.parentChangedEvent_ = null;
+        
+        this.collisionShape_ = null;
+        this.rigidbody_ = null;
     },
     
     reset : function()
@@ -134,14 +171,14 @@ var EC_RigidBody = IComponent.$extend(
             @property ShapeType
             @static
             @type Object
-            @param {Number} Box [value=1]
-            @param {Number} Sphere [value=2]
-            @param {Number} Cylinder [value=3]
-            @param {Number} Capsule [value=4]
-            @param {Number} TriMesh [value=5]
-            @param {Number} HeightField [value=6]
-            @param {Number} ConvexHull [value=7]
-            @param {Number} Cone [value=8]
+            @param {Number} Box [value=0]
+            @param {Number} Sphere [value=1]
+            @param {Number} Cylinder [value=2]
+            @param {Number} Capsule [value=3]
+            @param {Number} TriMesh [value=4] Not supported
+            @param {Number} HeightField [value=5] Not supported
+            @param {Number} ConvexHull [value=6] Not supported
+            @param {Number} Cone [value=7]
         */
         ShapeType : {
             Box:0,
@@ -177,25 +214,22 @@ var EC_RigidBody = IComponent.$extend(
         },
         
         /**
-            Force Threshold
-            @static
             @property ForceThresholdSq
+            @static
             @type Number
         */
         ForceThresholdSq : 0.0005 * 0.0005,
         
         /**
-            Impulse Threshold
-            @static
             @property ImpulseThresholdSq
+            @static
             @type Number
         */
         ImpulseThresholdSq : 0.0005 * 0.0005,
         
         /**
-            Torgue Threshold
-            @static
             @property TorqueThresholdSq
+            @static
             @type Number
         */
         TorqueThresholdSq : 0.0005 * 0.0005
