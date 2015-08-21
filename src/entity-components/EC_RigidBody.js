@@ -421,7 +421,6 @@ var EC_RigidBody = IComponent.$extend(
             this.collisionShape_.calculateLocalInertia(mass, localInertia);
         
         var myMotionState = new Ammo.btDefaultMotionState(transform);
-        
         var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass,
                                                           myMotionState,
                                                           this.collisionShape_,

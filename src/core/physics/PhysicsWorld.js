@@ -9,7 +9,8 @@ define([
     ], function(Class, Ammo, THREE, PhysicsRaycastResult, TundraSDK, TundraLogging) {
 
 /**
-    PhysicsWorld that resides in a {{#crossLink "core/scene/Scene"}}{{/crossLink}}.
+    A physics world that encapsulates a Bullet physics world.
+    
     @class PhysicsWorld
     @constructor
 */
@@ -58,7 +59,7 @@ var PhysicsWorld = Class.$extend(
                                                       this.collisionConfiguration);
         
         /**
-            Physics update period
+            Physics update period (= length of each simulation step.)
             @property physicsUpdatePeriod
             @type Number
         */
@@ -85,16 +86,26 @@ var PhysicsWorld = Class.$extend(
         */
         this.useVariableTimestep = false;
         
+        /**
+            Collisions that occurred during the previous frame.
+            @property previousCollisions
+            @type Array
+        */
         this.previousCollisions = [];
         
-        this.setGravity(0.0, -10.0, 0.0);
-        
-        this.ptrToRigidbodyMap = {};
+        /**
+            ptrToRigidbodyMap will keep track what Ammo.Rigidbody belongs to what EC_RigidBody object.
+            @property ptrToRigidbodyMap_
+            @type Array
+        */
+        this.ptrToRigidbodyMap_ = {};
         
         this.processPostTickEventId_ = null;
         this.frameUpdateEventId_ = null;
         
         TundraSDK.framework.client.onConnected(this, this.onConnected);
+        
+        this.setGravity(0.0, -10.0, 0.0);
     },
 
     __classvars__ :
@@ -122,42 +133,71 @@ var PhysicsWorld = Class.$extend(
         }
     },
     
+    /**
+        Called after TundraClient has connected to Tundra server.
+
+        @method onConnected
+    */
     onConnected : function()
     {
-        this.processPostTickEventId_ = TundraSDK.framework.frame.onUpdate(this, this.processPostTick);
-        this.frameUpdateEventId_ = TundraSDK.framework.events.subscribe("PhysicsWorld.Update", this, this.simulate);
+        if (this.processPostTickEventId_ === null)
+        {
+            this.processPostTickEventId_ = TundraSDK.framework.frame.onUpdate(this, this.processPostTick);
+            this.frameUpdateEventId_ = TundraSDK.framework.events.subscribe("PhysicsWorld.Update", this, this.simulate);
+        }
     },
     
     /**
-        Add rigidbody to physical world.
+        Add Ammo.Rigidbody to physical world.
 
-        @method applyForce
+        @method addRigidBody
+        @param {EC_RigidBody} rigidbody
         @param {Int|null} layer
         @param {Int|null} mask
     */
     addRigidBody : function(rigidbody, layer, mask)
     {
         var body = rigidbody.rigidbody_;
-        this.ptrToRigidbodyMap[body.ptr] = rigidbody;
-        if (typeof layer == "number" && typeof mask == "number")
+        this.ptrToRigidbodyMap_[body.ptr] = rigidbody;
+        if (typeof layer === "number" && typeof mask === "number")
             this.world.addRigidBody(body, layer, mask);
         else
             this.world.addRigidBody(body);
     },
     
+    /**
+        Remove Ammo.Rigidbody from physical world.
+
+        @method removeRigidBody
+        @param {EC_RigidBody} rigidbody
+    */
     removeRigidBody : function(rigidbody)
     {
         var body = rigidbody.rigidbody_;
-        delete this.ptrToRigidbodyMap[body.ptr];
+        delete this.ptrToRigidbodyMap_[body.ptr];
         this.world.removeRigidBody(body);
     },
     
+    /**
+        Called after all modules are loaded and all APIs have been post initialized.
+
+        @method postInitialize
+    */
     postInitialize: function()
     {
-        
+        if (this.processPostTickEventId_ === null)
+        {
+            this.processPostTickEventId_ = TundraSDK.framework.frame.onUpdate(this, this.processPostTick);
+            this.frameUpdateEventId_ = TundraSDK.framework.events.subscribe("PhysicsWorld.Update", this, this.simulate);
+        }
     },
     
-    /// Step the physics world. May trigger several internal simulation substeps, according to the deltatime given.
+    /**
+        Step the physics world. May trigger several internal simulation substeps, according to the deltatime given.
+
+        @method simulate
+        @param {Number} frametime
+    */
     simulate: function(frametime)
     {
         if (!this.runPhysics)
@@ -176,7 +216,12 @@ var PhysicsWorld = Class.$extend(
             this.world.stepSimulation(frametime, this.maxSubSteps, this.physicsUpdatePeriod);
     },
     
-    /// Process collision from an internal sub-step (Bullet post-tick callback)
+    /**
+        Process collision from an internal sub-step (Bullet post-tick callback)
+
+        @method processPostTick
+        @param {Number} subStepTime
+    */
     processPostTick : function(subStepTime)
     {
         // Check contacts and send collision signals for them
@@ -198,8 +243,8 @@ var PhysicsWorld = Class.$extend(
             var objectB = contactManifold.getBody1();
 
             // Get reigidbody object from user pointer.
-            var bodyA = this.ptrToRigidbodyMap[objectA.ptr];
-            var bodyB = this.ptrToRigidbodyMap[objectB.ptr];
+            var bodyA = this.ptrToRigidbodyMap_[objectA.ptr];
+            var bodyB = this.ptrToRigidbodyMap_[objectB.ptr];
 
             if ( bodyA === undefined || bodyA === null ||
                  bodyB === undefined || bodyB === null )
@@ -246,7 +291,7 @@ var PhysicsWorld = Class.$extend(
                 v = point.get_m_normalWorldOnB();
                 s.normal = new THREE.Vector3(v.x(), v.y(), v.z());
                 s.distance = point.getDistance();
-                //s.impulse = point.get_m_appliedImpulse();
+                //s.impulse = point.getAppliedImpulse();
                 s.newCollision = newCollision;
                 collisions.push(s);
 
@@ -261,6 +306,7 @@ var PhysicsWorld = Class.$extend(
         var c = null;
         for(var i = 0; i < collisions.length; ++i)
         {
+            // For performance reasons only trigger new collisions.
             c = collisions[i];
             if (!c.newCollision)
                 continue;
@@ -321,17 +367,37 @@ var PhysicsWorld = Class.$extend(
         return TundraSDK.framework.events.subscribe("PhysicsWorld.AboutToUpdate", context, callback);
     },
     
+    /**
+        Set physics world gravity.
+
+        @method setGravity
+        @param {Number} x
+        @param {Number} y
+        @param {Number} z
+    */
     setGravity: function(x, y ,z)
     {
         this.world.setGravity(new Ammo.btVector3(x, y, z));
     },
     
+    /**
+        Get physics world gravity.
+
+        @method gravity
+        @return {THREE.Vector3} physics world gravity
+    */
     gravity: function()
     {
         var gravity = this.world.getGravity();
         return new THREE.Vector3(gravity.x(), gravity.y(), gravity.z());
     },
     
+    /**
+        Set physics update period (= length of each simulation step.) By default 1/60th of a second.
+
+        @method setUpdatePeriod
+        @param updatePeriod
+    */
     setUpdatePeriod: function(updatePeriod)
     {
         // Allow max 1000 fps
@@ -340,26 +406,44 @@ var PhysicsWorld = Class.$extend(
         this.physicsUpdatePeriod = updatePeriod;
     },
     
+    /**
+        Set maximum physics substeps to perform on a single frame. Once this maximum is reached, time will appear to slow down if framerate is too low.
+
+        @method setMaxSubSteps
+        @param steps Maximum physics substeps
+    */
     setMaxSubSteps: function(steps)
     {
         if (steps > 0)
             this.maxSubSteps = steps;
     },
     
-    /// Enable/disable physics simulation
+    /**
+        Enable/disable physics simulationsetRunning
+
+        @method setRunning
+        @param enable
+    */
     setRunning: function(enable)
     {
         this.runPhysics_ = enable;
     },
     
-    /// Return whether simulation is on
+    /**
+        Return whether simulation is on
+
+        @method setRunning
+        @return boolean
+    */
     isRunning: function()
     {
         return this.runPhysics_;
     },
     
-    /// Raycast to the world. Returns only a single (the closest) result.
-    /** @param origin World origin position
+    /** Raycast to the world. Returns only a single (the closest) result.
+    
+        @method raycast
+        @param origin World origin position
         @param direction Direction to raycast to. Will be normalized automatically
         @param maxDistance Length of ray
         @param collisionGroup Collision layer. Default has all bits set.
@@ -396,27 +480,12 @@ var PhysicsWorld = Class.$extend(
             result.distance = new THREE.Vector3(result.pos.x - origin.x,
                                                 result.pos.y - origin.y,
                                                 result.pos.z - origin.z).length();
-            result.entity = this.ptrToRigidbodyMap[rayCallback.get_m_collisionObject().ptr].parentEntity;
+            result.entity = this.ptrToRigidbodyMap_[rayCallback.get_m_collisionObject().ptr].parentEntity;
         }
         
         Ammo.destroy(from);
         Ammo.destroy(to);
         to = null, from = null, nDir = null;
-        
-        return result;
-    },
-    
-    /// Performs collision query for OBB.
-    /** @param obb Oriented bounding box to test
-        @param collisionGroup Collision layer of the OBB. Default has all bits set.
-        @param collisionMask Collision mask of the OBB. Default has all bits set.
-        @return Array of entities with EC_RigidBody component intersecting the OBB */
-    ObbCollisionQuery : function(obb, collisionGroup, collisionMask)
-    {
-        result = [];
-        
-        
-        //var box = new Ammo.btBoxShape();
         
         return result;
     },
@@ -437,7 +506,7 @@ var PhysicsWorld = Class.$extend(
             this.frameUpdateEventId_ = null;
         }
         
-        this.ptrToRigidbodyMap = {}; 
+        this.ptrToRigidbodyMap_ = {}; 
     }
 });
 
