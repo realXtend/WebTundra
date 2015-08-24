@@ -25,14 +25,11 @@ define([
         // Network related
         "core/network/TundraMessageHandler",
         "core/network/LoginMessage",
-        // Physics related
-        "core/physics/PhysicsWorld",
         // Core Components
         "entity-components/EC_Name",
         "entity-components/EC_Script",
         "entity-components/EC_Avatar",
-        "entity-components/EC_DynamicComponent",
-        "entity-components/EC_RigidBody"
+        "entity-components/EC_DynamicComponent"
     ], function(
         // Core dependencies
         $,                          jqueryUI,
@@ -47,12 +44,9 @@ define([
         InputAPI,                   UiAPI,                      FrameAPI,
         // Network messages
         TundraMessageHandler,       LoginMessage,
-        // Physics
-        PhysicsWorld,
         // Core Components
         EC_Name,                    EC_Script,
-        EC_Avatar,                  EC_DynamicComponent,
-        EC_RigidBody) {
+        EC_Avatar,                  EC_DynamicComponent) {
 /**
     Tundra client that exposes the instantiates the TundraSDK and its APIs.
     Main entry point for app developers that want to leverage the realXtend WebTundra SDK.
@@ -206,13 +200,6 @@ var TundraClient = Class.$extend(
         */
         this.ui = new UiAPI(params);
         TundraSDK.framework.ui = this.ui;
-
-        /**
-            @property physicsWorld
-            @type physicsWorld
-        */
-        this.physicsWorld = new PhysicsWorld(params);
-        TundraSDK.framework.physicsWorld = this.physicsWorld;
         
         /**
             @property renderer
@@ -283,7 +270,6 @@ var TundraClient = Class.$extend(
         this.asset.postInitialize();
         this.input.postInitialize();
         this.scene.postInitialize();
-        this.physicsWorld.postInitialize();
 
         // Load plugins
         this.loadPlugins();
@@ -631,7 +617,6 @@ var TundraClient = Class.$extend(
         this.asset.reset();
         this.scene.reset();
         this.renderer.reset();
-        this.physicsWorld.reset();
 
         // Reset frametime
         this.lastTime = performance.now();

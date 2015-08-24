@@ -1,9 +1,7 @@
 
 define(["lib/classy",
-        "lib/three",
-        "core/framework/TundraSDK",
-        "core/framework/TundraLogging"
-    ], function(Class, THREE, TundraSDK, TundraLogging) {
+        "lib/three"
+    ], function(Class, THREE) {
 
 /**
     PhysicsWorld raycast result object
