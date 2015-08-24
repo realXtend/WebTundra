@@ -2,22 +2,26 @@
 define(["lib/classy",
         "lib/ammo",
         "lib/three",
+        "core/physics/IPhysicsWorld",
         "core/physics/PhysicsRaycastResult",
+        "core/physics/CollisionInfo",
         "core/framework/TundraSDK",
         "core/framework/TundraLogging"
-    ], function(Class, Ammo, THREE, PhysicsRaycastResult, TundraSDK, TundraLogging) {
+    ], function(Class, Ammo, THREE, IPhysicsWorld, PhysicsRaycastResult, CollisionInfo, TundraSDK, TundraLogging) {
 
 /**
-    A physics world that encapsulates a Bullet physics world.
+    A physics world implementation of Ammo.
     
     @class PhysicsWorld
     @constructor
 */
-var PhysicsWorld = Class.$extend(
+var PhysicsWorld_Ammo = IPhysicsWorld.$extend(
 {
     __init__ : function()
     {
-        this.log = TundraLogging.getLogger("Physics");
+        this.$super();
+        
+        this.log = TundraLogging.getLogger("PhysicsWorldAmmo");
         
         /**
             Bullet Collision Configuration
@@ -58,34 +62,6 @@ var PhysicsWorld = Class.$extend(
                                                       this.collisionConfiguration);
         
         /**
-            Physics update period (= length of each simulation step.)
-            @property physicsUpdatePeriod
-            @type Number
-        */
-        this.physicsUpdatePeriod = 1.0 / 60.0;
-        
-        /**
-            Max number of sub steps per simulation step
-            @property maxSubSteps
-            @type Number
-        */
-        this.maxSubSteps = 6;
-        
-        /**
-            Enable physical world step simulation
-            @property runPhysics
-            @type Bool
-        */
-        this.runPhysics = true;
-        
-        /**
-            Use variable timestep if enabled, and if frame timestep exceeds the single physics simulation substep
-            @property useVariableTimestep
-            @type Bool
-        */
-        this.useVariableTimestep = false;
-        
-        /**
             Collisions that occurred during the previous frame.
             @property previousCollisions
             @type Array
@@ -110,27 +86,6 @@ var PhysicsWorld = Class.$extend(
     __classvars__ :
     {
         /**
-            @property CollisionSignal Collsion info object
-            @type Function
-            @param {Object|Null} bodyA
-            @param {Object|Null} bodyB
-            @param {THREE.Vector3} position
-            @param {THREE.Vector3} normal
-            @param {Number} distance
-            @param {Number} impulse
-            @param {boolean} newCollision
-        */
-        CollisionSignal : function() {
-            this.bodyA = null;
-            this.bodyB = null;
-            this.position = new THREE.Vector3();
-            this.normal = new THREE.Vector3();
-            this.distance = 0.0;
-            this.impulse = 0.0;
-            this.newCollision = false;
-        },
-        
-        /**
             @property ObjectPair Key value pair
             @type Function
             @param k1
@@ -143,7 +98,7 @@ var PhysicsWorld = Class.$extend(
             
             this.equals = function(p)
             {
-                return p instanceof PhysicsWorld.ObjectPair &&
+                return p instanceof PhysicsWorld_Ammo.ObjectPair &&
                        this.key1 === p.key1 && this.key2 === p.key2;
             };
         }
@@ -280,9 +235,9 @@ var PhysicsWorld = Class.$extend(
 
             var objectPair = null;
             if (entityA.id < entityB.id)
-                objectPair = new PhysicsWorld.ObjectPair(entityA, entityB);
+                objectPair = new PhysicsWorld_Ammo.ObjectPair(entityA, entityB);
             else
-                objectPair = new PhysicsWorld.ObjectPair(entityB, entityA);
+                objectPair = new PhysicsWorld_Ammo.ObjectPair(entityB, entityA);
 
             // Check that at least one of the bodies is active
             if (!objectA.isActive() && !objectB.isActive())
@@ -299,17 +254,17 @@ var PhysicsWorld = Class.$extend(
             {
                 var point = contactManifold.getContactPoint(k);
 
-                var s = new PhysicsWorld.CollisionSignal();
-                s.bodyA = bodyA;
-                s.bodyB = bodyB;
+                var info = new CollisionInfo();
+                info.bodyA = bodyA;
+                info.bodyB = bodyB;
                 var v = point.get_m_positionWorldOnB();
-                s.position = new THREE.Vector3(v.x(), v.y(), v.z());
+                info.position = new THREE.Vector3(v.x(), v.y(), v.z());
                 v = point.get_m_normalWorldOnB();
-                s.normal = new THREE.Vector3(v.x(), v.y(), v.z());
-                s.distance = point.getDistance();
+                info.normal = new THREE.Vector3(v.x(), v.y(), v.z());
+                info.distance = point.getDistance();
                 //s.impulse = point.getAppliedImpulse();
-                s.newCollision = newCollision;
-                collisions.push(s);
+                info.newCollision = newCollision;
+                collisions.push(info);
 
                 // Report newCollision = true only for the first contact, in case there are several contacts, and application does some logic depending on it
                 // (for example play a sound -> avoid multiple sounds being played)
@@ -330,57 +285,14 @@ var PhysicsWorld = Class.$extend(
             var entA = c.bodyA.parentEntity;
             var entB = c.bodyB.parentEntity;
             
-            TundraSDK.framework.events.send("PhysicsWorld.PhysicsCollision",
-                                            entA, entB, c.position,
-                                            c.normal, c.distance, c.impulse,
-                                            c.newCollision);
-            
-            c.bodyA.emitPhysicsCollision(entB, c.position, c.normal,
-                                         c.distance, c.impulse, c.newCollision);
-            
-            c.bodyB.emitPhysicsCollision(entB, c.position, c.normal,
-                                         c.distance, c.impulse, c.newCollision);
+            TundraSDK.framework.events.send("PhysicsWorld.PhysicsCollision", info);
+            c.bodyA.emitPhysicsCollision(entB, info);
+            c.bodyB.emitPhysicsCollision(entB, info);
         }
 
         this.previousCollisions = currentCollisions;
         
         TundraSDK.framework.events.send("PhysicsWorld.Update", subStepTime);
-    },
-    
-    /**
-        Registers a callback for physics collision.
-
-        @example
-            TundraSDK.framework.scene.onPhysicsCollision(null, function(entityA, entityB,
-                                                                        position, normal,
-                                                                        distance, impulse, newCollision)
-            {
-                console.log("on collision: " + entityA.id + " " + entityB.id);
-            });
-
-        @method onPhysicsCollision
-        @param {Object} context Context of in which the callback function is executed. Can be null.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
-    */
-    onPhysicsCollision : function(context, callback)
-    {
-        return TundraSDK.framework.events.subscribe("PhysicsWorld.PhysicsCollision", context, callback);
-    },
-    
-    /**
-        Registers a callback for post simulate.
-
-        @method onAboutToUpdate
-        @param {Object} context Context of in which the callback function is executed. Can be null.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
-    */
-    onAboutToUpdate : function(context, callback)
-    {
-        return TundraSDK.framework.events.subscribe("PhysicsWorld.AboutToUpdate", context, callback);
     },
     
     /**
@@ -406,54 +318,6 @@ var PhysicsWorld = Class.$extend(
     {
         var gravity = this.world.getGravity();
         return new THREE.Vector3(gravity.x(), gravity.y(), gravity.z());
-    },
-    
-    /**
-        Set physics update period (= length of each simulation step.) By default 1/60th of a second.
-
-        @method setUpdatePeriod
-        @param updatePeriod
-    */
-    setUpdatePeriod: function(updatePeriod)
-    {
-        // Allow max 1000 fps
-        if (updatePeriod <= 0.001)
-            updatePeriod = 0.001;
-        this.physicsUpdatePeriod = updatePeriod;
-    },
-    
-    /**
-        Set maximum physics substeps to perform on a single frame. Once this maximum is reached, time will appear to slow down if framerate is too low.
-
-        @method setMaxSubSteps
-        @param steps Maximum physics substeps
-    */
-    setMaxSubSteps: function(steps)
-    {
-        if (steps > 0)
-            this.maxSubSteps = steps;
-    },
-    
-    /**
-        Enable/disable physics simulationsetRunning
-
-        @method setRunning
-        @param enable
-    */
-    setRunning: function(enable)
-    {
-        this.runPhysics_ = enable;
-    },
-    
-    /**
-        Return whether simulation is on
-
-        @method setRunning
-        @return boolean
-    */
-    isRunning: function()
-    {
-        return this.runPhysics_;
     },
     
     /** Raycast to the world. Returns only a single (the closest) result.
@@ -526,6 +390,6 @@ var PhysicsWorld = Class.$extend(
     }
 });
 
-return PhysicsWorld;
+return PhysicsWorld_Ammo;
 
 }); // require js
