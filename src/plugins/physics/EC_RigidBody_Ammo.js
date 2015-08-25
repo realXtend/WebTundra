@@ -20,12 +20,14 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         this.$super(id, typeId, typeName, name);
         
         // TODO! use btMotionState subclass if possible
-        this.updateId_ = TundraSDK.framework.frame.onUpdate(this, this.onFrame_);
+        this.updateId_ = TundraSDK.framework.frame.onUpdate(this, this.update);
         this.ignoreTransformChange_ = false;
         this.parentChangedEvent_ = null;
         
         this.collisionShape_ = null;
         this.rigidbody_ = null;
+        
+        this.pendingAsset = false;
     },
     
     reset : function()
@@ -291,7 +293,9 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         var isKinematic = this.attributes.kinematic.get();
         var isPhantom = this.attributes.phantom.get();
         var drawDebug = this.attributes.drawDebug.get();
-        var isDynamic = mass > 0.0;
+        
+        var shape = this.attributes.shapeType.get();
+        var isDynamic = mass > 0.0 && shape !== EC_RigidBody.ShapeType.TriMesh;
         
         // Read placeables position and rotation
         var pos = this.parentEntity.placeable.position();
@@ -347,6 +351,8 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         transform = null;
         position = null;
         quat = null;
+        
+        this.pendingAsset = false;
     },
     
     /**
@@ -363,6 +369,8 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         TundraSDK.framework.physicsWorld.removeRigidBody(this);
         Ammo.destroy(this.rigidbody_);
         this.rigidbody_ = null;
+        
+        this.pendingAsset = false;
     },
     
     /**
@@ -395,7 +403,11 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         else if (shape === EC_RigidBody.ShapeType.Capsule)
             this.collisionShape_ = new Ammo.btCapsuleShape(size.x * 0.5, size.y * 0.5);
         else if (shape === EC_RigidBody.ShapeType.TriMesh)
-            this.log.warn("TriMesh collsion shape is not suppoerted");
+        {
+            this.collisionShape_ = this._createTriangleMeshCollider();
+            if (this.collisionShape_ === null)
+                this.pendingAsset = true;
+        }
         else if (shape === EC_RigidBody.ShapeType.HeightField)
             this.log.warn("HeightField collsion shape is not suppoerted");
         else if (shape === EC_RigidBody.ShapeType.ConvexHull)
@@ -405,6 +417,48 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         
         this.updateScale();
         return this.collisionShape_;
+    },
+    
+    _createTriangleMeshCollider: function()
+    {
+        if ( !this.hasParentEntity() &&
+             this.parentEntity.mesh === undefined )
+            return null;
+        
+        if ( this.parentEntity.mesh.meshAsset === null)
+            return null;
+        
+        triangleMesh = new Ammo.btTriangleMesh();
+        var threeMesh = this.parentEntity.mesh.meshAsset.getSubmesh(0);
+        var vertices = threeMesh.geometry.vertices;
+        var faces = threeMesh.geometry.faces;
+        
+        var btVer = [];
+        var v = null;
+        for(var i = 0; i < vertices.length; ++i)
+        {
+            v = vertices[i];
+            btVer.push(new Ammo.btVector3(v.x, v.y, v.z));
+        }
+        
+        var face = null;
+        for(var i = 0; i < faces.length; ++i)
+        {
+            face = faces[i];
+            if ( face instanceof THREE.Face3 )
+                triangleMesh.addTriangle(btVer[face.a], btVer[face.b], btVer[face.c]);
+            else if ( face instanceof THREE.Face4 )
+            {
+                triangleMesh.addTriangle(btVer[face.a], btVer[face.b], btVer[face.c]);
+                triangleMesh.addTriangle(btVer[face.b], btVer[face.c], btVer[face.d]);
+            }
+        }
+        
+        for(var i = 0; i < btVer.length; ++i)
+            Ammo.destroy(btVer[i]);
+        btVer = null;
+        
+        return new Ammo.btBvhTriangleMeshShape(triangleMesh, true, true);
     },
     
     /**
@@ -421,15 +475,22 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         this.collisionShape_ = null;
     },
     
-    onFrame_ : function()
+    update : function()
     {
+        if (this.pendingAsset)
+        {
+            var shape = this.attributes.shapeType.get();
+            if ( shape === EC_RigidBody.ShapeType.TriMesh &&
+                 this.rigidbody_ === null )
+                this.createBody();
+        }
+        
         this.updateTransformPosition();
     },
     
     updateTransformPosition : function()
     {
         if (this.ignoreTransformChange_ ||
-            this.rigidbody_ === undefined ||
             this.rigidbody_ === null ||
             this.parentEntity.placeable === undefined ||
             this.parentEntity.placeable === null)
