@@ -2,30 +2,36 @@
 define([
         "lib/classy",
         "lib/loglevel",
-        "core/framework/TundraSDK"
-    ], function(Class, log, TundraSDK) {
+        "core/framework/Tundra"
+    ], function(Class, log, Tundra) {
 
-var _hackLogLevelPending = null;
-
-/**
-    Tundra log utility.
-
-    @class TundraLogger
-    @constructor
-    @param {String} name Log channel name.
-*/
 var TundraLogger = Class.$extend(
+/** @lends TundraLogger.prototype */
 {
+    /**
+        @constructs
+        @param {String} name Name of the log channel. Prefixed to each printed line.
+    */
     __init__ : function(name)
     {
         this.name = name;
         this.prefix = "[" + name + "]:";
     },
 
+    /**
+        Returns if debug level is enabled.
+        @return {Boolean}
+    */
+    isDebug : function()
+    {
+        return (log && log.level <= 1);
+    },
+
     _createArguments : function(args, includeLineInfo)
     {
-        var out = [].slice.call(args);
-        out.splice(0, 0, this.prefix);
+        var out = [ this.prefix ];
+        for (var i = 0, len = args.length; i < len; i++)
+            out.push(args[i]);
         if (includeLineInfo === true)
             out.splice(0, 0, this._callerLine());
         return out;
@@ -58,7 +64,6 @@ var TundraLogger = Class.$extend(
 
     /**
         This function takes in any number of objects like console.log().
-        @method info
     */
     info : function()
     {
@@ -68,19 +73,17 @@ var TundraLogger = Class.$extend(
     /**
         This function takes in any number of objects like console.log().
         Logs additionally to the UI console if created.
-        @method infoC
     */
     infoC : function()
     {
         var args = this._createArguments(arguments);
         log.info.apply(null, args);
-        if (TundraSDK.framework.console != null)
-            TundraSDK.framework.console.logInfo(this._createArgumentsString(args));
+        if (Tundra.console != null)
+            Tundra.console.logInfo(this._createArgumentsString(args));
     },
 
     /**
         This function takes in any number of objects like console.log().
-        @method warn
     */
     warn : function()
     {
@@ -90,19 +93,17 @@ var TundraLogger = Class.$extend(
     /**
         This function takes in any number of objects like console.log().
         Logs additionally to the UI console if created.
-        @method warnC
     */
     warnC : function()
     {
         var args = this._createArguments(arguments);
         log.warn.apply(null, args);
-        if (TundraSDK.framework.console != null)
-            TundraSDK.framework.console.logWarning(this._createArgumentsString(args));
+        if (Tundra.console != null)
+            Tundra.console.logWarning(this._createArgumentsString(args));
     },
 
     /**
         This function takes in any number of objects like console.log().
-        @method error
     */
     error : function()
     {
@@ -112,19 +113,17 @@ var TundraLogger = Class.$extend(
     /**
         This function takes in any number of objects like console.log().
         Logs additionally to the UI console if created.
-        @method errorC
     */
     errorC : function()
     {
         var args = this._createArguments(arguments);
         log.error.apply(null, args);
-        if (TundraSDK.framework.console != null)
-            TundraSDK.framework.console.logError(this._createArgumentsString(args));
+        if (Tundra.console != null)
+            Tundra.console.logError(this._createArgumentsString(args));
     },
 
     /**
         This function takes in any number of objects like console.log().
-        @method debug
     */
     debug : function()
     {
@@ -133,7 +132,6 @@ var TundraLogger = Class.$extend(
 
     /**
         This function takes in any number of objects like console.log().
-        @method trace
     */
     trace : function()
     {
@@ -143,24 +141,14 @@ var TundraLogger = Class.$extend(
 
 /**
     Logging utilities.
-    @class TundraLogging
-    @constructor
+
+    @namespace
+    @global
 */
 var TundraLogging =
 {
     /**
         Logging level.
-        @property Level
-        @static
-        @example
-            {
-                "TRACE"  : 0,
-                "DEBUG"  : 1,
-                "INFO"   : 2,
-                "WARN"   : 3,
-                "ERROR"  : 4,
-                "SILENT" : 5
-            }
     */
     Level :
     {
@@ -172,32 +160,38 @@ var TundraLogging =
         "SILENT" : 5
     },
 
-    loggers : [],
+    loggers : {},
+
+    CurrentLevel       : "INFO",
+    DebugLevelEnabled  : false,
 
     /**
-        Creates/fetches a logger by name, eg. TundraLogging.getLogger("MyRenderer");
-        @static
-        @method getLogger
-        @param {String} name Log channel name.
-        @return {TundraLogger}
+        @function
+        @deprecated
+        @see {@link TundraLogging.get}
     */
     getLogger : function(name)
     {
-        for (var i = 0; i < this.loggers.length; i++)
-        {
-            if (this.loggers[i].name === name)
-                return this.loggers[i];
-        }
+        return this.get(name);
+    },
 
-        var logger = new TundraLogger(name);
-        this.loggers.push(logger);
+    /**
+        Creates/fetches a logger by name, e.g. TundraLogging.getLogger("MyApp");
+        @param {String} name Log channel name.
+        @return {TundraLogger}
+    */
+    get : function(name)
+    {
+        var logger = this.loggers[name];
+        if (logger === undefined)
+        {
+            logger = this.loggers[name] = new TundraLogger(name);
+        }
         return logger;
     },
 
     /**
         Enable all log levels.
-        @static
-        @method enableAll
     */
     enableAll : function()
     {
@@ -206,8 +200,6 @@ var TundraLogging =
 
     /**
         Disable all log levels.
-        @static
-        @method disableAll
     */
     disableAll : function()
     {
@@ -216,14 +208,20 @@ var TundraLogging =
 
     /**
         Set log level.
-        @static
-        @method setLevel
         @param {TundraLogging.Level} level
     */
     setLevel : function(level)
     {
+        if (typeof level === "string")
+            level = level.toUpperCase();
+        else if (typeof level !== "number")
+            return;
+
+        this.CurrentLevel = this.levelString(level);
+        this.DebugLevelEnabled = (this.CurrentLevel === "DEBUG" || this.CurrentLevel === "TRACE");
+
         log.setLevel(level);
-        log.debug("[Logging]: Setting log level to", this.levelString(level));
+        log.debug("[WebTundra]: Setting log level to", this.CurrentLevel);
     },
 
     levelString : function(level)
@@ -236,10 +234,11 @@ var TundraLogging =
                 if (level === TundraLogging.Level[l])
                     return l;
         }
-
         return "Invalid loglevel " + level.toString();
     }
 };
+
+Tundra.Classes.TundraLogging = TundraLogging;
 
 return TundraLogging;
 
