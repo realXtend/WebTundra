@@ -6,9 +6,6 @@ var PhysicsApplication = ICameraApplication.$extend(
 
         // Enables animations if both the previous and this camera entity is unparented
         this.animateBeforeActivation(true);
-
-        TundraSDK.framework.client.onConnected(this, this.onConnected);
-        TundraSDK.framework.client.onDisconnected(this, this.onDisconnected);
         
         this.CollisionTypes =
         {
@@ -17,14 +14,15 @@ var PhysicsApplication = ICameraApplication.$extend(
             PLANE1 : 2,
             PLANE2 : 4
         };
+        
+        this.entities = {};
+        this.createScene();
+        this.createCamera();
     },
 
     onConnected : function()
     {
-        this.entities = {};
-        this.createScene();
         
-        this.createCamera();
     },
 
     createCamera : function()
@@ -56,71 +54,86 @@ var PhysicsApplication = ICameraApplication.$extend(
     {
         var meshEntity = null;
         
-        this.entities["Plane"] = TundraSDK.framework.scene.createLocalEntity(["Name", "Placeable", "RigidBody"]);
+        this.entities["Plane"] = this.createMesh("Plane", "webtundra://sphere_big.json");
         meshEntity = this.entities["Plane"];
         meshEntity.name = "Plane"
         t = meshEntity.placeable.transform;
-        t.setPosition(0, 0, -20);
-        t.setScale(2.5, 2.5, 2.5);
+        t.setPosition(0, 7, -63);
         meshEntity.placeable.transform = t;
         meshEntity.rigidbody.mass = 0.0;
-        meshEntity.rigidbody.size = new THREE.Vector3(10000.0, 0.1, 10000.0);
-        meshEntity.rigidbody.collisionLayer = this.CollisionTypes.PLANE1;
-        meshEntity.rigidbody.collisionMask = this.CollisionTypes.BOX;
+        meshEntity.rigidbody.size = new THREE.Vector3(1, 1, 1);
+        meshEntity.rigidbody.shapeType = 4;
         
         this.entities["Plane2"] = TundraSDK.framework.scene.createLocalEntity(["Name", "Placeable", "RigidBody"]);
         meshEntity = this.entities["Plane2"];
         meshEntity.name = "Plane2"
         t = meshEntity.placeable.transform;
-        t.setPosition(0, -10, -20);
+        t.setPosition(0, -20, -20);
         t.setScale(2.5, 2.5, 2.5);
         meshEntity.placeable.transform = t;
         meshEntity.rigidbody.mass = 0.0;
-        meshEntity.rigidbody.size = new THREE.Vector3(10000.0, 0.1, 10000.0);
-        meshEntity.rigidbody.collisionLayer = this.CollisionTypes.PLANE2;
-        meshEntity.rigidbody.collisionMask = this.CollisionTypes.BOX;
+        meshEntity.rigidbody.size = new THREE.Vector3(10000.0, 3, 10000.0);
+        //meshEntity.rigidbody.collisionLayer = this.CollisionTypes.PLANE2;
+        //meshEntity.rigidbody.collisionMask = this.CollisionTypes.BOX;
         
         TundraSDK.framework.physicsWorld.raycast(new THREE.Vector3(0, 30, -20),
                                                  new THREE.Vector3(0, -1, 0),
                                                  100);
-                                                 
-        this.spawnBoxes(200);
+        
+        
+        shapes = ["Box", "Capsule", "Cylinder", "sphere", "Cone"];
+        for (var i = 0; i < 200; ++i)
+        {
+            var shape = shapes[Math.floor(Math.random()*shapes.length)];
+            this.spawnMesh(shape + " " + i, shape);
+        }
         this.nextTime = TundraSDK.framework.frame.wallClockTime() + 5;
         this.removeList = [];
     },
     
-    spawnBoxes : function(count)
+    spawnMesh : function(id, shape)
     {
-        this.entities = {};
-        for (var i = 0; i < count; i++)
+        var meshEntity = null;
+        if (shape === "Box")
+            meshEntity = this.createMesh(id, "webtundra://Box.json");
+        else if (shape === "Capsule")
+            meshEntity = this.createMesh(id, "webtundra://Capsule.json");
+        else if (shape === "Cylinder")
+            meshEntity = this.createMesh(id, "webtundra://Cylinder.json");
+        else if (shape === "sphere")
+            meshEntity = this.createMesh(id, "webtundra://sphere.json");
+        else if (shape === "Cone")
+            meshEntity = this.createMesh(id, "webtundra://Cone.json");
+        
+        var t = meshEntity.placeable.transform;
+        var x = -10 + Math.random() * (20 - 1) + 1;
+        var y = 30 + Math.random() * (20 - 1) + 1;
+        var z = -70 + Math.random() * (20 - 1) + 1;
+        t.setPosition(x, y, z);
+        meshEntity.placeable.transform = t;
+        
+        meshEntity.rigidbody.mass = 1.0;
+        meshEntity.rigidbody.friction = 1.0;
+        
+        if (shape === "Box")
+            meshEntity.rigidbody.shapeType = 0;
+        else if (shape === "Capsule")
         {
-            var id = "Box" + i.toString();
-            this.entities[id] = this.createMesh(id, "webtundra://Box.json");
-            
-            meshEntity = this.entities[id];
-            var t = meshEntity.placeable.transform;
-            var x = -10 + Math.random() * (20 - 1) + 1;
-            var y = 30 + Math.random() * (20 - 1) + 1;
-            var z = -70 + Math.random() * (20 - 1) + 1;
-            t.setPosition(x, y, z);
-            meshEntity.placeable.transform = t;
-            meshEntity.rigidbody.mass = 1.0;
-            var fx = Math.random() * (25 - 1) + 1;
-            var fy = Math.random() * (100 - 1) + 1;
-            var fz = Math.random() * (25 - 1) + 1;
-            meshEntity.rigidbody.applyForce(new THREE.Vector3(fx, fy, fz));
-            meshEntity.rigidbody.applyTorgue(new THREE.Vector3(fx, fy, fz));
-            meshEntity.rigidbody.collisionLayer = this.CollisionTypes.BOX;
-            if (i % 2 === 0)
-                meshEntity.rigidbody.collisionMask = this.CollisionTypes.PLANE1 | this.CollisionTypes.BOX;
-            else
-                meshEntity.rigidbody.collisionMask = this.CollisionTypes.PLANE2 | this.CollisionTypes.BOX;
-            /*meshEntity.rigidbody.applyImpulse(new THREE.Vector3(fx, fy, fz));
-            meshEntity.rigidbody.applyTorgueImpulse(new THREE.Vector3(fx, fy, fz));*/
-            /*meshEntity.rigidbody.onPhysicsCollision(null, function(entity){
-                TundraSDK.framework.scene.removeEntity(entity.id);
-            });*/
+            meshEntity.rigidbody.shapeType = 3;
+            meshEntity.rigidbody.size = new THREE.Vector3(1, 2, 1);
         }
+        else if (shape === "Cylinder")
+            meshEntity.rigidbody.shapeType = 2;
+        else if (shape === "sphere")
+            meshEntity.rigidbody.shapeType = 1;
+        else if (shape === "Cone")
+            meshEntity.rigidbody.shapeType = 7;
+        
+        var fx = Math.random() * (25 - 1) + 1;
+        var fy = Math.random() * (100 - 1) + 1;
+        var fz = Math.random() * (25 - 1) + 1;
+        meshEntity.rigidbody.applyForce(new THREE.Vector3(fx, fy, fz));
+        meshEntity.rigidbody.applyTorgue(new THREE.Vector3(fx, fy, fz));
     },
     
     createMesh : function(name, ref)
