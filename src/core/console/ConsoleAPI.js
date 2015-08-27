@@ -1,33 +1,41 @@
 
 define([
-        "lib/classy",
-        "core/framework/TundraSDK",
+        "core/framework/Tundra",
+        "core/framework/ITundraAPI",
         "core/framework/CoreStringUtils"
-    ], function(Class, TundraSDK, CoreStringUtils) {
+    ], function(Tundra, ITundraAPI, CoreStringUtils) {
 
-/**
-    ConsoleAPI that is accessible from {{#crossLink "TundraClient/console:property"}}TundraClient.console{{/crossLink}}
-
-    Provides registering and subscribing console commands.
-    @class ConsoleAPI
-    @constructor
-*/
-var ConsoleAPI = Class.$extend(
+var ConsoleAPI = ITundraAPI.$extend(
+/** @lends ConsoleAPI.prototype */
 {
-    __init__ : function(params)
-    {
-        this.commands = [];
+    /**
+        Provides registering and subscribing console commands.
 
-        TundraSDK.framework.client.onLogInfo(this, this.logInfo);
-        TundraSDK.framework.client.onLogWarning(this, this.logWarning);
-        TundraSDK.framework.client.onLogError(this, this.logError);
+        ConsoleAPI is a singleton and is accessible from {@link Tundra.console}.
+
+        @constructs
+        @extends ITundraAPI
+        @private
+    */
+    __init__ : function(name, options, globalOptions)
+    {
+        this.$super(name, options);
+
+        this.commands = [];
+    },
+
+    // ITundraAPI override
+    initialize : function()
+    {
+        Tundra.client.onLogInfo(this, this.logInfo);
+        Tundra.client.onLogWarning(this, this.logWarning);
+        Tundra.client.onLogError(this, this.logError);
 
         this.registerCommand("help", "Prints all available console commands", null, this, this.help);
     },
 
     /**
         Prints all available console commands to the UI console. Invoked by the 'help' console command.
-        @method help
     */
     help : function()
     {
@@ -40,7 +48,7 @@ var ConsoleAPI = Class.$extend(
                 longestCommand = this.commands[i].name.length;
 
         var html = "";
-        for (var i = 0; i < this.commands.length; ++i)
+        for (i = 0; i < this.commands.length; ++i)
         {
             var commandData = this.commands[i];
             if (commandData.name === undefined || commandData.name === null)
@@ -58,8 +66,8 @@ var ConsoleAPI = Class.$extend(
             }
         }
 
-        var c = TundraSDK.framework.client;
-        if (c.ui.console == null)
+        var c = Tundra.client;
+        if (!c.ui.console)
             return;
 
         var currentText = c.ui.console.html();
@@ -70,9 +78,9 @@ var ConsoleAPI = Class.$extend(
 
     /**
         Returns the closest matching console command.
-        @method commandSuggestion
+
         @param {String} name Console command name you want to get suggestion for.
-        @return {String|null} Null if suggestion is the same as input param or no suggestion was found, otherwise the suggestion as a string.
+        @return {String|null} `null` if suggestion is the same as input param or no suggestion was found, otherwise the suggestion as a string.
     */
     commandSuggestion : function(name)
     {
@@ -80,7 +88,7 @@ var ConsoleAPI = Class.$extend(
         for (var i = 0; i < this.commands.length; ++i)
             if (this.commands[i].name.toLowerCase() === nameLower)
                 return null;
-        for (var i = 0; i < this.commands.length; ++i)
+        for (i = 0; i < this.commands.length; ++i)
             if (this.commands[i].name.toLowerCase().indexOf(nameLower) === 0)
                 return this.commands[i].name;
         return null;
@@ -98,36 +106,36 @@ var ConsoleAPI = Class.$extend(
     /**
         Register a new console command. If a console command with this name (case-insensitive) has already been registered, your callback will be connected.
 
-            function onDoMagic(parameterArray)
-            {
-                var str  = parameterArray[0]; // Expecting a string
-                var num  = parseInt(parameterArray[1]); // Expecting a number
-                var bool = (parameterArray[2] === "true" ? true : false); // Expecting a boolean
-            }
-
-            TundraSDK.framework.console.registerCommand("doMagic", "Does magical things!", "string, number, boolean", null, onDoMagic);
-
-        @method registerCommand
         @param {String} name Console command name.
         @param {String} description Description on what the command does.
-        @param {String|null} parameterDescription Description of the parameters needed for invokation as a string eg.
-        "number, string, boolean". Pass in null or empty string if you don't want parameters. Note: These are just hints
+        @param {String|null} parameterDescription Description of the parameters needed for invocation as a string e.g.
+        "number, string, boolean". Pass `null` or empty string if you don't want parameters. Note: These are just hints
         to the user, don't make any assumptions about the correctness of the parameters in your callback.
-        @param {Object} receiverContext Context of in which the callback function is executed. Can be null.
+        @param {Object} receiverContext Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} receiverCallback Function to be called. There will be single parameter of an Array to your callback when the
         command is invoked. All the parameters will be of type string. You need to do conversions if needed.
-        @return {null|EventSubscription} Subscription data or null if failed to subscribe to the command.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        @return {null|EventSubscription} Subscription data or `null` if failed to subscribe to the command.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+
+        * @example
+        * function onDoMagic(parameterArray)
+        * {
+        *     var str  = parameterArray[0]; // Expecting a string
+        *     var num  = parseInt(parameterArray[1]); // Expecting a number
+        *     var bool = (parameterArray[2] === "true" ? true : false); // Expecting a boolean
+        * }
+        *
+        * Tundra.console.registerCommand("doMagic", "Does magical things!", "string, number, boolean", null, onDoMagic);
     */
     registerCommand : function(name, description, parameterDescription, receiverContext, receiverCallback)
     {
         if (typeof name !== "string")
         {
-            TundraSDK.framework.client.logError("[ConsoleAPI]: registerCommand 'name' parameter must be a non empty string!", true);
+            Tundra.client.logError("[ConsoleAPI]: registerCommand 'name' parameter must be a non empty string!", true);
             return null;
         }
         var existing = this.getCommandData(name);
-        if (existing != null)
+        if (existing)
             return this.subscribeCommand(name, receiverContext, receiverCallback);
 
         if (description === undefined || description === null)
@@ -150,17 +158,17 @@ var ConsoleAPI = Class.$extend(
     /**
         Subscribe to a existing console command.
 
-            TundraSDK.framework.console.registerCommand("doStuff", null, function() {
-                TundraSDK.framework.client.logInfo("Doing stuff!");
-            });
-
-        @method subscribeCommand
         @param {String} name Console command name.
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called. There will be single parameter of an Array to your callback when the
         command is invoked. All the parameters will be of type string. You need to do conversions if needed.
         @return {null|EventSubscription} Subscription data or null if failed to subscribe to the command.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+
+        * @example
+        * Tundra.console.registerCommand("doStuff", null, function() {
+        *     Tundra.client.logInfo("Doing stuff!");
+        * });
     */
     subscribeCommand : function(name, context, callback)
     {
@@ -168,18 +176,20 @@ var ConsoleAPI = Class.$extend(
             return null;
 
         var commandData = this.getCommandData(name);
-        if (commandData != null)
-            return TundraSDK.framework.events.subscribe(commandData.channel, context, callback);
+        if (commandData)
+            return Tundra.events.subscribe(commandData.channel, context, callback);
         return null;
     },
 
     /**
         Tries to parse a raw string for a console command name and potential parameters and executes it.
-        @method executeCommandRaw
-        @param {String} Raw console command string with porential parameters eg. "drawDebug (true, 12)" or "drawDebug true, 12".
-        @return {Boolean} If a command could be executed with the input. */
+
+        @param {String} Raw console command string with potential parameters e.g. "drawDebug (true, 12)" or "drawDebug true, 12".
+        @return {Boolean} If a command could be executed with the input.
+    */
     executeCommandRaw : function(str)
     {
+        // @todo Use CoreStringUtils.parseCommand
         str = CoreStringUtils.trim(str);
         var name = str;
         var params = "";
@@ -197,36 +207,37 @@ var ConsoleAPI = Class.$extend(
             params = params.substring(0, params.indexOf(")"));
 
         name = CoreStringUtils.trim(name);
-        params = (params !== "" ? CoreStringUtils.trim(params).split(",") : [])
+        params = (params !== "" ? CoreStringUtils.trim(params).split(",") : []);
         var result = this.executeCommand(name, params);
         if (!result)
-            TundraSDK.framework.client.logError("Could not find console command '" + name + "'");
+            Tundra.client.logError("Could not find console command '" + name + "'");
         return result;
     },
 
     /**
         Executes a console command by name.
-        @method executeCommand
+
         @param {String} name Console command name to execute.
         @param {Array} parameters Array of parameter strings (or other typed objects if you know the command handler knows how to deal with them).
-        @return {Boolean} True if command could be found by the name and was executed, false otherwise. */
+        @return {Boolean} True if command could be found by the name and was executed, false otherwise.
+    */
     executeCommand : function(name, parameters)
     {
         var commandData = this.getCommandData(name);
-        if (commandData != null)
-            TundraSDK.framework.events.send(commandData.channel, parameters);
-        return (commandData != null);
+        if (commandData)
+            Tundra.events.send(commandData.channel, parameters);
+        return (commandData !== null);
     },
 
     /**
-        Log information to the UI console. See also {{#crossLink "TundraClient/logInfo:method"}}TundraClient.logInfo{{/crossLink}}.
-        @method logInfo
+        Log information to the UI console.
+
         @param {String} message Message string.
     */
     logInfo : function(message)
     {
-        var c = TundraSDK.framework.client;
-        if (c.ui != null && c.ui.console != null)
+        var c = Tundra.client;
+        if (c.ui && c.ui.console)
         {
             var currentText = c.ui.console.html();
             c.ui.console.html(currentText + message + "<br />");
@@ -236,14 +247,14 @@ var ConsoleAPI = Class.$extend(
     },
 
     /**
-        Log information to the UI console. See also {{#crossLink "TundraClient/logWarning:method"}}TundraClient.logWarning{{/crossLink}}.
-        @method logWarning
+        Log information to the UI console.
+
         @param {String} message Message string.
     */
     logWarning : function(message)
     {
-        var c = TundraSDK.framework.client;
-        if (c.ui != null && c.ui.console != null)
+        var c = Tundra.client;
+        if (c.ui && c.ui.console)
         {
             var currentText = c.ui.console.html();
             c.ui.console.html(currentText + "<span style='color: rgb(119,101,0);'>" + message + "</span><br />");
@@ -253,14 +264,14 @@ var ConsoleAPI = Class.$extend(
     },
 
     /**
-        Log information to the UI console. See also {{#crossLink "TundraClient/logError:method"}}TundraClient.logError{{/crossLink}}.
-        @method logError
+        Log information to the UI console.
+
         @param {String} message Message string.
     */
     logError : function(message)
     {
-        var c = TundraSDK.framework.client;
-        if (c.ui != null && c.ui.console != null)
+        var c = Tundra.client;
+        if (c.ui && c.ui.console)
         {
             var currentText = c.ui.console.html();
             c.ui.console.html(currentText + "<span style='color: red;'>" + message + "</span><br />");
