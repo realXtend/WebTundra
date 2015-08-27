@@ -1,11 +1,10 @@
+define(function() {
 /**
  * Classy - classy classes for JavaScript
  *
  * :copyright: (c) 2011 by Armin Ronacher.
  * :license: BSD.
  */
-
-define(function() {
 
 ;(function(undefined) {
   var

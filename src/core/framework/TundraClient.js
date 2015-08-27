@@ -1,13 +1,23 @@
 
+/**
+ * WebTundra browser client.
+ *
+ * Copyright Adminotech Ltd. 2013
+ * www.adminotech.com / www.meshmoon.com
+ */
+
 define([
         // Core dependencies
-        "lib/jquery",
+        "jquery",
         "lib/jquery-ui",
         "lib/classy",
         // Framework
-        "core/framework/TundraSDK",
+        "core/framework/Tundra",
         "core/framework/TundraLogging",
         "core/framework/CoreStringUtils",
+        // Include utils into build
+        "core/math/MathUtils",
+        "core/math/PlaceableUtils",
         // Interfaces
         "core/renderer/IRenderSystem",
         "core/scene/IDomIntegration",
@@ -15,6 +25,7 @@ define([
         // Core APIs
         "core/network/Network",
         "core/event/EventAPI",
+        "core/config/ConfigAPI",
         "core/console/ConsoleAPI",
         "core/scene/Scene",
         "core/scene/AttributeChange",
@@ -23,7 +34,6 @@ define([
         "core/ui/UiAPI",
         "core/frame/FrameAPI",
         // Network related
-        "core/network/TundraMessageHandler",
         "core/network/LoginMessage",
         // Core Components
         "entity-components/EC_Name",
@@ -35,93 +45,219 @@ define([
         $,                          jqueryUI,
         Class,
         // Framework
-        TundraSDK,                  TundraLogging,              CoreStringUtils,
+        Tundra,                     TundraLogging,
+        CoreStringUtils,            MathUtils,                  PlaceableUtils,
         // Pluggable interfaces
         IRenderSystem,              IDomIntegration,            ICameraApplication,
         // Core APIs
-        Network,                    EventAPI,                   ConsoleAPI,
-        Scene,                      AttributeChange,            AssetAPI,
-        InputAPI,                   UiAPI,                      FrameAPI,
-        // Network messages
-        TundraMessageHandler,       LoginMessage,
+        Network,                    EventAPI,                   ConfigAPI,
+        ConsoleAPI,                 Scene,                      AttributeChange,
+        AssetAPI,                   InputAPI,                   UiAPI,
+        FrameAPI,
+        // Network
+        LoginMessage,
         // Core Components
         EC_Name,                    EC_Script,
         EC_Avatar,                  EC_DynamicComponent) {
-/**
-    Tundra client that exposes the instantiates the TundraSDK and its APIs.
-    Main entry point for app developers that want to leverage the realXtend WebTundra SDK.
 
-    @class TundraClient
-    @constructor
-    @example
-        var client = new TundraClient({
-            // Container element id for Web Rocket. Default: If not passed a full screen container is created.
-            container : "#webtundra-container-custom",
-
-            // Render system selection. Default: Empty string, equals to picking the first registered renderer.
-            // This can be the name of the render system if it has been registered via TundraClient.registerRenderSystem
-            // or the prototype of the wanter renderer. In this case it will be registered, instantiated and set as the
-            // current renderer.
-            renderSystem   : "three.js",
-
-            // Maps startup application names to scriptRefs. Default: Empty map.
-            applications : {
-                "Application name" : scriptRef
-            },
-
-            // If taskbar should be created. Default: true.
-            taskbar   : true,
-
-            // If console should be created. Default: true.
-            console   : true,
-
-            // If verbose network message debug info should be printed to browsers console. Default: false.
-            networkDebugLogging : false,
-
-            // Asset related information
-            asset     : {
-                // Storage path webtundra:// refs will be resovled to. Default: Same path as the hosted page.
-                localStoragePath : ""
-            }
-        });
-    @param {Object} [params={}] An configuration object that setups the client.
-    @return {TundraClient}
-*/
 var TundraClient = Class.$extend(
+/** @lends TundraClient.prototype */
 {
-    __init__ : function(params)
-    {
-        TundraSDK.framework.client = this;
+    /**
+        Tundra client is the entry point for you application. All Tundra functionality will be initialized with the client.
 
-        // Default params
-        // @todo Nicer sytax here with 'params.something = params.something || <default-value>;'?
-        // @todo Move these to be done by the code that is expecting the values, stupid to do here.
-        if (params === undefined || params === null)
-            params = {};
-        if (params.renderSystem === undefined || params.renderSystem === null)
-            params.renderSystem = "";
-        if (params.applications === undefined || params.applications === null)
-            params.applications = {};
-        if (params.taskbar === undefined || params.taskbar === null)
-            params.taskbar = true;
-        if (params.console === undefined || params.console === null)
-            params.console = true;
-        if (params.networkDebugLogging === undefined || params.networkDebugLogging === null)
-            params.networkDebugLogging = false;
-        if (params.asset === undefined || params.asset === null)
-            params.asset = {}
-        if (params.asset.localStoragePath === undefined)
-            params.asset.localStoragePath = "";
-        if (params.container === undefined || params.container === null)
+        @constructs
+        @param {Object} [options] Invoke {@link Tundra.getDefaultOptions} to see available options.
+    */
+    __init__ : function(_options)
+    {
+        Tundra.client = this;
+
+        // Merge input options. 'options' will override any default options.
+        // Below deprecated options will be manually set over any default options.
+        this.options = TundraClient.mergeOptions(_options);
+
+        // Apply Tundra options
+        Tundra.options = this.options.Tundra;
+
+        // Load APIs and modules
+        this.log = TundraLogging.getLogger("WebTundra");
+        this.log.info(this.getVersion());
+
+        if (typeof this.options.TundraClient.loglevel === "number")
+            this.options.TundraClient.loglevel = TundraLogging.levelString(this.options.TundraClient.loglevel);
+        TundraLogging.setLevel(this.options.TundraClient.loglevel);
+
+        this.log.debug("Created Tundra", Tundra.options);
+        this.log.debug("Created TundraClient", this.options.TundraClient);
+
+        // Check that self registered components have been registered!
+        var selfRegistering = [ EC_Name, EC_Script, EC_DynamicComponent, EC_Avatar ];
+        for (var i = 0; i < selfRegistering.length; i++)
         {
-            /**
-                DOM container for this WebTundra client.
-                @property container
-                @type jQuery Element
-            */
-            this.container = $("<div/>");
-            this.container.attr("id", "webtundra-container");
-            this.container.css({
+            if (!Scene.registered(selfRegistering[i]))
+                Scene.registerComponent(selfRegistering[i]);
+        }
+
+        /**
+            DOM container for Tundra.
+            @var {jQuery.Element}
+        */
+        this.container = Tundra.container = this.loadContainer();
+
+        /**
+            @var {Array.<ITundraAPI>}
+        */
+        this.APIs = [];
+
+        /** @property config
+            @var {ConfigAPI}
+        */
+        this.config = Tundra.config = this.loadAPI("ConfigAPI", ConfigAPI);
+        /**
+            @property events
+            @var {EventAPI}
+        */
+        this.events = Tundra.events = this.loadAPI("EventAPI", EventAPI);
+        /**
+            @property network
+            @var {Network}
+        */
+        this.network = Tundra.network = this.loadAPI("Network", Network);
+        /**
+            @property frame
+            @var {FrameAPI}
+        */
+        this.frame = Tundra.frame = this.loadAPI("FrameAPI", FrameAPI);
+        /**
+            @property console
+            @var {ConsoleAPI}
+        */
+        this.console = Tundra.console = this.loadAPI("ConsoleAPI", ConsoleAPI);
+        /**
+            @property asset
+            @var {AssetAPI}
+        */
+        this.asset = Tundra.asset = this.loadAPI("AssetAPI", AssetAPI);
+        /**
+            @property input
+            @var {InputAPI}
+        */
+        this.input = Tundra.input = this.loadAPI("InputAPI", InputAPI);
+        /**
+            @property ui
+            @var {UiAPI}
+        */
+        this.ui = Tundra.ui = this.loadAPI("UiAPI", UiAPI);
+        /**
+            @property scene
+            @var {Scene}
+        */
+        this.scene = Tundra.scene = this.loadAPI("Scene", Scene);
+        /**
+            @property renderer
+            @var {IRenderSystem}
+        */
+        this.renderer = Tundra.renderer = this.loadRenderer();
+
+        // @todo Remove this, dont document.
+        this.domIntegration = null;
+        /**
+            Used login properties for the current server connection.
+            @var {Object}
+        */
+        this.loginProperties = {};
+        /**
+            Client connection id.
+            @var {Number}
+        */
+        this.connectionId = 0;
+
+        // Reset state
+        this.reset();
+
+        this.initializeAPIs();
+
+        // Load SDK plugins
+        Tundra.loadPlugins(this.options.plugins);
+
+        if (typeof this.renderer === "object" && typeof this.renderer.postInitialize === "function")
+            this.renderer.postInitialize();
+
+        this.postInitializeAPIs();
+
+        // Start frame updates
+        this.onUpdateInternal();
+
+        // Run startup applications
+        if (Object.keys(this.options.TundraClient.applications).length > 0)
+        {
+            for (var appName in this.options.TundraClient.applications)
+                this.runApplication(appName, this.options.TundraClient.applications[appName]);
+        }
+    },
+
+    /**
+        Returns a version string for Tundra client, essential libs and the browser.
+        @return {String}
+    */
+    getVersion : function()
+    {
+        try
+        {
+            var versions = [];
+            if (typeof window.WebTundraVersion === "object" && typeof window.WebTundraVersion.version === "string")
+            {
+                if (window.WebTundraVersion.version !== "undefined")
+                    versions.push("v" + window.WebTundraVersion.version + " (" + window.WebTundraVersion.commit + ")");
+                else
+                    versions.push("nightly (" + window.WebTundraVersion.commit + ")");
+            }
+            else
+                versions.push("Developer Mode");
+            if (typeof THREE === "object" && THREE.REVISION !== undefined)
+                versions.push("THREE " + THREE.REVISION);
+            versions.push(Tundra.browser.name() + " " + Tundra.browser.version() + (Tundra.browser.isMobile() ? " [Mobile]" : ""));
+            this.version = versions.join(" | ");
+        }
+        catch(e)
+        {
+            this.version = "Version detection failed: " + e;
+        }
+        return this.version;
+    },
+
+    loadAPI : function(name, Proto)
+    {
+        // Copies of the properties are sent over.
+        // Nothing should be able to modify then during startup.
+        var options = $.extend({}, this.options[name]);
+        var api = new Proto(name, options, $.extend({}, this.options));
+        this.APIs.push(api);
+        this.log.debug("Created", api.name, (Object.keys(api.options).length > 0 ? api.options : ""));
+        return api;
+    },
+
+    initializeAPIs : function()
+    {
+        for (var i = 0; i < this.APIs.length; i++)
+            this.APIs[i]._initialize();
+    },
+
+    postInitializeAPIs : function()
+    {
+        for (var i = 0; i < this.APIs.length; i++)
+            this.APIs[i]._postInitialize();
+    },
+
+    loadContainer : function()
+    {
+        var container = null;
+        if (this.options.TundraClient.container === undefined || this.options.TundraClient.container === null)
+        {
+            container = $("<div/>");
+            container.attr("id", "webtundra-container-custom");
+            container.css({
                 "background-color" : "black",
                 "position" : "absolute",
                 "z-index"  : 0,
@@ -130,162 +266,62 @@ var TundraClient = Class.$extend(
                 "padding"  : 0,
                 "margin"   : 0,
                 "width"    : "100%",
-                "height"   : "100%"
+                "height"   : "100%",
+                "overflow" : "hidden"
             });
-            $("body").append(this.container);
+            $("body").append(container);
         }
         else
-            this.container = $(params.container);
+            container = $(this.options.TundraClient.container);
+        return container;
+    },
 
-        // DEBUG if in development requirejs environment, INFO for production.
-        if (params.loglevel === undefined || params.loglevel === null)
-            params.loglevel = (typeof require === "function" ? TundraLogging.Level.DEBUG : TundraLogging.Level.INFO);
-        TundraLogging.setLevel(typeof params.loglevel === "string" ? params.loglevel.toUpperCase() : params.loglevel);
+    loadRenderer : function()
+    {
+        var renderer = null;
+        if (typeof this.options.TundraClient.renderer === "function")
+            renderer = this.options.TundraClient.renderer.register(TundraClient);
+        else if (typeof renderer === "string")
+            renderer = TundraClient.getRenderSystemByName(renderer);
+        if (renderer == null && TundraClient.renderSystems.length > 0)
+            renderer = TundraClient.renderSystems[0];
 
-        this.log = TundraLogging.getLogger("WebTundra");
-
-        /**
-            @property frame
-            @type FrameAPI
-        */
-        this.frame = new FrameAPI(params);
-        TundraSDK.framework.frame = this.frame;
-
-        /**
-            @property network
-            @type Network
-        */
-        this.network = new Network(params);
-        this.network.registerMessageHandler(new TundraMessageHandler());
-        TundraSDK.framework.network = this.network;
-
-        /**
-            @property events
-            @type EventAPI
-        */
-        this.events = new EventAPI(params);
-        TundraSDK.framework.events = this.events;
-
-        /**
-            @property console
-            @type ConsoleAPI
-        */
-        this.console = new ConsoleAPI(params);
-        TundraSDK.framework.console = this.console;
-
-        /**
-            @property scene
-            @type Scene
-        */
-        this.scene = new Scene(params);
-        TundraSDK.framework.scene = this.scene;
-
-        /**
-            @property asset
-            @type AssetAPI
-        */
-        this.asset = new AssetAPI(params);
-        TundraSDK.framework.asset = this.asset;
-
-        /**
-            @property input
-            @type InputAPI
-        */
-        this.input = new InputAPI(params);
-        TundraSDK.framework.input = this.input;
-
-        /**
-            @property ui
-            @type UiAPI
-        */
-        this.ui = new UiAPI(params);
-        TundraSDK.framework.ui = this.ui;
-
-        /**
-            @property renderer
-            @type IRenderSystem
-        */
-        this.renderer = null;
-
-        // Passed in 'renderSystem' is a prototype of the wanted renderer, register and use it.
-        if (typeof params.renderSystem === "function")
-            this.renderer = params.renderSystem.register(TundraClient);
-        else if (typeof params.renderSystem === "string" && params.renderSystem !== "")
+        if (renderer !== null)
         {
-            for (var i = 0; i < TundraClient.renderSystems.length; i++)
-            {
-                if (CoreStringUtils.trim(TundraClient.renderSystems[i].name).toLowerCase() === CoreStringUtils.trim(params.renderSystem).toLowerCase())
-                {
-                    this.renderer = TundraClient.renderSystems[i];
-                    break;
-                }
-            }
-            if (this.renderer == null)
-            {
-                this.log.warn("Could not find a requested render system with name '" + params.renderSystem + "'. Picking the first registered system instead!");
-                if (TundraClient.renderSystems.length > 0)
-                    this.renderer = TundraClient.renderSystems[0];
-            }
+            this.log.debug("Loading Renderer", this.options.Renderer);
+            renderer._load($.extend({}, this.options.Renderer));
         }
-        else if (TundraClient.renderSystems.length > 0)
-            this.renderer = TundraClient.renderSystems[0];
-
-        if (this.renderer != null)
-            this.renderer._load(params);
         else
-            this.log.error("Failed to load a render system!");
-        TundraSDK.framework.renderer = this.renderer;
+            this.log.error("Failed to load a render system. Registered:", TundraClient.renderSystems);
+        return renderer;
+    },
 
-        /**
-            @property domIntegration
-            @type IDomIntegration
-        */
-        this.domIntegration = null;
-
-        /**
-            Used login properties for the current server connection.
-            @property loginProperties
-            @type Object
-        */
+    /**
+        Resets the client state. Invoked automatically when disconnected from a server.
+    */
+    reset : function()
+    {
+        // Reset data
+        this.websocket = null;
+        this.websocketFaked = false;
         this.loginProperties = {};
-        /**
-            Client connection id.
-            @property connectionId
-            @type Number
-        */
         this.connectionId = 0;
-        /**
-            If verbose network message debug info should be printed to browsers console.
-            Can be passed in the TundraClient contructor parameters or toggled during runtime.
-            @property networkDebugLogging
-            @type Boolean
-        */
-        this.networkDebugLogging = params.networkDebugLogging;
+        this.authTokens = {};
 
-        // Reset state
-        this.reset();
+        if (this.renderer && typeof this.renderer === "object" && typeof this.renderer.reset === "function")
+            this.renderer.reset();
 
-        // Post init APIs
-        this.ui.postInitialize();
-        this.asset.postInitialize();
-        this.input.postInitialize();
-        this.scene.postInitialize();
+        // Reset APIs
+        for (var i = 0; i < this.APIs.length; i++)
+            this.APIs[i].reset();
 
-        // Load plugins
-        this.loadPlugins();
+        // Reset frametime
+        this.lastTime = performance.now();
 
-        if (this.renderer != null)
-            this.renderer.postInitialize();
-
-        // Start frame updates
-        this.onUpdateInternal();
-
-        // Console commands
-        this.console.registerCommand("disconnect", "Disconnects the active server connection", null, this, this.disconnect);
-
-        // Run startup apps
-        for (var appName in params.applications)
-            this.runApplication(appName, params.applications[appName]);
+        this.cameraApplications = [];
+        this.cameraApplicationIndex = 0;
+        this.cameraSwitcherButton = null;
+        this.cameraSwitcherMenu = null;
     },
 
     __classvars__ :
@@ -303,6 +339,12 @@ var TundraClient = Class.$extend(
 
         renderSystems : [],
 
+        /**
+            Registers a render system which should be a subclass of {{#crossLink "IRenderSystem"}}{{/crossLink}}
+            @memberof TundraClient
+            @static
+            @param {IRenderSystem} renderSystem
+        */
         registerRenderSystem : function(renderSystem)
         {
             if (renderSystem instanceof IRenderSystem)
@@ -310,45 +352,169 @@ var TundraClient = Class.$extend(
             else if (console.error != null)
                 console.error("[WebTundra]: registerRenderSystem called with object that is not an instance of IRenderSystem!");
             return (renderSystem instanceof IRenderSystem);
-        }
+        },
+
+        getRenderSystemByName : function(name)
+        {
+            for (var i = 0; i < TundraClient.renderSystems.length; i++)
+            {
+                if (TundraClient.renderSystems[i].name === name)
+                    return TundraClient.renderSystems[i];
+            }
+            TundraClient.log.error("getRenderSystemByName: Failed to find:", name);
+            return null;
+        },
+
+        /**
+            Merge options with default options. The passed in options
+            will always override the defaults. Also moves deprecated options
+            into the new form and prints a warning if encountered.
+
+            @memberof TundraClient
+            @static
+            @param {Object} options Input options to merge
+            @return {Object} options
+        */
+        mergeOptions : function(options)
+        {
+            options = options || {};
+            var merged = $.extend({}, options);
+            if (!merged.plugins)  merged.plugins = {};
+            if (!options.plugins) options.plugins = {};
+
+            var defaults = TundraClient.getDefaultOptions();
+
+            for (var i = 0, apiNames = Tundra.APINames(); i < apiNames.length; i++)
+                merged[apiNames[i]] = $.extend(true, {}, defaults[apiNames[i]], options[apiNames[i]]);
+            for (var i = 0, pluginNames = Tundra.pluginNames(); i < pluginNames.length; i++)
+                merged.plugins[pluginNames[i]] = $.extend(true, {}, defaults.plugins[pluginNames[i]], options.plugins[pluginNames[i]]);
+
+            // If a renderer class is provided, ask it its default options while keeping them overridable
+            if (typeof options.TundraClient === "object" && typeof options.TundraClient.renderer === "function" &&
+                typeof options.TundraClient.renderer.getDefaultOptions === "function")
+            {
+                merged.Renderer = $.extend({}, defaults.Renderer, options.TundraClient.renderer.getDefaultOptions(), options.Renderer);
+            }
+            else
+                merged.Renderer = $.extend({}, defaults.Renderer, options.Renderer);
+
+            /* Backwards compatibility. Move old properties into new properties.
+               @todo Remove once all clients have been update to new options. */
+            var optionDefinedAs = function(obj, key, expectedTypeOf)
+            {
+                if (Array.isArray(expectedTypeOf))
+                {
+                    for (var i = 0; i < expectedTypeOf.length; i++)
+                    {
+                        if (typeof obj[key] === expectedTypeOf[i])
+                            return true;
+                    }
+                    return false;
+                }
+                else if (typeof expectedTypeOf === "string")
+                    return (typeof obj[key] === expectedTypeOf);
+                else
+                {
+                    console.error("Invalid options type check", obj, key, expectedTypeOf);
+                    return false;
+                }
+            };
+            var moveOption = function(from, fromKey, to, toKey, warning)
+            {
+                toKey = toKey || fromKey;
+                to[toKey] = from[fromKey];
+                delete from[fromKey];
+
+                if (typeof warning === "string" && warning !== "")
+                    console.warn("DEPRECATED: TundraClient constructor option:", warning);
+            };
+
+            // .polymer > .Tundra.polymer
+            if (optionDefinedAs(merged, "polymer", "boolean"))
+                moveOption(merged, "polymer", merged.Tundra, "polymer", "options.polymer > options.Tundra.polymer");
+            // .requirejs > .Tundra.requirejs
+            if (optionDefinedAs(merged, "requirejs", "boolean"))
+                moveOption(merged, "requirejs", merged.Tundra, "requirejs", "options.requirejs > options.Tundra.requirejs");
+
+            // .container > .TundraClient.container
+            if (optionDefinedAs(merged, "container", [ "string", "object" ]))
+                moveOption(merged, "container", merged.TundraClient, "container", "options.container > options.TundraClient.container");
+            // .renderSystem > .TundraClient.renderer
+            if (optionDefinedAs(merged, "renderSystem", [ "string", "object", "function" ]))
+                moveOption(merged, "renderSystem", merged.TundraClient, "renderer", "options.renderSystem > options.TundraClient.renderer");
+            // .applications > .TundraClient.applications
+            if (optionDefinedAs(merged, "applications", "object"))
+                moveOption(merged, "applications", merged.TundraClient, "applications", "options.applications > options.TundraClient.applications");
+            // .container > .TundraClient.container
+            if (optionDefinedAs(merged, "loglevel", [ "string", "number" ]))
+                moveOption(merged, "loglevel", merged.TundraClient, "loglevel", "options.loglevel > options.TundraClient.loglevel");
+
+            // .asset.localStoragePath > .AssetAPI.storages["webtundra://"]
+            if (typeof merged.asset === "object" && optionDefinedAs(merged.asset, "localStoragePath", "string"))
+            {
+                moveOption(merged.asset, "localStoragePath", merged.AssetAPI.storages, "webtundra://", 'options.asset.localStoragePath > options.AssetAPI.storages["webtundra://"]');
+                if (Object.keys(merged.asset).length === 0) delete merged.asset;
+            }
+
+            // .taskbar > .UiAPI.taskbar
+            if (optionDefinedAs(merged, "taskbar", "boolean"))
+                moveOption(merged, "taskbar", merged.UiAPI, "taskbar", "options.taskbar > options.UiAPI.taskbar");
+            // .console > .UiAPI.console
+            if (optionDefinedAs(merged, "console", "boolean"))
+                moveOption(merged, "console", merged.UiAPI, "console", "options.console > options.UiAPI.console");
+            // .allowFullscreen > .UiAPI.allowFullscreen
+            if (optionDefinedAs(merged, "allowFullscreen", "boolean"))
+                moveOption(merged, "allowFullscreen", merged.UiAPI, "allowFullscreen", "options.allowFullscreen > options.UiAPI.allowFullscreen");
+            // .showfps > .UiAPI.fps
+            if (optionDefinedAs(merged, "showfps", "boolean"))
+                moveOption(merged, "showfps", merged.UiAPI, "fps", "options.showfps > options.UiAPI.fps");
+
+            // .networkDebugLogging > .Network.debug
+            if (optionDefinedAs(merged, "networkDebugLogging", "boolean"))
+                moveOption(merged, "networkDebugLogging", merged.Network, "debug", "options.networkDebugLogging > options.Network.debug");
+
+            return merged;
+        },
+
+        /**
+            Returns default options object. The object documents what options
+            are available for the application to override. Only modules that are
+            registered at the time of invocation are included in options.plugins.
+
+            @memberof TundraClient
+            @static
+            @return {Object} options
+        */
+        getDefaultOptions : function()
+        {
+            var options = { plugins : {} };
+
+            for (var i = 0, apiNames = Tundra.APINames(); i < apiNames.length; i++)
+                options[apiNames[i]] = {};
+            for (var i = 0, pluginNames = Tundra.pluginNames(); i < pluginNames.length; i++)
+                options.plugins[pluginNames[i]] = {};
+
+            $.extend(options.TundraClient, {
+                loglevel  : "info",
+                container : null,
+                renderer  : null,
+                applications : {}
+            });
+
+            $.extend(options.Tundra, Tundra.getDefaultOptions());
+            $.extend(options.Network, Network.getDefaultOptions());
+            $.extend(options.UiAPI, UiAPI.getDefaultOptions());
+            $.extend(options.AssetAPI, AssetAPI.getDefaultOptions());
+
+            options.Renderer = IRenderSystem.getDefaultOptions();
+
+            return options;
+        },
     },
 
-    loadPlugins : function()
+    getDefaultOptions : function()
     {
-        // Protect accidental/malicious double loading.
-        if (this.pluginsLoaded === true)
-            return;
-        this.pluginsLoaded = true;
-
-        /// @todo Figure out if there is a sensible point where
-        /// the plugins should be uninitialized, currently not
-        /// done but its part of the interface.
-        
-        // Load TundraSDK registerd plugins
-        for (var i = 0; i < TundraSDK.plugins.length; i++)
-        {
-            try
-            {
-                this.log.debug("Loading", TundraSDK.plugins[i].name);
-                TundraSDK.plugins[i]._initialize();
-            } 
-            catch(e)
-            {
-                this.log.error("Failed to initialize " + TundraSDK.plugins[i].name + ":", e);
-            }
-        }
-        // Post init plugins now that all plugins have been loaded.
-        for (var i = 0; i < TundraSDK.plugins.length; i++)
-        {
-            try
-            {
-                TundraSDK.plugins[i]._postInitialize();
-            } 
-            catch(e)
-            {
-                this.log.error("Failed to postInitialize " + TundraSDK.plugins[i].name + ":", e);
-            }
-        }
+        return TundraClient.getDefaultOptions();
     },
 
     setDomIntegration : function(domIntegration)
@@ -400,11 +566,8 @@ var TundraClient = Class.$extend(
         }
 
         // Create taskbar action and attache context menu to it
-        this.cameraSwitcherButton = this.ui.addAction("Select Camera Mode (Tab)", 
-            TundraSDK.framework.asset.getLocalAssetPath("img/icons/icon-camera.png"), 40, false);
-        this.cameraSwitcherMenu = this.ui.addContextMenu(this.cameraSwitcherButton, true, true, function() {
-            that.cameraSwitcherButton.tooltip("close");
-        });
+        this.cameraSwitcherButton = this.ui.addAction("Change Camera (shift+tab)", "http://meshmoon.data.s3.amazonaws.com/icons/pictos1/24/209.png", 40, false);
+        this.cameraSwitcherMenu = this.ui.addContextMenu(this.cameraSwitcherButton, true, true);
 
         // Add context menu items
         for (var i = 0; i < this.cameraApplications.length; i++)
@@ -418,14 +581,17 @@ var TundraClient = Class.$extend(
         }
 
         this.input.onKeyPress(this, function(keyEvent) {
-            if (keyEvent.keyCode === 9 || keyEvent.key === "tab")
+            if (keyEvent.originalEvent.shiftKey && (keyEvent.keyCode === 9 || keyEvent.key === "tab"))
             {
-                this.cameraApplicationIndex++;
-                if (this.cameraApplicationIndex >= this.cameraApplications.length)
-                    this.cameraApplicationIndex = 0;
-                this.activateCameraApplication(this.cameraApplications[this.cameraApplicationIndex].name);
+                if (keyEvent.targetNodeName === "body" || keyEvent.targetNodeName === "canvas")
+                {
+                    this.cameraApplicationIndex++;
+                    if (this.cameraApplicationIndex >= this.cameraApplications.length)
+                        this.cameraApplicationIndex = 0;
+                    this.activateCameraApplication(this.cameraApplications[this.cameraApplicationIndex].name);
 
-                keyEvent.originalEvent.preventDefault();
+                    keyEvent.originalEvent.preventDefault();
+                }
             }
         });
     },
@@ -450,14 +616,7 @@ var TundraClient = Class.$extend(
 
     getAuthToken : function(name)
     {
-        try
-        {
-            return this.authTokens[name];
-        }
-        catch (e)
-        {
-            return null;
-        }
+        return this.authTokens[name];
     },
 
     /**
@@ -465,7 +624,7 @@ var TundraClient = Class.$extend(
         Useful for startup apps after the client has been instantiated on a page.
 
         This function is called automatically with {{#crossLink "TundraClient"}}{{/crossLink}} 'applications' constructor parameters.
-        @method runApplication
+
         @param {String} applicationName Application name. This will be used as the local entitys name that will hold the script component.
         @param {String} scriptRef Application script URL or relative path.
         @return {Entity} The local entity that holds the script component.
@@ -478,7 +637,7 @@ var TundraClient = Class.$extend(
             return null;
         }
         var appEnt = this.scene.createLocalEntity(["Name", "Script"]);
-        appEnt.name = applicationName;
+        appEnt.name = applicationName || "Startup Application";
 
         appEnt.script.startupApplication = true;
         appEnt.script.attributes.runMode.set(EC_Script.RunMode.Client, AttributeChange.LocalOnly);
@@ -488,148 +647,161 @@ var TundraClient = Class.$extend(
     },
 
     /**
+        Finds a Entity with a Script component.
+
+        @param {String} entityName - Name of the parent entity
+        @param {String} [componentName] - Optional script component name
+        @return {Entity|undefined}
+    */
+    findApplicationEntity : function(entityName, componentName)
+    {
+        var scripts = this.scene.entitiesWithComponent("Script");
+        for (var i = 0; i < scripts.length; i++)
+        {
+            if (scripts[i].name === entityName)
+                return scripts[i];
+        }
+        return undefined;
+    },
+
+    /**
+        Finds the first application instance from Entity with a Script component.
+
+        @param {String} entityName - Name of the parent entity
+        @param {String} [componentName] - Optional script component name
+        @return {Object|undefined}
+    */
+    findApplication : function(entityName, componentName, allInstances)
+    {
+        var entity = this.findApplicationEntity(entityName);
+        if (entity && entity.script && entity.script.scriptAsset && Array.isArray(entity.script.scriptAsset.instances))
+        {
+            if (allInstances === true)
+                return entity.script.scriptAsset.instances;
+
+            // @note This wont work if the entity has multiple EC_Scripts.
+            // In this case we have no way of knowing which components we want, so return the first
+            var instance = entity.script.scriptAsset._getInstance(entity, entity.script)
+            if (instance)
+                return (instance && instance.application ? instance.application : undefined);
+
+            for (var i = 0; i < instances.length; i++)
+            {
+                if (instances[i] && typeof instances[i] === "object" && instances[i].application)
+                    return instances[i].application;
+            }
+        }
+        return undefined;
+    },
+
+    /**
         Registers a callback for when client connects to the server.
 
-            TundraSDK.framework.client.onConnected(null, function() {
+            Tundra.client.onConnected(null, function() {
                 console.log("The eagle has landed!");
             });
 
-        @method onConnected
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onConnected : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("TundraClient.Connected", context, callback);
+        return Tundra.events.subscribe("TundraClient.Connected", context, callback);
     },
 
     /**
         Registers a callback for client connection errors.
 
-            TundraSDK.framework.client.onConnectionError(null, function(event) {
+            Tundra.client.onConnectionError(null, function(event) {
                 console.error("RED ALERT: " + event);
             });
 
-        @method onConnectionError
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onConnectionError : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("TundraClient.ConnectionError", context, callback);
+        return Tundra.events.subscribe("TundraClient.ConnectionError", context, callback);
     },
 
     /**
         Registers a callback for when client disconnects from the server.
 
-            TundraSDK.framework.client.onDisconnected(null, function() {
+            Tundra.client.onDisconnected(null, function() {
                 console.log("Elvis has left the building!");
             });
 
-        @method onDisconnected
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onDisconnected : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("TundraClient.Disconnected", context, callback);
+        return Tundra.events.subscribe("TundraClient.Disconnected", context, callback);
     },
 
     /**
         Registers a callback for log info prints. Note: Important messages is ones are already
-        logged to console.log() and the UI console if one has been created.
+        logged to `console.log()` and the UI console if one has been created.
 
-            TundraSDK.framework.client.onLogInfo(null, function(message) {
+            Tundra.client.onLogInfo(null, function(message) {
                 console.log("LogInfo:", message);
             });
 
-        @method onLogInfo
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onLogInfo : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("TundraClient.LogInfo", context, callback);
+        return Tundra.events.subscribe("TundraClient.LogInfo", context, callback);
     },
 
     /**
         Registers a callback for log warning prints. Note: Important messages is ones are already
-        logged to console.warn() and the UI console if one has been created.
+        logged to `console.warn()` and the UI console if one has been created.
 
-            TundraSDK.framework.client.onLogWarning(null, function(message) {
+            Tundra.client.onLogWarning(null, function(message) {
                 console.warn("LogWarning:", message);
             });
 
-        @method onLogWarning
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onLogWarning : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("TundraClient.LogWarning", context, callback);
+        return Tundra.events.subscribe("TundraClient.LogWarning", context, callback);
     },
 
     /**
         Registers a callback for log error prints. Note: Important messages is ones are already
-        logged to console.error() and the UI console if one has been created.
+        logged to `console.error()` and the UI console if one has been created.
 
-            TundraSDK.framework.client.onLogError(null, function(message) {
+            Tundra.client.onLogError(null, function(message) {
                 console.log("LogError:", message);
             });
 
-        @method onLogError
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onLogError : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("TundraClient.LogError", context, callback);
-    },
-
-    /**
-        Resets the client object state. This is automatically called when disconnected from a server.
-        @method reset
-    */
-    reset : function()
-    {
-        // Reset data
-        this.websocket = null;
-        this.loginProperties = {};
-        this.connectionId = 0;
-        this.authTokens = {};
-
-        // Reset APIs
-        this.frame.reset();
-        this.ui.reset();
-        this.input.reset();
-        this.asset.reset();
-        this.scene.reset();
-        this.renderer.reset();
-
-        // Reset frametime
-        this.lastTime = performance.now();
-
-        this.cameraApplications = [];
-        this.cameraApplicationIndex = 0;
-        this.cameraSwitcherButton = null;
-        this.cameraSwitcherMenu = null;
+        return Tundra.events.subscribe("TundraClient.LogError", context, callback);
     },
 
     onUpdateInternal : function()
     {
-        var that = TundraSDK.framework.client;
+        var that = Tundra.client;
         requestAnimationFrame(that.onUpdateInternal);
 
         var timeNow = performance.now()
@@ -638,11 +810,20 @@ var TundraClient = Class.$extend(
         frametime = frametime / 1000.0;
         that.lastTime = timeNow;
 
+        if (that.frame.limiter !== undefined)
+        {
+            if (!that.frame._limit(frametime))
+                return;
+            frametime += that.frame.limiter.step;
+        }
+
         that.frame._update(frametime);
 
         // Update APIs
         that.asset.update(frametime);
         that.scene.update(frametime);
+
+        that.frame._preRender(frametime);
 
         // Render scene
         that.renderer.update(frametime, frametimeMsec);
@@ -653,7 +834,7 @@ var TundraClient = Class.$extend(
     /**
         Logs a info message. Always sends the event to {{#crossLink "TundraClient/onLogInfo:method"}}{{/crossLink}}
         callbacks and optionally logs to the browsers console.
-        @method logInfo
+
         @param {String} message Log message.
         @param {Boolean} toBrowserConsole If the message should be logged to the browsers console.log function.
     */
@@ -664,13 +845,13 @@ var TundraClient = Class.$extend(
         if (toBrowserConsole && console.log != null)
             console.log(message);
 
-        TundraSDK.framework.events.send("TundraClient.LogInfo", message);
+        Tundra.events.send("TundraClient.LogInfo", message);
     },
 
     /**
         Logs a warning message. Always sends the event to {{#crossLink "TundraClient/onLogWarning:method"}}{{/crossLink}}
         callbacks and optionally logs to the browsers console.
-        @method logWarning
+
         @param {String} message Log message.
         @param {Boolean} toBrowserConsole If the message should be logged to the browsers console.warn function.
     */
@@ -681,13 +862,13 @@ var TundraClient = Class.$extend(
         if (toBrowserConsole && console.warn != null)
             console.warn(message);
 
-        TundraSDK.framework.events.send("TundraClient.LogWarning", message);
+        Tundra.events.send("TundraClient.LogWarning", message);
     },
 
     /**
         Logs a error message. Always sends the event to {{#crossLink "TundraClient/onLogWarning:method"}}{{/crossLink}}
         callbacks and optionally logs to the browsers console.
-        @method logError
+
         @param {String} message Log message.
         @param {Boolean} toBrowserConsole If the message should be logged to the browsers console.error function.
     */
@@ -698,26 +879,35 @@ var TundraClient = Class.$extend(
         if (toBrowserConsole && console.error != null)
             console.error(message);
 
-        TundraSDK.framework.events.send("TundraClient.LogError", message);
+        Tundra.events.send("TundraClient.LogError", message);
     },
 
     /**
         Returns if there is a active connection to a WebSocket host.
-        @method isConnected
+
         @return {Boolean}
     */
     isConnected : function()
     {
+        // @todo This is a hack, do local scene sessions available
+        if (this.websocketFaked === true)
+            return true;
+        return this._isWebSocketConnected();
+    },
+
+    // Internal for detecting
+    _isWebSocketConnected : function()
+    {
         if (this.websocket == null)
             return false;
-        else if (this.websocket.readyState != 3) // CLOSED
+        else if (this.websocket.readyState !== 3) // CLOSED
             return true;
         return false;
     },
 
     /**
         Connects to a WebSocket host with login properties and returns if successful.
-        @method connect
+
         @param {String} host Host with port
         @param {Object} loginProperties This object will get serialized into JSON and sent to the server.
         @example
@@ -735,12 +925,23 @@ var TundraClient = Class.$extend(
             this.log.error("connect() called with non-string 'host'");
             return { success : false, reason : "Host not a string" };
         }
-        if ("WebSocket" in window)
+
+        host = host.trim();
+        if (CoreStringUtils.startsWith(host, "http://", true))
+            host = host.substring(7);
+        else if (CoreStringUtils.startsWith(host, "https://", true))
+            host = host.substring(8);
+        if (!CoreStringUtils.startsWith(host, "ws://") && !CoreStringUtils.startsWith(host, "wss://"))
+            host = "ws://" + host;
+
+        try
+        {
             this.websocket = new WebSocket(host);
-        else if ("MozWebSocket" in window)
-            this.websocket = new MozWebSocket(host);
-        else
+        }
+        catch(e)
+        {
             return { success : false, reason : "This browser does not support WebSocket connections" };
+        }
 
         // Configure and connect websocket connection
         this.websocket.binaryType = "arraybuffer";
@@ -754,26 +955,41 @@ var TundraClient = Class.$extend(
         return { success : true };
     },
 
+    fakeConnectionState : function()
+    {
+        if (this.isConnected())
+            return;
+
+        this.websocketFaked = true;
+
+        // Fire fake event
+        this.events.send("TundraClient.Connected");
+    },
+
     /**
         Disconnects if there is a active websocket connection.
-        @method disconnect
     */
     disconnect : function()
     {
         if (this.websocket != null)
             this.websocket.close();
+        else if (this.websocketFaked)
+            this.events.send("TundraClient.Disconnected", {});
+
+        /* @note This does a double reset. Second one happens in onWebSocketConnectionClosed.
+           Investigate what happens if this is only done here when there is no active connection. */
         this.reset();
     },
 
     onWebSocketConnectionOpened : function(event)
     {
-        var that = TundraSDK.framework.client;
+        var that = Tundra.client;
         that.log.infoC("Server connection established");
 
         // Send login message
         var message = new LoginMessage();
         message.serialize(JSON.stringify(that.loginProperties));
-        TundraSDK.framework.network.send(message);
+        Tundra.network.send(message, event);
 
         // Fire event
         that.events.send("TundraClient.Connected");
@@ -781,14 +997,14 @@ var TundraClient = Class.$extend(
 
     onWebSocketConnectionError : function(event)
     {
-        var that = TundraSDK.framework.client;
+        var that = Tundra.client;
         that.log.errorC("Failed to connect to", event.target.url);
         that.events.send("TundraClient.ConnectionError", event);
     },
 
     onWebSocketConnectionClosed : function(event)
     {
-        var that = TundraSDK.framework.client;
+        var that = Tundra.client;
         that.log.infoC("Server connection disconnected");
         that.events.send("TundraClient.Disconnected", event);
 
@@ -798,12 +1014,12 @@ var TundraClient = Class.$extend(
 
     onWebSocketMessage : function(event)
     {
-        var that = TundraSDK.framework.client;
+        var that = Tundra.client;
 
         // Binary frame
         if (typeof event.data !== "string")
         {
-            TundraSDK.framework.client.network.receive(event.data);
+            Tundra.client.network.receive(event.data);
             event.data = null;
         }
         // String frame, just log it..

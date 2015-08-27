@@ -2,27 +2,52 @@
 <html>
 <head>
     <title>realXtend WebTundra</title>
+
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
 
     <!-- CSS -->
-    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
-
     <style type="text/css">
-    html {
-        margin: 0px; padding: 0px; overflow: hidden;
+    html, body {
+        overflow: hidden;
+        margin: 0px;
+        padding: 0px;
     }
     body {
-        position: absolute; padding: 0px; margin: 0px; width: 100%; height: 100%; overflow: hidden;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+
+        font-family: 'Roboto', sans-serif;
+        font-size: 16px;
+        font-weight: 400;
+        color: #444;
     }
     #webtundra-container-custom {
-        position: absolute; background-color: black; width: 100%; height: 100%;
+        overflow: hidden;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+
+        background-color: black;
     }
     </style>
+
+    <!-- @todo Remove the jquery CSS dependency -->
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+
+    <!-- Fonts https://www.google.com/fonts#UsePlace:use/Collection:Lato:300,400,700,400italic|Source+Code+Pro:300,400,700|Roboto:100,300,400,500,700,400italic|Open+Sans:300,400,600 -->
+    <link href='//fonts.googleapis.com/css?family=Lato:300,400,700,400italic|Source+Code+Pro:300,400,700|Roboto:100,300,400,500,700,400italic|Open+Sans:300,400,600' rel='stylesheet' type='text/css'>
+
+    <!-- realXtend Tundra -->
+    <!-- @inject-tags -->
 </head>
 <body>
 
 <!-- require.js entry point -->
-<script data-main="../src/main.js" src="../src/lib/require.min.js"></script>
+<script data-main="../src/main.js" src="../src/lib/require.js"></script>
 
 <!-- HTML -->
 <div id="webtundra-container-custom"></div>

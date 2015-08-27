@@ -1,3 +1,4 @@
+define([], function() {
 /*
  * jQuery JavaScript Library v2.0.3
  * http://jquery.com/
@@ -11,7 +12,6 @@
  *
  * Date: 2013-07-03T13:30Z
  */
-define([], function() {
 
 (function( window, undefined ) {
 

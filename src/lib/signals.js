@@ -363,25 +363,38 @@
                 return;
             }
 
+            /* Unusual code due to world around for V8 "bug".
+               https://code.google.com/p/v8/issues/detail?id=3037
+               https://github.com/jashkenas/coffeescript/issues/3274
+               https://github.com/joyent/node/commit/7ced966a32dd18b4de2768f41796af76638341f9 */
+            /* Original code
             var paramsArr = Array.prototype.slice.call(arguments),
                 n = this._bindings.length,
                 bindings;
+            */
+            // webrocket modification
+            var paramsArr = [];
+            for (var i = 0; i < arguments.length; i++)
+                paramsArr.push(arguments[i]);
+            var n = this._bindings.length;
 
             if (this.memorize) {
                 this._prevParams = paramsArr;
             }
 
-            if (! n) {
+            if (!n) {
                 //should come after memorize
                 return;
             }
 
-            bindings = this._bindings.slice(); //clone array in case add/remove items during dispatch
+            var bindings = this._bindings.slice(); //clone array in case add/remove items during dispatch
             this._shouldPropagate = true; //in case `halt` was called before dispatch or during the previous dispatch.
 
             //execute all callbacks until end of the list or until a callback returns `false` or stops propagation
             //reverse loop since listeners with higher priority will be added at the end of the list
             do { n--; } while (bindings[n] && this._shouldPropagate && bindings[n].execute(paramsArr) !== false);
+
+            this._shouldPropagate = (n == -1); // Did something stop propagation?
         },
 
         /**
