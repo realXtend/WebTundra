@@ -28,6 +28,9 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         this.rigidbody_ = null;
         
         this.pendingAsset = false;
+        
+        // If dirty variable is set to true recreate the rigidbody object
+        // on next frame update
         this.dirty_ = false;
     },
     
@@ -418,9 +421,17 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         var shape = this.attributes.shapeType.get();
         var size = this.attributes.size.get();
         
+        // Sanitate the size
+        if (size.x < 0.0)
+            size.x = 0.0;
+        if (size.y < 0.0)
+            size.y = 0.0;
+        if (size.z < 0.0)
+            size.z = 0.0;
+        
         if (shape === EC_RigidBody.ShapeType.Box)
         {
-            var s = new Ammo.btVector3(1.0, 1.0, 1.0);
+            var s = new Ammo.btVector3(size.x * 0.5, size.y * 0.5, size.z * 0.5);
             this.collisionShape_ = new Ammo.btBoxShape(s);
             Ammo.destroy(s);
             s = null;
@@ -429,8 +440,8 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
             this.collisionShape_ = new Ammo.btSphereShape(size.x * 0.5);
         else if (shape === EC_RigidBody.ShapeType.Cylinder)
         {
-            var s = new Ammo.btVector3(1.0, 1.0, 1.0);
-            this.collisionShape_ = new Ammo.btCylinderShape(new Ammo.btVector3(size.x * 0.5, size.y * 0.5, size.z * 0.5));
+            var s = new Ammo.btVector3(size.x * 0.5, size.x * 0.5, size.x * 0.5);
+            this.collisionShape_ = new Ammo.btCylinderShape(s);
             Ammo.destroy(s);
             s = null;
         }
@@ -451,6 +462,35 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         
         this.updateScale();
         return this.collisionShape_;
+    },
+    
+    updateScale : function()
+    {
+        if (this.collisionShape_ === null ||
+            this.parentEntity.placeable === undefined ||
+            this.parentEntity.placeable === null)
+            return;
+        
+        var sizeVec = this.size;
+        var scale = this.parentEntity.placeable.transform.scale;
+        // Sanitate the size
+        if (sizeVec.x < 0.0)
+            sizeVec.x = 0.0;
+        if (sizeVec.y < 0.0)
+            sizeVec.y = 0.0;
+        if (sizeVec.z < 0.0)
+            sizeVec.z = 0.0;
+        
+        var newSize = new Ammo.btVector3();
+        if (this.shapeType === EC_RigidBody.ConvexHull ||
+            this.shapeType === EC_RigidBody.TriMesh)
+            newSize.setValue(scale.x, scale.y, scale.z);
+        else
+            newSize.setValue(sizeVec.x * scale.x, sizeVec.y * scale.y, sizeVec.z * scale.z);
+        this.collisionShape_.setLocalScaling(newSize);
+        
+        Ammo.destroy(newSize);
+        newSize = null;
     },
     
     _createTriangleMeshCollider: function()
@@ -579,36 +619,6 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
                 
         Ammo.destroy(worldTrans);
         worldTrans = null;
-    },
-    
-    updateScale : function()
-    {
-        if (this.collisionShape_ === undefined ||
-            this.collisionShape_ === null ||
-            this.parentEntity.placeable === undefined ||
-            this.parentEntity.placeable === null)
-            return;
-        
-        var sizeVec = this.size;
-        var scale = this.parentEntity.placeable.transform.scale;
-        // Sanitate the size
-        if (sizeVec.x < 0.0)
-            sizeVec.x = 0.0;
-        if (sizeVec.y < 0.0)
-            sizeVec.y = 0.0;
-        if (sizeVec.z < 0.0)
-            sizeVec.z = 0.0;
-        
-        var newSize = new Ammo.btVector3();
-        if (this.shapeType === EC_RigidBody.ConvexHull ||
-            this.shapeType === EC_RigidBody.TriMesh)
-            newSize.setValue(scale.x, scale.y, scale.z);
-        else
-            newSize.setValue(sizeVec.x * scale.x, sizeVec.y * scale.y, sizeVec.z * scale.z);
-        this.collisionShape_.setLocalScaling(newSize);
-        
-        Ammo.destroy(newSize);
-        newSize = null;
     },
     
     /**

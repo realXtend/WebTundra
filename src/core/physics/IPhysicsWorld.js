@@ -1,12 +1,11 @@
 
 define(["lib/classy",
-        "lib/ammo",
         "lib/three",
         "core/physics/PhysicsRaycastResult",
         "core/physics/CollisionInfo",
         "core/framework/TundraSDK",
         "core/framework/TundraLogging"
-    ], function(Class, Ammo, THREE, PhysicsRaycastResult, CollisionInfo, TundraSDK, TundraLogging) {
+    ], function(Class, THREE, PhysicsRaycastResult, CollisionInfo, TundraSDK, TundraLogging) {
 
 /**
     Interface class for physics world.
@@ -160,7 +159,7 @@ var IPhysicsWorld = Class.$extend(
         @param maxDistance Length of ray
         @param collisionGroup Collision layer. Default has all bits set.
         @param collisionMask Collision mask. Default has all bits set.
-        @return result CollisionInfo object */
+        @return result PhysicsRaycastResult object */
     raycast: function(origin, direction, maxDistance, collisionGroup, collisionMask)
     {
         TundraLogging.getLogger("IPhysicsWorld").warn("raycast(origin, direction, maxDistance, collisionGroup, collisionMask) not implemented.");
