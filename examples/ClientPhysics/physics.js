@@ -54,27 +54,28 @@ var PhysicsApplication = ICameraApplication.$extend(
     {
         var meshEntity = null;
         
-        this.entities["Plane"] = this.createMesh("Plane", "webtundra://sphere_big.json");
-        meshEntity = this.entities["Plane"];
-        meshEntity.name = "Plane"
+        this.entities["Head"] = this.createMesh("Head", "webtundra://head.json");
+        meshEntity = this.entities["Head"];
+        meshEntity.name = "Head"
         t = meshEntity.placeable.transform;
-        t.setPosition(0, 7, -63);
+        t.setPosition(0, 0, -63);
+        t.setScale(10, 10, 10);
         meshEntity.placeable.transform = t;
         meshEntity.rigidbody.mass = 0.0;
         meshEntity.rigidbody.size = new THREE.Vector3(1, 1, 1);
         meshEntity.rigidbody.shapeType = 4;
         
-        this.entities["Plane2"] = TundraSDK.framework.scene.createLocalEntity(["Name", "Placeable", "RigidBody"]);
-        meshEntity = this.entities["Plane2"];
-        meshEntity.name = "Plane2"
+        //this.entities["Plane2"] = TundraSDK.framework.scene.createLocalEntity(["Name", "Placeable", "RigidBody"]);
+        this.entities["Ground"] = this.createMesh("Ground", "webtundra://ground.json");
+        meshEntity = this.entities["Ground"];
+        meshEntity.name = "Ground"
         t = meshEntity.placeable.transform;
         t.setPosition(0, -20, -20);
-        t.setScale(2.5, 2.5, 2.5);
+        t.setScale(10, 10, 10);
         meshEntity.placeable.transform = t;
         meshEntity.rigidbody.mass = 0.0;
-        meshEntity.rigidbody.size = new THREE.Vector3(10000.0, 3, 10000.0);
-        //meshEntity.rigidbody.collisionLayer = this.CollisionTypes.PLANE2;
-        //meshEntity.rigidbody.collisionMask = this.CollisionTypes.BOX;
+        meshEntity.rigidbody.shapeType = 4;
+        //meshEntity.rigidbody.size = new THREE.Vector3(10000.0, 3, 10000.0);
         
         TundraSDK.framework.physicsWorld.raycast(new THREE.Vector3(0, 30, -20),
                                                  new THREE.Vector3(0, -1, 0),
@@ -89,6 +90,16 @@ var PhysicsApplication = ICameraApplication.$extend(
         }
         this.nextTime = TundraSDK.framework.frame.wallClockTime() + 5;
         this.removeList = [];
+        
+        var dirLight = new THREE.DirectionalLight();
+        dirLight.intensity = 0.5;
+        TundraSDK.framework.client.renderer.scene.add(dirLight);
+        
+        this.ground = TundraSDK.framework.scene.entityByName("Ground");
+        this.groundReady = false;
+        
+        //TundraSDK.framework.physicsWorld.maxSubSteps = 300;
+        //TundraSDK.framework.physicsWorld.physicsUpdatePeriod = 1.0 / 120;
     },
     
     spawnMesh : function(id, shape)
@@ -129,11 +140,11 @@ var PhysicsApplication = ICameraApplication.$extend(
         else if (shape === "Cone")
             meshEntity.rigidbody.shapeType = 7;
         
-        var fx = Math.random() * (25 - 1) + 1;
+        /*var fx = Math.random() * (25 - 1) + 1;
         var fy = Math.random() * (100 - 1) + 1;
         var fz = Math.random() * (25 - 1) + 1;
         meshEntity.rigidbody.applyForce(new THREE.Vector3(fx, fy, fz));
-        meshEntity.rigidbody.applyTorgue(new THREE.Vector3(fx, fy, fz));
+        meshEntity.rigidbody.applyTorgue(new THREE.Vector3(fx, fy, fz));*/
     },
     
     createMesh : function(name, ref)
@@ -177,18 +188,15 @@ var PhysicsApplication = ICameraApplication.$extend(
             this.cameraEntity.placeable.transform = t;
         }
         
-        /*if (TundraSDK.framework.frame.wallClockTime() > this.nextTime)
+        if (this.ground.mesh.meshAsset &&
+            !this.groundReady)
         {
-            this.nextTime = TundraSDK.framework.frame.wallClockTime() + 5;
-            this.spawnBoxes(20);
-        }*/
-        
-        for(var i = 0; i < this.removeList.length; ++i)
-        {
-            console.log(this.removeList[i].id);
-            TundraSDK.framework.scene.removeEntity(this.removeList[i].id);
+            this.groundReady = true;
+            var mat = new THREE.MeshPhongMaterial();
+            mat.map = THREE.ImageUtils.loadTexture("ground.png");
+            this.ground.mesh.meshAsset.getSubmesh(0).material = mat;
+            this.ground.mesh.meshAsset.getSubmesh(0).material.needsUpdate = true;
         }
-        this.removeList = [];
     },
 
     onKeyEvent : function(event)

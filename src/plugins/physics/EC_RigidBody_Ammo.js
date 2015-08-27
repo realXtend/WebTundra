@@ -65,10 +65,16 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
                 this.dirty_ = true;
                 break;
             case 7: // LinearFactor
-                //this.log.warn("Missing implementation of '" + name + "' attribute.");
+                var v = new Ammo.btVector3(value.x, value.y, value.z);
+                this.rigidbody_.setLinearFactor(v);
+                Ammo.destroy(v);
+                v = null;
                 break;
             case 8: // AngularFactor
-                //this.log.warn("Missing implementation of '" + name + "' attribute.");
+                var v = new Ammo.btVector3(value.x, value.y, value.z);
+                this.rigidbody_.setAngularFactor(v);
+                Ammo.destroy(v);
+                v = null;
                 break;
             case 9: // LinearVelocity
                 var v = new Ammo.btVector3(value.x, value.y, value.z);
@@ -101,7 +107,6 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
                 this.rigidbody_.setRollingFriction(value);
                 break;
             case 17: // UseGravity
-                console.log(value);
                 //this.log.warn("Missing implementation of '" + name + "' attribute.");
                 break;
         }
@@ -288,20 +293,21 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
             return;
         
         // Read component's attribute valeus
-        var mass = this.attributes.mass.get();
-        var linDamping = this.attributes.linearDamping.get();
-        var angDamping = this.attributes.angularDamping.get();
+        var mass           = this.attributes.mass.get();
+        var linDamping     = this.attributes.linearDamping.get();
+        var angDamping     = this.attributes.angularDamping.get();
         var collisionLayer = this.attributes.collisionLayer.get();
-        var collisionMask =  this.attributes.collisionMask.get();
+        var collisionMask  = this.attributes.collisionMask.get();
+        var friction       = this.attributes.friction.get();
+        var linVel         = this.attributes.linearVelocity.get();
+        var angVel         = this.attributes.angularVelocity.get();
+        var rolFri         = this.attributes.rollingFriction.get();
+        var linFactor      = this.attributes.linearFactor.get();
+        var angFactor      = this.attributes.angularFactor.get();
         
-        var friction =  this.attributes.friction.get();
-        var linVel =  this.attributes.linearVelocity.get();
-        var angVel =  this.attributes.angularVelocity.get();
-        var rolFri = this.attributes.rollingFriction.get();
-        
-        var isKinematic = this.attributes.kinematic.get();
-        var isPhantom = this.attributes.phantom.get();
-        var drawDebug = this.attributes.drawDebug.get();
+        var isKinematic    = this.attributes.kinematic.get();
+        var isPhantom      = this.attributes.phantom.get();
+        var drawDebug      = this.attributes.drawDebug.get();
         
         var shape = this.attributes.shapeType.get();
         var isDynamic = mass > 0.0 && shape !== EC_RigidBody.ShapeType.TriMesh;
@@ -351,11 +357,20 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         
         // Push attribute values to rigidbody.
         this.rigidbody_.setFriction(friction);
+        this.rigidbody_.setRollingFriction(rolFri);
+        
         var v = new Ammo.btVector3(linVel.x, linVel.y, linVel.z);
         this.rigidbody_.setLinearVelocity(v);
+        
         v.setValue(angVel.x, angVel.y, angVel.z);
         this.rigidbody_.setAngularVelocity(v);
-        this.rigidbody_.setRollingFriction(rolFri);
+        
+        v.setValue(linFactor.x, linFactor.y, linFactor.z);
+        this.rigidbody_.setLinearFactor(v);
+        
+        v.setValue(angFactor.x, angFactor.y, angFactor.z);
+        this.rigidbody_.setAngularFactor(v);
+        
         Ammo.destroy(v);
         v = null;
         
@@ -528,7 +543,6 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         this.rigidbody_.getMotionState().getWorldTransform(transform);
         var origin = transform.getOrigin();
         
-        // TODO remove THREE Quaternion when possible
         var quat = new THREE.Quaternion();
         var rot = transform.getRotation();
         quat.set(rot.x(), rot.y(), rot.z(), rot.w());

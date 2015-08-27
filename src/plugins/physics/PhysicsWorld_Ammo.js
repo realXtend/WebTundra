@@ -184,7 +184,9 @@ var PhysicsWorld_Ammo = IPhysicsWorld.$extend(
             this.world.stepSimulation(clampTimeStep, 0, clampTimeStep);
         }
         else
+        {
             this.world.stepSimulation(frametime, this.maxSubSteps, this.physicsUpdatePeriod);
+        }
     },
     
     /**
