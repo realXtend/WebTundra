@@ -4,25 +4,25 @@ define([
         "core/asset/IAsset"
     ], function(Class, IAsset) {
 
-/**
-    Represents a WebTundra text based asset, useful for JSON/XML/TXT etc. requests.
-
-    To use this asset type force asset type to "Text" when calling {{#crossLink "AssetAPI/requestAsset:method"}}{{/crossLink}}.
-    @class TextAsset
-    @extends IAsset
-    @constructor
-    @param {String} name Unique name of the asset, usually this is the asset reference.
-*/
 var TextAsset = IAsset.$extend(
+/** @lends TextAsset.prototype */
 {
+    /**
+        Represents a WebTundra text based asset, useful for JSON/XML/TXT etc. requests.
+        To use this asset type force asset type to "Text" when calling {@link AssetAPI#requestAsset}.
+
+        @constructs
+        @extends IAsset
+        @param {String} name Unique name of the asset, usually this is the asset reference.
+    */
     __init__ : function(name)
     {
         this.$super(name, "TextAsset");
 
         /**
-            Asset data string.
-            @property data
-            @type String
+            Asset data string. This can be a JSON object, DOM XML node or
+            a string, depending on the type of the asset request.
+            @var {String}
         */
         this.data = null;
     },
@@ -32,7 +32,7 @@ var TextAsset = IAsset.$extend(
         return (this.data !== null);
     },
 
-    deserializeFromData : function(data)
+    deserializeFromData : function(data, dataType, transfer)
     {
         this.data = data;
     },

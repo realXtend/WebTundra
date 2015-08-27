@@ -4,20 +4,20 @@ define([
         "core/framework/CoreStringUtils"
     ], function(Class, CoreStringUtils) {
 
-/**
-    AssetFactory for creating new assets.
-
-    @class AssetFactory
-    @constructor
-    @param {String} name Name of the factory.
-    @param {IAsset} assetClass Asset class that new assets are created from. 
-    @param {Object} typeExtensions Map of lower cased file extension to the network request data type.
-    If 'undefined' this asset can only be created via forcing the request type to assetType in AssetAPI.requestAsset.
-    Or you can do more complex logic by overriding requestDataType and canCreate functions.
-    @param {String} defaultDataType Default network request data type for example 'xml', 'text', 'arraybuffer', 'json' etc.
-*/
 var AssetFactory = Class.$extend(
+/** @lends AssetFactory.prototype */
 {
+    /**
+        AssetFactory for creating new assets.
+
+        @constructs
+        @param {String} name Name of the factory.
+        @param {IAsset} assetClass Asset class that new assets are created from.
+        @param {Object} typeExtensions Map of lower cased file extension to the network request data type.
+        If 'undefined' this asset can only be created via forcing the request type to assetType in AssetAPI.requestAsset.
+        Or you can do more complex logic by overriding requestDataType and canCreate functions.
+        @param {String} defaultDataType Default network request data type for example 'xml', 'text', 'arraybuffer', 'json' etc.
+    */
     __init__ : function(assetType, assetClass, typeExtensions, defaultDataType)
     {
         if (typeof assetType !== "string")
@@ -37,6 +37,7 @@ var AssetFactory = Class.$extend(
 
     /**
         Returns supported file extensions.
+
         @return {Array<string>}
     */
     supportedSuffixes : function()
@@ -47,7 +48,6 @@ var AssetFactory = Class.$extend(
     /**
         Returns the data type for the network request for a particular suffix.
 
-        @method requestDataType
         @param {String} extension File type extension.
         @return {String}
     */
@@ -63,9 +63,8 @@ var AssetFactory = Class.$extend(
 
     /**
         Returns if this factory can create assets for a given file extension.
-        The extension should start with a dot, eg. ".png".
+        The extension should start with a dot, e.g. ".png".
 
-        @method canCreate
         @param {String} extension File type extension.
         @return {Boolean}
     */
@@ -74,11 +73,12 @@ var AssetFactory = Class.$extend(
         if (this.typeExtensions === undefined || this.typeExtensions === null)
             return false;
 
+        var assetRefSuffix = CoreStringUtils.extension(assetRef);
         var assetRefLower = assetRef.toLowerCase();
         var supportedSuffixes = Object.keys(this.typeExtensions);
         for (var i=0, len=supportedSuffixes.length; i<len; ++i)
         {
-            if (CoreStringUtils.endsWith(assetRef, supportedSuffixes[i]))
+            if (CoreStringUtils.endsWith(assetRefSuffix, supportedSuffixes[i]))
                 return true;
         }
         return false;
@@ -87,7 +87,6 @@ var AssetFactory = Class.$extend(
     /**
         Returns a new empty asset for the given assetRef. Null if cannot be created.
 
-        @method createEmptyAsset
         @param {String} assetRef Asset reference for the new asset.
         @return {IAsset|null}
     */
@@ -100,9 +99,8 @@ var AssetFactory = Class.$extend(
 
     /**
         Called when a new asset is created. You can implement your own AssetFactory and
-        override this function to get notificatin each time a new asset has been created.
+        override this function to get notification each time a new asset has been created.
 
-        @method emptyAssetCreated
         @param {IAsset} asset Created asset.
     */
     emptyAssetCreated : function(asset)

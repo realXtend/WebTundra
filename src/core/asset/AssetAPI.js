@@ -1,6 +1,7 @@
 
 define([
-        "core/framework/TundraSDK",
+        "core/framework/Tundra",
+        "core/framework/ITundraAPI",
         "core/framework/CoreStringUtils",
         "core/frame/AsyncHelper",
         "core/frame/FrameLimiter",
@@ -10,20 +11,21 @@ define([
         "core/asset/IAsset",
         "core/asset/TextAsset",
         "core/asset/BinaryAsset"
-    ], function(TundraSDK, CoreStringUtils, AsyncHelper, FrameLimiter,
+    ], function(Tundra, ITundraAPI, CoreStringUtils, AsyncHelper, FrameLimiter,
                 AssetCache, AssetTransfer, AssetFactory,
                 IAsset, TextAsset, BinaryAsset) {
 
-var AssetAPI = Class.$extend(
+var AssetAPI = ITundraAPI.$extend(
 /** @lends AssetAPI.prototype */
 {
     /**
         The AssetAPI provides functionalities to loads requested assets to the system and manages their lifetime.
         Assets can be textures, meshes, materials etc, and are in the most cases automatically handled by WebTundra.
 
-        AssetAPI is a singleton and accessible from {@link TundraSDK.framework.asset}
+        AssetAPI is a singleton and accessible from {@link Tundra.asset}
 
         @constructs
+        @extends ITundraAPI
         @private
     */
     __init__ : function(name, options, globalOptions)
@@ -58,7 +60,7 @@ var AssetAPI = Class.$extend(
             @var {AssetCache}
 
             * @example
-            * var asset = TundraSDK.framework.asset.cache.get(assetRef);
+            * var asset = Tundra.asset.cache.get(assetRef);
             * if (asset)
             *     console.log(asset.name);
         */
@@ -97,11 +99,12 @@ var AssetAPI = Class.$extend(
 
             @var {Object}
             * @example
-            * TundraSDK.framework.asset.maxActiveTransfersPerType["Binary"] = 5;
+            * Tundra.asset.maxActiveTransfersPerType["Binary"] = 5;
         */
         this.maxActiveTransfersPerType = {};
     },
 
+    // ITundraAPI override
     initialize : function()
     {
         // Register core asset factories
@@ -114,12 +117,14 @@ var AssetAPI = Class.$extend(
         }, "text"));
     },
 
+    // ITundraAPI override
     postInitialize : function()
     {
         for (var i = 0; i < this.factories.length; i++)
             this._logAssetTypeFactory(this.factories[i], true);
     },
 
+    // ITundraAPI override
     reset : function()
     {
         this.abortTransfers();
@@ -171,8 +176,8 @@ var AssetAPI = Class.$extend(
         {
             this.httpProxyResolver = resolver;
 
-            if (TundraSDK.framework.events)
-                TundraSDK.framework.events.send("AssetAPI.HTTP.Proxy.Changed", this.httpProxyResolver);
+            if (Tundra.events)
+                Tundra.events.send("AssetAPI.HTTP.Proxy.Changed", this.httpProxyResolver);
             return this.httpProxyResolver;
         },
 
@@ -194,7 +199,7 @@ var AssetAPI = Class.$extend(
                 context = "";
             if (typeof context !== "string")
             {
-                TundraSDK.framework.asset.log.error("loadDependencies: First parameter must be a context ref. If you don't need to specify a context pass in 'undefined'");
+                Tundra.asset.log.error("loadDependencies: First parameter must be a context ref. If you don't need to specify a context pass in 'undefined'");
                 return $.Deferred(function(defer) {
                     defer.reject();
                 }).promise();
@@ -203,18 +208,18 @@ var AssetAPI = Class.$extend(
             var refs = [].slice.call(arguments, 1);
             if (!Array.isArray(refs) || refs.length === 0)
             {
-                TundraSDK.framework.asset.log.error("loadDependencies: Invoked without any dependencies");
+                Tundra.asset.log.error("loadDependencies: Invoked without any dependencies");
                 return $.Deferred(function(defer) {
                     defer.reject();
                 }).promise();
             }
             // Resolve references
-            context = TundraSDK.framework.asset.resolveAssetRef("", context);
+            context = Tundra.asset.resolveAssetRef("", context);
             for (var i = 0; i < refs.length; i++)
             {
                 if (typeof refs[i] !== "string")
                 {
-                    TundraSDK.framework.asset.log.error("loadDependencies: Invoked with a dependency that is not a string:", refs);
+                    Tundra.asset.log.error("loadDependencies: Invoked with a dependency that is not a string:", refs);
                     return $.Deferred(function(defer) {
                         defer.reject();
                     }).promise();
@@ -222,7 +227,7 @@ var AssetAPI = Class.$extend(
             }
             for (var i = 0; i < refs.length; i++)
             {
-                var resolved = TundraSDK.framework.asset.resolveAssetRef(context, refs[i]);
+                var resolved = Tundra.asset.resolveAssetRef(context, refs[i]);
                 if (typeof resolved === "string" && resolved !== "" && resolved !== refs[i])
                     refs[i] = resolved;
             }
@@ -247,7 +252,7 @@ var AssetAPI = Class.$extend(
                     {
                         if (this._error !== undefined)
                         {
-                            TundraSDK.framework.asset.log.error("loadDependencies:", this._error);
+                            Tundra.asset.log.error("loadDependencies:", this._error);
                             this.reject(this.error);
                             return;
                         }
@@ -261,7 +266,7 @@ var AssetAPI = Class.$extend(
                         var ext = CoreStringUtils.extension(this._processingRef);
                         if (ext !== ".html")
                         {
-                            TundraSDK.framework.asset.loadScript(this._processingRef)
+                            Tundra.asset.loadScript(this._processingRef)
                                 .fail(this._onFail.bind(this))
                                 .always(this._processNext.bind(this));
                         }
@@ -337,7 +342,7 @@ var AssetAPI = Class.$extend(
     */
     onHttpProxyResolvedChanged : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("AssetAPI.HTTP.Proxy.Changed", context, callback);
+        return Tundra.events.subscribe("AssetAPI.HTTP.Proxy.Changed", context, callback);
     },
 
     /**
@@ -478,7 +483,7 @@ var AssetAPI = Class.$extend(
         {
             var asset = assets[i];
             if (asset != null)
-                TundraSDK.framework.events.send("AssetAPI.AssetAboutToBeRemoved", asset);
+                Tundra.events.send("AssetAPI.AssetAboutToBeRemoved", asset);
             if (doUnload && asset != null && typeof asset.unload === "function")
             {
                 // Reset the requiresCloning boolean as we really want to unload now.
@@ -519,7 +524,7 @@ var AssetAPI = Class.$extend(
         var asset = this.cache.get(ref);
         if (asset)
         {
-            TundraSDK.framework.events.send("AssetAPI.AssetAboutToBeRemoved", asset);
+            Tundra.events.send("AssetAPI.AssetAboutToBeRemoved", asset);
             if (doUnload && typeof asset.unload === "function")
             {
                 // Reset the requiresCloning boolean as we really want to unload now.
@@ -657,7 +662,7 @@ var AssetAPI = Class.$extend(
         {
             if (schemaless.indexOf("localhost") === 0)
                 return true;
-            else if (typeof TundraSDK.framework.DeveloperServerHost === "string" && schemaless.indexOf(TundraSDK.framework.DeveloperServerHost) === 0)
+            else if (typeof Tundra.DeveloperServerHost === "string" && schemaless.indexOf(Tundra.DeveloperServerHost) === 0)
                 return true;
         }
         return false;
@@ -878,7 +883,7 @@ var AssetAPI = Class.$extend(
         * var myContext = { name : "MyContextObject", meshAsset : null, textAsset : null };
         *
         * // Passing in metadata for the callback.
-        * var transfer = TundraSDK.framework.asset.requestAsset("http://www.my-assets.com/meshes/my.mesh");
+        * var transfer = Tundra.asset.requestAsset("http://www.my-assets.com/meshes/my.mesh");
         * if (transfer != null)
         * {
         *     // You can give custom metadata that will be sent to you on completion.
@@ -889,7 +894,7 @@ var AssetAPI = Class.$extend(
         *     }, { id : 14, name : "my mesh"}); // This object is the metadata
         * }
         * // Forcing an asset type for a request.
-        * transfer = TundraSDK.framework.asset.requestAsset("http://www.my-assets.com/data/my.json", "Text");
+        * transfer = Tundra.asset.requestAsset("http://www.my-assets.com/data/my.json", "Text");
         * if (transfer != null)
         * {
         *     transfer.onCompleted(myContext, function(asset) {
@@ -1031,7 +1036,7 @@ var AssetAPI = Class.$extend(
 
         /** @todo Evaluate if this event should fire for 'readyTransfers'
             that are just dummy transfers of already loaded assets. */
-        TundraSDK.framework.events.send("AssetAPI.ActiveAssetTransferCountChanged", this.numCurrentTransfers());
+        Tundra.events.send("AssetAPI.ActiveAssetTransferCountChanged", this.numCurrentTransfers());
 
         return transfer;
     },
@@ -1187,7 +1192,7 @@ var AssetAPI = Class.$extend(
         }
 
         var numPending = this.numCurrentTransfers();
-        TundraSDK.framework.events.send("AssetAPI.ActiveAssetTransferCountChanged", numPending);
+        Tundra.events.send("AssetAPI.ActiveAssetTransferCountChanged", numPending);
 
         // All done
         if (numPending === 0)
@@ -1196,7 +1201,7 @@ var AssetAPI = Class.$extend(
             this._timing.resolve("transfers.completed", true, this._timing.data.transferNum);
 
             // Logging
-            if (TundraSDK.framework.client.isConnected() || this.log.isDebug())
+            if (Tundra.client.isConnected() || this.log.isDebug())
             {
                 this._timing.async("transfers.completed.sync", function() {
                     if (typeof this._timing.data.transferNum === "number" && this._timing.data.transferNum > 0)
@@ -1209,10 +1214,10 @@ var AssetAPI = Class.$extend(
                     }
                     this._timing.data.transferNum = 0;
 
-                    if (this.log.isDebug() || TundraSDK.framework.network.options.debug === false)
+                    if (this.log.isDebug() || Tundra.network.options.debug === false)
                     {
                         var loadedAssets = {};
-                        var assets = TundraSDK.framework.asset.cache.getAssets();
+                        var assets = Tundra.asset.cache.getAssets();
                         for (var i = 0; i < assets.length; i++)
                         {
                             var asset = assets[i];
@@ -1258,7 +1263,7 @@ var AssetAPI = Class.$extend(
             // - AssetTransfer.silent
             // - "204 No Content"
             if (!transfer.silent && transfer.httpStatusCode !== 204)
-                TundraSDK.framework.client.logError("[AssetAPI]: " + reason, true);
+                Tundra.client.logError("[AssetAPI]: " + reason, true);
         }
 
         // Notify failure
@@ -1275,7 +1280,7 @@ var AssetAPI = Class.$extend(
         {
             var asset = factory.createEmptyAsset(assetRef);
             this.cache.set(asset.name, asset);
-            TundraSDK.framework.events.send("AssetAPI.AssetCreated", asset);
+            Tundra.events.send("AssetAPI.AssetCreated", asset);
             return asset;
         }
         return null;
@@ -1298,7 +1303,7 @@ var AssetAPI = Class.$extend(
         @return {jQuery.Promise}
 
         * @example
-        * TundraSDK.framework.asset.onTransfersCompleted().done(function(numTransfered) {
+        * Tundra.asset.onTransfersCompleted().done(function(numTransfered) {
         *     console.debug("Transfers done. Starting application. Completed while waiting:", numTransfered);
         * }.bind(this));
     */
@@ -1318,13 +1323,13 @@ var AssetAPI = Class.$extend(
         See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
 
         * @example
-        * TundraSDK.framework.asset.onActiveAssetTransferCountChanged(null, function(num) {
+        * Tundra.asset.onActiveAssetTransferCountChanged(null, function(num) {
         *     console.log("Transfers remaining:", num);
         * });
     */
     onActiveAssetTransferCountChanged : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("AssetAPI.ActiveAssetTransferCountChanged", context, callback);
+        return Tundra.events.subscribe("AssetAPI.ActiveAssetTransferCountChanged", context, callback);
     },
 
     /**
@@ -1338,7 +1343,7 @@ var AssetAPI = Class.$extend(
     */
     onAssetCreated : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("AssetAPI.AssetCreated", context, callback);
+        return Tundra.events.subscribe("AssetAPI.AssetCreated", context, callback);
     },
 
     /**
@@ -1352,12 +1357,12 @@ var AssetAPI = Class.$extend(
     */
     onAssetDeserializedFromData : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("AssetAPI.AssetDeserializedFromData", context, callback);
+        return Tundra.events.subscribe("AssetAPI.AssetDeserializedFromData", context, callback);
     },
 
     _emitAssetDeserializedFromData : function(asset)
     {
-        TundraSDK.framework.events.send("AssetAPI.AssetDeserializedFromData", asset);
+        Tundra.events.send("AssetAPI.AssetDeserializedFromData", asset);
         asset._emitDeserializedFromData();
     },
 
@@ -1372,7 +1377,7 @@ var AssetAPI = Class.$extend(
     */
     onAssetAboutToBeRemoved : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("AssetAPI.AssetAboutToBeRemoved", context, callback);
+        return Tundra.events.subscribe("AssetAPI.AssetAboutToBeRemoved", context, callback);
     }
 });
 

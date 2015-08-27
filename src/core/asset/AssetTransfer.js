@@ -1,93 +1,96 @@
 
 define([
         "lib/classy",
-        "core/framework/TundraSDK",
+        "core/framework/Tundra",
         "core/framework/TundraLogging",
         "core/asset/IAsset"
-    ], function(Class, TundraSDK, TundraLogging, IAsset) {
+    ], function(Class, Tundra, TundraLogging, IAsset) {
 
-/**
-    Asset transfer represents an web asset transfer operation.
 
-    @class AssetTransfer
-    @constructor
-*/
 var AssetTransfer = Class.$extend(
+/** @lends AssetTransfer.prototype */
 {
+    /**
+        Asset transfer represents an web asset transfer operation.
+
+        @constructs
+        @param {AssetFactory} factory
+        @param {String} ref
+        @param {String} proxyRef
+        @param {String} type
+        @param {String} suffix
+    */
     __init__ : function(factory, ref, proxyRef, type, suffix)
     {
-        this.log = TundraLogging.getLogger("AssetTransfer");
-
         /**
             Factory that will produce this asset.
-            @property factory
-            @type AssetFactory
+            @var {AssetFactory}
         */
         this.factory = factory;
         /**
             Full unique asset reference.
-            @property ref
-            @type String
+            @var {String}
         */
         this.ref = ref;
         /**
             HTTP asset proxy request URL. 'undefined' if not fetched from a proxy.
-            @property proxyRef
-            @type String
+            @var {String}
         */
         this.proxyRef = proxyRef;
         /**
             Asset type.
-            @property type
-            @type String
+            @var {String}
         */
         this.type = type;
         /**
             Requests file suffix.
-            @property suffix
-            @type String
+            @var {String}
         */
         this.suffix = suffix;
         /**
             Request data type for the HTTP GET, if null lets the browser auto detect.
             Possible values are "text", "xml", "arraybuffer" or null.
-            @property requestDataType
-            @type String
+            @var {String}
         */
         this.requestDataType = undefined;
         /**
             Request timeout. The request will assume to have failed after this time once sent.
-            @property requestTimeout
-            @type Number
+            @var {Number}
         */
         this.requestTimeout = 10000;
         /**
             True if this transfer is active aka fetching resource from the source.
-            @property active
-            @type Boolean
+            @var {Boolean}
         */
         this.active = false;
         /**
             True if this transfer has finished, but the asset is still loading itself.
             This can happen if the asset has dependencies it needs to fetch before/during loading.
-            @property loading
-            @type Boolean
+            @var {Boolean}
         */
         this.loading = false;
         /**
             If this asset is aborted. When true the callbacks waiting for this transfer
             to finish won't be invoked once the web request finishes.
             or loading the response data into a IAsset.
-            @property active
-            @type Boolean
+            @var {Boolean}
         */
         this.aborted = false;
         /**
+            If error logging should be suppressed on error responses.
+            @var {Boolean}
+        */
+        this.silent = false;
+        /**
             Parent assets that depend on the current transfer of this asset.
-            @property parentAssets
-            @type IAsset
+            @var {IAsset}
         */
         this.parentAssets = [];
+        /**
+            HTTP response status code.
+            @var {Number}
+        */
+        this.httpStatusCode = -1;
 
         // Private, don't doc.
         this.subscribers = [];
@@ -103,6 +106,11 @@ var AssetTransfer = Class.$extend(
             AssetTransfer.completedFired = {};
         },
 
+        /**
+            @static
+            @readonly
+            @enum {Number}
+        */
         HttpStatus :
         {
             // Informational 1xx
@@ -156,6 +164,13 @@ var AssetTransfer = Class.$extend(
             HTTP_VERSION_NOT_SUPPORTED      : 505
         },
 
+        /**
+            Returns a corresponding status code text for status code
+
+            @static
+            @param {Number} statusCode
+            @return {String}
+        */
         statusCodeName : function(statusCode)
         {
             switch(statusCode)
@@ -206,6 +221,11 @@ var AssetTransfer = Class.$extend(
             }
         },
 
+        /**
+            Returns if status code is a success.
+            @param {Number} statusCode
+            @return {Boolean}
+        */
         isHttpSuccess : function(statusCode)
         {
             // For asset transfers the following are errors
@@ -224,9 +244,25 @@ var AssetTransfer = Class.$extend(
         }
     },
 
+    /**
+        @return {String}
+    */
     toString : function()
     {
         return "ref = " + this.ref + " type = " + this.type + " suffix = " + this.suffix + " dataType = " + this.requestDataType;
+    },
+
+    /**
+        @param {AssetTransfer} transfer
+        @return {Boolean}
+    */
+    equals : function(transfer)
+    {
+        // @todo We need some kind of running number or a uuid to get something unique.
+        if (!transfer || !transfer.ref)
+            return;
+
+        return (this.ref === transfer.ref && this.proxyRef === transfer.proxyRef && this.type === transfer.type);
     },
 
     /**
@@ -235,20 +271,31 @@ var AssetTransfer = Class.$extend(
     */
     abort : function()
     {
+        if (this.aborted === true)
+            return;
         this.aborted = true;
+
+        // @hox Should _emitFailed be called?!
+        Tundra.asset.removeTransfer(this);
+
+        // Abort if in flight
+        if (this._ajax !== undefined && typeof this._ajax.abort === "function")
+        {
+            this._ajax.abort();
+            this._ajax = undefined;
+        }
     },
 
     /**
         Adds a parent asset for this transfer if not already added.
 
-        @method addParentAsset
         @param {IAsset} asset Parent asset that depends on this transfer.
     */
     addParentAsset : function(asset)
     {
         if (!(asset instanceof IAsset))
         {
-            this.log.error("addParentAsset called with non IAsset object:", asset);
+            TundraLogging.get("AssetTransfer").error("addParentAsset called with non IAsset object:", asset);
             return;
         }
         for (var i = 0; i < this.parentAssets.length; i++)
@@ -260,39 +307,38 @@ var AssetTransfer = Class.$extend(
     /**
         Registers a callback for asset transfer and asset load completion.
 
-        @example
-            var myContext = { name : "MyContextObject", meshAsset : null, textAsset : null };
-
-            // Passing in metadata for the callback.
-            var transfer = TundraSDK.framework.asset.requestAsset("http://www.my-assets.com/meshes/my.mesh");
-            if (transfer != null)
-            {
-                // You can give custom metadata that will be sent to you on completion.
-                transfer.onCompleted(myContext, function(asset, metadata) {
-                    this.meshAsset = asset;       // this === the given context, in this case 'myContext'
-                    console.log("Mesh loaded:", asset.name);
-                    console.log("My metadata: ", metadata);
-                }, { id : 14, name : "my mesh"}); // This object is the metadata
-            }
-            // Forcing an asset type for a request.
-            transfer = TundraSDK.framework.asset.requestAsset("http://www.my-assets.com/data/my.json", "Text");
-            if (transfer != null)
-            {
-                transfer.onCompleted(myContext, function(asset) {
-                    this.textAsset = asset;              // this === the given context, in this case 'myContext'
-                    console.log(JSON.parse(asset.data)); // "Text" forced TextAsset type
-                });
-                transfer.onFailed(myContext, function(transfer, reason, metadata) {
-                    console.log("Failed to fetch my json from", transfer.ref, "into", this.name); // this.name === "MyContextObject"
-                    console.log("Reason:", + reason);
-                    console.log("Metadata id:", metadata); // metadata === 12345
-                }, 12345);
-            }
-
-        @method onCompleted
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @param {Object} [metadata=undefined] Metadata you want to receive into the callback.
+
+        * @example
+        * var myContext = { name : "MyContextObject", meshAsset : null, textAsset : null };
+        *
+        * // Passing in metadata for the callback.
+        * var transfer = Tundra.asset.requestAsset("http://www.my-assets.com/meshes/my.mesh");
+        * if (transfer != null)
+        * {
+        *     // You can give custom metadata that will be sent to you on completion.
+        *     transfer.onCompleted(myContext, function(asset, metadata) {
+        *         this.meshAsset = asset;       // this === the given context, in this case 'myContext'
+        *         console.log("Mesh loaded:", asset.name);
+        *         console.log("My metadata: ", metadata);
+        *     }, { id : 14, name : "my mesh"}); // This object is the metadata
+        * }
+        * // Forcing an asset type for a request.
+        * transfer = Tundra.asset.requestAsset("http://www.my-assets.com/data/my.json", "Text");
+        * if (transfer != null)
+        * {
+        *     transfer.onCompleted(myContext, function(asset) {
+        *         this.textAsset = asset;              // this === the given context, in this case 'myContext'
+        *         console.log(JSON.parse(asset.data)); // "Text" forced TextAsset type
+        *     });
+        *     transfer.onFailed(myContext, function(transfer, reason, metadata) {
+        *         console.log("Failed to fetch my json from", transfer.ref, "into", this.name); // this.name === "MyContextObject"
+        *         console.log("Reason:", + reason);
+        *         console.log("Metadata id:", metadata); // metadata === 12345
+        *     }, 12345);
+        * }
     */
     onCompleted : function(context, callback, metadata)
     {
@@ -307,21 +353,20 @@ var AssetTransfer = Class.$extend(
     /**
         Registers a callback for asset transfer and asset load completion.
 
-        @example
-            var transfer = TundraSDK.framework.asset.requestAsset("http://www.my-assets.com/meshes/my.mesh");
-            if (transfer != null)
-            {
-                transfer.onFailed(null, function(transfer, reason, metadata) {
-                    console.log("Failed to fetch my json from", transfer.ref);
-                    console.log("Reason:", + reason);
-                    console.log("Metadata id:", metadata); // metadata === 12345
-                }, 12345);
-            }
-
-        @method onFailed
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @param {Object} [metadata=undefined] Metadata you want to receive into the callback.
+
+        * @example
+        * var transfer = Tundra.asset.requestAsset("http://www.my-assets.com/meshes/my.mesh");
+        * if (transfer != null)
+        * {
+        *     transfer.onFailed(null, function(transfer, reason, metadata) {
+        *         console.log("Failed to fetch my json from", transfer.ref);
+        *         console.log("Reason:", + reason);
+        *         console.log("Metadata id:", metadata); // metadata === 12345
+        *     }, 12345);
+        * }
     */
     onFailed : function(context, callback, metadata)
     {
@@ -339,10 +384,10 @@ var AssetTransfer = Class.$extend(
         if (typeof dataType === "string")
             return dataType;
 
-        this.log.warn("AssetFactory for", this.ref, "failed to return data type. Guessing from known types.");
+        TundraLogging.get("AssetTransfer").warn("AssetFactory for", this.ref, "failed to return data type. Guessing from known types.");
 
         /** @todo Take an educated guess with type and suffix.
-            There should be logic to ask the request data type either 
+            There should be logic to ask the request data type either
             from the AssetFactory or the IAsset class it instantiates.
             And/or have option to override the data type in AssetAPI.RequestAsset. */
         if (this.type === "Binary")
@@ -362,7 +407,7 @@ var AssetTransfer = Class.$extend(
     {
         if (this.active === true)
         {
-            this.log.error("Transfer is already active, refusing to re-send:", this.ref);
+            TundraLogging.get("AssetTransfer").error("Transfer is already active, refusing to re-send:", this.ref);
             return;
         }
         this.active = true;
@@ -370,21 +415,21 @@ var AssetTransfer = Class.$extend(
         // If proxy has been set ask it for the data type. We cannot assume it from
         // the asset ref suffix as binary <-> text conversions can occur in the proxy.
         // Proxy also needs to tell us what is the appropriate request timeout.
-        if (this.proxyRef !== undefined && TundraSDK.framework.asset.getHttpProxyResolver() !== undefined)
+        if (Tundra.asset.getHttpProxyResolver() !== undefined)
         {
-             var transferMetadata = TundraSDK.framework.asset.getHttpProxyResolver().resolveRequestMetadata(this, this.proxyRef);
-             if (transferMetadata !== undefined)
-             {
-                 this.requestDataType = (typeof transferMetadata.dataType === "string" ? transferMetadata.dataType : undefined);
-                 this.requestTimeout = (typeof transferMetadata.timeout === "number" ? transferMetadata.timeout : this.requestTimeout);
-             }
+            var transferMetadata = Tundra.asset.getHttpProxyResolver().resolveRequestMetadata(this, this.proxyRef);
+            if (transferMetadata !== undefined)
+            {
+                this.requestDataType = (typeof transferMetadata.dataType === "string" ? transferMetadata.dataType : undefined);
+                this.requestTimeout = (typeof transferMetadata.timeout === "number" ? transferMetadata.timeout : this.requestTimeout);
+            }
         }
         if (this.requestDataType === undefined  || this.requestDataType === null || this.requestDataType === "")
             this.requestDataType = this._detectRequestDataType();
 
         if (this.requestDataType !== "arraybuffer" && this.requestDataType !== "document")
         {
-            $.ajax({
+            this._ajax = $.ajax({
                 type        : "GET",
                 timeout     : this.requestTimeout,
                 url         : (this.proxyRef !== undefined ? this.proxyRef : this.ref),
@@ -396,16 +441,16 @@ var AssetTransfer = Class.$extend(
         }
         else
         {
-            var xmlHttpRequest = new XMLHttpRequest();
-            xmlHttpRequest.open("GET", (this.proxyRef !== undefined ? this.proxyRef : this.ref), true);
-            xmlHttpRequest.responseType = this.requestDataType;
-            xmlHttpRequest.timeout = this.requestTimeout;
+            this._ajax = new XMLHttpRequest();
+            this._ajax.open("GET", (this.proxyRef !== undefined ? this.proxyRef : this.ref), true);
+            this._ajax.responseType = this.requestDataType;
+            this._ajax.timeout = this.requestTimeout;
 
-            xmlHttpRequest.addEventListener("load", this._onTransferCompletedBinary.bind(this), false);
-            xmlHttpRequest.addEventListener("timeout", this._onTransferFailedBinary.bind(this), false);
-            xmlHttpRequest.addEventListener("error", this._onTransferFailedBinary.bind(this), false);
+            this._ajax.addEventListener("load", this._onTransferCompletedBinary.bind(this), false);
+            this._ajax.addEventListener("timeout", this._onTransferFailedBinary.bind(this), false);
+            this._ajax.addEventListener("error", this._onTransferFailedBinary.bind(this), false);
 
-            xmlHttpRequest.send(null);
+            this._ajax.send(null);
         }
     },
 
@@ -414,7 +459,7 @@ var AssetTransfer = Class.$extend(
         if (AssetTransfer.isHttpSuccess(statusCode))
             return false;
 
-        TundraSDK.framework.asset.assetTransferFailed(this, "Request failed " + this.ref + ": " +
+        Tundra.asset.assetTransferFailed(this, "Request failed " + this.ref + ": " +
             statusCode + " " + AssetTransfer.statusCodeName(statusCode));
         return true;
     },
@@ -424,7 +469,8 @@ var AssetTransfer = Class.$extend(
         if (this.aborted === true)
             return;
 
-        if (this._handleHttpErrors(jqXHR.status))
+        this.httpStatusCode = jqXHR.status;
+        if (this._handleHttpErrors(this.httpStatusCode))
             return;
 
         this._loadAssetFromData(data);
@@ -434,6 +480,8 @@ var AssetTransfer = Class.$extend(
         jqXHR.responseXml = null;
         delete jqXHR; jqXHR = null;
         delete data; data = null;
+
+        this._ajax = undefined;
     },
 
     _onTransferCompletedBinary : function(event)
@@ -441,10 +489,9 @@ var AssetTransfer = Class.$extend(
         if (this.aborted === true)
             return;
 
-        // Proxy asked us to wait?
         var request = event.currentTarget;
-
-        if (this._handleHttpErrors(request.status))
+        this.httpStatusCode = request.status;
+        if (this._handleHttpErrors(this.httpStatusCode))
             return;
 
         this._loadAssetFromData(request.response);
@@ -452,6 +499,8 @@ var AssetTransfer = Class.$extend(
         // Cleanup
         request.response = null;
         delete request; request = null;
+
+        this._ajax = undefined;
     },
 
     _onTransferFailed : function(jqXHR, textStatus, errorThrown)
@@ -459,7 +508,9 @@ var AssetTransfer = Class.$extend(
         if (this.aborted === true)
             return;
 
-        TundraSDK.framework.asset.assetTransferFailed(this, "Request failed " + this.ref + ": " +
+        this.httpStatusCode = jqXHR.status;
+
+        Tundra.asset.assetTransferFailed(this, "Request failed " + this.ref + ": " +
             (jqXHR.status !== 0 ? jqXHR.status : "Request Timed Out") + " " +
             AssetTransfer.statusCodeName(jqXHR.status) +
             (typeof textStatus === "string" ? " (" + textStatus  + ")": "")
@@ -469,6 +520,8 @@ var AssetTransfer = Class.$extend(
         jqXHR.responseText = null;
         jqXHR.responseXml = null;
         delete jqXHR; jqXHR = null;
+
+        this._ajax = undefined;
     },
 
     _onTransferFailedBinary : function(event)
@@ -478,8 +531,9 @@ var AssetTransfer = Class.$extend(
 
         // Proxy asked us to wait?
         var request = event.currentTarget;
+        this.httpStatusCode = request.status;
 
-        TundraSDK.framework.asset.assetTransferFailed(this, "Request failed " + this.ref + ": " +
+        Tundra.asset.assetTransferFailed(this, "Request failed " + this.ref + ": " +
             (request.status !== 0 ? request.status : "Request Timed Out") + " " +
             AssetTransfer.statusCodeName(request.status)
         );
@@ -487,16 +541,18 @@ var AssetTransfer = Class.$extend(
         // Cleanup
         request.response = null;
         delete request; request = null;
+
+        this._ajax = undefined;
     },
 
     _loadAssetFromData : function(data)
     {
-        TundraSDK.framework.asset.removeActiveTransfer(this);
+        Tundra.asset.removeActiveTransfer(this);
 
-        var asset = TundraSDK.framework.asset.createEmptyAsset(this.ref, this.type);
+        var asset = Tundra.asset.createEmptyAsset(this.ref, this.type);
         if (asset == null)
         {
-            TundraSDK.framework.asset.assetTransferFailed(this, "Failed to create asset of unknown type '" + this.type + "' for '" + this.ref + "'");
+            Tundra.asset.assetTransferFailed(this, "Failed to create asset of unknown type '" + this.type + "' for '" + this.ref + "'");
             return;
         }
 
@@ -506,7 +562,7 @@ var AssetTransfer = Class.$extend(
         }
         catch(e)
         {
-            TundraSDK.framework.asset.assetTransferFailed(this, "Exception while deserializing asset from data: " + e, true);
+            Tundra.asset.assetTransferFailed(this, "Exception while deserializing asset from data: " + e, true);
             if (e.stack !== undefined)
                 console.error(e.stack);
             console.log(this);
@@ -517,19 +573,21 @@ var AssetTransfer = Class.$extend(
 
     _deserializeFromData : function(asset, data)
     {
-        var succeeded = asset._deserializeFromData(data, this.requestDataType);
+        var succeeded = asset._deserializeFromData(data, this.requestDataType, this);
 
         // Load failed synchronously
         if (!succeeded)
-            TundraSDK.framework.asset.assetTransferFailed(this, "IAsset.deserializeFromData failed loading asset " + this.ref);
+            Tundra.asset.assetTransferFailed(this, "IAsset.deserializeFromData failed loading asset " + this.ref);
         // Loaded completed synchronously
         else if (asset.isLoaded())
             this._assetLoadCompleted(asset);
-        // Load did not fail or complete yet: The asset is fetching dependencies etc.
+        // Load did not fail or complete yet: The asset is fetching dependencies or
+        // loading asynchronously with a WebWorker or just library that uses callbacks.
         else
         {
             this.loading = true;
             this.subscriptions.push(asset.onLoaded(this, this._assetLoadCompleted));
+            this.subscriptions.push(asset.onFailed(this, this._assetLoadFailed));
             this.subscriptions.push(asset.onDependencyFailed(this, this._assetDependencyFailed));
         }
     },
@@ -537,20 +595,27 @@ var AssetTransfer = Class.$extend(
     _assetLoadCompleted : function(asset)
     {
         this.loading = false;
-        TundraSDK.framework.asset.assetTransferCompleted(this, asset);
+        Tundra.asset.assetTransferCompleted(this, asset);
+    },
+
+    _assetLoadFailed : function(asset, reason)
+    {
+        this.loading = false;
+        Tundra.asset.assetTransferFailed(this,
+            "Asset " + this.ref + " request failed: " + (typeof reason === "string" ? reason : "Unkown reason"));
     },
 
     _assetDependencyFailed : function(dependencyRef)
     {
         this.loading = false;
-        TundraSDK.framework.asset.assetTransferFailed(this, "Asset request failed: " + this.ref +
-            ". Dependency " + dependencyRef + " could not be loaded.");
+        Tundra.asset.assetTransferFailed(this,
+            "Asset " + this.ref + " request failed. Dependency " + dependencyRef + " could not be loaded.");
     },
 
     _emitCompleted : function(asset)
     {
         for (var i = 0; i < this.subscriptions.length; i++)
-            TundraSDK.framework.events.unsubscribe(this.subscriptions[i]);
+            Tundra.events.unsubscribe(this.subscriptions[i]);
         this.subscriptions = [];
 
         // Get fired count from static global object.
@@ -570,7 +635,17 @@ var AssetTransfer = Class.$extend(
                 // Create clone if applicable
                 var responseAsset = null;
                 if (asset.requiresCloning && fired > 0)
-                    responseAsset = asset.clone();
+                {
+                    // If code logic has marked this base asset as reusable,
+                    // don't clone on the first response.
+                    if (asset.canReuse === true)
+                    {
+                        asset.canReuse = false;
+                        responseAsset = asset;
+                    }
+                    else
+                        responseAsset = asset.clone();
+                }
                 else
                     responseAsset = asset;
 
@@ -582,7 +657,7 @@ var AssetTransfer = Class.$extend(
             }
             catch(e)
             {
-                TundraSDK.framework.client.logError("[AssetTransfer]: Completed handler exception: " + e, true);
+                Tundra.client.logError("[AssetTransfer]: Completed handler exception: " + e, true);
                 if (e.stack !== undefined)
                     console.error(e.stack);
             }
@@ -594,7 +669,7 @@ var AssetTransfer = Class.$extend(
     _emitFailed : function(reason)
     {
         for (var i = 0; i < this.subscriptions.length; i++)
-            TundraSDK.framework.events.unsubscribe(this.subscriptions[i]);
+            Tundra.events.unsubscribe(this.subscriptions[i]);
         this.subscriptions = [];
 
         for (var i=0; i<this.subscribers.length; ++i)
@@ -611,7 +686,7 @@ var AssetTransfer = Class.$extend(
             }
             catch(e)
             {
-                TundraSDK.framework.client.logError("[AssetTransfer]: Failed handler exception: " + e, true);
+                Tundra.client.logError("[AssetTransfer]: Failed handler exception: " + e, true);
             }
         }
         this.subscribers = [];

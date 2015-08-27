@@ -1,9 +1,9 @@
 
 define([
         "lib/classy",
-        "core/framework/TundraSDK",
+        "core/framework/Tundra",
         "core/framework/TundraLogging"
-    ], function(Class, TundraSDK, TundraLogging) {
+    ], function(Class, Tundra, TundraLogging) {
 
 // Main flag to enable profiling
 var _enableAssetProfiling = false;
@@ -18,68 +18,57 @@ var _profiling  = (!_enableAssetProfiling ? undefined :
     types : [ "all" ]
 });
 
-/**
-    IAsset interface that asset implementation will extend.
-    @class IAsset
-    @constructor
-    @param {String} name Unique name of the asset, usually this is the asset reference.
-    @param {String} type AssetAPI supported asset type.
-*/
 var IAsset = Class.$extend(
+/** @lends IAsset.prototype */
 {
+    /**
+        IAsset interface that asset implementation will extend.
+
+        @constructs
+        @param {String} name Unique name of the asset, usually this is the asset reference.
+        @param {String} type AssetAPI supported asset type.
+    */
     __init__ : function(name, type)
     {
-        /**
-            Assets logger instance, with channel name as the asset type name.
-            @property log
-            @type TundraLogger
-        */
         this.log = TundraLogging.getLogger(type);
 
         /**
             Unique asset reference.
-            @property name
-            @type String
+            @var {String}
         */
         this.name = name;
         /**
             AssetAPI supported asset type.
-            @property type
-            @type String
+            @var {String}
         */
         this.type = type;
         /**
             If this is a URL reference, baseRef is a URL to the parent folder. Guaranteed to have a trailing slash. <br>
             Can be used to resolve full URL references for potential relative path dependencies.
-            @property baseRef
-            @type String
+            @var {String}
         */
-        this.baseRef = (name.indexOf("/") != 0 ? name.substring(0, name.lastIndexOf("/")+1) : "");
-        if (name.indexOf(".zip#") != -1) 
+        this.baseRef = (name.indexOf("/") !== 0 ? name.substring(0, name.lastIndexOf("/") + 1) : "");
+        if (name.indexOf(".zip#") !== -1)
             this.baseRef = name.substring(0, name.lastIndexOf(".zip#")+5);
 
         /**
             List of absolute asset references that this asset depends on.
-            @property dependencyRefs
-            @type Array<String>
+            @var {Array.<String>}
         */
         this.dependencyRefs = [];
         /**
             True if this asset type requires cloning when its distributed among its transfers. Default value is false.
-            @property requiresCloning
-            @type Boolean
+            @var {Boolean}
         */
         this.requiresCloning = false;
         /**
             True if this asset is the first loaded instance where clones were created. See the requiresCloning property.
-            @property isCloneSource
-            @type Boolean
+            @var {Boolean}
         */
         this.isCloneSource = false;
         /**
             True if verbose logging should be done while loading the asset. Default value is false.
-            @property logging
-            @type Boolean
+            @var {Boolean}
         */
         this.logging = false;
     },
@@ -91,6 +80,7 @@ var IAsset = Class.$extend(
 
     /**
         Return the current clone count for this asset.
+
         @return {Number}
     */
     numClones : function()
@@ -101,7 +91,20 @@ var IAsset = Class.$extend(
     },
 
     /**
+        Returns the original asset name for clones.
+
+        @todo Naming the clones like this is a bit unfortunate and should be fixed in the AssetAPI logic.
+        @return {String}
+    */
+    originalName : function()
+    {
+        var index = this.name.indexOf("_clone_");
+        return (index > 0 ? this.name.substring(0, index) : this.name);
+    },
+
+    /**
         Returns a clone asset ref for a clone index.
+
         @param {Number} index Clone index.
         @return {String}
     */
@@ -112,10 +115,8 @@ var IAsset = Class.$extend(
 
     /**
         Returns if this asset it loaded. Asset implementation must override this function, base implementation always returns false.
+        If false you can hook to the loaded/failed event with {@link IAsset#onLoaded} and {@link IAsset#onFailed}.
 
-        If false you can hook to the loaded/failed event with {{#crossLink "IAsset/onLoaded:method"}}onLoaded(){{/crossLink}}
-        and {{#crossLink "IAsset/onFailed:method"}}onFailed(){{/crossLink}}.
-        @method isLoaded
         @return {Boolean}
     */
     isLoaded : function()
@@ -128,74 +129,84 @@ var IAsset = Class.$extend(
         does not equal the asset being loaded. Data has been processed and potential dependencies should have
         been resolved and possibly requested.
 
-        @method onDeserializedFromData
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onDeserializedFromData : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("IAsset.DeserializedFromData." + this.name, context, callback);
+        return Tundra.events.subscribe("IAsset.DeserializedFromData." + this.name, context, callback);
     },
 
     /**
         Registers a callback for asset loaded event. See {{#crossLink "IAsset/isLoaded:method"}}isLoaded(){{/crossLink}}.
 
-        @method onLoaded
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onLoaded : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("IAsset.Loaded." + this.name, context, callback);
+        return Tundra.events.subscribe("IAsset.Loaded." + this.name, context, callback);
+    },
+
+    /**
+        Registers a callback for asset load failure event. See {{#crossLink "IAsset/isLoaded:method"}}isLoaded(){{/crossLink}}.
+
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
+        @param {Function} callback Function to be called.
+        @return {EventSubscription} Subscription data.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+    */
+    onFailed : function(context, callback)
+    {
+        return Tundra.events.subscribe("IAsset.Failed." + this.name, context, callback);
     },
 
     /**
         Registers a callback for asset dependency failed event.
 
         Code outside of AssetAPI internals requesting assets do not need to use this event.
-        Use {{#crossLink "AssetTransfer/onFailed:method"}}{{/crossLink}} instead.
+        Use {@link AssetTransfer#onFailed} instead.
 
-        @method onDependencyFailed
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onDependencyFailed : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("IAsset.DependencyFailed." + this.name, context, callback);
+        return Tundra.events.subscribe("IAsset.DependencyFailed." + this.name, context, callback);
     },
 
     /**
         Registers a callback for asset unloaded event. See {{#crossLink "IAsset/isLoaded:method"}}isLoaded(){{/crossLink}}.
-        @example
-            var asset = TundraSDK.framework.asset.getAsset(assetRef);
-            if (asset != null)
-            {
-                asset.onUnloaded(null, function(asset) {
-                    console.log("Asset unloaded:", asset.name);
-                });
-            }
 
-        @method onUnloaded
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+
+        * @example
+        * var asset = Tundra.asset.getAsset(assetRef);
+        * if (asset != null)
+        * {
+        *     asset.onUnloaded(null, function(asset) {
+        *         console.log("Asset unloaded:", asset.name);
+        *     });
+        * }
     */
     onUnloaded : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("IAsset.Unloaded." + this.name, context, callback);
+        return Tundra.events.subscribe("IAsset.Unloaded." + this.name, context, callback);
     },
 
     /**
         Clones the asset and return the clone.
-        @method clone
-        @param {undefined|String} newAssetName Name for the produced clone, must be unique to the AssetAPI system. 
+
+        @param {undefined|String} newAssetName Name for the produced clone, must be unique to the AssetAPI system.
         If undefined the new name will be auto generated.
         @return {null|IAsset} Valid asset or null if cloning failed.
     */
@@ -214,7 +225,7 @@ var IAsset = Class.$extend(
             return null;
         }
 
-        var existing = TundraSDK.framework.asset.getAsset(newAssetName);
+        var existing = Tundra.asset.getAsset(newAssetName);
         if (existing !== undefined && existing !== null)
         {
             this.log.error("Cannot clone() asset '" + this.name + "' to new asset '" + newAssetName + "', it already exists!");
@@ -222,7 +233,7 @@ var IAsset = Class.$extend(
         }
         var c = this._cloneImpl(newAssetName);
         if (c !== undefined && c !== null)
-            TundraSDK.framework.asset.cache.set(c.name, c);
+            Tundra.asset.cache.set(c.name, c);
         else
             this.log.error("Failed to create clone '" + newAssetName + "'");
         return c;
@@ -242,7 +253,6 @@ var IAsset = Class.$extend(
 
         Asset implementation can override this function, base implementation will return dependencies().length.
 
-        @method numDependencies
         @return {Number}
     */
     numDependencies : function()
@@ -256,7 +266,6 @@ var IAsset = Class.$extend(
         Asset implementation should override this function if it has dependency logic,
         base implementation will return 0.
 
-        @method numPendingDependencies
         @return {Number}
     */
     numPendingDependencies : function()
@@ -265,10 +274,9 @@ var IAsset = Class.$extend(
     },
 
     /**
-        Returns list of absolute asset references that this asset depends on. 
+        Returns list of absolute asset references that this asset depends on.
         Base implementation will returns the dependencyRefs property.
 
-        @method dependencies
         @return {Number}
     */
     dependencies : function()
@@ -282,7 +290,6 @@ var IAsset = Class.$extend(
         Asset implementation should override this function if it has dependency logic,
         base implementation will return and empty array.
 
-        @method dependencies
         @return {Number}
     */
     pendingDependencies : function()
@@ -294,26 +301,24 @@ var IAsset = Class.$extend(
         Deserializes the asset from input data.
         Asset implementation must override this function, base implementation is a no-op.
 
-        @method deserializeFromData
         @param {ArrayBuffer|Text|Xml} data
+        @param {String} dataType eg. 'arraybuffer', 'text'
         @return {Boolean} Return false if loading the asset from input data fails.
         Returning true on success if optional, auto return of 'undefined' is assumed to be a successful load.
     */
-    deserializeFromData : function(data)
+    deserializeFromData : function(data, dataType, transfer)
     {
     },
 
     /**
         Unloads the asset from memory.
         Asset implementation must override this function, base implementation is a no-op.
-
-        @method unload
     */
     unload : function()
     {
     },
 
-    _deserializeFromData : function(data, dataType)
+    _deserializeFromData : function(data, dataType, transfer)
     {
         // Profiling
         var startTime = undefined;
@@ -330,7 +335,7 @@ var IAsset = Class.$extend(
         }
 
         // Load asset
-        var succeeded = this.deserializeFromData(data, dataType);
+        var succeeded = this.deserializeFromData(data, dataType, transfer);
         if (succeeded === undefined)
             succeeded = true;
         else if (typeof succeeded !== "boolean")
@@ -355,7 +360,7 @@ var IAsset = Class.$extend(
 
         // Deserialized
         if (succeeded)
-            TundraSDK.framework.asset._emitAssetDeserializedFromData(this);
+            Tundra.asset._emitAssetDeserializedFromData(this);
         // Loaded?
         if (succeeded && this.isLoaded())
             this._emitLoaded();
@@ -370,22 +375,27 @@ var IAsset = Class.$extend(
 
     _emitDeserializedFromData : function()
     {
-        TundraSDK.framework.events.send("IAsset.DeserializedFromData." + this.name, this);
+        Tundra.events.send("IAsset.DeserializedFromData." + this.name, this);
     },
 
     _emitLoaded : function()
     {
-        TundraSDK.framework.events.send("IAsset.Loaded." + this.name, this);
+        Tundra.events.send("IAsset.Loaded." + this.name, this);
+    },
+
+    _emitFailed : function(reason)
+    {
+        Tundra.events.send("IAsset.Failed." + this.name, this, reason);
     },
 
     _emitDependencyFailed : function(dependencyRef)
     {
-        TundraSDK.framework.events.send("IAsset.DependencyFailed." + this.name, dependencyRef);
+        Tundra.events.send("IAsset.DependencyFailed." + this.name, dependencyRef);
     },
 
     _emiUnloaded : function()
     {
-        TundraSDK.framework.events.send("IAsset.Unloaded." + this.name, this);
+        Tundra.events.send("IAsset.Unloaded." + this.name, this);
     }
 });
 

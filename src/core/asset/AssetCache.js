@@ -3,23 +3,42 @@ define([
         "lib/classy"
     ], function(Class) {
 
-/**
-    Asset cache.
-
-    @class AssetCache
-    @constructor
-*/
 var AssetCache = Class.$extend(
+/** @lends AssetCache.prototype */
 {
+    /**
+        The asset cache stores currently loaded assets. It is used to avoid re-downloading of assets.
+        <b>Note:</b> This class is used by AssetAPI, then instance can be accessed from {@link AssetAPI#cache}.
+
+        @constructs
+    */
     __init__ : function()
     {
         this.assets = {};
     },
 
+    assetData : function()
+    {
+        var data = {};
+        var keys = Object.keys(this.assets);
+        for (var i = 0; i < keys.length; i++) {
+            var asset = this.assets[keys[i]];
+            if (asset && asset.isLoaded())
+            {
+                if (data[asset.type] === undefined)
+                    data[asset.type] = 1;
+                else
+                    data[asset.type]++;
+            }
+        }
+        return data;
+    },
+
     /**
-        @method get
+        Get an `IAsset` object from this cache by asset reference
+
         @param {String} assetRef
-        @return {IAsset}
+        @return {IAsset|undefined} If the asset with `assetRef` does not exists, `undefined` will be returned
     */
     get : function(ref)
     {
@@ -27,7 +46,8 @@ var AssetCache = Class.$extend(
     },
 
     /**
-        @method set
+        Sets an `IAsset` object by `assetRef` reference
+
         @param {String} assetRef
         @param {IAsset} asset
     */
@@ -37,8 +57,9 @@ var AssetCache = Class.$extend(
     },
 
     /**
-        @method remove
-        @param {String} assetRef
+        Removes an `IAsset` by `ref` reference
+
+        @param {String} ref
     */
     remove : function(ref)
     {
@@ -46,8 +67,9 @@ var AssetCache = Class.$extend(
     },
 
     /**
-        @method hasAsset
-        @param {String} assetRef
+        Checks if an asset exists by `ref` reference
+
+        @param {String} ref
         @return {Boolean}
     */
     hasAsset : function(ref)
@@ -56,7 +78,8 @@ var AssetCache = Class.$extend(
     },
 
     /**
-        @method getAssets
+        Returns all assets in an array of `IAsset`
+
         @return {Array<IAsset>}
     */
     getAssets : function()
@@ -69,7 +92,6 @@ var AssetCache = Class.$extend(
 
     /**
         Clears the cache.
-        @method forgetAssets
     */
     forgetAssets : function()
     {
