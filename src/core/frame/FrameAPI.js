@@ -1,32 +1,96 @@
 
 define([
-        "core/framework/TundraSDK",
-        "core/framework/TundraLogging"
-    ], function(TundraSDK, TundraLogging) {
+        "core/framework/Tundra",
+        "core/framework/ITundraAPI",
+        "core/framework/TundraLogging",
+        "core/frame/FrameStats",
+        "core/frame/FrameLimiter",
+        "core/frame/FrameProfiler" // Don't remove, included to the build
+    ], function(Tundra, ITundraAPI, TundraLogging, FrameStats, FrameLimiter, FrameProfiler) {
 
-/**
-    FrameAPI provides frame updates and single shot callbacks.
-
-    @class FrameAPI
-    @constructor
-*/
-var FrameAPI = Class.$extend(
+var FrameAPI = ITundraAPI.$extend(
+/** @lends FrameAPI.prototype */
 {
-    __init__ : function(params)
+    /**
+        FrameAPI provides frame updates and single shot callbacks.
+        Use the events provided from this API if your application requires updating every frame update
+
+        FrameAPI is a singleton and available from {@link Tundra.frame}}
+
+        @constructs
+        @extends ITundraAPI
+        @private
+    */
+    __init__ : function(name, options, globalOptions)
     {
+        this.$super(name, options);
+
         this.currentWallClockTime = 0.0;
         this.currentFrameNumber = 0;
         this.delayedExecutes = [];
+
+        if (typeof options.limit === "number")
+        {
+            if (options.limit >= 1 && options.limit <= 59)
+                this.limiter = new FrameLimiter(1.0/options.limit);
+            else
+                this.log.warn("Option 'limit' valid range is 1-59, configured:", options.limit);
+        }
+
+        /**
+            Frame statistics
+            @var {FrameStats}
+        */
+        this.stats = FrameStats;
+        /**
+            Profiler
+            @var {FrameProfiler}
+        */
+        this.profiler = new FrameProfiler();
+    },
+
+    // ITundraAPI override
+    reset : function()
+    {
+        // Remove all callbacks attached to the frame updates.
+        // This happens on disconnect, the running apps must not get any updates
+        // if they are left running in the global js context and do not correctly
+        // unsub from frame updates.
+        Tundra.events.remove("FrameAPI.Update");
+        Tundra.events.remove("FrameAPI.PostFrameUpdate");
+    },
+
+    /**
+        Enable FPS limiter. This is for debugging purpouses only, do not
+        call this function in production. The browser will schedule max 60 FPS
+        updates automaticlly
+        @param {Number} fps - FPS target 1-59. Anything else will disable the limiter.
+    */
+    setLimit : function(fps)
+    {
+        if (typeof fps === "number" && fps >= 1 && fps <= 59)
+            this.limiter = new FrameLimiter(1.0/fps);
+        else
+            this.limiter = undefined;
+    },
+
+    _limit : function(frametime)
+    {
+        if (this.limiter !== undefined)
+            return this.limiter.shouldUpdate(frametime);
+        return true;
     },
 
     // Called by TundraClient on each frame.
     _update : function(frametime)
     {
+        this.stats._update();
+
         // Advance wall clock time
         this.currentWallClockTime += frametime;
 
         // Fire events
-        TundraSDK.framework.events.send("FrameAPI.Update", frametime);
+        Tundra.events.send("FrameAPI.Update", frametime);
 
         this._updateDelayedExecutes(frametime);
 
@@ -75,25 +139,20 @@ var FrameAPI = Class.$extend(
     },
 
     // Called by TundraClient on each frame.
-    _postUpdate : function(frametime)
+    _preRender : function(frametime)
     {
-        TundraSDK.framework.events.send("FrameAPI.PostFrameUpdate", frametime);
+        Tundra.events.send("FrameAPI.PreRender", frametime);
     },
 
-    reset : function()
+    // Called by TundraClient on each frame.
+    _postUpdate : function(frametime)
     {
-        // Remove all callbacks attached to the frame updates.
-        // This happens on disconnect, the running apps must not get any updates
-        // if they are left running in the global js context and do not correctly
-        // unsub from frame updates.
-        TundraSDK.framework.events.remove("FrameAPI.Update");
-        TundraSDK.framework.events.remove("FrameAPI.PostFrameUpdate");
+        Tundra.events.send("FrameAPI.PostFrameUpdate", frametime);
     },
 
     /**
         Returns the current application wall clock time in seconds.
 
-        @method wallClockTime
         @return {Number}
     */
     wallClockTime : function()
@@ -104,7 +163,6 @@ var FrameAPI = Class.$extend(
     /**
         Returns the current application frame number.
 
-        @method frameNumber
         @return {Number}
     */
     frameNumber : function()
@@ -119,17 +177,35 @@ var FrameAPI = Class.$extend(
             {
                 // frametime == time since last frame update in seconds
             }
-            TundraSDK.framework.frame.onUpdate(null, onFrameUpdate);
+            Tundra.frame.onUpdate(null, onFrameUpdate);
 
-        @method onUpdate
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the callback function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onUpdate : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("FrameAPI.Update", context, callback);
+        return Tundra.events.subscribe("FrameAPI.Update", context, callback);
+    },
+
+    /**
+        Registers a callback for pre render frame updates.
+
+            function onPreRender(frametime)
+            {
+                // frametime == time since last frame update in seconds
+            }
+            Tundra.frame.onPreRender(null, onFrameUpdate);
+
+        @param {Object} context Context of in which the callback function is executed. Can be `null`.
+        @param {Function} callback Function to be called.
+        @return {EventSubscription} Subscription data.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+    */
+    onPreRender : function(context, callback)
+    {
+        return Tundra.events.subscribe("FrameAPI.PreRender", context, callback);
     },
 
     /**
@@ -140,17 +216,16 @@ var FrameAPI = Class.$extend(
             {
                 // frametime == time since last frame update in seconds
             }
-            TundraSDK.framework.frame.onPostFrameUpdate(null, onPostFrameUpdate);
+            Tundra.frame.onPostFrameUpdate(null, onPostFrameUpdate);
 
-        @method onPostFrameUpdate
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the callback function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onPostFrameUpdate : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("FrameAPI.PostFrameUpdate", context, callback);
+        return Tundra.events.subscribe("FrameAPI.PostFrameUpdate", context, callback);
     },
 
     /**
@@ -162,22 +237,20 @@ var FrameAPI = Class.$extend(
                 // param == 101
             }
             var context = { test : 12 };
-            TundraSDK.framework.frame.delayedExecute(1.0, context, onDelayedExecute, 101);
+            Tundra.frame.delayedExecute(1.0, context, onDelayedExecute, 101);
 
-        @method delayedExecute
         @param {Number} afterSeconds Time in seconds when the after the callback is invoked.
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @param {Object} [param=undefined] Optional parameter to to the callback.
     */
     /**
         Registers a delayed callback invocation.
 
-            TundraSDK.framework.frame.delayedExecute(1.0, function(param) {
+            Tundra.frame.delayedExecute(1.0, function(param) {
                 console.log(param); // 101
             }, 101);
 
-        @method delayedExecute
         @param {Number} afterSeconds Time in seconds when the after the callback is invoked.
         @param {Function} callback Function to be called.
         @param {Object} [param=undefined] Optional parameter to to the callback.
