@@ -87,7 +87,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
                 v = null;
                 break;
             case 10: // AngularVelocity
-                var v = new Ammo.btVector3(value.x, value.y, value.z);
+                var v = new Ammo.btVector3(value.x * Math.PI / 180, value.y * Math.PI / 180, value.z * Math.PI / 180);
                 this.rigidbody_.setAngularVelocity(v);
                 Ammo.destroy(v);
                 v = null;
@@ -306,6 +306,9 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         var linVel         = this.attributes.linearVelocity.get();
         var angVel         = this.attributes.angularVelocity.get();
         var rolFri         = this.attributes.rollingFriction.get();
+        // Hackish way to fix NaN issue when connected to Tundra Server.
+        if (isNaN(rolFri))
+            rolFri = 0.5;
         var linFactor      = this.attributes.linearFactor.get();
         var angFactor      = this.attributes.angularFactor.get();
         
@@ -324,6 +327,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         var quat = new Ammo.btQuaternion(rot.x, rot.y, rot.z, rot.w);
         transform.setOrigin(position);
         transform.setRotation(quat);
+        
         
         var localInertia = new Ammo.btVector3(0.0, 0.0, 0.0);
         if (isDynamic)
@@ -361,12 +365,13 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         
         // Push attribute values to rigidbody.
         this.rigidbody_.setFriction(friction);
-        this.rigidbody_.setRollingFriction(rolFri);
+        if (!isNaN(rolFri))
+            this.rigidbody_.setRollingFriction(rolFri);
         
         var v = new Ammo.btVector3(linVel.x, linVel.y, linVel.z);
         this.rigidbody_.setLinearVelocity(v);
         
-        v.setValue(angVel.x, angVel.y, angVel.z);
+        v.setValue(angVel.x * Math.PI / 180, angVel.y * Math.PI / 180, angVel.z * Math.PI / 180);
         this.rigidbody_.setAngularVelocity(v);
         
         v.setValue(linFactor.x, linFactor.y, linFactor.z);
@@ -462,7 +467,6 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
             this.collisionShape_ = new Ammo.btConeShape(size.x * 0.5, size.y);
         
         this.updateScale();
-        return this.collisionShape_;
     },
     
     updateScale : function()
@@ -554,6 +558,25 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
     
     update : function()
     {
+        this.updateTransformPosition();
+        
+        if (this.rigidbody_ !== null)
+        {
+            // update linear- and angularVelocities to match with the simulation.
+            var linearVel = this.rigidbody_.getLinearVelocity();
+            var value = new THREE.Vector3(linearVel.x(), linearVel.y(), linearVel.z());
+            if (!this.linearVelocity.equals(value))
+                this.linearVelocity = value;
+
+            var angularVel = this.rigidbody_.getAngularVelocity();
+            var degToRad = 180 / Math.PI;
+            value = new THREE.Vector3(angularVel.x() * degToRad,
+                                      angularVel.y() * degToRad,
+                                      angularVel.z() * degToRad);
+            if (!this.linearVelocity.equals(value))
+                this.angularVelocity = value;
+        }
+        
         if (this.dirty_)
             this.createBody();
         
@@ -566,8 +589,6 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
                 this.createBody();
             }
         }
-        
-        this.updateTransformPosition();
     },
     
     updateTransformPosition : function()
@@ -617,7 +638,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         worldTrans.setOrigin(new Ammo.btVector3(position.x, position.y, position.z));
         this.rigidbody_.getMotionState().setWorldTransform(worldTrans);
         this.rigidbody_.activate();
-                
+        
         Ammo.destroy(worldTrans);
         worldTrans = null;
     },
