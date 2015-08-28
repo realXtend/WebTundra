@@ -18,6 +18,11 @@ var PhysicsApplication = ICameraApplication.$extend(
         this.entities = {};
         this.createScene();
         this.createCamera();
+        
+        this.nextRaycast = 0;
+        
+        this.createRate = 1;
+        this.createBoxes = TundraSDK.framework.frame.wallClockTime() + this.createRate;
     },
 
     onConnected : function()
@@ -50,46 +55,55 @@ var PhysicsApplication = ICameraApplication.$extend(
         this.cameraEntity.camera.setActive();
     },
     
+    Raycast : function(from, dir, distance)
+    {
+        result = TundraSDK.framework.physicsWorld.raycast(from, dir, distance);
+        return result;
+    },
+    
     createScene : function()
     {
         var meshEntity = null;
         
         this.entities["Head"] = this.createMesh("Head", "webtundra://head.json");
         meshEntity = this.entities["Head"];
-        meshEntity.name = "Head"
+        meshEntity.name = "Head";
         t = meshEntity.placeable.transform;
-        t.setPosition(0, 0, -63);
-        t.setScale(10, 10, 10);
+        t.setPosition(0, -5, -63);
+        t.setScale(5, 5, 5);
+        t.setRotation(45, 0, 0);
         meshEntity.placeable.transform = t;
         meshEntity.rigidbody.mass = 0.0;
-        meshEntity.rigidbody.size = new THREE.Vector3(1, 1, 1);
         meshEntity.rigidbody.shapeType = 4;
         
-        //this.entities["Plane2"] = TundraSDK.framework.scene.createLocalEntity(["Name", "Placeable", "RigidBody"]);
-        this.entities["Ground"] = this.createMesh("Ground", "webtundra://ground.json");
+        this.entities["Ground"] = this.createMesh("Ground", "webtundra://plane.json");
         meshEntity = this.entities["Ground"];
-        meshEntity.name = "Ground"
+        meshEntity.name = "Ground";
         t = meshEntity.placeable.transform;
-        t.setPosition(0, -20, -20);
-        t.setScale(10, 10, 10);
+        t.setPosition(0, -20, -50);
+        t.setScale(200, 2, 200);
         meshEntity.placeable.transform = t;
         meshEntity.rigidbody.mass = 0.0;
-        meshEntity.rigidbody.shapeType = 4;
-        //meshEntity.rigidbody.size = new THREE.Vector3(10000.0, 3, 10000.0);
-        
-        TundraSDK.framework.physicsWorld.raycast(new THREE.Vector3(0, 30, -20),
-                                                 new THREE.Vector3(0, -1, 0),
-                                                 100);
-        
+        //meshEntity.rigidbody.shapeType = 4;
         
         shapes = ["Box", "Capsule", "Cylinder", "sphere", "Cone"];
-        for (var i = 0; i < 200; ++i)
+        
+        for (var i = 0; i < shapes.length; ++i)
+        {
+            var meshEntity = TundraSDK.framework.scene.createLocalEntity(["Name", "Placeable", "Mesh"]);
+            meshEntity.name = name;
+            meshEntity.mesh.meshRef = "webtundra://" + shapes[i] + ".json";
+            meshEntity.placeable.setPosition(10000, 0, 0);
+        }
+        
+        for (var i = 0; i < 3; ++i)
         {
             var shape = shapes[Math.floor(Math.random()*shapes.length)];
-            this.spawnMesh(shape + " " + i, shape);
+            var x = -10 + Math.random() * (20 - 1) + 1;
+            var y = 30 + Math.random() * (20 - 1) + 1;
+            var z = -70 + Math.random() * (20 - 1) + 1;
+            this.spawnMesh(shape + " " + i, shape, new THREE.Vector3(x, y, z));
         }
-        this.nextTime = TundraSDK.framework.frame.wallClockTime() + 5;
-        this.removeList = [];
         
         var dirLight = new THREE.DirectionalLight();
         dirLight.intensity = 0.5;
@@ -98,11 +112,11 @@ var PhysicsApplication = ICameraApplication.$extend(
         this.ground = TundraSDK.framework.scene.entityByName("Ground");
         this.groundReady = false;
         
-        //TundraSDK.framework.physicsWorld.maxSubSteps = 300;
-        //TundraSDK.framework.physicsWorld.physicsUpdatePeriod = 1.0 / 120;
+        //TundraSDK.framework.physicsWorld.maxSubSteps = 30;
+        //TundraSDK.framework.physicsWorld.physicsUpdatePeriod = 1.0 / 60;
     },
     
-    spawnMesh : function(id, shape)
+    spawnMesh : function(id, shape, pos)
     {
         var meshEntity = null;
         if (shape === "Box")
@@ -117,10 +131,7 @@ var PhysicsApplication = ICameraApplication.$extend(
             meshEntity = this.createMesh(id, "webtundra://Cone.json");
         
         var t = meshEntity.placeable.transform;
-        var x = -10 + Math.random() * (20 - 1) + 1;
-        var y = 30 + Math.random() * (20 - 1) + 1;
-        var z = -70 + Math.random() * (20 - 1) + 1;
-        t.setPosition(x, y, z);
+        t.setPosition(pos.x, pos.y, pos.z);
         meshEntity.placeable.transform = t;
         
         meshEntity.rigidbody.mass = 1.0;
@@ -139,6 +150,14 @@ var PhysicsApplication = ICameraApplication.$extend(
             meshEntity.rigidbody.shapeType = 1;
         else if (shape === "Cone")
             meshEntity.rigidbody.shapeType = 7;
+        
+        meshEntity.rigidbody.onPhysicsCollision(this, function(self, other, position, normal, distance, impulse, newCollision)
+        {
+            if (other.name == "Ground")
+            {
+                TundraSDK.framework.scene.removeEntity(self.id);
+            }
+        });
         
         /*var fx = Math.random() * (25 - 1) + 1;
         var fy = Math.random() * (100 - 1) + 1;
@@ -188,7 +207,7 @@ var PhysicsApplication = ICameraApplication.$extend(
             this.cameraEntity.placeable.transform = t;
         }
         
-        if (this.ground.mesh.meshAsset &&
+        /*if (this.ground.mesh.meshAsset &&
             !this.groundReady)
         {
             this.groundReady = true;
@@ -196,6 +215,35 @@ var PhysicsApplication = ICameraApplication.$extend(
             mat.map = THREE.ImageUtils.loadTexture("ground.png");
             this.ground.mesh.meshAsset.getSubmesh(0).material = mat;
             this.ground.mesh.meshAsset.getSubmesh(0).material.needsUpdate = true;
+        }*/
+        
+        if (TundraSDK.framework.frame.wallClockTime() >= this.createBoxes)
+        {
+            /*this.createBoxes = TundraSDK.framework.frame.wallClockTime() + this.createRate;
+            var p = {x:0, y:0, z:0};
+            for(var i = 0 ; i < 1; i++)
+            {
+                p.x = -10 + Math.random() * (50 - 1) + 1;
+                p.y = 100;
+                p.z = -70 + Math.random() * (50 - 1) + 1;
+
+                result = this.Raycast(new THREE.Vector3(p.x, p.y, p.z), new THREE.Vector3(0, -1, 0), 1000);
+                if (result)
+                    console.log(result.entity.name);
+            }*/
+            
+            this.createRate = Math.max(this.createRate * 0.9, 0.3);
+            
+            this.createBoxes = TundraSDK.framework.frame.wallClockTime() + this.createRate;
+            shapes = ["Box", "Capsule", "Cylinder", "sphere", "Cone"];
+            for (var i = 0; i < 1; ++i)
+            {
+                var shape = shapes[Math.floor(Math.random()*shapes.length)];
+                var x = -10 + Math.random() * (20 - 1) + 1;
+                var y = 30 + Math.random() * (20 - 1) + 1;
+                var z = -70 + Math.random() * (20 - 1) + 1;
+                this.spawnMesh(shape + " " + i, shape, new THREE.Vector3(x, y, z));
+            }
         }
     },
 

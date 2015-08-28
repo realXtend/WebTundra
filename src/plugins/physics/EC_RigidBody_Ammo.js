@@ -5,8 +5,9 @@ define(["core/framework/TundraSDK",
         "core/scene/Scene",
         "core/scene/Attribute",
         "core/scene/AttributeChange",
+        "core/physics/CollisionInfo",
         "entity-components/EC_RigidBody"
-    ], function(TundraSDK, Ammo, THREE, Scene, Attribute, AttributeChange, EC_RigidBody) {
+    ], function(TundraSDK, Ammo, THREE, Scene, Attribute, AttributeChange, CollisionInfo, EC_RigidBody) {
 
 /**
     @class EC_RigidBody_Ammo
@@ -625,10 +626,10 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         Registers a callback for physics collision.
 
         @example
-            TundraSDK.framework.scene.onPhysicsCollision(null, function(entity, position, normal,
+            TundraSDK.framework.scene.onPhysicsCollision(null, function(self, other, position, normal,
                                                                         distance, impulse, newCollision)
             {
-                console.log("on collision: " + entity.id);
+                console.log("on collision: " + self.name);
             });
 
         @method onPhysicsCollision
@@ -648,6 +649,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
             return;
         
         TundraSDK.framework.events.send("EC_Rigidbody." + this.parentEntity.id + ".PhysicsCollision",
+                                        this.parentEntity,
                                         entity,
                                         position,
                                         normal,

@@ -215,7 +215,7 @@ var PhysicsWorld_Ammo = IPhysicsWorld.$extend(
             var objectA = contactManifold.getBody0();
             var objectB = contactManifold.getBody1();
 
-            // Get reigidbody object from user pointer.
+            // Get rigidbody object from map
             var bodyA = this.ptrToRigidbodyMap_[objectA.ptr];
             var bodyB = this.ptrToRigidbodyMap_[objectB.ptr];
 
@@ -281,15 +281,18 @@ var PhysicsWorld_Ammo = IPhysicsWorld.$extend(
         {
             // For performance reasons only trigger new collisions.
             c = collisions[i];
+            
             if (!c.newCollision)
                 continue;
             
-            var entA = c.bodyA.parentEntity;
-            var entB = c.bodyB.parentEntity;
+            if (entityB === null || entityA === null)
+                continue;
             
             TundraSDK.framework.events.send("PhysicsWorld.PhysicsCollision", info);
-            c.bodyA.emitPhysicsCollision(entB, info);
-            c.bodyB.emitPhysicsCollision(entB, info);
+            c.bodyA.emitPhysicsCollision(entityB, info.position, info.normal,
+                                         info.distance, info.impulse, info.newCollision);
+            c.bodyB.emitPhysicsCollision(entityA, info.position, info.normal,
+                                         info.distance, info.impulse, info.newCollision);
         }
 
         this.previousCollisions = currentCollisions;
