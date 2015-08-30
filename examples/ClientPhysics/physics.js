@@ -7,6 +7,9 @@ var PhysicsApplication = ICameraApplication.$extend(
         // Enables animations if both the previous and this camera entity is unparented
         this.animateBeforeActivation(true);
         
+        this.showTooltip = TundraSDK.framework.frame.wallClockTime() + 3;
+        this.tooltipVisible = false;
+        
         this.demoApp = {
             origin: new THREE.Vector3(0, -10, -30),
             world : {},
@@ -171,6 +174,14 @@ var PhysicsApplication = ICameraApplication.$extend(
             t.pos.y += relativeMovement.y;
             t.pos.z += relativeMovement.z;
             this.cameraEntity.placeable.transform = t;
+        }
+        
+        if (TundraSDK.framework.frame.wallClockTime() >= this.showTooltip &&
+            !this.tooltipVisible)
+        {
+            this.tooltipVisible = true;
+            ICameraApplication.showCameraApplicationInfoTooltip("", 30000);
+            ICameraApplication.cameraApplicationTooltip.text("R = Reset E = Spawn Projectile");
         }
     },
 
