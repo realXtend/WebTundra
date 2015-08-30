@@ -30,8 +30,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         
         this.pendingAsset = false;
         
-        // If dirty variable is set to true recreate the rigidbody object
-        // on next frame update
+        // If dirty create new isntance of rigidbody
         this.dirty_ = false;
     },
     
@@ -371,7 +370,8 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         var v = new Ammo.btVector3(linVel.x, linVel.y, linVel.z);
         this.rigidbody_.setLinearVelocity(v);
         
-        v.setValue(angVel.x * Math.PI / 180, angVel.y * Math.PI / 180, angVel.z * Math.PI / 180);
+        angVel.multiplyScalar(Math.PI / 180);
+        v.setValue(angVel.x, angVel.y, angVel.z);
         this.rigidbody_.setAngularVelocity(v);
         
         v.setValue(linFactor.x, linFactor.y, linFactor.z);
