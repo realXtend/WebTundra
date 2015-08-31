@@ -54,7 +54,8 @@ require([
         "entity-components/EC_Script",
         // Plugins
         //"plugins/dom-integration/TundraDomIntegrationPlugin", // Disabled by default for performance reasons
-        "plugins/login-screen/LoginScreenPlugin"
+        "plugins/login-screen/LoginScreenPlugin",
+        "plugins/ogre-plugin/OgrePlugin")
     ],
     function($, _jqueryUI, _jqueryMW, _jqueryTA,
              Tundra,
@@ -63,7 +64,8 @@ require([
              ThreeJsRenderer,
              EC_Script,
              //TundraDomIntegrationPlugin, // Disabled by default for performance reasons
-             LoginScreenPlugin)
+             LoginScreenPlugin,
+             OgrePlugin)
     {
         var createClient = function()
         {
