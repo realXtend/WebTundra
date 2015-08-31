@@ -80,16 +80,22 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
                 v = null;
                 break;
             case 9: // LinearVelocity
-                var v = new Ammo.btVector3(value.x, value.y, value.z);
-                this.rigidbody_.setLinearVelocity(v);
-                Ammo.destroy(v);
-                v = null;
+                if (!this.ignoreTransformChange_)
+                {
+                    var v = new Ammo.btVector3(value.x, value.y, value.z);
+                    this.rigidbody_.setLinearVelocity(v);
+                    Ammo.destroy(v);
+                    v = null;
+                }
                 break;
             case 10: // AngularVelocity
-                var v = new Ammo.btVector3(value.x * Math.PI / 180, value.y * Math.PI / 180, value.z * Math.PI / 180);
-                this.rigidbody_.setAngularVelocity(v);
-                Ammo.destroy(v);
-                v = null;
+                if (!this.ignoreTransformChange_)
+                {
+                    var v = new Ammo.btVector3(value.x * Math.PI / 180, value.y * Math.PI / 180, value.z * Math.PI / 180);
+                    this.rigidbody_.setAngularVelocity(v);
+                    Ammo.destroy(v);
+                    v = null;
+                }
                 break;
             case 11: // Kinematic
                 this.dirty_ = true;
@@ -560,23 +566,6 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
     {
         this.updateTransformPosition();
         
-        if (this.rigidbody_ !== null)
-        {
-            // update linear- and angularVelocities to match with the simulation.
-            var linearVel = this.rigidbody_.getLinearVelocity();
-            var value = new THREE.Vector3(linearVel.x(), linearVel.y(), linearVel.z());
-            if (!this.linearVelocity.equals(value))
-                this.linearVelocity = value;
-
-            var angularVel = this.rigidbody_.getAngularVelocity();
-            var degToRad = 180 / Math.PI;
-            value = new THREE.Vector3(angularVel.x() * degToRad,
-                                      angularVel.y() * degToRad,
-                                      angularVel.z() * degToRad);
-            if (!this.linearVelocity.equals(value))
-                this.angularVelocity = value;
-        }
-        
         if (this.dirty_)
             this.createBody();
         
@@ -616,6 +605,23 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         
         Ammo.destroy(transform);
         transform = null;
+        
+        if (this.rigidbody_ !== null)
+        {
+            // update linear- and angularVelocities to match with the simulation.
+            var linearVel = this.rigidbody_.getLinearVelocity();
+            var value = new THREE.Vector3(linearVel.x(), linearVel.y(), linearVel.z());
+            if (!this.linearVelocity.equals(value))
+                this.linearVelocity = value;
+
+            var angularVel = this.rigidbody_.getAngularVelocity();
+            var degToRad = 180 / Math.PI;
+            value = new THREE.Vector3(angularVel.x() * degToRad,
+                                      angularVel.y() * degToRad,
+                                      angularVel.z() * degToRad);
+            if (!this.linearVelocity.equals(value))
+                this.angularVelocity = value;
+        }
         
         this.ignoreTransformChange_ = false;
     },
