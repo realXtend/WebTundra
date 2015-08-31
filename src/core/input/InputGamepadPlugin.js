@@ -1,49 +1,42 @@
 
 define([
-        "core/framework/TundraSDK",
+        "core/framework/Tundra",
         "core/input/IInputPlugin"
-    ], function(TundraSDK, IInputPlugin) {
+    ], function(Tundra, IInputPlugin) {
 
-/**
-    Provides gamepad state and events. Accessible from InputAPI.getPlugin("Gamepad").
-
-    @class InputGamepadPlugin
-    @extends IInputPlugin
-    @constructor
+/* @todo fix this for jsdoc
+    Event object description for
+    {{#crossLink "InputGamepadPlugin/onGamepadEvent:method"}}{{/crossLink}},
+    and {{#crossLink "InputGamepadPlugin/onGamepadStatusEvent:method"}}{{/crossLink}} callbacks.
+    @event GamepadEvent
+    @param {String} gamepadid Gamepad id. e.g. XBOX 360...
+    @param {String[]} button Array of current button values
+    @param {String[]} axis Array of current axis values
 */
+
 var InputGamepadPlugin = IInputPlugin.$extend(
+/** @lends InputGamepadPlugin.prototype */
 {
     /**
-        Event object description for
-        {{#crossLink "InputGamepadPlugin/onGamepadEvent:method"}}{{/crossLink}},
-        and {{#crossLink "InputGamepadPlugin/onGamepadStatusEvent:method"}}{{/crossLink}} callbacks.
-        @event GamepadEvent
-        @param {String} gamepadid Gamepad id. e.g. XBOX 360...
-        @param {String[]} button Array of current button values
-        @param {String[]} axis Array of current axis values
-    */
+        Provides gamepad state and events. Accessible from InputAPI.getPlugin("Gamepad").
 
+        @constructs
+        @extends IInputPlugin
+        @private
+    */
     __init__ : function()
     {
         this.$super("Gamepad");
+        /**
+            @todo Document this object
+            @var {Object} gamepad
+        */
     },
 
     start : function()
     {
         this.gamepadSupportAvailable = null;
 
-        /**
-            Current gamepad state
-            <pre>{
-                type : String,
-                currentval : Number
-            }</pre>
-
-            console.log(TundraSDK.framework.gamepad.gamepad.type +" has value "+TundraSDK.framework.gamepad.gamepad.currentval);
-
-            @property gamepad
-            @type Object
-        */
         this.gamepad =
         {
             //Gamepad id
@@ -80,7 +73,7 @@ var InputGamepadPlugin = IInputPlugin.$extend(
             this.registerEvent("GamepadStatusEvent", "InputGamepadPlugin.GamepadStatusEvent");
 
             // Connect frame update
-            TundraSDK.framework.frame.onUpdate(this, this.onUpdate);
+            Tundra.frame.onUpdate(this, this.onUpdate);
         }
     },
 
@@ -93,8 +86,8 @@ var InputGamepadPlugin = IInputPlugin.$extend(
     {
         if (this.gamepadSupportAvailable)
         {
-            TundraSDK.framework.events.remove("InputGamepadPlugin.GamepadEvent");
-            TundraSDK.framework.events.remove("InputGamepadPlugin.GamepadStatusEvent");
+            Tundra.events.remove("InputGamepadPlugin.GamepadEvent");
+            Tundra.events.remove("InputGamepadPlugin.GamepadStatusEvent");
         }
     },
 
@@ -113,7 +106,7 @@ var InputGamepadPlugin = IInputPlugin.$extend(
         {
             var gpad = this.gamepad.gamepads[i];
 
-            // Only supported in Chrome. If timestamp value is same as previous. Gamepad state hasn´t changed.
+            // Only supported in Chrome. If timestamp value is same as previous. Gamepad state hasnÂ´t changed.
             if (gpad.timestamp && (gpad.timestamp == this.gamepad.prevTimestamps[i])) {
                 continue;
             }
@@ -156,7 +149,7 @@ var InputGamepadPlugin = IInputPlugin.$extend(
                 {
                     this.gamepad.gamepadid = "null";
                 }
-                TundraSDK.framework.events.send("InputGamepadPlugin.GamepadStatusEvent", this.gamepad);
+                Tundra.events.send("InputGamepadPlugin.GamepadStatusEvent", this.gamepad);
             }
         }
     },
@@ -209,49 +202,43 @@ var InputGamepadPlugin = IInputPlugin.$extend(
             extraAxisId = extraAxisId + 2;
         }
 
-        TundraSDK.framework.events.send("InputGamepadPlugin.GamepadEvent", this.gamepad);
+        Tundra.events.send("InputGamepadPlugin.GamepadEvent", this.gamepad);
     },
 
     /**
         Registers a callback for all gamepad events. See {{#crossLink "InputGamepadPlugin/GamepadEvent:event"}}{{/crossLink}} for event data.
-        @example
-            function onGamepadEvent(event)
-            {
-                // event === GamepadEvent
-            }
 
-            TundraSDK.framework.input.onGamepadEvent(null, onGamepadEvent);
-
-        @method onGamepadEvent
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+
+        * @example
+        * Tundra.input.onGamepadEvent(function(event) {
+        *     // event === GamepadEvent
+        * });
     */
     onGamepadEvent : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("InputGamepadPlugin.GamepadEvent", context, callback);
+        return Tundra.events.subscribe("InputGamepadPlugin.GamepadEvent", context, callback);
     },
 
     /**
         Registers a callback for gamepad status change. If there is no gamepad status is null See {{#crossLink "InputGamepadPlugin/GamepadEvent:event"}}{{/crossLink}} for event data.
-        @example
-            function onGamepadStatusEvent(event)
-            {
-                // event === GamepadEvent
-            }
 
-            TundraSDK.framework.input.onGamepadStatusEvent(null, onGamepadStatusEvent);
-
-        @method onGamepadStatusEvent
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+
+        * @example
+        * Tundra.input.onGamepadStatusEvent(function(event) {
+        *     // event === GamepadEvent
+        * });
     */
     onGamepadStatusEvent : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("InputGamepadPlugin.GamepadStatusEvent", context, callback);
+        return Tundra.events.subscribe("InputGamepadPlugin.GamepadStatusEvent", context, callback);
     }
 });
 

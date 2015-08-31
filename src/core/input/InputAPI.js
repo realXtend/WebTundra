@@ -1,109 +1,56 @@
 
 define([
-        "lib/classy",
         "lib/jquery.mousewheel",
-        "core/framework/TundraSDK"
-    ], function(Class, jqueryMouseWheel, TundraSDK) {
+        "core/framework/Tundra",
+        "core/framework/ITundraAPI",
+        "core/framework/TundraLogging",
+        "core/frame/AsyncHelper",
+        "core/input/InputEventMouse"
+    ], function(jqueryMouseWheel, Tundra, ITundraAPI, TundraLogging, AsyncHelper, InputEventMouse) {
 
-/**
-    InputAPI that is accessible from {{#crossLink "TundraClient/input:property"}}TundraClient.input{{/crossLink}}
-
-    Provides mouse and keyboard input state and events.
-    @class InputAPI
-    @constructor
+/* @todo Implement InputEventKey and remove this!
+    Event object description for {{#crossLink "InputAPI/onKeyEvent:method"}}{{/crossLink}}, {{#crossLink "InputAPI/onKeyPress:method"}}{{/crossLink}} and {{#crossLink "InputAPI/onKeyRelease:method"}}{{/crossLink}} callbacks.
+    @event KeyEvent
+    @param {String} type "press" | "release"
+    @param {Number} keyCode Key as number
+    @param {String} key Key as string
+    @param {Object} pressed Currently held down keys. Maps key as string to boolean.
+    @param {String} targetId DOM element id that the mouse event occurred on
+    @param {String} targetNodeName HTML node name e.g. 'canvas' and 'div'. Useful for detected
+    when on 'body' element aka the mouse event occurred on the "3D scene" and not on top of another input UI widget.
+    @param {Object} originalEvent Original jQuery key event
 */
-var InputAPI = Class.$extend(
+
+var InputAPI = ITundraAPI.$extend(
+/** @lends InputAPI.prototype */
 {
     /**
-        Event object description for {{#crossLink "InputAPI/onMouseEvent:method"}}{{/crossLink}}, {{#crossLink "InputAPI/onMouseMove:method"}}{{/crossLink}}, {{#crossLink "InputAPI/onMouseClick:method"}}{{/crossLink}}, {{#crossLink "InputAPI/onMousePress:method"}}{{/crossLink}}, {{#crossLink "InputAPI/onMouseRelease:method"}}{{/crossLink}} and {{#crossLink "InputAPI/onMouseWheel:method"}}{{/crossLink}} callbacks.
-        @event MouseEvent
-        @param {String} type "move" | "press" | "release" | "wheel"
-        @param {Number} x Current x position
-        @param {Number} y Current y position
-        @param {Number} relativeX Relative x movement since last mouse event
-        @param {Number} relativeY Relative y movement since last mouse event
-        @param {Number} relativeZ Mouse wheel delta
-        @param {Boolean} rightDown Is right mouse button down
-        @param {Boolean} leftDown Is left mouse button down
-        @param {Boolean} middleDown Is middle mouse button down
-        @param {String} targetId DOM element id that the mouse event occurred on
-        @param {String} targetNodeName HTML node name eg. 'canvas' and 'div'. Useful for detected
-        when on 'canvas' element aka the mouse event occurred on the 3D scene canvas and not on top of a UI widget.
-        @param {Object} originalEvent Original jQuery mouse event
-    */
+        Provides mouse and keyboard input state and events.
+        InputAPI is a singleton and is accessible from {@link Tundra.input}.
 
-    /**
-        Event object description for {{#crossLink "InputAPI/onKeyEvent:method"}}{{/crossLink}}, {{#crossLink "InputAPI/onKeyPress:method"}}{{/crossLink}} and {{#crossLink "InputAPI/onKeyRelease:method"}}{{/crossLink}} callbacks.
-        @event KeyEvent
-        @param {String} type "press" | "release"
-        @param {Number} keyCode Key as number
-        @param {String} key Key as string
-        @param {Object} pressed Currently held down keys. Maps key as string to boolean.
-        @param {String} targetId DOM element id that the mouse event occurred on
-        @param {String} targetNodeName HTML node name eg. 'canvas' and 'div'. Useful for detected
-        when on 'body' element aka the mouse event occurred on the "3D scene" and not on top of another input UI widget.
-        @param {Object} originalEvent Original jQuery key event
+        @constructs
+        @extends ITundraAPI
+        @private
     */
-
-    __init__ : function(params)
+    __init__ : function(name, options, globalOptions)
     {
-        var that = this;
+        this.$super(name, options);
 
-        /**
-            Current mouse state
-            <pre>{
-                x : Number,
-                y : Number
-            }</pre>
+        this.timing = new AsyncHelper("InputAPI", this);
 
-                overlay.css({
-                    top  : TundraSDK.framework.input.mouse.y,
-                    left : 5
-                });
-
-            @property mouse
-            @type Object
+        /*
+            Current mouse state.
+            @var {InputEventMouse}
         */
-        this.mouse =
-        {
-            // Event type: move, press, release, wheel
-            type : "",
-            // Absolute position
-            x : null,
-            y : null,
-            // Relative position
-            relativeX : 0,
-            relativeY : 0,
-            // Wheel delta
-            relativeZ : 0,
-            // Button states
-            rightDown  : false,
-            leftDown   : false,
-            middleDown : false,
-            // HTML element id that the mouse event occurred on
-            targetId : "",
-            // HTML node name eg. 'canvas' and 'div'. Useful for detected
-            // when on 'canvas' element aka the mouse event occurred on the
-            // 3D scene canvas and not on top of a UI widget.
-            targetNodeName : "",
-            // Original jQuery mouse event
-            originalEvent : null
-        };
+        this.mouse = new InputEventMouse();
 
-        /**
-            Current keyboard state
-            <pre>{
-                pressed :
-                {
-                    keyCodeStr : Boolean
-                }
-            }</pre>
+        // mouse wheel hacks
+        this._resetMouseWheelDirBinded = this._resetMouseWheelDir.bind(this);
+        this._lastMouseWheelDir = 0;
 
-                if (TundraSDK.framework.input.keyboard.pressed["w"] === true)
-                    console.log("W is down");
-
-            @property keyboard
-            @type Object
+        /*
+            Current keyboard state.
+            @var {Object}
         */
         this.keyboard =
         {
@@ -120,11 +67,23 @@ var InputAPI = Class.$extend(
             pressed : {},
             // HTML element id that the mouse event occurred on
             targetId : "",
-            // HTML node name eg. 'canvas' and 'div'. Useful for detected
+            // HTML node name e.g. 'canvas' and 'div'. Useful for detected
             // when on 'body' element aka the mouse event occurred on the "3D scene" and not on top of another input UI widget.
             targetNodeName : "",
             // Original jQuery mouse event
-            originalEvent : null
+            originalEvent : null,
+
+            /// @todo Document this whole object better!
+            suppress : function(preventDefault, preventPropagation)
+            {
+                if (this.originalEvent != null)
+                {
+                    if (preventDefault === undefined || preventDefault === true)
+                        this.originalEvent.preventDefault();
+                    if (preventPropagation === undefined || preventPropagation === true)
+                        this.originalEvent.stopPropagation();
+                }
+            }
         };
 
         this.keys =
@@ -172,13 +131,95 @@ var InputAPI = Class.$extend(
             221 : ']',
             222 : '\''
         };
+    },
 
+    // ITundraAPI override
+    initialize : function()
+    {
+        this.clearOverrideCursor();
+
+        /* Clear any custom cursors when tab focus changes.
+           This is for safety so that no app can accidentally leave
+           override cursors by handling certain events poorly, while
+           their action/cursor is ongoing. */
+        Tundra.ui.onTabFocusChanged(this, this.clearOverrideCursor.bind(this));
+
+        // Mouse events
+        Tundra.input.registerMouseEvents(Tundra.client.container);
+
+        this.ignoredNodeNameRules = [ "webrocket-", "meshmoon-" ];
+
+        // Key events
+        /* @note If a input field has focus inside a polymer element, there is no easy way to ask this.
+           Below jqeury check wont work as the input is hidden inside the shadow dom. This should improve when shadow dom
+           support gets better in browsers. For now if the target is a polymer element don't send out InputAPI events */
         $(document).keydown(function(e) {
-            that.onKeyPressInternal(e);
-        });
-        $(document).keyup(function(e) {
-            that.onKeyReleaseInternal(e);
-        });
+            // eg. <webrocket-x> polymer element has focus
+            var nodeLower = e.target.nodeName.toLowerCase();
+            for (var i = this.ignoredNodeNameRules.length - 1; i >= 0; i--)
+            {
+                if (nodeLower.indexOf(this.ignoredNodeNameRules[i]) === 0)
+                    return;
+            }
+            // Input/overlay has focus
+            if (!$(e.target, document.activeElement).is("input, textarea, core-input, paper-input, overlay-host"))
+                this.onKeyPressInternal(e);
+        }.bind(this)).keyup(function(e) {
+            // eg. <webrocket-x> polymer element has focus
+            var nodeLower = e.target.nodeName.toLowerCase();
+            for (var i = this.ignoredNodeNameRules.length - 1; i >= 0; i--)
+            {
+                if (nodeLower.indexOf(this.ignoredNodeNameRules[i]) === 0)
+                    return;
+            }
+            // Input/overlay has focus
+            if (!$(e.target, document.activeElement).is("input, textarea, core-input, paper-input, overlay-host"))
+                this.onKeyReleaseInternal(e);
+        }.bind(this));
+    },
+
+    // ITundraAPI override
+    postInitialize : function()
+    {
+        // Load input plugins
+        for (var i = 0; i < InputAPI.plugins.length; i++)
+        {
+            try
+            {
+                InputAPI.plugins[i]._start();
+            }
+            catch(e)
+            {
+                this.log.error("Plugin '" + InputAPI.plugins[i].name + "' start() threw exception: " + e);
+            }
+        }
+    },
+
+    // ITundraAPI override.
+    reset : function()
+    {
+        Tundra.events.remove("InputAPI.MouseEvent");
+        Tundra.events.remove("InputAPI.MouseMove");
+        Tundra.events.remove("InputAPI.MouseClick");
+        Tundra.events.remove("InputAPI.MousePress");
+        Tundra.events.remove("InputAPI.MouseRelease");
+        Tundra.events.remove("InputAPI.MouseWheel");
+        Tundra.events.remove("InputAPI.MouseDoubleClicked");
+        Tundra.events.remove("InputAPI.KeyEvent");
+        Tundra.events.remove("InputAPI.KeyPress");
+        Tundra.events.remove("InputAPI.KeyRelease");
+
+        for (var i = 0; i < InputAPI.plugins.length; i++)
+        {
+            try
+            {
+                InputAPI.plugins[i]._reset();
+            }
+            catch(e)
+            {
+                this.log.error("Plugin '" + InputAPI.plugins[i].name + "' reset() threw exception: " + e);
+            }
+        }
     },
 
     __classvars__ :
@@ -188,7 +229,6 @@ var InputAPI = Class.$extend(
         /**
             Registers a new input plugin. Name of the plugin must be unique.
 
-            @method registerPlugin
             @static
             @param {IInputPlugin} plugin Plugin instance.
         */
@@ -196,7 +236,7 @@ var InputAPI = Class.$extend(
         {
             /*if (!(plugin instanceof IInputPlugin))
             {
-                TundraSDK.framework.client.logError("[InputAPI]: Cannot register plugin that is not of type IInputPlugin");
+                Tundra.client.logError("[InputAPI]: Cannot register plugin that is not of type IInputPlugin");
                 return false;
             }*/
 
@@ -204,7 +244,7 @@ var InputAPI = Class.$extend(
             {
                 if (InputAPI.plugins[i].name === plugin.name)
                 {
-                    console.error("[InputAPI]: registerPlugin() Name of the plugin needs to be unique. Name", plugin.name, "already registered");
+                    this.log.error("registerPlugin() Name of the plugin needs to be unique. Name", plugin.name, "already registered");
                     return;
                 }
             }
@@ -214,7 +254,6 @@ var InputAPI = Class.$extend(
         /**
             Get input plugin.
 
-            @method registerPlugin
             @static
             @param {String} name Name of the plugin.
             @return {IInputPlugin}
@@ -223,53 +262,10 @@ var InputAPI = Class.$extend(
         {
             for (var i = 0; i < InputAPI.plugins.length; i++)
             {
-                if (InputAPI.plugins[i].name === plugin.name)
+                if (InputAPI.plugins[i].name === name)
                     return InputAPI.plugins[i];
             }
             return null;
-        }
-    },
-
-    postInitialize : function()
-    {
-        // Register main container mouse events
-        TundraSDK.framework.input.registerMouseEvents(TundraSDK.framework.client.container);
-
-        for (var i = 0; i < InputAPI.plugins.length; i++)
-        {
-            try
-            {
-                InputAPI.plugins[i]._start();
-            }
-            catch(e)
-            {
-                TundraSDK.framework.client.logError("[InputAPI:] Plugin " + InputAPI.plugins[i].name + " start() threw exception: " + e);
-            }
-        }
-    },
-
-    reset : function()
-    {
-        TundraSDK.framework.events.remove("InputAPI.MouseEvent");
-        TundraSDK.framework.events.remove("InputAPI.MouseMove");
-        TundraSDK.framework.events.remove("InputAPI.MouseClick");
-        TundraSDK.framework.events.remove("InputAPI.MousePress");
-        TundraSDK.framework.events.remove("InputAPI.MouseRelease");
-        TundraSDK.framework.events.remove("InputAPI.MouseWheel");
-        TundraSDK.framework.events.remove("InputAPI.KeyEvent");
-        TundraSDK.framework.events.remove("InputAPI.KeyPress");
-        TundraSDK.framework.events.remove("InputAPI.KeyRelease");
-
-        for (var i = 0; i < InputAPI.plugins.length; i++)
-        {
-            try
-            {
-                InputAPI.plugins[i].reset();
-            }
-            catch(e)
-            {
-                TundraSDK.framework.client.logError("[InputAPI:] Plugin " + InputAPI.plugins[i].name + " reset() threw exception: " + e);
-            }
         }
     },
 
@@ -278,16 +274,67 @@ var InputAPI = Class.$extend(
         var eventHandler = "on" + eventName;
         if (this[eventHandler] !== undefined)
         {
-            TundraSDK.framework.client.logError("[InputAPI]: Cannot register plugin event " + eventName + " the handler InputAPI." +
+            this.log.error("[InputAPI]: Cannot register plugin event " + eventName + " the handler InputAPI." +
                 eventHandler + " is already registered!");
             return false;
         }
-
         this[eventHandler] = function(context, callback)
         {
-            return TundraSDK.framework.events.subscribe(eventStringSignature, context, callback);
+            return Tundra.events.subscribe(eventStringSignature, context, callback);
         };
+        this.log.debug("Registered event", eventStringSignature);
         return true;
+    },
+
+    /**
+        Set override cursor for Tundra container.
+
+        @param {String} cursor https://developer.mozilla.org/en-US/docs/Web/CSS/cursor
+    */
+    setOverrideCursor : function(cursor)
+    {
+        if (Tundra.client.container)
+            Tundra.client.container.css("cursor", cursor);
+    },
+
+    /**
+        Get current override cursor for Tundra container.
+
+        @return {String} cursor Returns empty string if 'default'.
+    */
+    getOverrideCursor : function()
+    {
+        var cursor = (Tundra.client.container ? Tundra.client.container.css("cursor") : "");
+        if (typeof cursor !== "string" || cursor === "default")
+            cursor = "";
+        return cursor;
+    },
+
+    /**
+        Clear override cursor for Tundra container.
+    */
+    clearOverrideCursor : function()
+    {
+        this.setOverrideCursor("default");
+    },
+
+    /**
+        Returns if a event handler is available. This can be used to detect eg.
+        input plugin event registration handlers, which are not present if the
+        plugin is not loaded.
+
+        @param {String} eventName
+        @return {Boolean}
+
+        * @example
+        * if (Tundra.input.hasEvent("TouchPan"))
+        *     Tundra.input.onTouchPan(myHandler);
+    */
+    hasEvent : function(eventName)
+    {
+        if (typeof eventName !== "string")
+            return false;
+        return (typeof this["on" + eventName] === "function");
     },
 
     supportsEventType : function(eventName)
@@ -300,299 +347,302 @@ var InputAPI = Class.$extend(
         var receiver = this;
         var qElement = $(element);
 
+        qElement.css({ "user-select" : "none" });
+
         // Mouse events
-        qElement.mousemove(function(e) {
-            receiver.onMouseMoveInternal(e);
-        });
         qElement.mousedown(function(e) {
             receiver.onMousePressInternal(e);
         });
         qElement.mouseup(function(e) {
             receiver.onMouseReleaseInternal(e);
         });
+        qElement.mousemove(function(e) {
+            receiver.onMouseMoveInternal(e);
+        });
         qElement.mousewheel(function(e, delta, deltaX, deltaY) {
             receiver.onMouseWheelInternal(e, delta, deltaX, deltaY);
         });
+        qElement.dblclick(function(e) { receiver.onMouseDoubleClickInternal(e); } );
 
         // Disable right click context menu
-        qElement.bind("contextmenu", function(e) {
+        qElement.bind("contextmenu", function(/*e*/) {
             return false;
         });
     },
 
     /**
-        Registers a callback for all mouse events. See {{#crossLink "InputAPI/MouseEvent:event"}}{{/crossLink}} for event data.
-        @example
-            function onMouseEvent(event)
-            {
-                // event === MouseEvent
-            }
+        Registers a callback for all mouse events. See {{#crossLink "InputEventMouse"}}{{/crossLink}} for event data.
 
-            TundraSDK.framework.input.onMouseEvent(null, onMouseEvent);
-
-        @method onMouseEvent
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
+        @param {Number} [priority] The priority level of the event listener (default 0). Listeners with higher priority will
+            be executed before listeners with lower priority. Listeners with same priority level will be executed at the same order as they were added.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+
+        * @example
+        * Tundra.input.onMouseEvent(function(event) {
+        *     // event === InputEventMouse
+        * });
     */
-    onMouseEvent : function(context, callback)
+    onMouseEvent : function(context, callback, priority)
     {
-        return TundraSDK.framework.events.subscribe("InputAPI.MouseEvent", context, callback);
+        return Tundra.events.subscribe("InputAPI.MouseEvent", context, callback, priority);
     },
 
     /**
-        Registers a callback for mouse move events. See {{#crossLink "InputAPI/MouseEvent:event"}}{{/crossLink}} for event data.
-        @example
-            function onMouseMove(event)
-            {
-                // event === MouseEvent
-            }
+        Registers a callback for mouse move events. See {{#crossLink "InputEventMouse"}}{{/crossLink}} for event data.
 
-            TundraSDK.framework.input.onMouseMove(null, onMouseMove);
-
-        @method onMouseMove
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+
+        * @example
+        * Tundra.input.onMouseMove(function(event) {
+        *     // event === InputEventMouse
+        * });
     */
-    onMouseMove : function(context, callback)
+    onMouseMove : function(context, callback, priority)
     {
-        return TundraSDK.framework.events.subscribe("InputAPI.MouseMove", context, callback);
+        return Tundra.events.subscribe("InputAPI.MouseMove", context, callback, priority);
     },
 
     /**
-        Registers a callback for mouse press and release events. See {{#crossLink "InputAPI/MouseEvent:event"}}{{/crossLink}} for event data.
-        @example
-            function onMouseClick(event)
-            {
-                // event === MouseEvent
-            }
+        Registers a callback for mouse press and release events. See {{#crossLink "InputEventMouse"}}{{/crossLink}} for event data.
 
-            TundraSDK.framework.input.onMouseClick(null, onMouseClick);
-
-        @method onMouseClick
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+
+        * @example
+        * Tundra.input.onMouseClick(function(event) {
+        *     // event === InputEventMouse
+        * });
     */
-    onMouseClick : function(context, callback)
+    onMouseClick : function(context, callback, priority)
     {
-        return TundraSDK.framework.events.subscribe("InputAPI.MouseClick", context, callback);
+        return Tundra.events.subscribe("InputAPI.MouseClick", context, callback, priority);
     },
 
     /**
-        Registers a callback for mouse press events. See {{#crossLink "InputAPI/MouseEvent:event"}}{{/crossLink}} for event data.
-        @example
-            function onMousePress(event)
-            {
-                // event === MouseEvent
-            }
-
-            TundraSDK.framework.input.onMousePress(null, onMousePress);
+        Registers a callback for mouse press events. See {{#crossLink "InputEventMouse"}}{{/crossLink}} for event data.
 
         @method onMousePress
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+
+        * @example
+        * Tundra.input.onMousePress(function(event) {
+        *     // event === InputEventMouse
+        * });
     */
-    onMousePress : function(context, callback)
+    onMousePress : function(context, callback, priority)
     {
-        return TundraSDK.framework.events.subscribe("InputAPI.MousePress", context, callback);
+        return Tundra.events.subscribe("InputAPI.MousePress", context, callback, priority);
     },
 
     /**
-        Registers a callback for mouse release events. See {{#crossLink "InputAPI/MouseEvent:event"}}{{/crossLink}} for event data.
-        @example
-            function onMouseRelease(event)
-            {
-                // event === MouseEvent
-            }
+        Registers a callback for mouse release events. See {{#crossLink "InputEventMouse"}}{{/crossLink}} for event data.
 
-            TundraSDK.framework.input.onMouseRelease(null, onMouseRelease);
-
-        @method onMouseRelease
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+
+        * @example
+        * Tundra.input.onMouseRelease(function(event) {
+        *     // event === InputEventMouse
+        * });
     */
-    onMouseRelease : function(context, callback)
+    onMouseRelease : function(context, callback, priority)
     {
-        return TundraSDK.framework.events.subscribe("InputAPI.MouseRelease", context, callback);
+        return Tundra.events.subscribe("InputAPI.MouseRelease", context, callback, priority);
     },
 
     /**
-        Registers a callback for mouse wheel events. See {{#crossLink "InputAPI/MouseEvent:event"}}{{/crossLink}} for event data.
-        @example
-            function onMouseWheel(event)
-            {
-                // event === MouseEvent
-            }
+        Registers a callback for mouse wheel events. See {{#crossLink "InputEventMouse"}}{{/crossLink}} for event data.
 
-            TundraSDK.framework.input.onMouseWheel(null, onMouseWheel);
-
-        @method onMouseWheel
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+
+        * @example
+        * Tundra.input.onMouseWheel(function(event) {
+        *     // event === InputEventMouse
+        * });
     */
-    onMouseWheel : function(context, callback)
+    onMouseWheel : function(context, callback, priority)
     {
-        return TundraSDK.framework.events.subscribe("InputAPI.MouseWheel", context, callback);
+        return Tundra.events.subscribe("InputAPI.MouseWheel", context, callback, priority);
+    },
+
+    /**
+        Registers a callback for a mouse (left button) double-click event. See {{#crossLink "InputEventMouse"}}{{/crossLink}} for event data.
+
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
+        @param {Function} callback Function to be called.
+        @return {EventSubscription} Subscription data.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+
+        * @example
+        * Tundra.input.onMouseDoubleClicked(function(event) {
+        *     // event === InputEventMouse
+        * });
+    */
+    onMouseDoubleClicked : function(context, callback, priority)
+    {
+        return Tundra.events.subscribe("InputAPI.MouseDoubleClicked", context, callback, priority);
     },
 
     /**
         Registers a callback for all key events. See {{#crossLink "InputAPI/KeyEvent:event"}}{{/crossLink}} for event data.
-        @example
-            function onKeyEvent(event)
-            {
-                // event === KeyEvent
-            }
 
-            TundraSDK.framework.input.onKeyEvent(null, onKeyEvent);
-
-        @method onKeyEvent
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
+        @param {Number} [priority] The priority level of the event listener (default 0). Listeners with higher priority will
+            be executed before listeners with lower priority. Listeners with same priority level will be executed at the same order as they were added.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+
+        * @example
+        * Tundra.input.onKeyEvent(function(event) {
+        *     // event === KeyEvent
+        * });
     */
-    onKeyEvent : function(context, callback)
+    onKeyEvent : function(context, callback, priority)
     {
-        return TundraSDK.framework.events.subscribe("InputAPI.KeyEvent", context, callback);
+        return Tundra.events.subscribe("InputAPI.KeyEvent", context, callback, priority);
     },
 
     /**
         Registers a callback for key press events. See {{#crossLink "InputAPI/KeyEvent:event"}}{{/crossLink}} for event data.
-        @example
-            function onKeyPress(event)
-            {
-                // event === KeyEvent
-            }
 
-            TundraSDK.framework.input.onKeyPress(null, onKeyPress);
-
-        @method onKeyPress
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+
+        * @example
+        * Tundra.input.onKeyPress(function(event) {
+        *     // event === KeyEvent
+        * });
     */
-    onKeyPress : function(context, callback)
+    onKeyPress : function(context, callback, priority)
     {
-        return TundraSDK.framework.events.subscribe("InputAPI.KeyPress", context, callback);
+        return Tundra.events.subscribe("InputAPI.KeyPress", context, callback, priority);
     },
 
     /**
         Registers a callback for key release events. See {{#crossLink "InputAPI/KeyEvent:event"}}{{/crossLink}} for event data.
-        @example
-            function onKeyRelease(event)
-            {
-                // event === KeyEvent
-            }
 
-            TundraSDK.framework.input.onKeyRelease(null, onKeyRelease);
-
-        @method onKeyRelease
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+
+        * @example
+        * Tundra.input.onKeyRelease(function(event) {
+        *     // event === KeyEvent
+        * });
     */
-    onKeyRelease : function(context, callback)
+    onKeyRelease : function(context, callback, priority)
     {
-        return TundraSDK.framework.events.subscribe("InputAPI.KeyRelease", context, callback);
+        return Tundra.events.subscribe("InputAPI.KeyRelease", context, callback, priority);
     },
 
     onMouseMoveInternal : function(event)
     {
-        this.readMouseEvent(event);
-        this.mouse.type = "move";
+        this.readMouseEvent("move", event);
 
-        TundraSDK.framework.events.send("InputAPI.MouseEvent", this.mouse);
-        TundraSDK.framework.events.send("InputAPI.MouseMove", this.mouse);
+        /* After mouse clicks jquery sends an event that according to
+           our tracking has not actually moved a pixel. Ignore these. */
+        if (this.mouse.relativeX === 0 && this.mouse.relativeY === 0)
+            return;
+
+        if (Tundra.events.send("InputAPI.MouseMove", this.mouse))
+            return;
+        Tundra.events.send("InputAPI.MouseEvent", this.mouse);
     },
 
     onMousePressInternal : function(event)
     {
-        this.readMouseEvent(event);
-        this.mouse.type = "press";
+        this.readMouseEvent("press", event);
 
-        TundraSDK.framework.events.send("InputAPI.MouseEvent", this.mouse);
-        TundraSDK.framework.events.send("InputAPI.MouseClick", this.mouse);
-        TundraSDK.framework.events.send("InputAPI.MousePress", this.mouse);
+        if (Tundra.events.send("InputAPI.MouseClick", this.mouse))
+            return;
+        if (Tundra.events.send("InputAPI.MousePress", this.mouse))
+            return;
+        Tundra.events.send("InputAPI.MouseEvent", this.mouse);
     },
 
     onMouseReleaseInternal : function(event)
     {
-        this.readMouseEvent(event);
-        this.mouse.type = "release";
-        this.mouse.leftDown = false;
-        this.mouse.rightDown = false;
-        this.mouse.middleDown = false;
+        this.readMouseEvent("release", event);
+        this.mouse.setButtons(false, false, false);
 
-        TundraSDK.framework.events.send("InputAPI.MouseEvent", this.mouse);
-        TundraSDK.framework.events.send("InputAPI.MouseClick", this.mouse);
-        TundraSDK.framework.events.send("InputAPI.MouseRelease", this.mouse);
+        if (Tundra.events.send("InputAPI.MouseClick", this.mouse))
+            return;
+        if (Tundra.events.send("InputAPI.MouseRelease", this.mouse))
+            return;
+        Tundra.events.send("InputAPI.MouseEvent", this.mouse);
+    },
+
+    _resetMouseWheelDir : function()
+    {
+        this._lastMouseWheelDir = 0;
     },
 
     onMouseWheelInternal : function(event, delta, deltaX, deltaY)
     {
-        this.readMouseEvent(event, deltaY);
-        this.mouse.type = "wheel";
+        /* For somea reason we get -1 -1 -1 and then a +1 even if you dont change the wheel dir.
+           Not sure if this is a jQuery or a browser bug. Happens on windows at least.
+           Below code tries to ignore wheel events like this. It's very annoying when you do for
+           example a wheel zoom that suddely jumps back. */
+        if (typeof this._lastMouseWheelDir !== 0)
+        {
+            if ((this._lastMouseWheelDir < 0 && deltaY > 0) || (this._lastMouseWheelDir > 0 && deltaY < 0))
+            {
+                this._lastMouseWheelDir = 0;
+                return;
+            }
+        }
+        this.timing.async("reset.wheel.dir", this._resetMouseWheelDirBinded, 300);
+        this._lastMouseWheelDir = deltaY;
 
-        TundraSDK.framework.events.send("InputAPI.MouseEvent", this.mouse);
-        TundraSDK.framework.events.send("InputAPI.MouseWheel", this.mouse);
+        this.readMouseEvent("wheel", event, deltaY);
+
+        if (Tundra.events.send("InputAPI.MouseWheel", this.mouse))
+            return;
+        Tundra.events.send("InputAPI.MouseEvent", this.mouse);
     },
 
-    readMouseEvent : function(event, wheelY)
+    onMouseDoubleClickInternal : function(event)
     {
-        // Original jQuery event
-        this.mouse.originalEvent = event;
+        this.readMouseEvent("dblclick", event);
 
-        // Target element
-        if (event.target !== undefined && event.target !== null)
-        {
-            this.mouse.targetNodeName = event.target.localName;
-            this.mouse.targetId = event.target.id;
-        }
-        else
-        {
-            this.mouse.targetNodeName = "";
-            this.mouse.targetId = "";
-        }
+        if (Tundra.events.send("InputAPI.MouseDoubleClicked", this.mouse))
+            return;
+        Tundra.events.send("InputAPI.MouseEvent", this.mouse);
+    },
 
-        // Relative movement
-        if (this.mouse.x != null)
-            this.mouse.relativeX = event.pageX - this.mouse.x;
-        if (this.mouse.y != null)
-            this.mouse.relativeY = event.pageY - this.mouse.y;
+    readMouseEvent : function(type, event, wheelY)
+    {
+        this.mouse.setOriginalEvent(event, type);
+        this.mouse.readButtonsFromEvent(event, type);
 
-        // Wheel
-        this.mouse.relativeZ = (wheelY != null ? wheelY : 0);
+        /* @todo Use clientX/Y to get webrocket container coords?
+           Using pageX on webrocket that is not at 0,0 will screw up relativeX/Y? */
+        this.mouse.setPosition(event.pageX, event.pageY);
 
-        // Mouse position
-        this.mouse.x = event.pageX;
-        this.mouse.y = event.pageY;
+        if (typeof wheelY === "number")
+            this.mouse.relativeZ = wheelY;
 
-        // Buttons
-        if (TundraSDK.browser.isFirefox)
-        {
-            this.mouse.leftDown   = (event.buttons === 1);
-            this.mouse.rightDown  = (event.buttons === 2);
-            this.mouse.middleDown = (event.buttons === 3);
-        }
-        else
-        {
-            this.mouse.leftDown   = (event.which === 1);
-            this.mouse.rightDown  = (event.which === 3);
-            this.mouse.middleDown = (event.which === 2);
-        }
+        this.mouse.setType(type);
     },
 
     onKeyPressInternal : function(event)
@@ -600,8 +650,9 @@ var InputAPI = Class.$extend(
         this.readKeyEvent(event);
         this.keyboard.type = "press";
 
-        TundraSDK.framework.events.send("InputAPI.KeyEvent", this.keyboard);
-        TundraSDK.framework.events.send("InputAPI.KeyPress", this.keyboard);
+        if (Tundra.events.send("InputAPI.KeyPress", this.keyboard))
+            return;
+        Tundra.events.send("InputAPI.KeyEvent", this.keyboard);
     },
 
     onKeyReleaseInternal : function(event)
@@ -609,8 +660,9 @@ var InputAPI = Class.$extend(
         this.readKeyEvent(event);
         this.keyboard.type = "release";
 
-        TundraSDK.framework.events.send("InputAPI.KeyEvent", this.keyboard);
-        TundraSDK.framework.events.send("InputAPI.KeyRelease", this.keyboard);
+        if (Tundra.events.send("InputAPI.KeyRelease", this.keyboard))
+            return;
+        Tundra.events.send("InputAPI.KeyEvent", this.keyboard);
     },
 
     readKeyEvent : function(event)
@@ -634,7 +686,7 @@ var InputAPI = Class.$extend(
         this.keyboard.keyCode = event.which;
         this.keyboard.key = this.characterForKeyCode(event.which);
 
-        // Track currenly held down keys
+        // Track currently held down keys
         this.keyboard.repeat = false;
         if (event.type === "keydown")
         {
