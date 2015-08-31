@@ -4,7 +4,13 @@ define([
     ], function(Class, THREE) {
 
 var EasingCurve = Class.$extend(
+/** @lends EasingCurve.prototype */
 {
+    /**
+        @constructs
+
+        @todo Add many different types of easing equations: http://gizma.com/easing/ https://gist.github.com/gre/1650294
+    */
     __init__ : function(p1, p2)
     {
         this.p0 = new THREE.Vector2(0, 0);
@@ -13,10 +19,11 @@ var EasingCurve = Class.$extend(
         this.p3 = new THREE.Vector2(1, 1);
     },
 
-    /** 
+    /**
         Get easing curve adjusted time.
+
         @param {Number} time Time in the range of [0,1].
-        @return Easing curve time in the range of [0,1].
+        @return {Number} Easing curve time in the range of [0,1].
     */
     getTime : function(time)
     {
@@ -26,7 +33,7 @@ var EasingCurve = Class.$extend(
         var centerHalf = this.p1.clone().lerp(this.p2, time);
         var rightHalf = this.p2.clone().lerp(this.p3, time);
 
-        leftHalf.lerp(centerHalf, time)
+        leftHalf.lerp(centerHalf, time);
         centerHalf.lerp(rightHalf, time);
         return leftHalf.lerp(centerHalf, time).x;
     }

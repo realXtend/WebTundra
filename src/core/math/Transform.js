@@ -2,31 +2,31 @@
 define([
         "lib/classy",
         "lib/three",
-        "core/framework/TundraSDK",
-        "core/framework/TundraLogging"
-    ], function(Class, THREE, TundraSDK, TundraLogging) {
+        "core/framework/Tundra",
+        "core/framework/TundraLogging",
+        "core/framework/CoreStringUtils",
+        "core/math/MathUtils"
+    ], function(Class, THREE, Tundra, TundraLogging, CoreStringUtils, MathUtils) {
 
-/**
-    Transform object that contains position, rotation and scale.
-
-    @class Transform
-    @constructor
-    @param {Three.Vector3} [pos=THREE.Vector3(0,0,0)] Position.
-    @param {Three.Vector3} [rot=THREE.Vector3(0,0,0)] Rotation in degrees.
-    @param {Three.Vector3} [scale=THREE.Vector3(1,1,1)] Scale.
-*/
 var Transform = Class.$extend(
+/** @lends Transform.prototype */
 {
+    /**
+        Transform object that contains position, rotation and scale.
+
+        @constructs
+        @param {THREE.Vector3} [pos=THREE.Vector3(0,0,0)] Position.
+        @param {THREE.Vector3} [rot=THREE.Vector3(0,0,0)] Rotation in degrees.
+        @param {THREE.Vector3} [scale=THREE.Vector3(1,1,1)] Scale.
+    */
     __init__ : function(pos, rot, scale)
     {
-        this.log = TundraLogging.getLogger("Transform");
-
         if (pos !== undefined && !(pos instanceof THREE.Vector3))
-            this.log.warn("Constructor 'pos' parameter is not a THREE.Vector3", pos);
-        if (rot !== undefined && !(pos instanceof THREE.Vector3))
-            this.log.warn("Constructor 'rot' parameter is not a THREE.Vector3", rot);
-        if (scale !== undefined && !(pos instanceof THREE.Vector3))
-            this.log.warn("Constructor 'scale' parameter is not a THREE.Vector3", scale);
+            TundraLogging.getLogger("Transform").warn("Constructor 'pos' parameter is not a THREE.Vector3", pos);
+        if (rot !== undefined && !(rot instanceof THREE.Vector3))
+            TundraLogging.getLogger("Transform").warn("Constructor 'rot' parameter is not a THREE.Vector3", rot);
+        if (scale !== undefined && !(scale instanceof THREE.Vector3))
+            TundraLogging.getLogger("Transform").warn("Constructor 'scale' parameter is not a THREE.Vector3", scale);
 
         // "Private" internal data. Actual access from 'pos', 'rot' and 'scale'.
         this._pos = (pos instanceof THREE.Vector3 ? pos : new THREE.Vector3(0,0,0));
@@ -39,31 +39,31 @@ var Transform = Class.$extend(
             "ZYX" // This is important for Quaternions to be correctly produced from our euler.
         );
 
-        /**
-            Position
-            @property pos
-            @type THREE.Vector3
-        */
-        /**
-            Specifies the rotation of this transform in *degrees*, using the Euler XYZ convention.
-            @property rot
-            @type THREE.Vector3
-        */
-        /**
-            Scale
-            @property scale
-            @type THREE.Vector3
-        */
         Object.defineProperties(this, {
-            "pos" : {
+            /**
+                Position
+                @var {THREE.Vector3}
+                @memberof Transform.prototype
+            */
+            pos : {
                 get : function ()      { return this._pos; },
                 set : function (value) { this.setPosition(value); }
             },
-            "rot" : {
+            /**
+                Specifies the rotation of this transform in <b>degrees</b>, using the Euler XYZ convention.
+                @var {THREE.Vector3}
+                @memberof Transform.prototype
+            */
+            rot : {
                 get : function ()      { return this._rot; },
                 set : function (value) { this.setRotation(value); }
             },
-            "scale" : {
+            /**
+                Scale
+                @var {THREE.Vector3}
+                @memberof Transform.prototype
+            */
+            scale : {
                 get : function ()      { return this._scale; },
                 set : function (value) { this.setScale(value); }
             }
@@ -71,33 +71,128 @@ var Transform = Class.$extend(
     },
 
     /**
+        Resets scale to 1,1,1 and pos/rot to 0,0,0.
+    */
+    reset : function()
+    {
+        this.setScale(1,1,1);
+        this.setPosition(0,0,0);
+        this.setRotation(0,0,0);
+    },
+
+    /**
+        Copy values from another transform
+        @param {Transform} transform
+    */
+    copy : function(transform)
+    {
+        this._pos.copy(transform._pos);
+        this._rot.copy(transform._rot);
+        this._scale.copy(transform._scale);
+    },
+
+    /**
+        Decomposes to a Transform or separate pos, rot and scale.
+        @param {Transform|THREE.Vector3} [pos]
+        @param {THREE.Vector3} [rot]
+        @param {THREE.Vector3} [scale]
+    */
+    decompose : function(pos, rot, scale)
+    {
+        if (pos instanceof Transform)
+        {
+            pos._pos.copy(this._pos);
+            pos._rot.copy(this._rot);
+            pos._scale.copy(this._scale);
+        }
+        else
+        {
+            if (pos instanceof THREE.Vector3)
+                pos.copy(this._pos);
+            if (rot instanceof THREE.Vector3)
+                rot.copy(this._rot);
+            if (scale instanceof THREE.Vector3)
+                scale.copy(this._scale);
+        }
+    },
+
+    /**
+        Applies this Transforms position, rotation and scale to target
+        @param {THREE.Object3D} target
+    */
+    apply : function(object3D)
+    {
+        object3D.position.copy(this._pos);
+        this.copyOrientationTo(object3D.quaternion);
+        object3D.scale.copy(this._scale);
+
+        object3D.updateMatrix();
+        object3D.updateMatrixWorld(true);
+    },
+
+    /**
         Adjusts this transforms orientation so its looking at the passed in position.
-        @method lookAt
         @param {THREE.Vector3} eye
         @param {THREE.Vector3} target
     */
     lookAt : function(eye, target)
     {
+        this.setRotation(this.lookAtQuaternion(eye, target));
+    },
+
+    /**
+        Returns quaternion to look at the passed in position.
+        @param {THREE.Vector3} eye
+        @param {THREE.Vector3} target
+    */
+    lookAtQuaternion : function(eye, target)
+    {
         if (this._orientationMatrix === undefined)
             this._orientationMatrix = new THREE.Matrix4();
         this._orientationMatrix.makeTranslation(0,0,0);
-        this._orientationMatrix.lookAt(eye, target, TundraSDK.framework.renderer.axisY);
+        this._orientationMatrix.lookAt(eye, target, Tundra.renderer.axisY);
 
-        this.setRotation(new THREE.Quaternion().setFromRotationMatrix(this._orientationMatrix));
+        return new THREE.Quaternion().setFromRotationMatrix(this._orientationMatrix);
     },
 
     /**
         Returns orientation of this Transform as a quaternion.
-        @method orientation
+        Creates a new Quaternion object, see copyOrientationTo.
+        @param {THREE.Quaternion} [targetQuat] Optional target quaternion. Saves newing up a new quat for each query.
         @return {THREE.Quaternion} Orientation.
     */
-    orientation : function()
+    orientation : function(targetQuat)
     {
         this._updateEuler();
 
-        var quat = new THREE.Quaternion();
-        quat.setFromEuler(this._rotEuler, false);
-        return quat;
+        if (targetQuat !== undefined && targetQuat instanceof THREE.Quaternion)
+        {
+            targetQuat.setFromEuler(this._rotEuler, false);
+            return targetQuat;
+        }
+        else
+        {
+            var quat = new THREE.Quaternion();
+            quat.setFromEuler(this._rotEuler, false);
+            return quat;
+        }
+    },
+
+    quaternion : function()
+    {
+        return this.orientation();
+    },
+
+    /**
+        Copies this orientation to destination `THREE.Quaternion`,
+        unline `orientation()` this function does not create new objects.
+        @param {THREE.Quaternion} Destination
+    */
+    copyOrientationTo : function(dest)
+    {
+        this._updateEuler();
+
+        dest.setFromEuler(this._rotEuler, false);
     },
 
     _updateEuler : function()
@@ -111,7 +206,6 @@ var Transform = Class.$extend(
 
     /**
         Returns orientation of this Transform as euler angle.
-        @method euler
         @return {THREE.Euler} Orientation.
     */
     euler : function()
@@ -122,12 +216,10 @@ var Transform = Class.$extend(
 
     /**
         Set position.
-        @method setPosition
         @param {THREE.Vector3} vector Position vector.
     */
     /**
         Set position.
-        @method setPosition
         @param {Number} x
         @param {Number} y
         @param {Number} z
@@ -144,28 +236,30 @@ var Transform = Class.$extend(
             this._pos.y = y;
             this._pos.z = z;
         }
+        else if (typeof x === "object" && typeof x.x === "number" && typeof x.y === "number" && typeof x.z === "number")
+        {
+            this._pos.x = x.x;
+            this._pos.y = x.y;
+            this._pos.z = x.z;
+        }
         else
-            this.log.error("setPosition must be called with a single Three.Vector3 or x,y,z with type of number.", x, y, z);
+            TundraLogging.getLogger("Transform").error("setPosition must be called with a single Three.Vector3 or x,y,z with type of number.", x, y, z);
     },
 
     /**
         Set rotation.
-        @method setRotation
         @param {THREE.Vector3} vector Rotation vector in angles.
     */
     /**
         Set rotation.
-        @method setRotation
         @param {THREE.Quaternion} quaternion Rotation quaternion.
     */
     /**
         Set rotation.
-        @method setRotation
         @param {THREE.Euler} euler Rotation in radians.
     */
     /**
         Set rotation.
-        @method setRotation
         @param {Number} x X-axis degrees.
         @param {Number} y Y-axis degrees.
         @param {Number} z Z-axis degrees.
@@ -194,8 +288,14 @@ var Transform = Class.$extend(
             this._rot.y = y;
             this._rot.z = z;
         }
+        else if (typeof x === "object" && typeof x.x === "number" && typeof x.y === "number" && typeof x.z === "number")
+        {
+            this._rot.x = x.x;
+            this._rot.y = x.y;
+            this._rot.z = x.z;
+        }
         else
-            this.log.error("setRotation must be called with a single Three.Vector3, THREE.Quaternion or x,y,z with type of number.", x, y, z);
+            TundraLogging.getLogger("Transform").error("setRotation must be called with a single Three.Vector3, THREE.Quaternion or x,y,z with type of number.", x, y, z);
     },
 
     setScale : function(x, y, z)
@@ -210,14 +310,19 @@ var Transform = Class.$extend(
             this._scale.y = y;
             this._scale.z = z;
         }
+        else if (typeof x === "object" && typeof x.x === "number" && typeof x.y === "number" && typeof x.z === "number")
+        {
+            this._scale.x = x.x;
+            this._scale.y = x.y;
+            this._scale.z = x.z;
+        }
         else
-            this.log.error("setScale must be called with a single Three.Vector3 or x,y,z with type of number.", x, y, z);
+            TundraLogging.getLogger("Transform").error("setScale must be called with a single Three.Vector3 or x,y,z with type of number.", x, y, z);
         return false;
     },
 
     /**
         Returns a clone of this transform.
-        @method clone
         @return {Transform} Transform.
     */
     clone : function()
@@ -226,8 +331,25 @@ var Transform = Class.$extend(
     },
 
     /**
+        Sets value from string.
+
+        @param {String} The Transform as a string.
+        @return {Boolean}
+    */
+    fromString : function(str)
+    {
+        var parts = MathUtils.splitToFloats(str);
+        if (parts.length >= 3)
+            this.setPosition(MathUtils.parseFloat(parts[0]), MathUtils.parseFloat(parts[1]), MathUtils.parseFloat(parts[2]));
+        if (parts.length >= 6)
+            this.setRotation(MathUtils.parseFloat(parts[3]), MathUtils.parseFloat(parts[4]), MathUtils.parseFloat(parts[5]));
+        if (parts.length >= 9)
+            this.setScale(MathUtils.parseFloat(parts[6]), MathUtils.parseFloat(parts[7]), MathUtils.parseFloat(parts[8]));
+        return (parts.length >= 3);
+    },
+
+    /**
         Returns this Transform as a string for logging purposes.
-        @method toString
         @return {String} The Transform as a string.
     */
     toString : function(compressed)
@@ -240,6 +362,28 @@ var Transform = Class.$extend(
         if (!compressed)
             str = "Transform(" + str + ")";
         return str;
+    },
+
+    formatParts : function(decimals)
+    {
+        if (typeof decimals !== "number")
+            decimals = 6;
+
+        var parts = [ this._pos.x.toFixed(decimals), this._pos.y.toFixed(decimals), this._pos.z.toFixed(decimals),
+                      this._rot.x.toFixed(decimals), this._rot.y.toFixed(decimals), this._rot.z.toFixed(decimals),
+                      this._scale.x.toFixed(decimals), this._scale.y.toFixed(decimals), this._scale.z.toFixed(decimals) ];
+
+        // Trim x.00000 zeros from right side
+        for (var i = 0; i < parts.length; i++)
+        {
+            var part = parts[i];
+            part = CoreStringUtils.trimStringRight(part, "0");
+            if (CoreStringUtils.endsWith(part, "."))
+                part = part.substring(0, part.length-1);
+            parts[i] = part;
+
+        };
+        return parts;
     }
 });
 
