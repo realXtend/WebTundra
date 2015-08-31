@@ -1,30 +1,57 @@
 
-define(function() {
+define([
+        "lib/classy",
+        "core/framework/Tundra"
+    ],
+    function(Class, Tundra) {
 
-/**
-    Event subscription data object returned from {{#crossLink "EventAPI/subscribe:method"}}{{/crossLink}}.
-
-    @class EventSubscription
-    @constructor
-    @param {String} channel Subscription channel name.
-    @param {String} id Subscription id.
-*/
 var EventSubscription = Class.$extend(
+/** @lends EventSubscription.prototype */
 {
-    __init__ : function(channel, id)
+    /**
+        Event subscription returned from {{#crossLink "EventAPI/subscribe:method"}}{{/crossLink}}.
+        This object is read only, modifying it has not effect on the prior subscribtion.
+
+        @constructs
+        @param {String} channel
+        @param {String} id
+        @param {Number} [priority]
+    */
+    __init__ : function(channel, id, priority)
     {
         /**
             Subscription channel name.
-            @property channel
-            @type String
+            @var {String}
         */
         this.channel = channel;
         /**
             Subscription id.
-            @property id
-            @type String
+            @var {String}
         */
         this.id = id;
+        /**
+            Subscription priority.
+            @var {Number}
+        */
+        this.priority = priority;
+    },
+
+    /**
+        Reset and unsubscribe.
+    */
+    reset : function()
+    {
+        Tundra.events.unsubscribe(this);
+    },
+
+    /**
+        Returns if the subscribtion is currently active.
+
+        @return {Boolean}
+    */
+    isActive : function()
+    {
+        return (this.id !== undefined);
     }
 });
 

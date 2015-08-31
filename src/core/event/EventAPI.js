@@ -1,260 +1,410 @@
 
-/// todo: check out http://millermedeiros.github.io/js-signals/ for mediator replacement.
-
 define([
         "lib/signals",
+        "core/framework/ITundraAPI",
         "core/event/EventSubscription"
-    ], function(signals, EventSubscription) {
+    ], function(signals, ITundraAPI, EventSubscription) {
 
-/**
-    EventAPI that provides subscribing and unsubscribing from Web Tundra events.
-
-    Usually objects in Web Tundra provide onSomeEvent functions to subscribe, use those if they exist.
-    These functions will return you EventSubscription objects that you can pass into EventAPIs unsubscribe functions.
-
-    If you are implementing a function that uses the EventAPI be sure to return the EventSubscription object to the
-    caller that gets returned from subscribe().
-
-    @class EventAPI
-    @constructor
-*/
-var EventAPI = Class.$extend(
+var EventAPI = ITundraAPI.$extend(
+/** @lends EventAPI.prototype */
 {
-    __init__ : function(params)
+    /**
+        In the WebTundra naming convention, objects in WebTundra that provide events have methods, whose names start with the preposition "on" (for example `object.onSomeEvent()`). Use those if provided by the class,
+        and if creating new ones, be sure to name your methods with an appropriate description of what has happened or what is about to happen (for example `onEventAboutToHappen` or `onEventHappened`)
+        These functions will return you an {{#crossLink "EventSubscription"}}{{/crossLink}} object that you can use to manage the subscription.
+
+        When implementing your own event via the `EventAPI`, be sure to return the `EventSubscription` object to the
+        caller that gets returned from  {{#crossLink "EventAPI/subscribe:method"}}{{/crossLink}}.
+
+        When subscribing you can optionally specify a priority to control the order in which the handler functions are invoked.
+        If wanting to suppress the event you are handling in an event callback, return `false` from the callback.
+
+        EventAPI is a singleton and is accessible from {@link Tundra.events}.
+
+        @constructs
+        @extends ITundraAPI
+        @summary EventAPI provides subscribing to, and unsubscribing from WebTundra events.
+
+        * @example
+        * // Provide a wrapper method for your event subscribtion in your object as follows
+        * onIncremented : function(context, callback, priority)
+        * {
+        *     // Name your channel with an identifer that is unique. Preferred way of channel naming is `ClassName.EventName` as shown below.
+        *     return Tundra.events.subscribe("Counter.Increment", context, callback, priority);
+        * },
+        *
+        * // The following function will increment `value`, and then send the `Counter.Increment` event to all subscribers.
+        * increment : function()
+        * {
+        *     this.value++;
+        *     // You can send any number of parameters to the event subscribers.
+        *     Tundra.events.send("Counter.Increment", this.value, { something: this.someOtherState.x });
+        * }
+    */
+    __init__ : function(name, options, globalOptions)
     {
-        // Private, don't doc.
-        //this.mediator = new Mediator();
+        this.$super(name, options);
+
         this.signals = {};
+
+        // Turn on verbose logging for each sub/unsub event
+        this.debugging = false;
     },
 
     /**
-        Sends a event to all subscribers.
+        Sends an event to all subscribers.
 
-        You can pass up to 10 data paramers of arbitrary JavaScript type.
-        Parameters will be sent until a 'undefined' parameter is found, so don't use it as a parameter because it will
-        cut your arguments from that point onward. If 10 parameters is not enough for you use complex objects, the you
-        can have whatever data you want in them and the number of args is not a limiting factor.
+        You can pass up to 10 data parameters of arbitrary JavaScript types.
+        If 10 parameters is not enough for you, complex objects can be used to have whatever data you want in them and the number of arguments is not a limiting factor.
 
-        In practise only pass the parametrs you want to send(), the rest will automatically be undefined which will mark
+        In practice only pass the parameters you want to send(), the rest will automatically be undefined which will mark
         the amount of your parameters sent to the subscribers.
 
-        @example
-            var sub = TundraSDK.framework.events.subscribe("MyCustomEvent", null, function(msg, list, isSomething) {
-                console.log(msg);         // "Hello Subscriber!"
-                console.log(list);        // [ 12, 15 ]
-                console.log(isSomething); // false
-            });
+        @param {String|EventSubscription} event Channel name or `EventSubscription` where channel will be resolved.
+        @param {Object} [param=undefined] You can pass in any number of parameters as data after the channel to the sent event.
+        Parameters will be sent until an `undefined` parameter is found, so don't use it as a parameter because it will
+        cut your arguments from that point onward.
+        @return {Boolean} `true` if event propagation was stopped at some point, `false` otherwise.
 
-            TundraSDK.framework.events.send(sub, "Hello Subscriber!", [ 12, 15 ], false);
-            TundraSDK.framework.events.send("MyCustomEvent", "Hello Subscriber!", [ 12, 15 ], false);
-
-        @method send
-        @param {EventSubscription|String} channel Subscription data or channel name.
-        @param {Object} [param1=undefined] Data parameter to be sent.
-        @param {Object} [param2=undefined] Data parameter to be sent.
-        @param {Object} [param3=undefined] Data parameter to be sent.
-        @param {Object} [param4=undefined] Data parameter to be sent.
-        @param {Object} [param5=undefined] Data parameter to be sent.
-        @param {Object} [param6=undefined] Data parameter to be sent.
-        @param {Object} [param7=undefined] Data parameter to be sent.
-        @param {Object} [param8=undefined] Data parameter to be sent.
-        @param {Object} [param9=undefined] Data parameter to be sent.
-        @param {Object} [param10=undefined] Data parameter to be sent.
-        @return {EventSubscription} Subscription data.
+        * @example
+        * // The following snippet will create an event named `MyCustomEvent`, attach an anonymous function as a listener,
+        * // and send the event by using both an EventSubscription object and event name
+        * var sub = Tundra.events.subscribe("MyCustomEvent", null, function(msg, list, isSomething) {
+        *     console.log(msg);         // "Hello Subscriber!"
+        *     console.log(list);        // [ 12, 15 ]
+        *     console.log(isSomething); // false
+        * });
+        *
+        * Tundra.events.send(sub, "Hello Subscriber!", [ 12, 15 ], false);
+        * Tundra.events.send("MyCustomEvent", "Hello Subscriber!", [ 12, 15 ], false);
     */
-    send : function(subParam1, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10)
+    send : function(name)
     {
-        var channel = (typeof subParam1 == "string" ? subParam1 : subParam1.channel);
-
-        // If the signal is not found, this is not an error.
-        // It just means no one has subscribed to it yet, so
-        // we dont need to post it.
-        var signal = this.signals[channel];
-        if (signal === undefined)
-            return;
-
-        // Early out
-        if (!this._hasActiveListeners(signal))
-            return;
-
-        if (param1 === undefined)
-            signal.dispatch();
-        else if (param2 === undefined)
-            signal.dispatch(param1);
-        else if (param3 === undefined)
-            signal.dispatch(param1, param2);
-        else if (param4 === undefined)
-            signal.dispatch(param1, param2, param3);
-        else if (param5 === undefined)
-            signal.dispatch(param1, param2, param3, param4);
-        else if (param6 === undefined)
-            signal.dispatch(param1, param2, param3, param4, param5);
-        else if (param7 === undefined)
-            signal.dispatch(param1, param2, param3, param4, param5, param6);
-        else if (param8 === undefined)
-            signal.dispatch(param1, param2, param3, param4, param5, param6, param7);
-        else if (param9 === undefined)
-            signal.dispatch(param1, param2, param3, param4, param5, param6, param7, param8);
-        else if (param10 === undefined)
-            signal.dispatch(param1, param2, param3, param4, param5, param6, param7, param8, param9);
-        else
-            signal.dispatch(param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
-    },
-
-    /**
-        Subsribes a callback to a channel event.
-        @example
-            var sub = TundraSDK.framework.events.subscribe("MyCustomEvent", null, function(msg, list, isSomething) {
-                console.log(msg);         // "Hello Subscriber!"
-                console.log(list);        // [ 12, 15 ]
-                console.log(isSomething); // false
-            });
-
-            TundraSDK.framework.events.send(sub, "Hello Subscriber!", [ 12, 15 ], false);
-            TundraSDK.framework.events.send("MyCustomEvent", "Hello Subscriber!", [ 12, 15 ], false);
-
-        @method subscribe
-        @param {String} channel Subscription channel name.
-        @param {Object} context Context of in which the callback function is executed. Can be null.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-    */
-    subscribe : function(channel, context, callback)
-    {
-        var signal = this.signals[channel];
-        if (signal === undefined)
+        var _name = (typeof name === "string" ? name : name.channel);
+        if (typeof _name !== "string")
         {
-            signal = new signals.Signal();
-            signal._eventapi_priority = -1;
-            signal._eventapi_id = -1;
-            signal._eventapi_subscribers = {};
-            this.signals[channel] = signal;
+            this.log.error("send: First parameter must be a channel name or a EventSubscription object:", _name);
+            return false;
         }
-        signal._eventapi_priority++;
-        signal._eventapi_id++;
 
-        var binding = signal.add(callback, context, signal._eventapi_priority);
-        signal._eventapi_subscribers[signal._eventapi_id] = signal._bindings.length-1;
+        // Not an error if not found, no one just has not subscribed to it yet.
+        var signal = this.signals[_name];
+        if (signal === undefined || !signal.hasActiveBindings())
+            return false;
 
-        //var mediatorSub = this.mediator.subscribe(channel, callback, {}, context);
-        //var eventSub = ;
-        return new EventSubscription(channel, signal._eventapi_id);
+        /* Drop 'name' from arguments. Unusual code due to world around for V8 "bug".
+           https://code.google.com/p/v8/issues/detail?id=3037
+           https://github.com/jashkenas/coffeescript/issues/3274
+           https://github.com/joyent/node/commit/7ced966a32dd18b4de2768f41796af76638341f9 */
+        this._args = [];
+        if (arguments.length > 1)
+        {
+            for (var i = 1; i < arguments.length; i++)
+                this._args.push(arguments[i]);
+        }
+        //this._args = [].slice.call(arguments, 1); // <-- triggers unoptimizations for v8
+
+        signal.dispatch.apply(signal, this._args);
+
+        return (!signal._shouldPropagate);
+    },
+
+    _args : [],
+
+    /**
+        Subscribes a callback to an event identified by `channel`.
+
+        @param {String} channel Subscription channel name. Preferred naming is `ClassName.EventName`
+        @param {Object} context Context of in which the callback function is executed. Can be `null`.
+        @param {Function} callback Function to be called. Return `false` inside the function to suppress the event.
+        @param {Number} [priority] The priority level of the event listener (default 0). Listeners with higher priority will
+            be executed before listeners with lower priority. Listeners with same priority level will be executed at the same order as they subscribed.
+        @return {EventSubscription} Subscription data.
+
+        * @example
+        * var sub = Tundra.events.subscribe("MyCustomEvent", function(msg, list, isSomething) {
+        *     console.log(msg);         // "Hello Subscriber"
+        *     console.log(list);        // [ 12, 15 ]
+        *     console.log(isSomething); // false
+        * });
+        *
+        * // There are two options for defining a context for the callback function.
+        * // One is by giving the context as an argument to `subscribe`
+        * var sub2 = Tundra.events.subscribe("MyCustomEvent", this, function() {
+        *     console.log("with context", this.someState, arguments);
+        *     this.doSomething();
+        * });
+        * // The other is by binding it to the function object, just as it is done in pure Javascript
+        * var sub3 = Tundra.events.subscribe("MyCustomEvent", function() {
+        *     console.log("with bind",arguments);
+        *     this.doSomething();
+        * }.bind(this));
+        *
+        * // The handler can also be a non-anonymous function
+        * var sub4 = Tundra.events.subscribe("MyCustomEvent", this, this.onCustomEvent);
+        * var sub5 = Tundra.events.subscribe("MyCustomEvent", this.onCustomEvent.bind(this));
+        *
+        * // Send the event by calling `send` somewhere in your code
+        * Tundra.events.send("MyCustomEvent", "Hello Subscriber!", [ 12, 15 ], false);
+    */
+    subscribe : function(channel, context, callback, priority)
+    {
+        /* Allow passing only the callback without a explicit context.
+           Swap params if 'context' is a function and callback is not.
+           In this case also no thet callback may be the priority. */
+        if (typeof context === "function" && typeof callback !== "function")
+        {
+            if (typeof callback === "number" && typeof priority !== "number")
+                priority = callback;
+
+            callback = context;
+            context = undefined;
+        }
+        priority = (typeof priority === "number" ? priority : 0);
+
+        var signal = this._getOrCreateSignal(channel);
+        return signal.subscribe(callback, context, priority);
+    },
+
+    _getOrCreateSignal : function(channel)
+    {
+        var signal = this.signals[channel];
+        if (signal !== undefined)
+            return signal;
+        return this._createSignal(channel);
+    },
+
+    _createSignal : function(channel)
+    {
+        var signal = new signals.Signal();
+        signal.tundra = { subIndex : 0, channel : channel, debugging : this.debugging };
+
+        signal.subscribe = function(callback, context, priority)
+        {
+            var id = (++this.tundra.subIndex);
+
+            var subscription = new EventSubscription(this.tundra.channel, id);
+
+            var binding = this.add(callback, context, priority);
+            binding.tundra = { id : id, subscription : subscription };
+
+            if (this.tundra.debugging === true)
+                console.debug("subscribed  ", binding.tundra.subscription.id, this.tundra.channel);
+
+            return subscription;
+        };
+
+        signal.unsubscribe = function(id)
+        {
+            for (var bi = this._bindings.length - 1; bi >= 0; bi--)
+            {
+                var binding = this._bindings[bi];
+                if (binding.tundra.id === id)
+                {
+                    // tundra state
+                    if (binding.tundra.subscription instanceof EventSubscription)
+                    {
+                        if (this.tundra.debugging === true)
+                            console.debug("unsubscribed", binding.tundra.subscription.id, this.tundra.channel);
+                        binding.tundra.subscription.id = undefined;
+                    }
+                    binding.tundra = {};
+
+                    // signals.js state
+                    binding._destroy();
+                    binding.active = false;
+
+                    this._bindings.splice(bi, 1);
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        signal.aboutToDispose = function()
+        {
+            for (var bi = this._bindings.length - 1; bi >= 0; bi--)
+            {
+                var binding = this._bindings[bi];
+
+                // tundra state
+                if (binding.tundra.subscription instanceof EventSubscription)
+                {
+                    if (this.tundra.debugging === true)
+                        console.debug("unsubscribed ALL", binding.tundra.subscription.id, this.tundra.channel);
+                    binding.tundra.subscription.id = undefined;
+                }
+                binding.tundra = {};
+            }
+        };
+
+        signal.numBindings = function()
+        {
+            return this._bindings.length
+        };
+
+        signal.hasActiveBindings = function()
+        {
+            for (var bi = this._bindings.length - 1; bi >= 0; bi--)
+            {
+                if (this._bindings[bi].active === true)
+                    return true;
+            }
+            return false;
+        };
+
+        signal.numActiveBindings = function()
+        {
+            var num = 0;
+            for (var bi = this._bindings.length - 1; bi >= 0; bi--)
+            {
+                if (this._bindings[bi].active === true)
+                    num++;
+            }
+            return num;
+        };
+
+        signal.numSubscribtions = function()
+        {
+            var num = 0;
+            for (var bi = this._bindings.length - 1; bi >= 0; bi--)
+            {
+                var binding = this._bindings[bi];
+                if (binding.tundra.subscription instanceof EventSubscription)
+                    num++;
+            }
+            return num;
+        };
+
+        signal.hasActiveSubscribtions = function()
+        {
+            for (var bi = this._bindings.length - 1; bi >= 0; bi--)
+            {
+                var binding = this._bindings[bi];
+                if (binding.tundra.subscription instanceof EventSubscription && typeof binding.tundra.subscription.id === "number")
+                    return true;
+            }
+            return false;
+        };
+
+        signal.numActiveSubscribtions = function()
+        {
+            var num = 0;
+            for (var bi = this._bindings.length - 1; bi >= 0; bi--)
+            {
+                var binding = this._bindings[bi];
+                if (binding.tundra.subscription instanceof EventSubscription && typeof binding.tundra.subscription.id === "number")
+                    num++;
+            }
+            return num;
+        };
+
+        this.signals[channel] = signal;
+        return signal;
     },
 
     /**
-        Subsribes a callback to a channel event.
-        @example
-            var sub = TundraSDK.framework.events.subscribe("MyCustomEvent", null, function() {
-            });
-            // Once you don't want the callbacks anymore.
-            TundraSDK.framework.events.unsubscribe(sub);
+        Unsubscribes a callback from a channel.
 
-        @method unsubscribe
-        @param {EventSubscription} subscription Subscription data.
-        @return {Boolean} If unsubscription was successful.
-    */
-    /**
-        Subsribes a callback to a channel event. Prefer using the EventSubscription overload
-        that will reset your sub id so that it cannot be used to unsubscribe again.
-        @example
-            var sub = TundraSDK.framework.events.subscribe("MyCustomEvent", null, function() {
-            });
-            // Once you don't want the callbacks anymore.
-            TundraSDK.framework.events.unsubscribe(sub.channel, sub.id);
-            // ... or
-            TundraSDK.framework.events.unsubscribe("MyCustomEvent", sub.id);
-            // Manually reset the id so this sub data cannot be used again to unsubscribe.
-            sub.id = undefined;
+        @param {EventSubscription|String} sub `EvebtSubscription` object or channel name.
+        @param {String} [id] Subscription id if first parameter is not a `EventSubscription` object.
+        @return {Boolean} `true` if unsubscription was successful, `false` otherwise.
 
-        @method unsubscribe
-        @param {String} channel Subscription channel name.
-        @param {String} id Subscription id.
-        @return {Boolean} If unsubscription was successful.
+        * @example
+        * var sub = Tundra.events.subscribe("MyCustomEvent", myCustonContext, function() {
+        *     console.log("event occurred");
+        * });
+        * // Once you don't want the callbacks anymore prefer using the subscribtion API.
+        * sub.reset();
+        * // Or use EventAPI directly
+        * Tundra.events.unsubscribe(sub);
+
+        * // Your subscribtion has now been invalidated by reseting the id,
+        * // you must subscribe again to receive events. It is still safe
+        * // to call ubsubscribe with the inactivated subscribtion.
+        * sub = Tundra.events.subscribe("MyCustomEvent", ...);
+
+        * // Event senders may at any point unsubscribe all listeners if they see fit.
+        * // This is many times the case for per server connection or per Scene/Entity/Component/Attribute
+        * // events when the sender is reseted or restroyed. You can check if your subscribtion is still active.
+        * if (!sub.isActive())
+        *     sub = Tundra.events.subscribe(...);
     */
     unsubscribe : function(param1, param2)
     {
-        var channel = undefined;
-        var id = undefined;
+        var channel = param1, id = param2;
+
         if (param1 instanceof EventSubscription)
         {
             channel = param1.channel;
             id = param1.id;
-
-            // Mark that this sub has now been unsubbed.
-            // This data should go back to the callers object
-            // and if it calls this function again, nothing happens.
-            param1.id = undefined;
         }
-        else
-        {
-            channel = param1;
-            id = param2;
-        }
-        if (channel === undefined || channel === null)
-            return false;
-        if (id === undefined || id === null)
+        if (typeof channel !== "string" || typeof id !== "number")
             return false;
 
         var signal = this.signals[channel];
         if (signal === undefined)
             return false;
 
-        var bindingIndex = signal._eventapi_subscribers[id];
-        if (bindingIndex !== undefined && signal._bindings[bindingIndex] !== undefined)
+        var result = signal.unsubscribe(id);
+        if (result && !signal.hasActiveBindings())
         {
-            // We cannot remove the binding until all are unsubscribed.
-            // This would break our internal-to-signaljs index tracking.
-            // Free and mark as inactive until this happens.
-            signal._bindings[bindingIndex]._destroy();
-            signal._bindings[bindingIndex].active = false;
-            signal._eventapi_subscribers[id] = undefined            
+            if (this.debugging === true)
+                console.debug("disposing empty channel", signal.tundra.channel);
 
-            if (!this._hasActiveListeners(signal))
-            {
-                signal.dispose();
-                signal = undefined;
-                delete this.signals[channel];
-            }
+            signal.dispose();
+            signal = undefined;
+            delete this.signals[channel];
         }
 
-        return true;
+        if (result && param1 instanceof EventSubscription)
+            param1.id = undefined;
+
+        return result;
     },
 
     /**
-        Removes all event subscribers from a channel. Be careful with this, best option would be to let your APIs users unsubscribe when they see fit.
-        @method remove
+        Removes all event subscribers from a channel. Use with caution, best option would be to let your APIs users unsubscribe when they see fit.
+        However sometimes event senders want to reset all the subscribers, for example when disconnecting from a server.
+
         @param {String} channel Subscription channel name.
+        @return {Boolean} `true` if channel was found, `false` otherwise.
     */
     remove : function(channel)
     {
         var signal = this.signals[channel];
         if (signal !== undefined)
         {
+            signal.aboutToDispose();
             signal.dispose();
             signal = undefined;
+
             delete this.signals[channel];
+            return true;
         }
-    },
-
-    _numActiveListeners : function(signal)
-    {
-        var num = 0;
-        for (var i = signal.getNumListeners() - 1; i >= 0; i--) 
-        {
-            if (signal._bindings[i].active)
-                num++;
-        };
-        return num;
-    },
-
-    _hasActiveListeners : function(signal)
-    {
-        for (var i = signal.getNumListeners() - 1; i >= 0; i--) 
-        {
-            if (signal._bindings[i].active)
-                return true;
-        };
         return false;
+    },
+
+    /**
+        Prints current subscribtion state to console for debug inspection.
+    */
+    dumpState : function()
+    {
+        var numSubscribtions = 0;
+        for (var channel in this.signals)
+        {
+            var signal = this.signals[channel];
+            numSubscribtions += signal.numActiveSubscribtions();
+
+            console.debug({ bindings : signal.numBindings(), active_b : signal.numActiveBindings(),
+                            subs     : signal.numSubscribtions(), active_s : signal.numActiveSubscribtions()
+                          }, channel);
+
+            // These should always match or you most likely have a bug somewhere!
+            if (signal.numBindings() !== signal.numActiveBindings() || signal.numSubscribtions() !== signal.numActiveSubscribtions())
+                console.warn("Number of listeners do not match up. EventAPI internals might have a bug?");
+        }
+        console.debug("Total signals", Object.keys(this.signals).length, "Total subscriptions", numSubscribtions);
     }
 });
 
