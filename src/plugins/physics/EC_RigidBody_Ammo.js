@@ -134,6 +134,18 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
     },
     
     /**
+        Check whether body mass is more than zero and collision shape is not TriMesh
+
+        @method isDynamic
+        @return {boolean}
+    */
+    isDynamic : function()
+    {
+        return this.attributes.mass.get() > 0.0 &&
+               this.attributes.shapeType.get() !== EC_RigidBody.ShapeType.TriMesh;
+    },
+    
+    /**
         Force the body to activate (wake up)
 
         @method activate
@@ -332,8 +344,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         var isPhantom      = this.attributes.phantom.get();
         var drawDebug      = this.attributes.drawDebug.get();
         
-        var shape = this.attributes.shapeType.get();
-        var isDynamic = mass > 0.0 && shape !== EC_RigidBody.ShapeType.TriMesh;
+        var isDynamic = this.isDynamic();
         
         // Read placeables position and rotation
         var pos = this.parentEntity.placeable.position();
