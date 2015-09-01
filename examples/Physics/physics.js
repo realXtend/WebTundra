@@ -48,8 +48,8 @@ var PhysicsApplication = ICameraApplication.$extend(
             
             createBoxes : function()
             {
-                var tilling = 4;
-                var offset = -2 * tilling;
+                var tiling = 4;
+                var offset = -2 * tiling;
                 
                 for (var z = 0; z < 5; z++)
                 {
@@ -59,9 +59,9 @@ var PhysicsApplication = ICameraApplication.$extend(
                         {
                             var entity = this._createMesh("Box_" + x + "_" + y, "webtundra://Box.json");
                             var t = entity.placeable.transform;
-                            t.setPosition(offset + this.origin.x + (x * tilling),
-                                          this.origin.y + 2 + (z * tilling),
-                                          offset + this.origin.z  + (y * tilling));
+                            t.setPosition(offset + this.origin.x + (x * tiling),
+                                          this.origin.y + 2 + (z * tiling),
+                                          offset + this.origin.z  + (y * tiling));
                             t.setScale(2, 2, 2);
                             entity.placeable.transform = t;
                             entity.rigidbody.mass = 5;
@@ -72,7 +72,7 @@ var PhysicsApplication = ICameraApplication.$extend(
                 }
             },
             
-            relase : function()
+            release : function()
             {
                 for (var i = 0; i < this.boxes.length; ++i)
                     TundraSDK.framework.scene.removeEntity(this.boxes[i].id);
@@ -111,11 +111,6 @@ var PhysicsApplication = ICameraApplication.$extend(
         this.demoApp.createBoxes();
         
         this.createCamera();
-    },
-
-    onConnected : function()
-    {
-        
     },
 
     createCamera : function()
@@ -200,7 +195,7 @@ var PhysicsApplication = ICameraApplication.$extend(
                 this.movement.y = 0;
             else if (event.key == "r")
             {
-                this.demoApp.relase();
+                this.demoApp.release();
                 this.demoApp.createBoxes();
             }
             else if (event.key == "e")
