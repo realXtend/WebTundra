@@ -1,7 +1,8 @@
 
 define([
         "core/network/INetworkMessage",
-    ], function(INetworkMessage) {
+        "core/network/Network"
+    ], function(INetworkMessage, Network) {
 
 /**
     Login reply message.
@@ -34,6 +35,12 @@ var LoginReplyMessage = INetworkMessage.$extend(
             @type String
         */
         this.replyData = "";
+        /**
+            Protocol version supported by the server
+            @property protocolVersion
+            @type Number
+        */
+        this.protocolVersion = Network.protocolVersion.Original;
     },
 
     __classvars__ :
@@ -47,6 +54,9 @@ var LoginReplyMessage = INetworkMessage.$extend(
         this.success = ds.readBoolean();
         this.connectionId = ds.readVLE();
         this.replyData = ds.readStringU16();
+        // Read optional protocol version if present
+        if (ds.bytesLeft() >= 1)
+            this.protocolVersion = ds.readVLE();
         delete ds;
     }
 });

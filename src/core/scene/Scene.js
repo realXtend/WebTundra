@@ -1,6 +1,7 @@
 
 define([
         "lib/classy",
+        "lib/three",
         "core/framework/TundraSDK",
         "core/framework/TundraLogging",
         "core/framework/CoreStringUtils",
@@ -9,8 +10,10 @@ define([
         "core/scene/Attribute",
         "core/scene/AttributeChange",
         "core/network/Network",
-        "core/data/DataDeserializer"
-    ], function(Class, TundraSDK, TundraLogging, CoreStringUtils, Entity, IComponent, Attribute, AttributeChange, Network, DataDeserializer, DataSerializer) {
+        "core/data/DataDeserializer",
+        "core/data/DataSerializer",
+        "core/math/Transform"
+    ], function(Class, THREE, TundraSDK, TundraLogging, CoreStringUtils, Entity, IComponent, Attribute, AttributeChange, Network, DataDeserializer, DataSerializer, Transform) {
 
 /**
     Scene that is accessible from {{#crossLink "TundraClient/scene:property"}}TundraClient.scene{{/crossLink}}
@@ -912,7 +915,13 @@ var Scene = Class.$extend(
 
     onTundraMessage : function(message)
     {
-        /// @note This entity id u16 is probably a sync manger hack for web socket!
+        /// @note RigidBody message is differently structured; it may contain multiple entities
+        if (message.id === 119)
+        {
+            this.handleRigidBodyUpdateMessage(message.ds);
+            return;
+        }
+
         var sceneId = message.ds.readVLE();
         var entityId = message.ds.readVLE();
 
@@ -956,6 +965,12 @@ var Scene = Class.$extend(
         // New entity
         var entity = this.createEntity(entityId, [], AttributeChange.Replicate, true, true);
         entity.temporary = ds.readBoolean();
+
+        /// Read parent entity ID
+        /// @todo: use properly
+        var parentEntityId = 0;
+        if (TundraSDK.framework.client.protocolVersion >= Network.protocolVersion.HierarchicScene)
+            parentEntityId = ds.readU32();
 
         // Components
         var numComponents = ds.readVLE();
@@ -1092,10 +1107,6 @@ var Scene = Class.$extend(
             return;
         }
 
-        var array = null;
-        var bufferView = null;
-        var _ds = null;
-
         while (ds.bytesLeft() >= 2)
         {
             var compId = ds.readVLE();
@@ -1115,119 +1126,113 @@ var Scene = Class.$extend(
                 continue;
             }
 
-            // Read all bytes to bits for inspection.
-            var bitArray = ds.readBits(totalBytes);
-
             // Control bit
             // 1 = Bitmask
             // 0 = Indices
-            if (bitArray.get(0) === 1)
+            if (ds.readBit() === 1)
             {
-                for(var i=1, bitmaskAttributeIndex=0; i<bitArray.size; ++i, ++bitmaskAttributeIndex)
+                for(var i = 0; i < component.attributeCount; ++i)
                 {
                     // Change bit
                     // 1 = attribute changed
                     // 0 = no change
-                    if (bitArray.get(i) === 0)
+                    if (ds.readBit() === 0)
                         continue;
 
-                    var bitIndex = i+1;
-
-                    var attribute = component.getAttributeByIndex(bitmaskAttributeIndex);
-                    if (attribute === undefined || attribute === null)
-                    {
-                        // Don't log an error as some component web implementation might not declare all attributes!
-                        //this.log.error("EditAttributesMessage 'bitmask' deserialization could not find attribute with index " + bitmaskAttributeIndex);
-                        return;
-                    }
-
-                    // Read potential header
-                    var len = attribute.sizeBytes;
-                    if (len === undefined)
-                    {
-                        array = new Uint8Array(attribute.headerSizeBytes);
-                        bufferView = new DataView(array.buffer);
-                        for (var hi = 0; hi<attribute.headerSizeBytes; hi++)
-                        {
-                            var byte = DataDeserializer.readByteFromBits(bitArray, bitIndex);
-                            bufferView.setUint8(hi, byte);
-                            bitIndex += 8;
-                        }
-                        _ds = new DataDeserializer(array.buffer);
-                        len = attribute.headerFromBinary(_ds);
-                        i += (attribute.headerSizeBytes * 8);
-                        if (len === undefined)
-                            return;
-                    }
-
-                    // Read data
-                    if (attribute.typeId !== Attribute.AssetReferenceList &&
-                        attribute.typeId !== Attribute.QVariantList)
-                    {
-                        array = new Uint8Array(len);
-                        bufferView = new DataView(array.buffer);
-                        for (var di = 0; di<len; di++)
-                        {
-                            var byte = DataDeserializer.readByteFromBits(bitArray, bitIndex);
-                            bufferView.setUint8(di, byte);
-                            bitIndex += 8;
-                        }
-                        _ds = new DataDeserializer(array.buffer);
-                        var readDataBytes = attribute.dataFromBinary(_ds, len);
-                        i += (readDataBytes * 8);
-                    }
-                    else
-                    {
-                        // Do string list types by hand here, as we don't
-                        // have enough information inside Attribute.dataFromBinary.
-                        attribute.value = [];
-
-                        // String list length
-                        var totalLenght = 0;
-                        for (var di = 0; di<len; di++)
-                        {
-                            // 255 max length for string
-                            array = new Uint8Array(255);
-                            bufferView = new DataView(array.buffer);
-
-                            // Read individual string
-                            var stringLen = DataDeserializer.readByteFromBits(bitArray, bitIndex);
-                            bitIndex += 8;
-
-                            for (var si=0; si<stringLen; ++si)
-                            {
-                                var byte = DataDeserializer.readByteFromBits(bitArray, bitIndex);
-                                bufferView.setUint8(si, byte);
-                                bitIndex += 8;
-                            }
-                            _ds = new DataDeserializer(bufferView.buffer, 0, stringLen);
-                            attribute.value.push(_ds.readString(stringLen, false));
-                            totalLenght += stringLen + 1;
-                        }
-
-                        i += (totalLenght * 8);
-                        attribute.set(attribute.value, AttributeChange.LocalOnly);
-                    }
+                    component.deserializeAttributeFromBinary(i, ds);
                 }
             }
             else
             {
-                // Unroll bits back to bytes skipping the control bit
-                array = new Uint8Array(totalBytes);
-                bufferView = new DataView(array.buffer);
-                for(var i=1, byteIndex=0; i<bitArray.size; i+=8, ++byteIndex)
-                {
-                    var byte = DataDeserializer.readByteFromBits(bitArray, i);
-                    bufferView.setUint8(byteIndex, byte);
-                }
-
-                _ds = new DataDeserializer(array.buffer);
-                var changeCount = _ds.readU8();
+                var changeCount = ds.readU8();
                 for (var ci=0; ci<changeCount; ++ci)
                 {
-                    var attributeIndex = _ds.readU8();
-                    component.deserializeAttributeFromBinary(attributeIndex, _ds);
+                    var attributeIndex = ds.readU8();
+                    component.deserializeAttributeFromBinary(attributeIndex, ds);
                 }
+            }
+        }
+    },
+
+    handleRigidBodyUpdateMessage : function(ds)
+    {
+        while (ds.bitsLeft() >= 9)
+        {
+            var entityId = ds.readVLE();
+            var entity = this.entityById(entityId);
+            var placeable = entity ? entity.placeable : null;
+            var t = placeable ? placeable.attributes.transform.get() : new Transform();
+
+            if (entity == null)
+            {
+                if (TundraSDK.framework.client.networkDebugLogging)
+                    this.log.error("Failed to find entity with id " + entityId + " to apply rigid body update to!");
+                // The message parsing will continue regardless, we just read the correct amount of bits
+            }
+
+            var sendTypes = ds.readArithmeticEncoded5(8, 3, 4, 3, 3, 2);
+            var posSendType = sendTypes[0];
+            var rotSendType = sendTypes[1];
+            var scaleSendType = sendTypes[2];
+            var velSendType = sendTypes[3];
+            var angVelSendType = sendTypes[4];
+            
+            if (posSendType == 1)
+                t.setPosition(ds.readSignedFixedPoint(11, 8), ds.readSignedFixedPoint(11, 8), ds.readSignedFixedPoint(11, 8));
+            else if (posSendType == 2)
+                t.setPosition(ds.readFloat32(), ds.readFloat32(), ds.readFloat32());
+
+            if (rotSendType == 1)
+            {
+                var forward2D = ds.readNormalizedVector2D(8);
+                t.lookAt(new THREE.Vector3(0,0,0), new THREE.Vector3(forward2D.x, 0, forward2D.y));
+            }
+            else if (rotSendType == 2)
+            {
+                var forward3D = ds.readNormalizedVector3D(9, 8);
+                t.lookAt(new THREE.Vector3(0,0,0), new THREE.Vector3(forward3D.x, forward3D.y, forward3D.z));
+            }
+            else if (rotSendType == 3)
+            {
+                var quantizedAngle = ds.readBits(10);
+                if (quantizedAngle != 0)
+                {
+                    var angle = quantizedAngle * Math.PI / ((1 << 10) - 1);
+                    var axis = ds.readNormalizedVector3D(11, 10);
+                    var quat = new THREE.Quaternion();
+                    quat.setFromAxisAngle(new THREE.Vector3(axis.x, axis.y, axis.z), angle);
+                    t.setRotation(quat);
+                }
+                else
+                    t.setRotation(0, 0, 0); // Identity
+            }
+
+            if (scaleSendType == 1)
+            {
+                var scale = ds.readFloat32();
+                t.setScale(scale, scale, scale);
+            }
+            else if (scaleSendType == 2)
+                t.setScale(ds.readFloat32(), ds.readFloat32(), ds.readFloat32());
+
+            /// @todo Apply velocity once physics simulation is in place, now just read the right amount of bits
+            /// @todo Set position/rotation to interpolate, even without physics simulation
+            if (velSendType == 1)
+                ds.readVector3D(11, 10, 3, 8);
+            else if (velSendType == 2)
+                ds.readVector3D(11, 10, 10, 8);
+
+            if (angVelSendType == 1)
+            {
+                var angle = ds.readBits(10);
+                if (angle != 0)
+                    ds.readNormalizedVector3D(11, 10);
+            }
+
+            if (placeable && (posSendType != 0 || rotSendType != 0 || scaleSendType != 0))
+            {
+                // Update the transform value if something changed
+                placeable.attributes.transform.set(t, AttributeChange.LocalOnly);
             }
         }
     }
