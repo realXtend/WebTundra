@@ -28,7 +28,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         this.collisionShape_ = null;
         this.rigidbody_ = null;
         
-        this.pendingAsset = false;
+        this.pendingMeshAsset_ = false;
         
         // If dirty create new isntance of rigidbody
         this.dirty_ = false;
@@ -122,15 +122,26 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
     },
     
     /**
+        Check whether body is active
+
+        @method isActive
+    */
+    isActive : function()
+    {
+        if (this.rigidbody_ !== null)
+            return this.rigidbody_.isActive();
+        return false;
+    },
+    
+    /**
         Force the body to activate (wake up)
 
         @method activate
     */
     activate : function()
     {
-        if (this.rigidbody_ === undefined ||
-            this.rigidbody_ === null)
-            this.rigidbody_.activate();
+        if (this.rigidbody_ !== null)
+            this.rigidbody_.activate(true);
     },
     
     setParent : function(entity)
@@ -401,7 +412,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         position = null;
         quat = null;
         
-        this.pendingAsset = false;
+        this.pendingMeshAsset_ = false;
     },
     
     /**
@@ -419,7 +430,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         Ammo.destroy(this.rigidbody_);
         this.rigidbody_ = null;
         
-        this.pendingAsset = false;
+        this.pendingMeshAsset_ = false;
     },
     
     /**
@@ -463,7 +474,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         {
             this.collisionShape_ = this._createTriangleMeshCollider();
             if (this.collisionShape_ === null)
-                this.pendingAsset = true;
+                this.pendingMeshAsset_ = true;
         }
         else if (shape === EC_RigidBody.ShapeType.HeightField)
             this.log.warn("HeightField collsion shape is not suppoerted");
@@ -569,7 +580,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         if (this.dirty_)
             this.createBody();
         
-        if (this.pendingAsset)
+        if (this.pendingMeshAsset_)
         {
             var shape = this.attributes.shapeType.get();
             if ( shape === EC_RigidBody.ShapeType.TriMesh &&
@@ -585,7 +596,8 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         if (this.ignoreTransformChange_ ||
             this.rigidbody_ === null ||
             this.parentEntity.placeable === undefined ||
-            this.parentEntity.placeable === null)
+            this.parentEntity.placeable === null ||
+            !this.isActive())
             return;
         
         this.ignoreTransformChange_ = true;
@@ -608,7 +620,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         
         if (this.rigidbody_ !== null)
         {
-            // update linear- and angularVelocities to match with the simulation.
+            // set linear- and angularVelocities attribute values.
             var linearVel = this.rigidbody_.getLinearVelocity();
             var value = new THREE.Vector3(linearVel.x(), linearVel.y(), linearVel.z());
             if (!this.linearVelocity.equals(value))
