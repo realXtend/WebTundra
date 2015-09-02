@@ -62,96 +62,103 @@ var EC_RigidBody = IComponent.$extend(
         */
         this.declareAttribute(4, "friction", 0.5, Attribute.Real);
         /**
+            Restitution coefficient between 0.0 - 1.0.
+            @property friction
+            @type Attribute
+            @default 0.5
+        */
+        this.declareAttribute(5, "restitution", 0.0, Attribute.Real);
+        /**
             Linear damping coefficient of the object (makes it lose velocity even when no force acts on it).
             @property linearDamping
             @type Attribute
             @default 0.0
         */
-        this.declareAttribute(5, "linearDamping", 0.0, Attribute.Real);
+        this.declareAttribute(6, "linearDamping", 0.0, Attribute.Real);
         /**
             Angular damping coefficient of the object (makes it lose angular velocity even when no force acts on it)
             @property angularDamping
             @type Attribute
             @default 0.0
         */
-        this.declareAttribute(6, "angularDamping", 0.0, Attribute.Real);
+        this.declareAttribute(7, "angularDamping", 0.0, Attribute.Real);
         /**
             Linear factor. Specifies the axes on which forces can act on the object, making it move.
             @property linearFactor
             @type Attribute
             @default THREE.Vector3(1.0, 1.0, 1.0)
         */
-        this.declareAttribute(7, "linearFactor", new THREE.Vector3(1.0, 1.0, 1.0), Attribute.Float3);
+        this.declareAttribute(8, "linearFactor", new THREE.Vector3(1.0, 1.0, 1.0), Attribute.Float3);
         /**
             Angular factor. Defines in which dimensions the object can rotate
             @property angularFactor
             @type Attribute
             @default THREE.Vector3(1.0, 1.0, 1.0)
         */
-        this.declareAttribute(8, "angularFactor", new THREE.Vector3(1.0, 1.0, 1.0), Attribute.Float3);
-        /**
-            Linear velocity
-            @property linearVelocity
-            @type Attribute
-            @default THREE.Vector3(0.0, 0.0, 0.0)
-        */
-        this.declareAttribute(9, "linearVelocity", new THREE.Vector3(0.0, 0.0, 0.0), Attribute.Float3);
-        /**
-            Specifies the axes on which torques can act on the object, making it rotate.
-            @property angularVelocity
-            @type Attribute
-            @default THREE.Vector3(0.0, 0.0, 0.0)
-        */
-        this.declareAttribute(10, "angularVelocity", new THREE.Vector3(0.0, 0.0, 0.0), Attribute.Float3);
+        this.declareAttribute(9, "angularFactor", new THREE.Vector3(1.0, 1.0, 1.0), Attribute.Float3);
         /**
             Kinematic flag. If true, forces don't affect the object, but it may push other objects around.
             @property kinematic
             @type Attribute
             @default false
         */
-        this.declareAttribute(11, "kinematic", false, Attribute.Bool);
+        this.declareAttribute(10, "kinematic", false, Attribute.Bool);
         /**
             Phantom flag. If true, contact response is disabled, ie. there is no collision interaction between this object and others
             @property phantom
             @type Attribute
             @default false
         */
-        this.declareAttribute(12, "phantom", false, Attribute.Bool);
+        this.declareAttribute(11, "phantom", false, Attribute.Bool);
         /**
             DrawDebug flag. If true, collision shape will be visualized when physics debug drawing is enabled.
             @property drawDebug
             @type Attribute
             @default false
         */
-        this.declareAttribute(13, "drawDebug", false, Attribute.Bool);
+        this.declareAttribute(12, "drawDebug", false, Attribute.Bool);
+        /**
+            Linear velocity
+            @property linearVelocity
+            @type Attribute
+            @default THREE.Vector3(0.0, 0.0, 0.0)
+        */
+        this.declareAttribute(13, "linearVelocity", new THREE.Vector3(0.0, 0.0, 0.0), Attribute.Float3);
+        /**
+            Angular velocity
+            @property angularVelocity
+            @type Attribute
+            @default THREE.Vector3(0.0, 0.0, 0.0)
+        */
+        this.declareAttribute(14, "angularVelocity", new THREE.Vector3(0.0, 0.0, 0.0), Attribute.Float3);
         /**
             The collision layer bitmask of this rigidbody. Several bits can be set. 0 is default (all bits set)
             @property collisionLayer
             @type Attribute
             @default -1
         */
-        this.declareAttribute(14, "collisionLayer", -1, Attribute.Int);
+        this.declareAttribute(15, "collisionLayer", -1, Attribute.Int);
         /**
             Tells with which collision layers this rigidbody collides with (a bitmask). 0 is default (all bits set)
             @property collisionMask
             @type Attribute
             @default -1
         */
-        this.declareAttribute(15, "collisionMask", -1, Attribute.Int);
+        this.declareAttribute(16, "collisionMask", -1, Attribute.Int);
         /**
             Rolling friction coefficient between 0.0 - 1.0.
             @property rollingFriction
             @type Attribute
             @default 0.5
         */
-        this.declareAttribute(16, "rollingFriction", 0.5, Attribute.Real);
+        this.declareAttribute(17, "rollingFriction", 0.5, Attribute.Real);
         /**
             Gravity enable. If true (default), the physics world gravity affects the object.
             @property useGravity
             @type Attribute
             @default true
         */
-        this.declareAttribute(17, "useGravity", true, Attribute.Bool);
+        this.declareAttribute(18, "useGravity", true, Attribute.Bool);
     },
     
     __classvars__ : {

@@ -61,25 +61,37 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
             case 4: // Friction
                 this.rigidbody_.setFriction(value);
                 break;
-            case 5: // LinearDamping
+            case 5: // Restitution
+                this.rigidbody_.setRestitution(value);
+                break;
+            case 6: // LinearDamping
                 this.dirty_ = true;
                 break;
-            case 6: // AngularDamping
+            case 7: // AngularDamping
                 this.dirty_ = true;
                 break;
-            case 7: // LinearFactor
+            case 8: // LinearFactor
                 var v = new Ammo.btVector3(value.x, value.y, value.z);
                 this.rigidbody_.setLinearFactor(v);
                 Ammo.destroy(v);
                 v = null;
                 break;
-            case 8: // AngularFactor
+            case 9: // AngularFactor
                 var v = new Ammo.btVector3(value.x, value.y, value.z);
                 this.rigidbody_.setAngularFactor(v);
                 Ammo.destroy(v);
                 v = null;
                 break;
-            case 9: // LinearVelocity
+            case 10: // Kinematic
+                this.dirty_ = true;
+                break;
+            case 11: // Phantom
+                this.dirty_ = true;
+                break;
+            case 12: // DrawDebug
+                //this.log.warn("Missing implementation of '" + name + "' attribute.");
+                break;
+            case 13: // LinearVelocity
                 if (!this.ignoreTransformChange_)
                 {
                     var v = new Ammo.btVector3(value.x, value.y, value.z);
@@ -88,7 +100,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
                     v = null;
                 }
                 break;
-            case 10: // AngularVelocity
+            case 14: // AngularVelocity
                 if (!this.ignoreTransformChange_)
                 {
                     var v = new Ammo.btVector3(value.x * Math.PI / 180, value.y * Math.PI / 180, value.z * Math.PI / 180);
@@ -97,25 +109,16 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
                     v = null;
                 }
                 break;
-            case 11: // Kinematic
+            case 15: // CollisionLayer
                 this.dirty_ = true;
                 break;
-            case 12: // Phantom
+            case 16: // CollisionMask
                 this.dirty_ = true;
                 break;
-            case 13: // DrawDebug
-                //this.log.warn("Missing implementation of '" + name + "' attribute.");
-                break;
-            case 14: // CollisionLayer
-                this.dirty_ = true;
-                break;
-            case 15: // CollisionMask
-                this.dirty_ = true;
-                break;
-            case 16: // RollingFriction
+            case 17: // RollingFriction
                 this.rigidbody_.setRollingFriction(value);
                 break;
-            case 17: // UseGravity
+            case 18: // UseGravity
                 //this.log.warn("Missing implementation of '" + name + "' attribute.");
                 break;
         }
@@ -272,7 +275,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         Ammo.destroy(f);
         f = null;
     },
-    
+
     onPlaceableUpdated : function(entity, component, attributeIndex, attributeName, attributeValue)
     {
         if (this.rigidbody_ === undefined ||
@@ -280,7 +283,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
             attributeIndex !== 0)
             return;
         
-        this.setRigidbodyPosition(this.parentEntity.placeable.position());
+        this.setRigidbodyTransform(this.parentEntity.placeable.position(), this.parentEntity.placeable.attributes.transform.get().orientation());
     },
     
     /**
@@ -319,7 +322,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         // Realase the old body
         this.removeCollisionShape();
         this.removeBody();
-        
+
         this.createCollisionShape();
         if (this.collisionShape_ === null)
             return;
@@ -436,11 +439,11 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         if (this.rigidbody_ === undefined ||
             this.rigidbody_ === null)
             return;
-        
+
         TundraSDK.framework.physicsWorld.removeRigidBody(this);
         Ammo.destroy(this.rigidbody_);
         this.rigidbody_ = null;
-        
+
         this.pendingMeshAsset_ = false;
     },
     
@@ -664,13 +667,45 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         
         var worldTrans = new Ammo.btTransform();
         this.rigidbody_.getMotionState().getWorldTransform(worldTrans);
-        worldTrans.setOrigin(new Ammo.btVector3(position.x, position.y, position.z));
+        var o = new Ammo.btVector3(position.x, position.y, position.z)
+        worldTrans.setOrigin(o);
+        Ammo.destroy(o);
+        this.rigidbody_.getMotionState().setWorldTransform(worldTrans);
+        this.rigidbody_.activate();
+
+        Ammo.destroy(worldTrans);
+        worldTrans = null;
+    },
+
+    /**
+        Change rigidbody position and rotation in physics world.
+
+        @method setRigidbodyPosition
+        @param {THREE.Vector3} position
+        @param {THREE.Quaternion} rotation
+    */
+    setRigidbodyTransform : function(position, rotation)
+    {
+        if (this.ignoreTransformChange_ ||
+            this.rigidbody_ === undefined ||
+            this.rigidbody_ === null)
+            return;
+        
+        var worldTrans = new Ammo.btTransform();
+        this.rigidbody_.getMotionState().getWorldTransform(worldTrans);
+        var o = new Ammo.btVector3(position.x, position.y, position.z);
+        var r = new Ammo.btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w);
+        worldTrans.setOrigin(o);
+        worldTrans.setRotation(r);
+        Ammo.destroy(o);
+        Ammo.destroy(r);
         this.rigidbody_.getMotionState().setWorldTransform(worldTrans);
         this.rigidbody_.activate();
         
         Ammo.destroy(worldTrans);
         worldTrans = null;
     },
+
     
     /**
         Registers a callback for physics collision.
