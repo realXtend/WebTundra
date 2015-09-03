@@ -488,9 +488,9 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
                 this.pendingMeshAsset_ = true;
         }
         else if (shape === EC_RigidBody.ShapeType.HeightField)
-            this.log.warn("HeightField collsion shape is not suppoerted");
+            this.log.warn("HeightField collsion shape is not supported");
         else if (shape === EC_RigidBody.ShapeType.ConvexHull)
-            this.log.warn("ConvexHull collsion shape is not suppoerted");
+            this.log.warn("ConvexHull collsion shape is not supported");
         else if (shape === EC_RigidBody.ShapeType.Cone)
             this.collisionShape_ = new Ammo.btConeShape(size.x * 0.5, size.y);
         
@@ -503,7 +503,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
             this.parentEntity.placeable === undefined ||
             this.parentEntity.placeable === null)
             return;
-        
+
         var sizeVec = this.size;
         var scale = this.parentEntity.placeable.transform.scale;
         // Sanitate the size

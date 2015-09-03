@@ -1161,6 +1161,7 @@ var Scene = Class.$extend(
             var entityId = ds.readVLE();
             var entity = this.entityById(entityId);
             var placeable = entity ? entity.placeable : null;
+            var rigidBody = entity ? entity.getComponent("EC_RigidBody") : null;
             var t = placeable ? placeable.attributes.transform.get() : new Transform();
 
             if (entity == null)
@@ -1215,18 +1216,36 @@ var Scene = Class.$extend(
             else if (scaleSendType == 2)
                 t.setScale(ds.readFloat32(), ds.readFloat32(), ds.readFloat32());
 
-            /// @todo Apply velocity once physics simulation is in place, now just read the right amount of bits
             /// @todo Set position/rotation to interpolate, even without physics simulation
             if (velSendType == 1)
-                ds.readVector3D(11, 10, 3, 8);
+            {
+                var vel = ds.readVector3D(11, 10, 3, 8);
+                if (rigidBody)
+                    rigidBody.attributes.linearVelocity.set(new THREE.Vector3(vel.x, vel.y, vel.z));
+            }
             else if (velSendType == 2)
-                ds.readVector3D(11, 10, 10, 8);
+            {
+                var vel = ds.readVector3D(11, 10, 10, 8);
+                if (rigidBody)
+                    rigidBody.attributes.linearVelocity.set(new THREE.Vector3(vel.x, vel.y, vel.z));
+            }
 
             if (angVelSendType == 1)
             {
-                var angle = ds.readBits(10);
-                if (angle != 0)
-                    ds.readNormalizedVector3D(11, 10);
+                var quantizedAngle = ds.readBits(10);
+                if (quantizedAngle != 0)
+                {
+                    var axis = ds.readNormalizedVector3D(11, 10);
+                    if (rigidBody)
+                    {
+                        var angle = quantizedAngle * Math.PI / ((1 << 10) - 1);
+                        var quat = new THREE.Quaternion();
+                        quat.setFromAxisAngle(new THREE.Vector3(axis.x, axis.y, axis.z), angle);
+                        var euler = new THREE.Euler();
+                        euler.setFromQuaternion(quat, 'ZYX', false);
+                        rigidBody.attributes.angularVelocity.set(new THREE.Vector3(euler.x * 180 / Math.PI, euler.y * 180 / Math.PI, euler.z * 180 / Math.PI));
+                    }
+                }
             }
 
             if (placeable && (posSendType != 0 || rotSendType != 0 || scaleSendType != 0))
