@@ -123,7 +123,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
                 break;
         }
     },
-    
+
     /**
         Check whether body is active
 
@@ -343,7 +343,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         var isKinematic    = this.attributes.kinematic.get();
         var isPhantom      = this.attributes.phantom.get();
         var drawDebug      = this.attributes.drawDebug.get();
-        
+
         var isDynamic = this.isDynamic();
         
         // Read placeables position and rotation
@@ -587,7 +587,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
     update : function()
     {
         this.updateTransformPosition();
-        
+
         if (this.dirty_)
             this.createBody();
         
@@ -634,16 +634,16 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
             // set linear- and angularVelocities attribute values.
             var linearVel = this.rigidbody_.getLinearVelocity();
             var value = new THREE.Vector3(linearVel.x(), linearVel.y(), linearVel.z());
-            if (!this.linearVelocity.equals(value))
-                this.linearVelocity = value;
+            if (!this.attributes.linearVelocity.get().equals(value))
+                this.attributes.linearVelocity.set(value);
 
             var angularVel = this.rigidbody_.getAngularVelocity();
-            var degToRad = 180 / Math.PI;
-            value = new THREE.Vector3(angularVel.x() * degToRad,
-                                      angularVel.y() * degToRad,
-                                      angularVel.z() * degToRad);
-            if (!this.linearVelocity.equals(value))
-                this.angularVelocity = value;
+            var radToDeg = 180 / Math.PI;
+            value = new THREE.Vector3(angularVel.x() * radToDeg,
+                                      angularVel.y() * radToDeg,
+                                      angularVel.z() * radToDeg);
+            if (!this.attributes.angularVelocity.get().equals(value))
+                this.attributes.angularVelocity.set(value);
         }
         
         this.ignoreTransformChange_ = false;
