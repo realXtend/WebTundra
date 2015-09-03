@@ -283,7 +283,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
             attributeIndex !== 0)
             return;
         
-        this.setRigidbodyTransform(this.parentEntity.placeable.position(), this.parentEntity.placeable.attributes.transform.get().orientation());
+        this.setRigidbodyTransform(this.parentEntity.placeable.worldPosition(), this.parentEntity.placeable.worldOrientation());
     },
     
     /**
@@ -316,7 +316,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         if (this.parentEntity.placeable === undefined ||
             this.parentEntity.placeable === null)
             return;
-        
+
         this.dirty_ = false;
         
         // Realase the old body
@@ -327,7 +327,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         if (this.collisionShape_ === null)
             return;
         
-        // Read component's attribute valeus
+        // Read component's attribute values
         var mass           = this.attributes.mass.get();
         var linDamping     = this.attributes.linearDamping.get();
         var angDamping     = this.attributes.angularDamping.get();
@@ -337,12 +337,9 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         var linVel         = this.attributes.linearVelocity.get();
         var angVel         = this.attributes.angularVelocity.get();
         var rolFri         = this.attributes.rollingFriction.get();
-        // Hackish way to fix NaN issue when connected to Tundra Server.
-        if (isNaN(rolFri))
-            rolFri = 0.5;
         var linFactor      = this.attributes.linearFactor.get();
         var angFactor      = this.attributes.angularFactor.get();
-        
+
         var isKinematic    = this.attributes.kinematic.get();
         var isPhantom      = this.attributes.phantom.get();
         var drawDebug      = this.attributes.drawDebug.get();
@@ -350,15 +347,15 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         var isDynamic = this.isDynamic();
         
         // Read placeables position and rotation
-        var pos = this.parentEntity.placeable.position();
-        var rot = this.parentEntity.placeable.attributes.transform.get().orientation();
+        var pos = this.parentEntity.placeable.worldPosition();
+        var rot = this.parentEntity.placeable.worldOrientation();
         var transform = new Ammo.btTransform();
         var position = new Ammo.btVector3(pos.x, pos.y, pos.z);
         var quat = new Ammo.btQuaternion(rot.x, rot.y, rot.z, rot.w);
         transform.setOrigin(position);
         transform.setRotation(quat);
         
-        
+
         var localInertia = new Ammo.btVector3(0.0, 0.0, 0.0);
         if (isDynamic)
             this.collisionShape_.calculateLocalInertia(mass, localInertia);
@@ -372,7 +369,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         rbInfo.set_m_angularDamping(angDamping);
         
         this.rigidbody_ = new Ammo.btRigidBody(rbInfo);
-        
+
         var collisionFlags = 0;
         if (!isDynamic)
             collisionFlags |= EC_RigidBody.CollisionFlags.STATIC_OBJECT;
@@ -664,15 +661,15 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
             this.rigidbody_ === undefined ||
             this.rigidbody_ === null)
             return;
-        
+
         var worldTrans = new Ammo.btTransform();
-        this.rigidbody_.getMotionState().getWorldTransform(worldTrans);
+        this.rigidbody_.getWorldTransform(worldTrans);
         var o = new Ammo.btVector3(position.x, position.y, position.z)
         worldTrans.setOrigin(o);
+        this.rigidbody_.setWorldTransform(worldTrans);
+        this.rigidbody_.updateInertiaTensor();
+        this.rigidbody_.activate(false);
         Ammo.destroy(o);
-        this.rigidbody_.getMotionState().setWorldTransform(worldTrans);
-        this.rigidbody_.activate();
-
         Ammo.destroy(worldTrans);
         worldTrans = null;
     },
@@ -680,7 +677,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
     /**
         Change rigidbody position and rotation in physics world.
 
-        @method setRigidbodyPosition
+        @method setRigidbodyTransform
         @param {THREE.Vector3} position
         @param {THREE.Quaternion} rotation
     */
@@ -690,18 +687,18 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
             this.rigidbody_ === undefined ||
             this.rigidbody_ === null)
             return;
-        
+
         var worldTrans = new Ammo.btTransform();
-        this.rigidbody_.getMotionState().getWorldTransform(worldTrans);
+        this.rigidbody_.getWorldTransform(worldTrans);
         var o = new Ammo.btVector3(position.x, position.y, position.z);
         var r = new Ammo.btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w);
         worldTrans.setOrigin(o);
         worldTrans.setRotation(r);
+        this.rigidbody_.setWorldTransform(worldTrans);
+        this.rigidbody_.updateInertiaTensor();
+        this.rigidbody_.activate(false);
         Ammo.destroy(o);
         Ammo.destroy(r);
-        this.rigidbody_.getMotionState().setWorldTransform(worldTrans);
-        this.rigidbody_.activate();
-        
         Ammo.destroy(worldTrans);
         worldTrans = null;
     },
