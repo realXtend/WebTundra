@@ -1220,13 +1220,13 @@ var Scene = Class.$extend(
             if (velSendType == 1)
             {
                 var vel = ds.readVector3D(11, 10, 3, 8);
-                if (rigidBody)
+                if (rigidBody && rigidBody.attributes.linearVelocity)
                     rigidBody.attributes.linearVelocity.set(new THREE.Vector3(vel.x, vel.y, vel.z));
             }
             else if (velSendType == 2)
             {
                 var vel = ds.readVector3D(11, 10, 10, 8);
-                if (rigidBody)
+                if (rigidBody && rigidBody.attributes.linearVelocity)
                     rigidBody.attributes.linearVelocity.set(new THREE.Vector3(vel.x, vel.y, vel.z));
             }
 
@@ -1236,7 +1236,7 @@ var Scene = Class.$extend(
                 if (quantizedAngle != 0)
                 {
                     var axis = ds.readNormalizedVector3D(11, 10);
-                    if (rigidBody)
+                    if (rigidBody && rigidBody.attributes.angularVelocity)
                     {
                         var angle = quantizedAngle * Math.PI / ((1 << 10) - 1);
                         var quat = new THREE.Quaternion();

@@ -71,16 +71,22 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
                 this.dirty_ = true;
                 break;
             case 8: // LinearFactor
-                var v = new Ammo.btVector3(value.x, value.y, value.z);
-                this.rigidbody_.setLinearFactor(v);
-                Ammo.destroy(v);
-                v = null;
+                if (this.rigidbody_)
+                {
+                    var v = new Ammo.btVector3(value.x, value.y, value.z);
+                    this.rigidbody_.setLinearFactor(v);
+                    Ammo.destroy(v);
+                    v = null;
+                }
                 break;
             case 9: // AngularFactor
-                var v = new Ammo.btVector3(value.x, value.y, value.z);
-                this.rigidbody_.setAngularFactor(v);
-                Ammo.destroy(v);
-                v = null;
+                if (this.rigidbody_)
+                {
+                    var v = new Ammo.btVector3(value.x, value.y, value.z);
+                    this.rigidbody_.setAngularFactor(v);
+                    Ammo.destroy(v);
+                    v = null;
+                }
                 break;
             case 10: // Kinematic
                 this.dirty_ = true;
@@ -92,7 +98,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
                 //this.log.warn("Missing implementation of '" + name + "' attribute.");
                 break;
             case 13: // LinearVelocity
-                if (!this.ignoreTransformChange_)
+                if (!this.ignoreTransformChange_ && this.rigidbody_)
                 {
                     var v = new Ammo.btVector3(value.x, value.y, value.z);
                     this.rigidbody_.setLinearVelocity(v);
@@ -101,7 +107,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
                 }
                 break;
             case 14: // AngularVelocity
-                if (!this.ignoreTransformChange_)
+                if (!this.ignoreTransformChange_ && this.rigidbody_)
                 {
                     var v = new Ammo.btVector3(value.x * Math.PI / 180, value.y * Math.PI / 180, value.z * Math.PI / 180);
                     this.rigidbody_.setAngularVelocity(v);
@@ -116,7 +122,8 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
                 this.dirty_ = true;
                 break;
             case 17: // RollingFriction
-                this.rigidbody_.setRollingFriction(value);
+                if (this.rigidbody_)
+                    this.rigidbody_.setRollingFriction(value);
                 break;
             case 18: // UseGravity
                 //this.log.warn("Missing implementation of '" + name + "' attribute.");
