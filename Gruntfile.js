@@ -105,7 +105,9 @@ module.exports = function(grunt) {
 
                     include : [
                         // Renderer
-                        "view/threejs/ThreeJsRenderer"
+                        "view/threejs/ThreeJsRenderer",
+                        // Ammo physics
+                        "plugins/physics/AmmoPhysics"
                     ],
 
                     skipProcessingModules : [

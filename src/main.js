@@ -46,12 +46,14 @@ require([
         "view/threejs/ThreeJsRenderer",
         // Plugins
         //"plugins/dom-integration/TundraDomIntegrationPlugin", // Disabled by default for performance reasons
+        //"plugins/physics/AmmoPhysics", // Disabled by default as server typically simulates physics; client-side physics can be performance-heavy
         "plugins/login-screen/LoginScreenPlugin"
     ],
     function($, _jqueryUI, _jqueryMW, _jqueryTA,
              Client,
              ThreeJsRenderer,
              //TundraDomIntegrationPlugin, // Disabled by default for performance reasons
+             //AmmoPhysics, // Disabled by default
              LoginScreenPlugin)
 {
     // Create a new Web Rocket client
