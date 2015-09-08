@@ -19,7 +19,8 @@ require.config({
         "lib/three"                     : { exports : "THREE" },
         "lib/three/CSS3DRenderer"       : [ "lib/three" ],
         "lib/three/OBJLoader"           : [ "lib/three" ],
-        "lib/polymer.min"               : { exports : "Polymer" }
+        "lib/polymer.min"               : { exports : "Polymer" },
+        "lib/ammo"                      : { exports : "Ammo" }
     }
 });
 

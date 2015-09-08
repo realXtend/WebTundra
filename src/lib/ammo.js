@@ -36,7 +36,3 @@ var Hb=[ZF,Ut,bu,Ay,Iu,Rv,Yv,pw,zw,YA,$B,eD,sD,yD,BD,DD,HE,GE,DE,ZF,ZF,ZF,ZF,ZF,
 };
 
 Ammo = AmmoLib();
-
-define(function() {
-  return Ammo;
-});
