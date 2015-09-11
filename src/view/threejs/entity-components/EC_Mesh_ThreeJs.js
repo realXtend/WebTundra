@@ -174,6 +174,7 @@ var EC_Mesh_ThreeJs = EC_Mesh.$extend(
                 }
             }
 
+/*
             // Apply materials
             var materialRefs = this.attributes.materialRefs.get();
             var numSubmeshes = this.meshAsset.numSubmeshes();
@@ -199,12 +200,14 @@ var EC_Mesh_ThreeJs = EC_Mesh.$extend(
                 submesh.receiveShadow = (submesh.material.hasTundraShadowShader !== undefined && submesh.material.hasTundraShadowShader === true);
                 submesh.castShadow = this.castShadows;
             }
+
             if (this.materialAssets.length > numSubmeshes)
             {
                 this.log.warnC("Too many materials for target mesh " + this.meshAsset.name + ". Materials: " +
                     this.materialAssets.length + " Submeshes: " + numSubmeshes + " In entity: " + this.parentEntity.id + " " +
                         this.parentEntity.name);
             }
+*/
         }
 
         // Parent this meshes scene node to EC_Placeable scene node

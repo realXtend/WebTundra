@@ -144,7 +144,17 @@ var ThreeJsonAsset = IAsset.$extend(
                     material = (threejsData.materials.length === 1 ? threejsData.materials[0] : new THREE.MeshFaceMaterial(threejsData.materials));
 
                 this.mesh = TundraSDK.framework.renderer.createSceneNode();
-                this.mesh.add(new THREE.Mesh(threejsData.geometry, material));
+                
+                var threeMesh = undefined;
+                if (threejsData.geometry.bones !== undefined && threejsData.geometry.bones.length > 0) {
+                    threeMesh = new THREE.SkinnedMesh(threejsData.geometry, material);
+                    material.skinning = true;
+		}
+                else {
+                    threeMesh = new THREE.Mesh(threejsData.geometry, material)
+                }
+
+                this.mesh.add(threeMesh); //this.mesh is confusingly named: is not a mesh but an object3d parent for mesh
             }
             else
                 this.log.error("Parsing failed, three.js didnt return a valid geometry for", this.name);
