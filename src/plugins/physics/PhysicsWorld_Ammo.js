@@ -231,7 +231,7 @@ var PhysicsWorld_Ammo = IPhysicsWorld.$extend(
             if (entityA === undefined || entityA === null ||
                 entityB === undefined || entityB === null)
             {
-                LogError("Inconsistent Bullet physics scene state! A parentless EC_RigidBody exists in the physics scene!");
+                this.log.error("Inconsistent Bullet physics scene state! A parentless EC_RigidBody exists in the physics scene!");
                 continue;
             }
 
@@ -257,8 +257,8 @@ var PhysicsWorld_Ammo = IPhysicsWorld.$extend(
                 var point = contactManifold.getContactPoint(k);
 
                 var info = new CollisionInfo();
-                info.bodyA = bodyA;
-                info.bodyB = bodyB;
+                info.bodyA = entityA.rigidbody ? entityA.rigidbody : null;
+                info.bodyB = entityB.rigidbody ? entityB.rigidbody : null;
                 var v = point.get_m_positionWorldOnB();
                 info.position = new THREE.Vector3(v.x(), v.y(), v.z());
                 v = point.get_m_normalWorldOnB();
@@ -325,15 +325,26 @@ var PhysicsWorld_Ammo = IPhysicsWorld.$extend(
         return new THREE.Vector3(gravity.x(), gravity.y(), gravity.z());
     },
     
-    /** Raycast to the world. Returns only a single (the closest) result.
-    
+    /** 
+        Raycast to the world. Returns only a single (the closest) result.
+        
+        @example
+            var origin = new THREE.Vector3(0.0, 10.0, 0.0);
+            var dir = new THREE.Vector3(0.0, -1.0, 0.0);
+            var dist = 100;
+            var result = TundraSDK.framework.physicsWorld.raycast(origin, dir, dist);
+            if (result) {
+                console.log(result.entity.name);
+            }
+        
         @method raycast
-        @param origin World origin position
-        @param direction Direction to raycast to. Will be normalized automatically
-        @param maxDistance Length of ray
-        @param collisionGroup Collision layer. Default has all bits set.
-        @param collisionMask Collision mask. Default has all bits set.
-        @return result PhysicsRaycastResult structure */
+        @param {THREE.Vector3} origin World origin position
+        @param {THREE.Vector3} direction Direction to raycast to. Will be normalized automatically
+        @param {Number} maxDistance Length of ray
+        @param {Number} collisionGroup Collision layer. Default has all bits set.
+        @param {Number} collisionMask Collision mask. Default has all bits set.
+        @return {PhysicsRaycastResult | Null} function returs PhysicsRaycastResult object or null
+    */
     raycast: function(origin, direction, maxDistance, collisionGroup, collisionMask)
     {
         var result = null;

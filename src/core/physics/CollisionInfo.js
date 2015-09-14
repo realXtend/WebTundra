@@ -8,8 +8,8 @@ define(["lib/classy",
     @class CollisionInfo
     @constructor
     
-    @param {Entity} bodyA
-    @param {Entity} bodyB
+    @param {EC_RigidBody} bodyA
+    @param {EC_RigidBody} bodyB
     @param {THREE.Vector3} position
     @param {THREE.Vector3} normal
     @param {Number} distance
@@ -20,13 +20,13 @@ var CollisionInfo = Class.$extend(
 {
     __init__ : function(bodyA, bodyB, position, normal, distance, impulse, newCollsion)
     {
-        this.bodyA = bodyA;
-        this.bodyB = bodyB;
-        this.position = position;
-        this.normal = normal;
-        this.distance = distance;
-        this.impulse = impulse;
-        this.newCollision = newCollsion;
+        this.bodyA = bodyA ? bodyA : null;
+        this.bodyB = bodyB ? bodyB : null;
+        this.position = position ? position : new THREE.Vector3();
+        this.normal = normal ? normal : new THREE.Vector3();
+        this.distance = distance ? distance : 0.0;
+        this.impulse = impulse ? impulse : 0.0;
+        this.newCollision = newCollsion ? newCollsion : false;
     }
 });
 

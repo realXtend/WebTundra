@@ -73,7 +73,7 @@ var IPhysicsWorld = Class.$extend(
         Registers a callback for physics collision.
 
         @example
-            TundraSDK.framework.scene.onPhysicsCollision(null, function(info)
+            TundraSDK.framework.physicsWorld.onPhysicsCollision(null, function(info)
             {
                 console.log("on collision: " + info.bodyA.id + " " + info.bodyB.id);
             });
@@ -151,15 +151,26 @@ var IPhysicsWorld = Class.$extend(
         return this.runPhysics_;
     },
     
-    /** Raycast to the world. Returns only a single (the closest) result.
-    
+    /** 
+        Raycast to the world. Returns only a single (the closest) result.
+        
+        @example
+            var origin = new THREE.Vector3(0.0, 10.0, 0.0);
+            var dir = new THREE.Vector3(0.0, -1.0, 0.0);
+            var dist = 100;
+            var result = TundraSDK.framework.physicsWorld.raycast(origin, dir, dist);
+            if (result) {
+                console.log(result.entity.name);
+            }
+        
         @method raycast
-        @param origin World origin position
-        @param direction Direction to raycast to. Will be normalized automatically
-        @param maxDistance Length of ray
-        @param collisionGroup Collision layer. Default has all bits set.
-        @param collisionMask Collision mask. Default has all bits set.
-        @return result PhysicsRaycastResult object */
+        @param {THREE.Vector3} origin World origin position
+        @param {THREE.Vector3} direction Direction to raycast to. Will be normalized automatically
+        @param {Number} maxDistance Length of ray
+        @param {Number} collisionGroup Collision layer. Default has all bits set.
+        @param {Number} collisionMask Collision mask. Default has all bits set.
+        @return {PhysicsRaycastResult | Null} function returs PhysicsRaycastResult object or null
+    */
     raycast: function(origin, direction, maxDistance, collisionGroup, collisionMask)
     {
         TundraLogging.getLogger("IPhysicsWorld").warn("raycast(origin, direction, maxDistance, collisionGroup, collisionMask) not implemented.");

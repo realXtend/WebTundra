@@ -44,6 +44,10 @@ var PhysicsApplication = ICameraApplication.$extend(
                 this.world["DirLight"] = new THREE.DirectionalLight();
                 this.world["DirLight"].intensity = 0.5;
                 TundraSDK.framework.client.renderer.scene.add(this.world["DirLight"]);
+                
+                TundraSDK.framework.physicsWorld.onPhysicsCollision(this, this.onCollision);
+                
+                TundraSDK.framework.frame.delayedExecute(0.1, this.DoRaycastTest);
             },
             
             createBoxes : function()
@@ -104,6 +108,22 @@ var PhysicsApplication = ICameraApplication.$extend(
                 meshEntity.mesh.meshRef = ref;
                 
                 return meshEntity;
+            },
+            
+            onCollision : function(info)
+            {
+                
+            },
+            
+            DoRaycastTest : function()
+            {
+                var origin = new THREE.Vector3(0.0, 10.0, -30.0);
+                var dir = new THREE.Vector3(0.0, -1.0, 0.0);
+                var dist = 100;
+                var result = TundraSDK.framework.physicsWorld.raycast(origin, dir, dist);
+                if (result) {
+                    console.log(result.entity.name);
+                }
             }
         };
         
