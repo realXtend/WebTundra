@@ -59,7 +59,7 @@ var IPhysicsWorld = Class.$extend(
     },
     
     /**
-        Process collision from an internal sub-step (Bullet post-tick callback)
+        Process collision from an internal sub-step
 
         @method processPostTick
         @param {Number} subStepTime

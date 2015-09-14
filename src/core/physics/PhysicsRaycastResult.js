@@ -7,35 +7,20 @@ define(["lib/classy",
     PhysicsWorld raycast result object
     @class PhysicsRaycastResult
     @constructor
+    
+    @param {Entity} entity
+    @param {THREE.Vector3} pos
+    @param {THREE.Vector3} normal
+    @param {Number} distance
 */
 var PhysicsRaycastResult = Class.$extend(
 {
     __init__ : function(entity, pos, normal, distance)
     {
-        this.entity = entity === undefined ? null : entity;
-        this.pos = pos instanceof THREE.Vector3 ? pos : new THREE.Vector3();
-        this.normal = normal instanceof THREE.Vector3 ? normal : new THREE.Vector3();
-        this.distance = typeof distance !== 'number' ? 0.0 : distance;
-    },
-    
-    getEntity : function()
-    {
-        return this.entity;
-    },
-    
-    getPosition : function()
-    {
-        return this.pos;
-    },
-    
-    getNormal : function()
-    {
-        return this.normal;
-    },
-    
-    getDistance : function()
-    {
-        return this.distance;
+        this.entity = entity;
+        this.pos = pos;
+        this.normal = normal;
+        this.distance = distance;
     }
 });
 

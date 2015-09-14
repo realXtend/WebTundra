@@ -1161,7 +1161,7 @@ var Scene = Class.$extend(
             var entityId = ds.readVLE();
             var entity = this.entityById(entityId);
             var placeable = entity ? entity.placeable : null;
-            var rigidBody = entity ? entity.getComponent("EC_RigidBody") : null;
+            var rigidBody = entity ? entity.rigidbody : null;
             var t = placeable ? placeable.attributes.transform.get() : new Transform();
 
             if (entity == null)

@@ -128,7 +128,7 @@ var PhysicsWorld_Ammo = IPhysicsWorld.$extend(
     */
     addRigidBody : function(rigidbody, layer, mask)
     {
-        var body = rigidbody.rigidbody_;
+        var body = rigidbody.rigidAmmo;
         this.ptrToRigidbodyMap_[body.ptr] = rigidbody;
         if (typeof layer === "number" && typeof mask === "number")
             this.world.addRigidBody(body, layer, mask);
@@ -144,7 +144,7 @@ var PhysicsWorld_Ammo = IPhysicsWorld.$extend(
     */
     removeRigidBody : function(rigidbody)
     {
-        var body = rigidbody.rigidbody_;
+        var body = rigidbody.rigidAmmo;
         delete this.ptrToRigidbodyMap_[body.ptr];
         this.world.removeRigidBody(body);
     },
@@ -279,9 +279,9 @@ var PhysicsWorld_Ammo = IPhysicsWorld.$extend(
         var c = null;
         for(var i = 0; i < collisions.length; ++i)
         {
-            // For performance reasons only trigger new collisions.
             c = collisions[i];
             
+            // For performance reasons only trigger new collisions.
             if (!c.newCollision)
                 continue;
             

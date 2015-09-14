@@ -18,8 +18,6 @@ var AmmoPhysics = ITundraPlugin.$extend(
     __init__ : function(targetScene)
     {
         this.$super("AmmoPhysics");
-        
-        this.log = TundraLogging.getLogger("AmmoPhysics");
     },
     
     initialize: function()
