@@ -193,12 +193,17 @@ var EC_Mesh_ThreeJs = EC_Mesh.$extend(
                 var materialAsset = this.materialAssets[i];
                 if (materialAsset instanceof IAsset || materialAsset instanceof THREE.Material)
                     submesh.material = (materialAsset instanceof IAsset ? materialAsset.material : materialAsset);
-                else
-                    submesh.material = TundraSDK.framework.renderer.materialWhite;
-
+                else {
+                    //only set materialWhite if no material is set from before.
+                    //-- in case of three json assets, the material is already set by the mesh loader.
+                    if (submesh.material === null) { //is this what actually happens when no material is set?
+                        submesh.material = TundraSDK.framework.renderer.materialWhite;
+                    } //@todo: probably breaks using the EC editor to *remove* material ref to default to white.
+                }
                 submesh.receiveShadow = (submesh.material.hasTundraShadowShader !== undefined && submesh.material.hasTundraShadowShader === true);
                 submesh.castShadow = this.castShadows;
             }
+
             if (this.materialAssets.length > numSubmeshes)
             {
                 this.log.warnC("Too many materials for target mesh " + this.meshAsset.name + ". Materials: " +
