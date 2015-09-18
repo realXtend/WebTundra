@@ -55,7 +55,8 @@ require([
         // Plugins
         //"plugins/dom-integration/TundraDomIntegrationPlugin", // Disabled by default for performance reasons
         "plugins/login-screen/LoginScreenPlugin",
-        "plugins/ogre-plugin/OgrePlugin")
+        "plugins/ogre-plugin/OgrePlugin",
+        "plugins/script-plugin/ScriptPlugin"
     ],
     function($, _jqueryUI, _jqueryMW, _jqueryTA,
              Tundra,
@@ -65,7 +66,8 @@ require([
              EC_Script,
              //TundraDomIntegrationPlugin, // Disabled by default for performance reasons
              LoginScreenPlugin,
-             OgrePlugin)
+             OgrePlugin,
+             ScriptPlugin)
     {
         var createClient = function()
         {

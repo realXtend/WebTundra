@@ -1,24 +1,25 @@
 
 define([
+        "lib/three",
         "lib/classy",
-        "core/framework/TundraSDK",
+        "core/framework/Tundra",
         "core/math/EasingCurve",
         "core/script/IApplication"
-    ], function(Class, TundraSDK, EasingCurve, IApplication) {
+    ], function(THREE, Class, Tundra, EasingCurve, IApplication) {
 
-/**
-    Inteface for creating JavaScript camera logic applications.
-
-    @class ICameraApplication
-    @extends IApplication
-    @constructor
-    @param {String} name Name of the application.
-    @param {Boolean} initIApplication If intiailizing the camera logic should be done.
-    If set to true, calls the IApplication constructor, which in all apps you might not
-    want to do at this stage.
-*/
 var ICameraApplication = IApplication.$extend(
+/** @lends ICameraApplication.prototype */
 {
+    /**
+        Interface for creating JavaScript camera logic applications.
+
+        @constructs
+        @extends IApplication
+        @param {String} name Name of the application.
+        @param {Boolean} initIApplication If initializing the camera logic should be done.
+        If set to true, calls the IApplication constructor, which in all applications you might not
+        want to do at this stage.
+    */
     __init__ : function(name, initIApplication)
     {
         if (initIApplication === undefined)
@@ -44,13 +45,75 @@ var ICameraApplication = IApplication.$extend(
 
     __classvars__ :
     {
+        CollisionsEnabled   : false,
+        CollisionDistance   : 1.5,
+        CollisionDistanceY  : 1.5,
+        CollisionTargets    : [],
+
+        DirectionRays :
+        [
+            new THREE.Vector3( 0,  0,  1),   // forward
+            new THREE.Vector3( 1,  0,  0),   // left
+            new THREE.Vector3( 0,  0, -1),   // back
+            new THREE.Vector3(-1,  0,  0),   // right
+            new THREE.Vector3( 0, -1,  0)    // down
+
+            //new THREE.Vector3( 1, 0,  1),
+            //new THREE.Vector3( 1, 0, -1),
+            //new THREE.Vector3(-1, 0, -1),
+            //new THREE.Vector3(-1, 0,  1)
+            //new THREE.Vector3( 0, 1,  0), // up
+        ],
+
+        CollisionLastHitDirection : new THREE.Vector3(0,0,0),
+        CollisionLastHitPosition  : new THREE.Vector3(0,0,0),
+        CollisionLastHitDistance  : -1.0,
+
+        detectCollision : function(checkPosition)
+        {
+            if (ICameraApplication.CollisionsEnabled !== true || ICameraApplication.CollisionTargets.length === 0)
+                return false;
+            if (checkPosition == null)
+                return false;
+
+            for (var ri=0, rilen=ICameraApplication.DirectionRays.length; ri<rilen; ++ri)
+            {
+                var dir = ICameraApplication.DirectionRays[ri];
+                var result = Tundra.renderer.raycastFrom(checkPosition, dir,
+                    { targets: ICameraApplication.CollisionTargets, ignoreECModel: true, recursive: true }
+                );
+                var minDist = (dir.y === 0 ? ICameraApplication.CollisionDistance : ICameraApplication.CollisionDistanceY);
+                if (result.distance > -0.1 && result.distance < minDist)
+                {
+                    ICameraApplication.CollisionLastHitDirection.copy(dir);
+                    ICameraApplication.CollisionLastHitPosition.copy(result.pos);
+                    ICameraApplication.CollisionLastHitDistance = result.distance;
+                    return true;
+                }
+            }
+            return false;
+        },
+
+        collision : function(checkPosition, dir)
+        {
+            if (ICameraApplication.CollisionTargets.length === 0)
+                return -1;
+            if (checkPosition == null)
+                return -1;
+
+            var result = Tundra.renderer.raycastFrom(checkPosition, dir, 
+                { targets: ICameraApplication.CollisionTargets, ignoreECModel: true, recursive: true }
+            );
+            return result;
+        },
+
         cameraApplicationTooltip : null,
 
         showCameraApplicationInfoTooltipEnabled : true,
 
         showCameraApplicationInfoTooltip : function(text, timeoutMsec)
         {
-            var loginScreenPlugin = TundraSDK.plugin("LoginScreenPlugin");
+            var loginScreenPlugin = Tundra.plugin("LoginScreenPlugin");
             if (loginScreenPlugin != null && loginScreenPlugin.isLoadingScreenVisible())
                 return;
             if (!ICameraApplication.showCameraApplicationInfoTooltipEnabled)
@@ -66,14 +129,14 @@ var ICameraApplication = IApplication.$extend(
                 ICameraApplication.cameraApplicationTooltip.position({
                     my: "center top",
                     at: "center-100 top+10",
-                    of: TundraSDK.framework.client.container
+                    of: Tundra.client.container
                 });
                 ICameraApplication.cameraApplicationTooltip.hide();
 
-                TundraSDK.framework.ui.addWidgetToScene(ICameraApplication.cameraApplicationTooltip);
+                Tundra.ui.addWidgetToScene(ICameraApplication.cameraApplicationTooltip);
                 ICameraApplication.cameraApplicationTooltip.fadeIn();
             }
-            // Applications have a way to override this 
+            // Applications have a way to override this
             var tooltipText = text + " Camera";
             if (ICameraApplication.overrideCameraApplicationInfoTooltipText)
                 tooltipText = ICameraApplication.overrideCameraApplicationInfoTooltipText(tooltipText);
@@ -101,7 +164,8 @@ var ICameraApplication = IApplication.$extend(
             return text;
         },
 
-        cameraTooltipCSS : {
+        cameraTooltipCSS :
+        {
             "border"           : "1px solid grey",
             "text-align"       : "center",
             "min-width"        : 200,
@@ -126,32 +190,73 @@ var ICameraApplication = IApplication.$extend(
         this.resetCameraApplication();
     },
 
+    /**
+        Starts the camera application. Creating a local camera entity if not created yet.
+
+        @param {String} applicationName
+        @param {String} entityName
+        @param {Number} verticalFov
+        @param {Boolean} [addToUserInterfaceSwitcher=false]
+        @return {Entity} Camera entity.
+    */
     startCameraApplication : function(applicationName, entityName, verticalFov, addToUserInterfaceSwitcher)
     {
         if (applicationName === undefined)
         {
-            console.error("[ICameraApplication]: createCameraEntity must pass applicationName eg. 'Avatar' and entity name eg. 'AvatarCamera'!")
+            console.error("[ICameraApplication]: createCameraEntity must pass applicationName e.g. 'Avatar' and entity name e.g. 'AvatarCamera'!")
             return;
         }
         if (addToUserInterfaceSwitcher === undefined)
             addToUserInterfaceSwitcher = true;
 
         if (this.cameraEntity == null)
+            this.cameraEntity = Tundra.scene.createLocalEntity(["Name", "Placeable", "Camera", "SoundListener"]);
+        else
         {
-            this.cameraApplicationState.applicationName = applicationName;
+            this.cameraEntity.replicated = false;
+            this.cameraEntity.local = true;
 
-            this.cameraEntity = TundraSDK.framework.scene.createLocalEntity(["Name", "Placeable", "Camera"]);
-            this.cameraEntity.name = entityName;
-
-            if (verticalFov !== undefined && typeof verticalFov === "number")
-                this.cameraEntity.camera.verticalFov = verticalFov;
-
-            this.subscribeEvent(TundraSDK.framework.renderer.onActiveCameraChanged(this, this._onActiveCameraChanged));
-
-            if (addToUserInterfaceSwitcher === true)
-                TundraSDK.framework.client.registerCameraApplication(applicationName, this);
+            // Entity already set, this is unusual but acceptable.
+            // Make sure the needed components are there as local.
+            this.cameraEntity.getOrCreateLocalComponent("Placeable");
+            this.cameraEntity.getOrCreateLocalComponent("Camera");
+            this.cameraEntity.getOrCreateLocalComponent("SoundListener");
         }
+
+        this.cameraApplicationState.applicationName = applicationName;
+        this.cameraEntity.name = entityName;
+
+        if (verticalFov !== undefined && typeof verticalFov === "number")
+            this.cameraEntity.camera.verticalFov = verticalFov;
+
+        this.subscribeEvent(Tundra.renderer.onActiveCameraChanged(this, this._onActiveCameraChanged));
+
+        if (addToUserInterfaceSwitcher === true)
+        {
+            try
+            {
+                Tundra.client.registerCameraApplication(applicationName, this);
+            }
+            catch(e)
+            {
+                console.error(e.stack || e);
+            }
+        }
+
         return this.cameraEntity;
+    },
+
+    /**
+        Set vertical fov
+        @param {Number} verticalFov
+    */
+    setVerticalFov : function(verticalFov)
+    {
+        if (this.cameraEntity == null || this.cameraEntity.camera == null)
+            return;
+
+        if (verticalFov !== undefined && typeof verticalFov === "number")
+            this.cameraEntity.camera.verticalFov = verticalFov;
     },
 
     resetCameraApplication : function()
@@ -160,6 +265,10 @@ var ICameraApplication = IApplication.$extend(
         this.cameraEntity = null;
     },
 
+    /**
+        Set if camera should be animated from previous camera when activated
+        @param {Boolean} animate
+    */
     animateBeforeActivation : function(animate)
     {
         if (typeof animate === "boolean")
@@ -172,10 +281,10 @@ var ICameraApplication = IApplication.$extend(
             unsubOnly = false;
 
         if (this.cameraApplicationState.onUpdateSub != null)
-            TundraSDK.framework.events.unsubscribe(this.cameraApplicationState.onUpdateSub);
+            Tundra.events.unsubscribe(this.cameraApplicationState.onUpdateSub);
 
         if (unsubOnly === false)
-            this.cameraApplicationState.onUpdateSub = TundraSDK.framework.frame.onUpdate(this, this._onCameraAnimationUpdate);
+            this.cameraApplicationState.onUpdateSub = Tundra.frame.onUpdate(this, this._onCameraAnimationUpdate);
         else if (this.cameraEntity != null && this.cameraEntity.camera != null)
             this.cameraEntity.camera._animating = false;
     },
@@ -191,14 +300,8 @@ var ICameraApplication = IApplication.$extend(
         quat.slerp(state.animationStop.rot.clone(), t);
         quat.normalize();
 
-        this.cameraEntity.placeable.setPosition(pos);
-        this.cameraEntity.placeable.setRotation(quat);
-
-        /** This is a hack to set the same degree angle vector to transform that
-            was set before we started  animating. Using the final quat to do this
-            breaks rotation (sometimes flips -180/180 to z-axis). */
-        if (t >= 1)
-            this.cameraEntity.placeable.setRotation(state.animationStop.rotDegrees);
+        this.cameraEntity.placeable.setWorldPosition(pos);
+        this.cameraEntity.placeable.setWorldOrientation(quat);
     },
 
     _onCameraAnimationUpdate : function(frametime)
@@ -217,7 +320,7 @@ var ICameraApplication = IApplication.$extend(
             this._onCameraStepAnimation(1.0);
             this._subCameraAnimationFrameUpdates(true);
 
-            this.onCameraActived(this.cameraEntity, state.previousCameraEntity);
+            this.onCameraActivated(this.cameraEntity, state.previousCameraEntity);
 
             state.animationT = 0.0;
             state.previousCameraEntity = null;
@@ -239,34 +342,26 @@ var ICameraApplication = IApplication.$extend(
             return;
 
         if (activatedCameraComponent === this.cameraEntity.camera)
-            this._onCameraActived(this.cameraEntity, (previousCameraComponent !== undefined ? previousCameraComponent.parentEntity : undefined));
+            this._onCameraActivated(this.cameraEntity, (previousCameraComponent !== undefined ? previousCameraComponent.parentEntity : undefined));
         else if (previousCameraComponent === this.cameraEntity.camera)
         {
             this._subCameraAnimationFrameUpdates(true);
-            this.onCameraDeactived(this.cameraEntity, activatedCameraComponent.parentEntity);
+            this.onCameraDeactivated(this.cameraEntity, activatedCameraComponent.parentEntity);
         }
     },
 
-    _onCameraActived : function(cameraEntity, previousCameraEntity)
+    _onCameraActivated : function(cameraEntity, previousCameraEntity)
     {
         ICameraApplication.showCameraApplicationInfoTooltip(this.cameraApplicationState.applicationName);
 
         // We can only animate if previous camera entity has a valid placeable
-        if (this.cameraApplicationState.animateActivation === false || previousCameraEntity == null || 
+        if (this.cameraApplicationState.animateActivation === false || previousCameraEntity == null ||
             previousCameraEntity.placeable == null || cameraEntity.placeable == null)
-            this.onCameraActived(cameraEntity, previousCameraEntity);
+            this.onCameraActivated(cameraEntity, previousCameraEntity);
         else
         {
-            // Animations not implemented if one of the cameras are parented!
-            if (typeof cameraEntity.placeable.parentRef !== "string" || typeof previousCameraEntity.placeable.parentRef !== "string" ||
-                cameraEntity.placeable.parentRef !== "" || previousCameraEntity.placeable.parentRef !== "")
-            {
-                this.onCameraActived(cameraEntity, previousCameraEntity);
-                return;
-            }
-
             // Currently auto animating is disabled
-            //this.onCameraActived(cameraEntity, previousCameraEntity);
+            //this.onCameraActivated(cameraEntity, previousCameraEntity);
 
             this.cameraApplicationState.animationT = 0.0;
             this.cameraApplicationState.previousCameraEntity = previousCameraEntity;
@@ -279,8 +374,7 @@ var ICameraApplication = IApplication.$extend(
             this.cameraApplicationState.animationStop =
             {
                 pos         : cameraEntity.placeable.worldPosition(),
-                rot         : cameraEntity.placeable.worldOrientation(),
-                rotDegrees  : cameraEntity.placeable.transform.rot.clone()
+                rot         : cameraEntity.placeable.worldOrientation()
             };
 
             /*console.log(" ");
@@ -288,20 +382,20 @@ var ICameraApplication = IApplication.$extend(
             console.log("END  ", cameraEntity.placeable.transform.rot.toString());*/
 
             // Set start position and rotation
-            cameraEntity.placeable.setPosition(this.cameraApplicationState.animationStart.pos);
-            cameraEntity.placeable.setRotation(this.cameraApplicationState.animationStart.rot);
+            cameraEntity.placeable.setWorldPosition(this.cameraApplicationState.animationStart.pos);
+            cameraEntity.placeable.setWorldOrientation(this.cameraApplicationState.animationStart.rot);
             cameraEntity.camera._animating = true;
 
             this._subCameraAnimationFrameUpdates(false);
         }
     },
 
-    onCameraActived : function(cameraEntity, previousCameraEntity)
+    onCameraActivated : function(cameraEntity, previousCameraEntity)
     {
         /// Implementation overrides.
     },
 
-    onCameraDeactived : function(cameraEntity, activatedCameraEntity)
+    onCameraDeactivated : function(cameraEntity, activatedCameraEntity)
     {
         /// Implementation overrides.
     }

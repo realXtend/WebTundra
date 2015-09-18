@@ -1,0 +1,468 @@
+
+define([
+        "core/framework/Tundra",
+        "core/math/Transform",
+        "core/script/ICameraApplication"
+    ], function(Tundra, Transform, ICameraApplication) {
+
+/**
+    @author Admino Technologies Ltd.
+
+    Copyright 2013 Admino Technologies Ltd.
+    All rights reserved. */
+
+var FreeCameraApplication = ICameraApplication.$extend(
+{
+    __init__ : function()
+    {
+        this.$super("Freelook Camera");
+
+        // Enables animations if both the previous and this camera entity is unparented
+        this.animateBeforeActivation(true);
+
+        Tundra.client.onConnected(this, this.onConnected);
+        Tundra.client.onDisconnected(this, this.onDisconnected);
+
+        // Preserves the Y axis if Space/C is not used for elevation aka WASD and arrows wont affect Y.
+        this.preserveYAxis = false;
+        this.movementOnClick =
+        {
+            enabled             : false,
+            left                : true,
+            hooked              : false,
+            duration            : null,
+            durationOverride    : null,
+            pointerEntityName   : null,
+            pointerEntity       : null
+        };
+
+        this.subscribeEvent(this.entity.onEntityAction(this, function(entityAction) {
+            if (entityAction.name === "SetPreserveYAxis")
+            {
+                if (entityAction.parameters[0] === "true" || entityAction.parameters[0] === "1")
+                    this.preserveYAxis = true;
+                else
+                    this.preserveYAxis = false;
+            }
+            else if (entityAction.name === "SetLinearMovementOnClick")
+            {
+                var params = entityAction.parameters;
+                if (params[0] === "true" || params[0] === "1")
+                    this.movementOnClick.enabled = true;
+                else
+                    this.movementOnClick.enabled = false;
+                if (params.length > 1)
+                {
+                    if (params[1] === "" || params[1] === "left")
+                        this.movementOnClick.left = true;
+                    else if (params[1] === "right")
+                        this.movementOnClick.left = false;
+                }
+                if (params.length >= 2 && params[1] !== "")
+                {
+                    this.movementOnClick.durationOverride = parseFloat(params[1]);
+                    if (isNaN(this.movementOnClick.durationOverride) || this.movementOnClick.durationOverride < 0.1)
+                        this.movementOnClick.durationOverride = null;
+                }
+                if (params.length >= 3 && params[2] !== "")
+                {
+                    this.movementOnClick.pointerEntityName = params[2];
+                }
+                if (this.movementOnClick.enabled && !this.movementOnClick.hooked)
+                {
+                    this.movementOnClick.hooked = true;
+                    this.subscribeEvent(Tundra.input.onMousePress(this, this.onMousePress));
+                }
+            }
+            else if (entityAction.name === "StopCameraAnimation")
+            {
+                this._stopAnimation();
+            }
+        }));
+    },
+
+    onConnected : function()
+    {
+        this.movement = new THREE.Vector3(0,0,0);
+        this.rotation = new THREE.Vector3(0,0,0);
+        this.movementForce = 10.0;
+        this.movementTarget = null;
+        this.movementRotTarget = null;
+        this.movementWallClock = null;
+
+        // Mouse/keyboard input
+        this.subscribeEvent(Tundra.input.onMouseMove(this, this.onMouseMove));
+        this.subscribeEvent(Tundra.input.onKeyEvent(this, this.onKeyEvent));
+        if (this.movementOnClick.enabled && !this.movementOnClick.hooked)
+        {
+            this.movementOnClick.hooked = true;
+            this.subscribeEvent(Tundra.input.onMousePress(this, this.onMousePress));
+        }
+
+        // Touch input
+        if (Tundra.input.hasEvent("TouchPan"))
+            this.subscribeEvent(Tundra.input.onTouchPan(this, this.onTouchPan));
+        if (Tundra.input.hasEvent("TouchPinch"))
+            this.subscribeEvent(Tundra.input.onTouchPinch(this, this.onTouchPinch));
+
+        // Connect frame update
+        this.subscribeEvent(Tundra.frame.onUpdate(this, this.onUpdate));
+
+        // Start up the ICameraApplication
+        this.startCameraApplication("Free Look", "FreeLookCamera", 60);
+
+        // Initiate camera pos/rot and activate it
+        var t = this.cameraEntity.placeable.transform;
+        t.pos.y = 2;
+        this.cameraEntity.placeable.transform = t;
+        this.cameraEntity.camera.setActive();
+    },
+
+    onDisconnected : function()
+    {
+        this.resetCameraApplication();
+        this.unsubscribeEvents();
+    },
+
+    onCameraActivated : function(cameraEntity, previousCameraEntity)
+    {
+        this.movement.x = 0; this.movement.y = 0; this.movement.z = 0;
+        this._stopAnimation();
+    },
+
+    onCameraDeactivated : function(cameraEntity, activatedCameraEntity)
+    {
+        this.movement.x = 0; this.movement.y = 0; this.movement.z = 0;
+        this._stopAnimation();
+    },
+
+    _stopAnimation : function()
+    {
+        this.movementTarget = null;
+
+        if (typeof this.movementOnClick.pointerEntityName === "string")
+        {
+            var pointerEnt = Tundra.scene.entityByName(this.movementOnClick.pointerEntityName);
+            if (pointerEnt != null && pointerEnt.placeable != null)
+                pointerEnt.placeable.visible = false;
+        }
+
+        this._stopRotateAnimation();
+    },
+
+    _stopRotateAnimation : function()
+    {
+        if (this.movementRotTarget != null)
+            this.movementRotTarget = null;
+    },
+
+    onUpdate : function(frametime)
+    {
+        if (!this.cameraEntity.camera.active)
+            return;
+
+        if (this.movementTarget != null)
+        {
+            var timeDiff = (Tundra.frame.wallClockTime() - this.movementWallClock);
+
+            timeDiff = timeDiff / this.movementOnClick.duration;
+
+            if (timeDiff > 1.0)
+                timeDiff = 1.0;
+
+            var targetPos = this.movementTargetLast.clone().lerp(this.movementTarget, timeDiff);
+            if (this.preserveYAxis)
+                targetPos.y = this.movementTargetLast.y;
+
+            if (this._detectCollisions(targetPos))
+                return;
+
+            this.cameraEntity.placeable.setPosition(targetPos);
+
+            if (this.movementRotTarget != null)
+            {
+                var targetRot = this.movementRotTarget.last.clone().slerp(this.movementRotTarget.rot, timeDiff);
+                this.cameraEntity.placeable.setRotation(targetRot);
+            }
+
+            if (timeDiff >= 1.0)
+                this._stopAnimation();
+        }
+        else
+        {
+            if (this.movement.x != 0 || this.movement.y != 0 || this.movement.z != 0)
+            {
+                var t = this.cameraEntity.placeable.transform;
+                var relativeMovement = this.movement.clone();
+                relativeMovement.applyQuaternion(t.orientation());
+                relativeMovement.multiplyScalar(frametime * this.movementForce)
+                t.pos.x += relativeMovement.x;
+                if (!this.preserveYAxis || this.movement.y != 0)
+                    t.pos.y += relativeMovement.y;
+                t.pos.z += relativeMovement.z;
+
+                if (this._detectCollisions(t.pos))
+                    return;
+
+                this.cameraEntity.placeable.transform = t;
+            }
+            if (this.rotation.y != 0)
+                this.rotate(this.rotation.y);
+        }
+    },
+
+    _detectCollisions : function(targetPos)
+    {
+        if (!ICameraApplication.CollisionsEnabled)
+            return false;
+        
+        if (ICameraApplication.detectCollision(targetPos))
+        {
+            if (ICameraApplication.CollisionLastHitDirection.y !== -1)
+            {
+                this.movement.x = 0; this.movement.y = 0; this.movement.z = 0;
+                this._stopAnimation();
+                return true;    
+            }
+            targetPos.y = ICameraApplication.CollisionLastHitPosition.y + ICameraApplication.CollisionDistanceY;
+        }
+        else
+        {
+            // Raise automatically above the set Y distance when animating.
+            // Needs to have some padding or keyboard movement will collide immeadiately.
+            var minDistFromBottom = ICameraApplication.CollisionDistanceY + 0.25;
+            var result = ICameraApplication.collision(targetPos, ICameraApplication.DirectionRays[4]); // down dir
+            if (result.distance > 0 && result.distance > minDistFromBottom)
+                targetPos.y = result.pos.y + minDistFromBottom;
+        }
+        return false;
+    },
+
+    onKeyEvent : function(event)
+    {
+        if (!this.cameraEntity.camera.active)
+            return;
+        
+        if (event.type === "release")
+        {
+            if (event.key == "w" || event.key == "up" || event.key == "s" ||  event.key == "down")
+                this.movement.z = 0;
+            else if (event.key == "a" || event.key == "d")
+                this.movement.x = 0;
+            else if (event.key == "c" || event.key == "space")
+                this.movement.y = 0;
+            else if (event.key == "left" || event.key == "right")
+                this.rotation.y = 0;
+        }
+
+        if (event.targetNodeName !== "body")
+        {
+            this.movement.x = 0; this.movement.y = 0; this.movement.z = 0;
+            return;
+        }
+        if (event.repeat === true)
+            return;
+
+        var speed = 1;
+        if (event.pressed["shift"])
+            speed *= 2;
+
+        this.movement.x = 0; this.movement.y = 0; this.movement.z = 0;
+        for (var key in event.pressed)
+        {
+            if (key == "w" || key == "up")
+                this.movement.z = -speed;
+            else if (key == "s" || key == "down")
+                this.movement.z = speed;
+            else if (key == "a")
+                this.movement.x = -speed;
+            else if (key == "d")
+                this.movement.x = speed;
+            else if (key == "c")
+                this.movement.y = -speed;
+            else if (key == "space")
+                this.movement.y = speed;
+            else if (key == "left")
+                this.rotation.y = -1.5;
+            else if (key == "right")
+                this.rotation.y = 1.5;
+        }
+
+        if (this.movementTarget != null)
+            this._stopAnimation();
+    },
+
+    onMousePress : function(event)
+    {
+        if (!this.movementOnClick.enabled || this.cameraEntity == null || this.cameraEntity.placeable == null)
+            return;
+        if (!this.cameraEntity.camera.active || (event.targetNodeName !== "canvas" && event.targetId.indexOf("CSS3DRenderer") !== 0))
+            return;
+
+        if (this.movementOnClick.left && !event.leftDown)
+            return;
+        else if (!this.movementOnClick.left && !event.rightDown)
+            return;
+
+        var result = Tundra.renderer.raycast();
+        if (result.entity != null)
+        {
+            this._stopRotateAnimation();
+
+            if (this.movementTarget == null)
+                this.movementTarget = new THREE.Vector3();
+
+            this.movementTargetLast = this.cameraEntity.placeable.worldPosition();
+            this.movementTarget.copy(result.pos);
+            this.movementWallClock = Tundra.frame.wallClockTime();
+
+            // Rotation
+            var rotT = new Transform(this.movementTargetLast);
+            rotT.lookAt(this.movementTargetLast, result.pos);
+            this.movementRotTarget =
+            {
+                last    : this.cameraEntity.placeable.transform.orientation(),
+                lastDeg : this.cameraEntity.placeable.transform.rot,
+                rot     : rotT.orientation(),
+                deg     : rotT.rot.clone()
+            };
+
+            // Indicator Entity
+            if (typeof this.movementOnClick.pointerEntityName === "string")
+            {
+                var pointerEnt = Tundra.scene.entityByName(this.movementOnClick.pointerEntityName);
+                if (pointerEnt != null && pointerEnt.placeable != null)
+                {
+                    pointerEnt.placeable.setPosition(result.pos.add(new THREE.Vector3(0,0.1,0)));
+                    pointerEnt.placeable.visible = true;
+                }
+            }
+
+            // Duration override
+            if (this.movementOnClick.durationOverride == null)
+            {
+                var distance = Math.abs(this.movementTargetLast.distanceTo(this.movementTarget));
+                this.movementOnClick.duration = distance / 20;
+                if (this.movementOnClick.duration < 1.0)
+                    this.movementOnClick.duration = 1.0;
+            }
+            else
+                this.movementOnClick.duration = this.movementOnClick.durationOverride;
+        }
+    },
+
+    onTouchPan : function(event)
+    {
+        if (!this.cameraEntity.camera.active)
+            return;
+
+        if (event.isMultiTouch)
+            return;
+        if (event.targetNodeName !== "canvas" && event.targetId.indexOf("CSS3DRenderer") !== 0)
+            return;
+        if (event.relativeX != 0 || event.relativeY != 0)
+            this.rotate(event.relativeX * 0.3, event.relativeY * 0.3);
+    },
+
+    onTouchPinch : function(event)
+    {
+        if (!this.cameraEntity.camera.active)
+            return;
+
+        if (event.targetNodeName !== "canvas" && event.targetId.indexOf("CSS3DRenderer") !== 0)
+            return;
+
+        var t = this.cameraEntity.placeable.transform;
+        var orientation = t.orientation();
+
+        var move = new THREE.Vector3(0, 0, -75 * event.relativeScale).applyQuaternion(orientation);
+        t.pos.add(move);
+        this.cameraEntity.placeable.setPosition(t.pos);
+    },
+
+    onMouseMove : function(event)
+    {
+        if (!this.cameraEntity.camera.active)
+            return;
+
+        if (!event.rightDown)
+            return;
+        if (event.targetNodeName !== "canvas" && event.targetId.indexOf("CSS3DRenderer") !== 0)
+            return;
+        if (event.relativeX == 0 && event.relativeY == 0)
+            return;
+
+        if (event.relativeX != 0 || event.relativeY != 0)
+            this.rotate((event.relativeX * 0.2), (event.relativeY * 0.2));
+    },
+
+    rotate : function(x, y)
+    {
+        if (x === undefined)
+            x = 0;
+        if (y === undefined)
+            y = 0;
+
+        // Prep
+        if (this._left === undefined)
+            this._left = new THREE.Vector3(-1, 0, 0);
+        if (this._fwd === undefined)
+            this._fwd = new THREE.Vector3(0,0,-1);
+        if (this._up === undefined)
+            this._up = new THREE.Vector3(0,1,0);
+        if (this._yrot === undefined)
+            this._yrot = new THREE.Quaternion();
+        else
+            this._yrot.set(0,0,0,1);
+        if (this._xrot === undefined)
+            this._xrot = new THREE.Quaternion();
+        else
+            this._xrot.set(0,0,0,1);
+
+        this._stopRotateAnimation();
+
+        var t = this.cameraEntity.placeable.transform;
+        var orientation = t.orientation();
+        
+        var localLeft = this._left.clone().applyQuaternion(orientation).normalize();
+
+        // y
+        this._yrot.setFromAxisAngle(localLeft, THREE.Math.degToRad(y));
+        // x
+        this._xrot.setFromAxisAngle(this._up, THREE.Math.degToRad(-x));
+
+        var rotation = this._yrot.multiply(this._xrot);
+        rotation.multiply(orientation);
+
+        var direction = this._fwd.clone().applyQuaternion(rotation);
+        direction.add(t.pos);
+
+        // Look at that ignores z-axis and set
+        t.lookAt(t.pos, direction);
+        this.cameraEntity.placeable.transform = t;
+        
+        /*
+        var t = this.cameraEntity.placeable.transform;
+        if (x !== undefined && x != 0)
+        {
+            t.rot.y -= x;
+            if (t.rot.y > 360.0 || t.rot.y < -360.0)
+                t.rot.y = t.rot.y % 360.0;
+        }
+        if (y !== undefined && y != 0)
+        {
+            t.rot.x -= y;
+            if (t.rot.x > 90.0)
+                t.rot.x = 90.0;
+            else if (t.rot.x < -90.0)
+                t.rot.x = -90.0;
+        }
+        this.cameraEntity.placeable.transform = t;
+        this._stopRotateAnimation();
+        */
+    }
+});
+
+return FreeCameraApplication;
+
+}); // require js
