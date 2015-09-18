@@ -1,27 +1,27 @@
 
 define([
-        "core/framework/TundraSDK",
+        "core/framework/Tundra",
         "core/network/INetworkMessageHandler",
         "core/network/INetworkMessage",
         "core/network/LoginReplyMessage",
         "core/network/ClientJoinedMessage",
         "core/network/ClientLeftMessage",
         "core/network/EntityActionMessage"
-    ], function(TundraSDK, INetworkMessageHandler, INetworkMessage, 
+    ], function(Tundra, INetworkMessageHandler, INetworkMessage,
                 LoginReplyMessage,
                 ClientJoinedMessage,
                 ClientLeftMessage,
                 EntityActionMessage) {
 
-/**
-    Network handler for the Tundra protocol messages.
-
-    @class TundraMessageHandler
-    @extends INetworkMessageHandler
-    @constructor
-*/
 var TundraMessageHandler = INetworkMessageHandler.$extend(
+/** @lends TundraMessageHandler.prototype */
 {
+    /**
+        Network handler for the Tundra protocol messages.
+
+        @constructs
+        @extends INetworkMessageHandler
+    */
     __init__ : function()
     {
         this.$super("TundraMessageHandler");
@@ -44,12 +44,12 @@ var TundraMessageHandler = INetworkMessageHandler.$extend(
 
     handle : function(id, ds)
     {
-        /// @todo Implement 109 EditEntityPropertiesMessage
-        /// @todo Implement 117 CreateEntityReplyMessage
-        /// @todo Implement 118 CreateComponentsReplyMessage
-        /// @todo Implement 119 RigidBodyUpdateMessage
+        // @todo Implement 109 EditEntityPropertiesMessage
+        // @todo Implement 117 CreateEntityReplyMessage
+        // @todo Implement 118 CreateComponentsReplyMessage
+        // @todo Implement 119 RigidBodyUpdateMessage
 
-        var client = TundraSDK.framework.client;
+        var client = Tundra.client;
 
         if (id >= 110 && id <= 116)
         {
@@ -57,7 +57,7 @@ var TundraMessageHandler = INetworkMessageHandler.$extend(
             var msg = new INetworkMessage(id);
             msg.deserialize(ds);
 
-            client.scene.onTundraMessage(msg);   
+            client.scene.onTundraMessage(msg);
         }
         else if (id === EntityActionMessage.id)
         {

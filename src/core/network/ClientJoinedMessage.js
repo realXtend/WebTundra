@@ -3,23 +3,22 @@ define([
         "core/network/INetworkMessage",
     ], function(INetworkMessage) {
 
-/**
-    Clien joined message.
-
-    @class ClientJoinedMessage
-    @extends INetworkMessage
-    @constructor
-*/
 var ClientJoinedMessage = INetworkMessage.$extend(
+/** @lends ClientJoinedMessage.prototype */
 {
+    /**
+        Clien joined message.
+
+        @constructs
+        @extends INetworkMessage
+    */
     __init__ : function()
     {
         this.$super(ClientJoinedMessage.id, "ClientJoinedMessage");
 
         /**
             Client connection id.
-            @property connectionId
-            @type Number
+            @var {Number}
         */
         this.connectionId = -1;
     },

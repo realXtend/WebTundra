@@ -3,35 +3,32 @@ define([
         "core/network/INetworkMessage",
     ], function(INetworkMessage) {
 
-/**
-    Login reply message.
-
-    @class LoginReplyMessage
-    @extends INetworkMessage
-    @constructor
-*/
 var LoginReplyMessage = INetworkMessage.$extend(
+/** @lends LoginReplyMessage.prototype */
 {
+    /**
+        Login reply message.
+
+        @constructs
+        @extends INetworkMessage
+    */
     __init__ : function()
     {
         this.$super(LoginReplyMessage.id, "LoginReplyMessage");
 
         /**
             If login was successful.
-            @property success
-            @type Boolean
+            @var {Boolean}
         */
         this.success = false;
         /**
             Client connection id.
-            @property connectionId
-            @type Number
+            @var {Number}
         */
         this.connectionId = -1;
         /**
             Login reply data as JSON.
-            @property replyData
-            @type String
+            @var {String}
         */
         this.replyData = "";
     },

@@ -4,15 +4,15 @@ define([
         "core/data/DataSerializer"
     ], function(INetworkMessage, DataSerializer) {
 
-/**
-    Login message.
-
-    @class LoginMessage
-    @extends INetworkMessage
-    @constructor
-*/
 var LoginMessage = INetworkMessage.$extend(
+/** @lends LoginMessage.prototype */
 {
+    /**
+        Login message.
+
+        @constructs
+        @extends INetworkMessage
+    */
     __init__ : function()
     {
         this.$super(LoginMessage.id, "LoginMessage");
@@ -27,7 +27,6 @@ var LoginMessage = INetworkMessage.$extend(
     /**
         Serializes login data to this message.
 
-        @method serialize
         @param {String} loginData Login properties as JSON.
     */
     serialize : function(loginData)

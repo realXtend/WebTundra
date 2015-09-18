@@ -4,17 +4,23 @@ define([
         "core/data/DataSerializer"
     ], function(Class, DataSerializer) {
 
-/**
-    Interface for a network message.
-
-    @class INetworkMessage
-    @constructor
-*/
 var INetworkMessage = Class.$extend(
+/** @lends INetworkMessage.prototype */
 {
+    /**
+        Interface for a network message.
+
+        @constructs
+    */
     __init__ : function(id, name)
     {
+        /**
+            @var {Number}
+        */
         this.id = id;
+        /**
+            @var {String}
+        */
         this.name = (name !== undefined ? name : INetworkMessage.Ids[id]);
     },
 
@@ -23,47 +29,46 @@ var INetworkMessage = Class.$extend(
         /**
             Message id.
             @static
-            @property id
-            @type Number
+            @var {Number}
         */
         id   : 0,
         /**
             Message name.
             @static
-            @property name
-            @type String
+            @var {String}
         */
         name : "",
 
         /**
             Map for Tundra protocol message ids to message names.
             @property Ids
-            @type Object
+            @var {Object}
             @static
-            @example
-                {
-                    // Login
-                    100 : "LoginMessage",
-                    101 : "LoginReplyMessage",
-                    102 : "ClientJoinedMessage",
-                    103 : "ClientLeftMessage",
-                    // Scene
-                    110 : "CreateEntityMessage",
-                    111 : "CreateComponentsMessage",
-                    112 : "CreateAttributesMessage",
-                    113 : "EditAttributesMessage",
-                    114 : "RemoveAttributesMessage",
-                    115 : "RemoveComponentsMessage",
-                    116 : "RemoveEntityMessage",
-                    117 : "CreateEntityReplyMessage",       // @note server to client only
-                    118 : "CreateComponentsReplyMessage",   // @note server to client only
-                    119 : "RigidBodyUpdateMessage",
-                    // Enity action
-                    120 : "EntityActionMessage",
-                    // Assets
-                    121 : "AssetDiscoveryMessage",
-                    122 : "AssetDeletedMessage"
-                }
+
+            * @example
+            * {
+            *     // Login
+            *     100 : "LoginMessage",
+            *     101 : "LoginReplyMessage",
+            *     102 : "ClientJoinedMessage",
+            *     103 : "ClientLeftMessage",
+            *     // Scene
+            *     110 : "CreateEntityMessage",
+            *     111 : "CreateComponentsMessage",
+            *     112 : "CreateAttributesMessage",
+            *     113 : "EditAttributesMessage",
+            *     114 : "RemoveAttributesMessage",
+            *     115 : "RemoveComponentsMessage",
+            *     116 : "RemoveEntityMessage",
+            *     117 : "CreateEntityReplyMessage",       // @note server to client only
+            *     118 : "CreateComponentsReplyMessage",   // @note server to client only
+            *     119 : "RigidBodyUpdateMessage",
+            *     // Enity action
+            *     120 : "EntityActionMessage",
+            *     // Assets
+            *     121 : "AssetDiscoveryMessage",
+            *     122 : "AssetDeletedMessage"
+            * }
         */
         Ids :
         {
@@ -94,7 +99,8 @@ var INetworkMessage = Class.$extend(
     /**
         Returns the data array buffer. This function return null for messages that are being used for
         deserialization or if serialize has not called yet.
-        @return {ArrayBuffer|null} Array buffer or null if serialize has not been called.
+
+        @return {ArrayBuffer|null} Array buffer or `null` if serialize has not been called.
     */
     getBuffer : function()
     {
@@ -105,7 +111,7 @@ var INetworkMessage = Class.$extend(
 
     /**
         Deserializes message from data.
-        @method deserialize
+
         @param {DataDeserializer} ds Data deserializer.
     */
     deserialize : function(ds)
@@ -115,7 +121,7 @@ var INetworkMessage = Class.$extend(
 
     /**
         Serializes message to data. Call getBuffer to get written data array buffer.
-        @method serialize
+
         @param {Number} numBytes Number of bytes to reserve for writing the data.
     */
     serialize : function(numBytes)
