@@ -1,53 +1,65 @@
 
 define([
-        "lib/classy",
         "lib/jquery.contextmenu",
-        //"lib/polymer.min", // disabled for now!
-        "core/framework/TundraSDK"
-    ], function(Class, jQueryContextMenu, /*Polymer,*/ TundraSDK) {
+        "core/framework/Tundra",
+        "core/framework/ITundraAPI",
+        "core/framework/CoreStringUtils",
+        "core/frame/AsyncHelper"
+    ], function(jQueryContextMenu, Tundra, ITundraAPI, CoreStringUtils, AsyncHelper) {
 
-/**
-    UiAPI that is accessible from {{#crossLink "TundraClient/ui:property"}}TundraClient.ui{{/crossLink}}
-
-    Provides utilities to add your widget to the 2D DOM scene, lets you add shortcuts to the WebTundra taskbar etc.
-    @class UiAPI
-    @constructor
-*/
-var UiAPI = Class.$extend(
+var UiAPI = ITundraAPI.$extend(
+/** @lends UiAPI.prototype */
 {
-    __init__ : function(params)
+    /**
+        Provides utilities to add your widget to the 2D DOM scene.
+
+        UiAPI is a singleton and accessible from {@link Tundra.ui}.
+
+        @constructs
+        @extends ITundraAPI
+        @private
+    */
+    __init__ : function(name, options, globalOptions)
     {
+        this.$super(name, options);
+
         this.tabActive = true;
+        this.timing = new AsyncHelper("UiAPI", this);
 
         this.buttons = [];
         this.numContextMenus = 0;
 
-        this.createTaskbar(params.taskbar);
-        this.createConsole(params.console);
+        this.createTaskbar(this.options.taskbar);
+        this.createConsole(this.options.console);
 
-        // Hide scroll bars
-        $("html").css("overflow", "hidden");
-        $("body").css("overflow", "hidden");
+        this.onWindowResizeDOM();
+        window.addEventListener("resize", this.onWindowResizeDOM.bind(this), false);
 
-        window.addEventListener("resize", this.onWindowResizeDOM, false);
+        $(window).focus(function() {
+            this.tabActive = true;
+            Tundra.events.send("UiAPI.TabFocusChanged", true);
+        }.bind(this)).blur(function() {
+            this.tabActive = false;
+            Tundra.events.send("UiAPI.TabFocusChanged", false);
+        }.bind(this));
 
-        var that = this;
-        $(window).focus(function()
-        {
-            if (!that.tabActive)
-                that.tabActive = true;
-        });
-        $(window).blur(function()
-        {
-            if (that.tabActive)
-                that.tabActive = false;
-        });
-
-        TundraSDK.framework.client.onConnected(this, this.onConnected);
-        TundraSDK.framework.client.onDisconnected(this, this.onDisconnected);
+        Tundra.client.onConnected(this, this.onConnected);
+        Tundra.client.onDisconnected(this, this.onDisconnected);
     },
 
-    postInitialize : function()
+    __classvars__ :
+    {
+        getDefaultOptions : function()
+        {
+            return {
+                taskbar : true,
+                console : true,
+                fps     : false
+            };
+        }
+    },
+
+    initialize : function()
     {
         // FPS counter
         this.fps = $("<div/>", { id : "webtundra-fps" });
@@ -74,8 +86,8 @@ var UiAPI = Class.$extend(
         this.onWindowResizeInternal();
 
         // Register console command
-        TundraSDK.framework.console.registerCommand("clear", "Clears the console messages", null, this, this.clearConsole);
-        TundraSDK.framework.console.registerCommand("showFps", "Toggles if FPS counter is shown", null, this, function() {
+        Tundra.console.registerCommand("clear", "Clears the console messages", null, this, this.clearConsole);
+        Tundra.console.registerCommand("showFps", "Toggles if FPS counter is shown", null, this, function() {
             this.fps.alwaysShow = !this.fps.alwaysShow;
             if (this.fps.alwaysShow)
             {
@@ -108,27 +120,48 @@ var UiAPI = Class.$extend(
         }
         this.numContextMenus = 0;
 
+        // Disconnect action
+        this.buttonDisconnect = this.addAction("Disconnect", Tundra.asset.getLocalAssetPath("img/icon-disconnect.png"));
+        this.buttonDisconnect.click(function(e) {
+            Tundra.client.disconnect();
+            e.stopPropagation();
+            e.preventDefault();
+        });
+
+        // Console toggle action. Only on dev mode.
+        if (Tundra.usingRequireJS())
+        {
+            this.buttonConsole = this.addAction("Console", Tundra.asset.getLocalAssetPath("img/icon-console.png"));
+            this.buttonConsole.click(function(e) {
+                this.toggleConsole();
+                e.preventDefault();
+                e.stopPropagation();
+            }.bind(this));
+        }
+
         // Arrage UI elements
         this.onWindowResizeInternal();
     },
 
     onConnected : function()
     {
-        TundraSDK.framework.input.onKeyPress(this, this.onKeyPress);
-        TundraSDK.framework.frame.onUpdate(this, this.onUpdate);
-
-        if (this.fps.alwaysShow && !this.fps.cachedVisible)
-        {
-            this.fps.fadeIn();
-            this.fps.cachedVisible = true;
-        }
+        Tundra.input.onKeyPress(this, this.onKeyPress);
     },
 
     onDisconnected : function()
     {
-        if (this.console != null && this.console.is(":visible"))
+        if (this.console.is(":visible"))
             this.toggleConsole();
         this.clearConsole();
+    },
+
+    topZIndex : function()
+    {
+        var highestInternalIndex = (this.console != null ? this.console.css("z-index") : 5);
+        if (typeof highestInternalIndex === "string" && highestInternalIndex !== "auto" && highestInternalIndex.length > 0)
+            return parseInt(highestInternalIndex) + 50;
+        else
+            return 150;
     },
 
     createTaskbar : function(create)
@@ -139,43 +172,59 @@ var UiAPI = Class.$extend(
         // Default to true for taskbar creation
         if (create === undefined || create === null)
             create = true;
-        this.taskbar = (create ? $("<div/>") : null);
-        if (this.taskbar == null)
+        if (!create)
+        {
+            this.taskbar = null;
             return;
+        }
+
+        this.taskbar = $("<div/>");
 
         this.taskbar.attr("id", "webtundra-taskbar");
         this.taskbar.css({
             "position" : "absolute",
-            "top" : 0,
+            "left"     : 0,
+            "bottom"   : 0,
             "padding"  : 0,
             "margin"   : 0,
-            "height"   : 30,
+            "height"   : (Tundra.browser.isMobile() ? 36 : 30),
             "width"    : "100%",
             "border"   : 0,
             "border-top"        : "1px solid gray",
             "background-color"  : "rgb(248,248,248)",
-            "box-shadow"        : "inset 0 0 7px gray, 0 0 7px gray, inset 0 0px 0px 0px gray;"
+            "box-shadow"        : "inset 0 0 7px gray, 0 0 7px gray, inset 0 0px 0px 0px gray;",
+            "user-select"       : "none"
         });
 
-        if (TundraSDK.browser.isOpera)
-            this.taskbar.css("background-image", "-o-linear-gradient(rgb(248,248,248),rgb(190,190,190))");
-        else if (TundraSDK.browser.isFirefox)
+        if (Tundra.browser.isMobile())
         {
             this.taskbar.css({
-                "background-image" : "-moz-linear-gradient(top, rgb(248,248,248), rgb(190,190,190))",
-                "-moz-box-shadow"  : "inset 0 0 0px gray, 0 0 5px gray"
+                "background-color" : "transparent",
+                "border-top" : 0,
+                "box-shadow" : "none"
             });
         }
-        else if (TundraSDK.browser.isChrome || TundraSDK.browser.isSafari)
+        else
         {
-            this.taskbar.css({
-                "background-image"   : "-webkit-gradient(linear, left top, left bottom, color-stop(0, rgb(248,248,248)), color-stop(0.8, rgb(190,190,190)))",
-                "-webkit-box-shadow" : "0 0 7px gray"
-            });
+            if (Tundra.browser.isOpera)
+                this.taskbar.css("background-image", "-o-linear-gradient(rgb(248,248,248),rgb(190,190,190))");
+            else if (Tundra.browser.isFirefox)
+            {
+                this.taskbar.css({
+                    "background-image" : "-moz-linear-gradient(top, rgb(248,248,248), rgb(190,190,190))",
+                    "-moz-box-shadow"  : "inset 0 0 0px gray, 0 0 5px gray"
+                });
+            }
+            else if (Tundra.browser.isChrome || Tundra.browser.isSafari)
+            {
+                this.taskbar.css({
+                    "background-image"   : "-webkit-gradient(linear, left top, left bottom, color-stop(0, rgb(248,248,248)), color-stop(0.8, rgb(190,190,190)))",
+                    "-webkit-box-shadow" : "0 0 7px gray"
+                });
+            }
         }
 
-        this.addWidgetToScene(this.taskbar);
-        this.taskbar.hide();
+        this.add(this.taskbar);
     },
 
     createConsole : function(create)
@@ -204,8 +253,8 @@ var UiAPI = Class.$extend(
             "overflow"          : "auto",
             "font-family"       : "Courier New",
             "font-size"         : "10pt",
-            "color"             : "rgb(50,50,50)",
-            "background-color"  : "rgba(248,248,248, 0.5)",
+            "color"             : "#444",
+            "background-color"  : "rgba(255, 255, 255, 0.8)",
             "z-index"           : 100 // Make console be above all widgets added via UiAPI.addWidgetToScene.
         });
 
@@ -219,8 +268,8 @@ var UiAPI = Class.$extend(
         });
         this.consoleInput.css({
             "position"          : "absolute",
-            "color"             : "rgb(20,20,20)",
-            "background-color"  : "rgba(248,248,248, 0.8)",
+            "color"             : "#444",
+            "background-color"  : "rgba(221, 221, 221, 0.8)",
             "border"            : 1,
             "border-top"        : "1px solid gray",
             "border-bottom"     : "1px solid gray",
@@ -232,14 +281,16 @@ var UiAPI = Class.$extend(
             "z-index"           : 100
         });
         this.consoleInput.focus(function() {
-            $(this).css("background-color", "white")
+            $(this).css("background-color", "white");
         }).blur(function() {
-            $(this).css("background-color", "rgba(248,248,248, 0.8)")
+            $(this).css("background-color", "rgba(248,248,248, 0.8)");
+            if (Tundra.browser.isMobile())
+                Tundra.ui.toggleConsole(false);
         }).keydown(function(e) {
             // tab
             if (e.which == 9)
             {
-                var suggestion = TundraSDK.framework.console.commandSuggestion($(this).val());
+                var suggestion = Tundra.console.commandSuggestion($(this).val());
                 if (suggestion != null && suggestion !== $(this).val())
                     $(this).val(suggestion);
                 e.preventDefault();
@@ -259,13 +310,12 @@ var UiAPI = Class.$extend(
                 return false;
             }
         }).keypress(function(e) {
-            // enter
-            if (e.which == 13)
+            if (e.which == 13) // enter
             {
                 var rawCommand = $(this).val();
                 if (rawCommand == "")
                     return;
-                if (TundraSDK.framework.console.executeCommandRaw(rawCommand))
+                if (Tundra.console.executeCommandRaw(rawCommand))
                 {
                     $(this).data("data").history.unshift(rawCommand);
                     $(this).data("data").index = -1;
@@ -274,145 +324,136 @@ var UiAPI = Class.$extend(
                 e.preventDefault();
                 return false;
             }
-        });
-
-        if (TundraSDK.browser.isOpera)
-            this.console.css("background-image", "-o-linear-gradient(rgba(190,190,190,0.5), rgba(248,248,248,0.5))");
-        else if (TundraSDK.browser.isFirefox)
-        {
-            this.console.css({
-                "background-image" : "-moz-linear-gradient(top, rgba(190,190,190,0.5), rgba(248,248,248,0.5))",
-                "-moz-box-shadow"  : "inset 0 0 0px gray, 0 0 5px gray"
-            });
-        }
-        else if (TundraSDK.browser.isChrome || TundraSDK.browser.isSafari)
-        {
-            this.console.css({
-                "background-image"   : "-webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(190,190,190,0.8)), color-stop(0.8, rgba(248,248,248,0.8)))",
-                "-webkit-box-shadow" : "0 0 7px gray"
-            });
-        }
+        }).keyup(function(e) {
+            if (e.keyCode == 27) // esc
+                this.toggleConsole();
+        }.bind(this));
 
         this.addWidgetToScene([this.console, this.consoleInput]);
         this.console.hide();
         this.consoleInput.hide();
     },
 
-    onUpdate : function(frametime)
-    {
-        if (!this.fps.cachedVisible)
-            return;
-
-        this.fps.fpsFrames++;
-        this.fps.fpsTime += frametime;
-
-        if (this.fps.fpsTime >= 1.0)
-        {
-            var fps = Math.round(this.fps.fpsFrames / this.fps.fpsTime);
-            this.fps.html(fps + " <span style='font-size:8pt;color:black;'>FPS</span>");
-            this.fps.css("color", fps >= 30 ? "green" : "red");
-
-            this.fps.fpsFrames = 0;
-            this.fps.fpsTime = 0;
-        }
-    },
-
     /**
         Clears the UI console log. Invoked by the 'clear' console command.
-        @method clearConsole
+
     */
     clearConsole : function()
     {
-        if (this.console != null)
-            this.console.empty();
+        this.console.empty();
     },
 
     /**
         Registers a callback for rendering surface resize.
 
-            function onWindowResize(width, height)
-            {
-                // width == Number
-                // height == Number
-            }
-
-            TundraSDK.framework.ui.onWindowResize(null, onWindowResize);
-
-        @method onWindowResize
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+
+        * @example
+        * Tundra.ui.onWindowResize(function(width, height) {
+        *     // width && height == Number
+        * });
     */
     onWindowResize : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("UiAPI.WindowResize", context, callback);
+        return Tundra.events.subscribe("UiAPI.WindowResize", context, callback);
     },
 
     /**
-        Registers a callback for clear focus events. This event is fired when we want to clear focus from all DOM elements eg. input fields.
+        Registers a callback for tab focus changes.
 
-            TundraSDK.framework.ui.onWindowResize(null, function() {
-                // I should not unfocus any input DOM elements
-            });
-
-        @method onClearFocus
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+
+        * @example
+        * Tundra.ui.onTabFocusChanged(this, function(focused) {
+        *     console.log("tundra focus:", focused)
+        * });
+    */
+    onTabFocusChanged : function(context, callback)
+    {
+        return Tundra.events.subscribe("UiAPI.TabFocusChanged", context, callback);
+    },
+
+    /**
+        Registers a callback for clear focus events. This event is fired when we want to clear focus from all DOM elements e.g. input fields.
+
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
+        @param {Function} callback Function to be called.
+        @return {EventSubscription} Subscription data.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+
+        * @example
+        * Tundra.ui.onWindowResize(null, function() {
+        *     // I should not unfocus any input DOM elements
+        * });
     */
     onClearFocus : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("UiAPI.ClearFocus", context, callback);
+        return Tundra.events.subscribe("UiAPI.ClearFocus", context, callback);
     },
 
     /**
         Sends clear focus event
-        @method clearFocus
     */
     clearFocus : function()
     {
-        TundraSDK.framework.events.send("UiAPI.ClearFocus");
+        Tundra.events.send("UiAPI.ClearFocus");
+    },
+
+    addWidgetToScene : function(element)
+    {
+        this.add(element);
     },
 
     /**
-        Adds a single or collection of HTML string, element or jQuery to the 2D UI scene.
-        @method addWidgetToScene
-        @param {HTML String|Element|jQuery|Array} widgetElement Widget to add or an array of widgets.
-        @return {Boolean} If (all elements) added successfully.
+        Add DOM to the 2D UI scene. In practice the input will be appended to the TundraClient container
+        and 'z-index' CSS property is force to be at least five (5) so that it wont be under any rendering.
+
+        Accepted input: HTML Element, HTML string, jQuery.Element or an array of of these types.
+
+        Styling: Relative layout will not work very well inside the 2D UI scene on top of the 3D scene.
+        You should prefer using `absolute` or `fixed` positioning and user Tundra.client.container as your
+        reference for 2D UI scene width/height etc.
+
+        @param {Object} element Input element(s).
+        @return {Boolean} If all elements added successfully.
     */
-    addWidgetToScene : function(widgetElement)
+    add : function(element)
     {
-        var widgets = (!Array.isArray(widgetElement) ? [widgetElement] : widgetElement);
+        var elements = (!Array.isArray(element) ? [ element ] : element);
         var succeeded = true;
-        for (var i = 0; i < widgets.length; ++i)
+        for (var i = 0; i < elements.length; ++i)
         {
-            var we = $(widgets[i]);
-            if (we == null || we == undefined)
+            var iter = $(elements[i]);
+            if (iter == null || iter == undefined)
             {
                 console.error("[UiAPI]: Invalid input widget could not be added to the scene.");
                 succeeded = false;
                 continue;
             }
-            var zIndex = we.css("z-index");
-            if (typeof zIndex === "string")
+            var zIndex = iter.css("z-index");
+            if (typeof zIndex === "string" && zIndex !== "")
                 zIndex = parseInt(zIndex);
-            if (isNaN(zIndex) || zIndex == null || zIndex == undefined || typeof zIndex !== "number")
+            if (typeof zIndex !== "number" || isNaN(zIndex))
                 zIndex = 0;
             if (zIndex < 5)
-                we.css("z-index", 5);
+                iter.css("z-index", 5);
 
-            TundraSDK.framework.client.container.append(we);
+            Tundra.client.container.append(iter);
         }
         return succeeded;
     },
 
     /**
         Adds a polymer web component to the 2D UI scene.
-        @method addWebComponentToScene
-        @param {String tag name} (must contain dash (-) in tag name) web component tag name to be added.
-        @param {String url} url to the web component content to be fetched and added to created element.
+        @param {String} tagName (must contain dash (-) in tag name) web component tag name to be added.
+        @param {String} url Url to the web component content to be fetched and added to created element.
+        @param {Object} context The context in which the function will be called.
         @param {Function} callback Function to be called.
     */
     addWebComponentToScene : function(tagName, webComponentUrl, context, callback)
@@ -423,7 +464,7 @@ var UiAPI = Class.$extend(
             console.error("[UiAPI]: Web component tag name must contain dash (-).");
         }
 
-        var transfer = TundraSDK.framework.asset.requestAsset(webComponentUrl, "Text");
+        var transfer = Tundra.asset.requestAsset(webComponentUrl, "Text");
         if (transfer != null)
         {
             transfer.onCompleted(null, function(textAsset)
@@ -442,19 +483,25 @@ var UiAPI = Class.$extend(
 
     /**
         Adds a new action to the UiAPI toolbar and returns the created DOM element.
-        @method addAction
+
         @param {String} tooltip Tooltip text that is shown when the action is hovered.
-        @param {String} [backgroundUrl=null] URL to a image that should be the background. 24x24 or 32x32 icons are recommended.
+        @param {String} [iconOrIconURL=null] URL to a image that should be the background.
         @param {Number} [width=32] Width of the action. This gives you possibility for customizations depending on your image size.
-        @return {jQuery Element|nu.l} Element if taskbar is enabled and add succeeded, otherwise null.
+        @return {jQuery.Element|null} Element if taskbar is enabled and add succeeded, otherwise `null`.
     */
-    addAction : function(tooltip, backgroundUrl, width, upgradeToButton)
+    addAction : function(tooltip, iconOrIconURL, width, upgradeToButton)
     {
         if (this.taskbar == null)
             return null;
 
+        var height = this.taskbar.height();
         if (width == null)
             width = 32;
+        if (Tundra.browser.isMobile())
+        {
+            if (width < 40)
+                width = 40;
+        }
 
         var index = this.buttons.length;
         var name = "taskbar-button-" + index;
@@ -465,23 +512,29 @@ var UiAPI = Class.$extend(
         if (upgradeToButton === undefined || upgradeToButton === true)
             button.button();
         button.tooltip();
+        if (Tundra.browser.isMobile())
+            button.tooltip("disable");
 
         // Style sheets
-        button.height(30);
+        button.height(height);
         button.width(width);
-        button.css({
-            "padding"           : 0,
+        button.css({            "padding"           : 0,
             "margin"            : 0,
             "width"             : width,
             "min-width"         : width,
             "max-width"         : width,
             "background-color"  : "transparent",
+            "border"            : 0,
+            "border-radius"     : 0,
             "border-color"      : "transparent"
         });
-        if (backgroundUrl != null && backgroundUrl != "")
+        if (Tundra.browser.isMobile())
+            button.css("background-color", "rgba(230, 230, 230, 0.8)");
+
+        if (iconOrIconURL != null && iconOrIconURL != "")
         {
             button.css({
-                "background-image"    : "url(" + backgroundUrl + ")",
+                "background-image"    : "url(" + iconOrIconURL + ")",
                 "background-repeat"   : "no-repeat",
                 "background-position" : "center"
             });
@@ -492,9 +545,6 @@ var UiAPI = Class.$extend(
         // Add and track
         this.taskbar.append(button);
         this.buttons.push(button);
-
-        if (!this.taskbar.is(":visible"))
-            this.taskbar.fadeIn();
 
         // Reposition buttons
         this.onWindowResizeInternal();
@@ -542,7 +592,7 @@ var UiAPI = Class.$extend(
             var item = $('<a href="#">' + itemData.name + '</a>');
             item.css({
                 "font-family"       : "Arial",
-                "font-size"         : "12pt",
+                "font-size"         : 20,
                 "background-color"  : "#F2F2F2",
                 "color"             : "#333333",
                 "text-decoration"   : "none",
@@ -581,8 +631,8 @@ var UiAPI = Class.$extend(
 
     /**
         Toggles visibility of the UI console.
-        @method toggleConsole
-        @param {Boolean} [visible=!currentlyVisible]
+
+        @param {Boolean} [visible]
     */
     toggleConsole : function(visible)
     {
@@ -600,85 +650,116 @@ var UiAPI = Class.$extend(
             this.console.height(0);
             this.console.show();
             this.consoleInput.show();
-            if (!this.fps.is(":visible"))
-                this.fps.fadeIn();
         }
-        else if (!this.fps.alwaysShow)
-            this.fps.fadeOut();
 
-        var that = this;
-        this.console.animate(
+        if (!Tundra.browser.isMobile())
         {
-            height: !isVisible ? 250 : 0
-        },
-        {
-            duration : 250,
-            easing   : "swing",
-            progress : function () {
-                that.onWindowResizeInternal();
+            var that = this;
+            this.console.animate(
+            {
+                height: !isVisible ? 250 : 0
             },
-            complete : !isVisible ?
-                function () {
-                    that.console.animate({ scrollTop: that.console.prop("scrollHeight") }, 350);
-                    that.consoleInput.focus();
+            {
+                duration : 250,
+                easing   : "swing",
+                progress : function () {
                     that.onWindowResizeInternal();
-                } :
-                function () {
-                    that.console.scrollTop(0);
-                    that.console.hide();
-                    that.consoleInput.trigger("blur");
-                    that.consoleInput.hide();
-                    that.onWindowResizeInternal();
-                }
-        });
+                },
+                complete : !isVisible ?
+                    function () {
+                        that.console.animate({ scrollTop: that.console.prop("scrollHeight") }, 350);
+                        that.consoleInput.focus();
+                        that.onWindowResizeInternal();
+                    } :
+                    function () {
+                        that.console.scrollTop(0);
+                        that.console.hide();
+                        that.consoleInput.trigger("blur");
+                        that.consoleInput.hide();
+                        that.onWindowResizeInternal();
+                    }
+            });
+        }
+        else
+        {
+            if (visible)
+            {
+                this.console.show();
+                this.console.animate({ scrollTop: this.console.prop("scrollHeight") }, 350);
+                this.consoleInput.focus();
+                this.onWindowResizeInternal();
+            }
+            else
+            {
+                this.console.scrollTop(0);
+                this.console.hide();
+                this.consoleInput.trigger("blur");
+                this.consoleInput.hide();
+                this.onWindowResizeInternal();
+            }
+        }
+    },
+
+    /**
+        Returns the client container width.
+
+        @return {Number}
+    */
+    width : function()
+    {
+        return Tundra.client.container.width();
+    },
+
+    /**
+        Returns the client container height.
+
+        @return {Number}
+    */
+    height : function()
+    {
+        return Tundra.client.container.height();
+    },
+
+    refresh : function()
+    {
+        this.onWindowResizeDOM();
+        this.timing.async("refresh", this.onWindowResizeDOM);
     },
 
     onWindowResizeDOM : function(event)
     {
-        TundraSDK.framework.ui.onWindowResizeInternal(event);
+        this.onWindowResizeInternal();
 
-        var element = TundraSDK.framework.client.container;
-        if (element != null)
-            TundraSDK.framework.events.send("UiAPI.WindowResize", element.width(), element.height());
+        if (Tundra.container)
+            Tundra.events.send("UiAPI.WindowResize", Tundra.container.width(), Tundra.container.height());
     },
 
-    onWindowResizeInternal : function(event)
+    onWindowResizeInternal : function()
     {
-        if (this.taskbar != null)
+        if (this.taskbar != null && this.buttons.length > 0)
         {
-            this.taskbar.position({
-                my: "left bottom",
-                at: "left bottom",
-                of: this.taskbar.parent()
+            var totalwidth = 0;
+            for (var i = this.buttons.length - 1; i >= 0; i--)
+                totalwidth += this.buttons[i].width();
+
+            this.buttons[0].position({
+                my: "left",
+                at: "right-" + totalwidth,
+                of: this.taskbar
             });
 
-            if (this.buttons.length > 0)
+            var target = this.buttons[0];
+            for (var i = 1; i < this.buttons.length; i++)
             {
-                var totalwidth = 0;
-                for (var i = this.buttons.length - 1; i >= 0; i--)
-                    totalwidth += this.buttons[i].width();
-
-                this.buttons[0].position({
+                this.buttons[i].position({
                     my: "left",
-                    at: "right-" + totalwidth,
-                    of: this.taskbar
+                    at: "right",
+                    of: target,
+                    collision: "fit"
                 });
-
-                var target = "#" + this.buttons[0].attr("id");
-
-                for (var i = 1; i < this.buttons.length; i++)
-                {
-                    this.buttons[i].position({
-                        my: "left",
-                        at: "right",
-                        of: target,
-                        collision: "fit"
-                    });
-                    target = this.buttons[i];
-                }
+                target = this.buttons[i];
             }
         }
-
         if (this.console != null)
         {
             if (this.console.is(":visible"))
@@ -688,6 +769,8 @@ var UiAPI = Class.$extend(
                     at : "left top",
                     of : this.console.parent()
                 });
+                if (Tundra.browser.isMobile())
+                    this.console.outerHeight(this.height() - this.consoleInput.outerHeight());
             }
             if (this.consoleInput.is(":visible"))
             {
@@ -697,15 +780,6 @@ var UiAPI = Class.$extend(
                     of : this.console
                 });
             }
-        }
-
-        if (this.fps !== undefined && this.fps.is(":visible"))
-        {
-            this.fps.position({
-                my : "right top",
-                at : "right-20 top",
-                of : TundraSDK.framework.client.container
-            });
         }
     }
 });
