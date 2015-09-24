@@ -1,8 +1,9 @@
 
 define([
-        "core/framework/TundraSDK",
-        "core/framework/ITundraPlugin"
-    ], function(TundraSDK, ITundraPlugin) {
+        "core/framework/Tundra",
+        "core/framework/ITundraPlugin",
+        "core/framework/CoreStringUtils"
+    ], function(Tundra, ITundraPlugin, CoreStringUtils) {
 
 /**
     This plugin provides a basic user interface for connecting to a server with a username.
@@ -44,7 +45,7 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
             @type Boolean
             @static
         */
-        LoginControlsEnabled : true,
+        LoginControlsEnabled : false,
         /** 
             If loading screen is enabled and should be shown.
             
@@ -52,7 +53,11 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
             @type Boolean
             @static
         */
-        LoadingScreenEnabled : true,
+        LoadingScreenEnabled : false,
+        /**
+            Makes the loading screen have a transparent background
+        */
+        LoadingScreenBackgroundTransparent : false,
         /** 
             If loading screen should auto update asset progress.
             This does not disable hiding loading screen after all 
@@ -90,8 +95,26 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
         LoadingScreenHeaderLinkUrl  : "https://github.com/realXtend/WebTundra"
     },
 
-    initialize : function()
+    initialize : function(options)
     {
+        /* This is a bit tidious but keeps old client functioning for now.
+           @todo The static variables should be removed once all clients have been updated
+           to use the plugin parameters to TundraClient ctor instead. */
+        if (typeof options.loginControlsEnabled === "boolean")
+            LoginScreenPlugin.LoginControlsEnabled = options.loginControlsEnabled;
+        if (typeof options.loadingScreenEnabled === "boolean")
+            LoginScreenPlugin.LoadingScreenEnabled = options.loadingScreenEnabled;
+        if (typeof options.transparentBackground === "boolean")
+            LoginScreenPlugin.LoadingScreenBackgroundTransparent = options.transparentBackground;
+        if (typeof options.updateAssetProgress === "boolean")
+            LoginScreenPlugin.LoadingScreenAutoUpdateAssetProgress = options.updateAssetProgress;
+        if (typeof options.connectingText === "string")
+            LoginScreenPlugin.LoadingScreenConnectingText = options.connectingText;
+        if (typeof options.headerText === "string")
+            LoginScreenPlugin.LoadingScreenHeaderText = options.headerText;
+        if (typeof options.headerLinkUrl === "string")
+            LoginScreenPlugin.LoadingScreenHeaderLinkUrl = options.headerLinkUrl;
+
         this.framework.client.onConnectionError(this, this.onConnectionError);
         this.framework.client.onConnected(this, this.onConnectedToServer);
         this.framework.client.onDisconnected(this, this.onDisconnectedFromServer);
@@ -100,12 +123,21 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
 
         this.createLoginControls();
         this.showLoadingScreen();
+
+        setTimeout(this.onWindowResized.bind(this),100);
     },
 
-    hide : function()
+    pluginPropertyName : function()
     {
-        this.hideLoginControls();
-        this.hideLoadingScreen(true);
+        return "loginscreen";
+    },
+
+    hide : function(animate)
+    {
+        animate = (typeof animate === "boolean" ? animate : true);
+
+        this.hideLoginControls(animate);
+        this.hideLoadingScreen(true, animate);
     },
 
     createLoginControls : function()
@@ -113,18 +145,21 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
         if (!LoginScreenPlugin.LoginControlsEnabled)
             return;
 
+        var localhost = (typeof Tundra.DeveloperServerHost === "string" ? Tundra.DeveloperServerHost : "127.0.0.1");
+        var username = (CoreStringUtils.queryValue("username") || "Tundra Developer");
+
         this.ui.loginControls = $("<div/>", {
             id      : "login-controls"
         });
         this.ui.loginHost = $("<input/>", {
             id      : "login-host",
             type    : "text",
-            value   : "ws://127.0.0.1:2345"
+            value   : "ws://" + localhost + ":2345"
         });
         this.ui.loginUsername = $("<input/>", {
             id      : "login-username",
             type    : "text",
-            value   : "WebTundra User"
+            value   : username
         });
         this.ui.loginError = $("<div/>", {
             id      : "login-error",
@@ -136,7 +171,7 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
         });
         this.ui.loginButton = $("<button/>", {
             id      : "login-button",
-            text    : "Connect",
+            text    : "CONNECT",
             css : {
                 "font-size"   : 12,
                 "font-weight" : "bold"
@@ -150,7 +185,7 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
             "width"             : "100%",
             "padding"           : 10,
             "border"            : 0,
-            "z-index"           : 6,
+            "z-index"           : Tundra.ui.topZIndex() + 1,
             "text-align"        : "center",
             "font-family"       : "Arial",
             "font-size"         : 14,
@@ -172,9 +207,7 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
             });
         }
 
-        this.ui.loginControls.append("Host");
         this.ui.loginControls.append(this.ui.loginHost);
-        this.ui.loginControls.append("Username");
         this.ui.loginControls.append(this.ui.loginUsername);
         this.ui.loginControls.append(this.ui.loginButton);
         this.ui.loginControls.append(this.ui.loginError);
@@ -195,7 +228,7 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
             // Merge username to the custom login properties.
             if (this.loginProperties === undefined)
                 this.loginProperties = {};
-            this.loginProperties.username = this.ui.loginUsername.val()
+            this.loginProperties.username = this.ui.loginUsername.val();
 
             this.framework.client.connect(this.ui.loginHost.val(), this.loginProperties);
         }
@@ -218,20 +251,19 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
             this.ui.loginHost.attr("disabled", "disabled");
             this.ui.loginUsername.attr("disabled", "disabled");
             this.ui.loginButton.button("option", "label", "Disconnect");
-
             this.hideLoginControls(false);
-
-            /** This is here to hide the screen if no assets from the scene failed to ever
-                get started by AssetAPI. For example it being full of Ogre assets that can't
-                be loaded with WebTundra. */
-            setTimeout(function() {
-                if (this.isLoadingScreenVisible() && this.framework.asset.allTransfersCompleted())
-                {
-                    this.log.debug("Seems there are no pending asset transfers, hiding loading screen...");
-                    this.hideLoadingScreen();
-                }
-            }.bind(this), 2500);
         }
+
+        /** This is here to hide the screen if no assets from the scene failed to ever
+            get started by AssetAPI. For example it being full of Ogre assets that can't
+            be loaded with WebTundra. */
+        setTimeout(function() {
+            if (this.isLoadingScreenVisible() && this.framework.asset.allTransfersCompleted())
+            {
+                this.log.debug("Seems there are no pending asset transfers, hiding loading screen...");
+                this.hideLoadingScreen();
+            }
+        }.bind(this), 2500);
     },
 
     onDisconnectedFromServer : function()
@@ -253,15 +285,21 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
 
     showLoginControls : function()
     {
+        if (this.ui.loginControls === undefined)
+            return;
+
         this.ui.loginControls.fadeIn(1000);
+        this.onWindowResized();
     },
 
     hideLoginControls : function(animate)
     {
+        animate = (typeof animate === "boolean" ? animate : true);
+
         if (this.ui.loginControls === undefined)
             return;
 
-        if (animate === undefined || animate === true)
+        if (animate === true)
             this.ui.loginControls.fadeOut(500);
         else
             this.ui.loginControls.hide();
@@ -274,7 +312,13 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
 
     showLoadingScreen : function()
     {
-        if (!LoginScreenPlugin.LoadingScreenEnabled || this.loadingScreen != null)
+        // Send event for custom login screens. We might be disabled below.
+        Tundra.events.send("LoginScreenPlugin.Show");
+
+        if (!LoginScreenPlugin.LoadingScreenEnabled)
+            return;
+
+        if (this.loadingScreen != null)
             return;
 
         this.loadingScreen = { done: false };
@@ -286,15 +330,12 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
             "position"          : "absolute",
             "width"             : "100%",
             "height"            : "100%",
-            "background-color"  : "rgb(248,248,248)"
+            "top"               : 0,
+            "left"              : 0,
+            "background-color"  : "rgb(248,248,248)",
+            "z-index"           : Tundra.ui.topZIndex()
         });
-
-        if (TundraSDK.browser.isOpera)
-            this.loadingScreen.screen.css("background-image", "-o-linear-gradient(rgb(248,248,248),rgb(190,190,190))");
-        else if (TundraSDK.browser.isFirefox)
-            this.loadingScreen.screen.css("background-image", "-moz-linear-gradient(top, rgb(248,248,248), rgb(190,190,190))");
-        else if (TundraSDK.browser.isChrome || TundraSDK.browser.isSafari)
-            this.loadingScreen.screen.css("background-image", "-webkit-gradient(linear, left top, left bottom, color-stop(0, rgb(248,248,248)), color-stop(0.8, rgb(190,190,190)))");
+        this.loadingScreen.screen.css("background-color", LoginScreenPlugin.LoadingScreenBackgroundTransparent ? "transparent" : "rgb(221,221,221)");
 
         this.loadingScreen.text = $("<div/>", {
             id   : "webtundra-loading-screen-label",
@@ -303,27 +344,29 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
             "text-align"        : "center",
             "font-family"       : "Verdana",
             "font-weight"       : "bold",
-            "font-size"         : "36pt",
+            "font-size"         : 36,
             "text-align"        : "center",
             "vertical-align"    : "center",
             "text-decoration"   : "none"
         });
-        var rexLink = $("<a/>", {
-            text   : LoginScreenPlugin.LoadingScreenHeaderText,
-            href   : LoginScreenPlugin.LoadingScreenHeaderLinkUrl,
-            target : "_blank"
-        });
-        rexLink.css({
-            "color"             : "rgb(50,50,50)",
-            "text-align"        : "center",
-            "font-family"       : "Verdana",
-            "font-weight"       : "bold",
-            "font-size"         : "36pt",
-            "text-align"        : "center",
-            "vertical-align"    : "bottom",
-            "text-decoration"   : "none"
-        });
-        this.loadingScreen.text.append(rexLink);
+        if (LoginScreenPlugin.LoadingScreenHeaderText !== "")
+        {
+            var headerLink = $("<a/>", {
+                text   : LoginScreenPlugin.LoadingScreenHeaderText,
+                href   : LoginScreenPlugin.LoadingScreenHeaderLinkUrl,
+                target : "_blank"
+            });
+            headerLink.css({
+                "color"             : "rgb(50,50,50)",
+                "text-align"        : "center",
+                "font-family"       : "Verdana",
+                "font-weight"       : "bold",
+                "text-align"        : "center",
+                "vertical-align"    : "bottom",
+                "text-decoration"   : "none"
+            });
+            this.loadingScreen.text.append(headerLink);
+        }
 
         this.loadingScreen.progress = $("<div/>", {
             id   : "webtundra-loading-screen-progress"
@@ -348,6 +391,7 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
             "font-weight"       : "bold",
             "font-size"         : "7pt",
             "position"          : "absolute",
+            "cursor"            : "pointer",
             "top"               : 5,
             "left"              : 5
         });
@@ -372,6 +416,56 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
         this.loadingScreen.text.fadeIn(1000);
 
         this.onWindowResized();
+
+        // Auto connect? Assumes < 200 is meant as seconds and above msec.
+        if (this.autoConnectedOnce === true)
+            return;
+        this.autoConnectedOnce = true;
+
+        var autoConnStr = CoreStringUtils.queryValue("autoconnect");
+        if (autoConnStr === "" || isNaN(parseInt(autoConnStr)))
+            return;
+
+        var delay = parseInt(autoConnStr);
+        if (delay < 0)
+            return;
+
+        var msec = (delay < 200 ? delay * 1000 : delay);
+        var sec = msec / 1000;
+
+        setTimeout(function() {
+            if (!Tundra.client.isConnected())
+                this.onToggleConnectionState();
+        }.bind(this), msec);
+
+        if (sec >= 1)
+        {
+            var autoConnectElement = $("<div/>", {
+                html : "Auto connecting in <span style='color: steelblue;'>" + sec + "</span>",
+                css : {
+                    position : "absolute",
+                    top  : "calc(100% - 100px)",
+                    left : 0,
+                    width : "100%",
+                    "text-align" : "center",
+                    "font-size"   : 34,
+                    color : "#616161"
+                }
+            });
+
+            this.loadingScreen.screen.prepend(autoConnectElement);
+
+            var timerId = setInterval(function() {
+                sec--;
+                autoConnectElement.html("Auto connecting in <span style='color: steelblue;'>" + sec + "</span>");
+                if (sec <= 0)
+                {
+                    autoConnectElement.remove();
+                    autoConnectElement = null;
+                    clearInterval(timerId);
+                }
+            }, 1000);
+        }
     },
 
     /**
@@ -384,14 +478,21 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
     {
         // We don't have a network connection, this must be triggered from loading startup applications.
         /// @todo Evaluate if we want to do this, local apps might load stuff too to the scene etc.
-        if (TundraSDK.framework.client.websocket === null)
+        if (!Tundra.client.isConnected())
             return;
 
-        if (!LoginScreenPlugin.LoadingScreenEnabled || this.loadingScreen == null || this.loadingScreen.done)
+        // Send event for custom login screens. We might be disabled below
+        Tundra.events.send("LoginScreenPlugin.ProgressUpdate", progress);
+
+        if (!LoginScreenPlugin.LoadingScreenEnabled)
+            return;
+
+        if (this.loadingScreen == null || this.loadingScreen.done)
             return;
 
         if (text != null && this.loadingScreen.text != null)
             this.loadingScreen.text.text(text);
+
         if (progress != null && this.loadingScreen.progress != null)
         {
             if (this.loadingScreen.completedOnce !== undefined && this.loadingScreen.completedOnce === true)
@@ -426,46 +527,46 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
         Hides the loading screen revealing the 3D rendering. Does nothing if the loading screen is already hidden.
         @method hideLoadingScreen
     */
-    hideLoadingScreen : function(ignoreConnectedState)
+    hideLoadingScreen : function(ignoreConnectedState, animate)
     {
-        if (ignoreConnectedState === undefined)
-            ignoreConnectedState = false;
-
-        // We don't have a network connection, this must be triggered from loading startup applications.
-        if (!ignoreConnectedState && TundraSDK.framework.client.websocket === null)
-            return;
-
-        if (this.loadingScreen == null || this.loadingScreen.done)
-            return;
+        animate = (typeof animate === "boolean" ? animate : true);
 
         this.transfersPeak = 0;
         this.transfersProgress = -1;
 
+        if (ignoreConnectedState === undefined)
+            ignoreConnectedState = false;
+
+        // We don't have a network connection, this must be triggered from loading startup applications.
+        if (!ignoreConnectedState && !Tundra.client.isConnected())
+            return;
+
+        // Send event for custom login screens. We might be disabled below.
+        Tundra.events.send("LoginScreenPlugin.Hide");
+
+        if (this.loadingScreen == null || this.loadingScreen.done)
+            return;
+
         this.loadingScreen.done = true;
         this.loadingScreen.hideButton.remove();
 
-        var that = this;
-        this.loadingScreen.screen.fadeOut(2000, function() {
-            that.loadingScreen.screen.remove();
-            that.loadingScreen.screen = null;
-            that.loadingScreen = null;
-            that.onWindowResized();
-        });
+        this.loadingScreen.screen.fadeOut(500, function() {
+            this.loadingScreen.screen.remove();
+            this.loadingScreen.screen = null;
+            this.loadingScreen = null;
+            this.onWindowResized();
+        }.bind(this));
     },
 
-    onWindowResized : function()
+    onWindowResized : function(width, height)
     {
+        height = height || Tundra.ui.height();
+
         if (this.loadingScreen != null && !this.loadingScreen.done)
         {
-            this.loadingScreen.screen.position({
-                my : "left top",
-                at : "left top",
-                of : this.loadingScreen.screen.parent()
-            });
-
             this.loadingScreen.text.position({
                 my : "left top",
-                at : "left top+100",
+                at : "left top+" + (height > 500 ? 100 : 50),
                 of : this.loadingScreen.screen
             });
 
@@ -474,12 +575,21 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
                 at : "left bottom+25",
                 of : this.loadingScreen.text
             });
+
+            if (this.ui.loginControls != null)
+            {
+                this.ui.loginControls.position({
+                    my : "left top",
+                    at : "left bottom",
+                    of : this.loadingScreen.text
+                });
+            }
         }
     },
 
     onActiveAssetTransferCountChanged : function(numTransfers)
     {
-        if (!LoginScreenPlugin.LoadingScreenEnabled || this.loadingScreen == null || this.loadingScreen.done)
+        if (!LoginScreenPlugin.LoadingScreenEnabled)
             return;
 
         if (this.transfersPeak < numTransfers)
@@ -501,12 +611,12 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
             setTimeout(function() {
                 if (this.framework.asset.allTransfersCompleted())
                     this.hideLoadingScreen();
-            }.bind(this), 500)
+            }.bind(this), 200)
         }
     }
 });
 
-TundraSDK.registerPlugin(new LoginScreenPlugin());
+Tundra.registerPlugin(new LoginScreenPlugin());
 
 return LoginScreenPlugin;
 
