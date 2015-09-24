@@ -2,86 +2,92 @@
 define([
         "lib/classy",
         "lib/three",
-        "core/framework/TundraSDK",
+        "core/framework/Tundra",
+        "core/data/ITundraSerializer",
         "core/framework/TundraLogging",
         "core/scene/AttributeChange",
-        "core/math/Color",
-        "core/math/Transform"
-    ], function(Class, THREE, TundraSDK, TundraLogging, AttributeChange, Color, Transform) {
+        "core/math/Transform",
+        "core/math/MathUtils",
+        "core/math/Color"
+    ], function(Class, THREE, Tundra, ITundraSerializer, TundraLogging, AttributeChange, Transform, MathUtils, Color) {
 
-/**
-    Attributes are networks syncronized variables in entity components.
-
-    This class is responsible, in combination with {{#crossLink "IComponent"}}IComponent{{/crossLink}},
-    of the deserializing the network data sent by the server.
-
-    This class should never be instantiated directly. If you are implementing a component use
-    {{#crossLink "IComponent/declareAttribute:method"}}IComponent.declareAttribute{{/crossLink}}
-    to declare your components static structure.
-
-    @class Attribute
-*/
-var Attribute = Class.$extend(
+var Attribute = ITundraSerializer.$extend(
+/** @lends Attribute.prototype */
 {
+    /**
+        Attributes are networks synchronized variables in entity components.
+
+        This class is responsible, in combination with {@link IComponent},
+        of the deserializing the network data sent by the server.
+
+        This class should never be instantiated directly. If you are implementing a component use
+        {@link IComponent#declareAttribute} to declare your components static structure.
+
+        @constructs
+        @extends ITundraSerializer
+        @param {IComponent} owner
+        @param {Number} index
+        @param {String} name
+        @param {Object} value
+        @param {Number} typeId
+    */
     __init__ : function(owner, index, name, value, typeId)
     {
+        this.$super();
         /**
             Component that owns this attribute.
-            @property owner
-            @type IComponent
+            @var {IComponent}
         */
         this.owner = owner;
         /**
+            Attribute interpolation data. Components must set an implementation
+            if they wish interpolation for an attribute.
+            @var {AttributeInterpolationData}
+        */
+        this.interpolation = undefined;
+        /**
             Attribute index. Unique for the parent component.
-            @property index
-            @type Number
+            @var {Number}
         */
         this.index = index;
         /**
             Attribute name.
-            @property name
-            @type String
+            @var {String}
         */
         this.name = name;
         /**
             Attribute id. Currently unused in Web Tundra.
-            @property id
-            @type Number
+            @var {Number}
             @default undefined
         */
         this.id = undefined;
         /**
             Attribute value.
-            @property value
-            @type Object
+            @var {Object}
         */
         this.value = value;
         /**
             Attribute type id.
-            @property typeId
-            @type Number
+            @var {Number}
         */
         this.typeId = typeId;
         /**
             Attribute type name.
-            @property typeName
-            @type String
+            @var {String}
         */
         this.typeName = Attribute.toTypeName(typeId);
         /**
             Attribute size in bytes. For String, AssetReference, AssetReferenceList,
             EntityReference, QVariant and QVariantList size will be 'undefined'.
             Exact size is determined during network deserialization.
-            @property sizeBytes
-            @type Number
+            @var {Number}
         */
         this.sizeBytes = Attribute.sizeInBytes(typeId);
         /**
             Attribute header size. Reading the header will determine the attribute byte
             size during network deserialization. Note that sizeBytes will still be 'undefined'
             even after the size has been resolved.
-            @property headerSizeBytes
-            @type Number
+            @var {Number}
         */
         this.headerSizeBytes = Attribute.headerSizeInBytes(typeId);
     },
@@ -92,163 +98,150 @@ var Attribute = Class.$extend(
         /**
             Attribute type id for String.
 
-                typeof attribute.get() === "string";
+            * @example
+            * typeof attribute.get() === "string";
 
-            @property String
-            @final
             @static
-            @type Number
+            @var {Number}
             @default 1
         */
         String              : 1,
         /**
             Attribute type id for Int.
 
-                typeof attribute.get() === "number";
+            * @example
+            * typeof attribute.get() === "number";
 
-            @property Int
-            @final
             @static
-            @type Number
+            @var {Number}
             @default 2
         */
         Int                 : 2,
         /**
             Attribute type id for Real.
 
-                typeof attribute.get() === "number";
+            * @example
+            * typeof attribute.get() === "number";
 
-            @property Real
-            @final
             @static
-            @type Number
+            @var {Number}
             @default 3
         */
         Real                : 3,
         /**
             Attribute type id for Color.
 
-                typeof attribute.get() === "object";
-                attribute.get() instanceof Color === true;
+            * @example
+            * typeof attribute.get() === "object";
+            * attribute.get() instanceof Color === true;
 
-            @property Color
-            @final
             @static
-            @type Number
+            @var {Number}
             @default 4
         */
         Color               : 4,
         /**
             Attribute type id for Float2.
 
-                typeof attribute.get() === "object";
-                attribute.get() instanceof THREE.Vector2 === true;
+            * @example
+            * typeof attribute.get() === "object";
+            * attribute.get() instanceof THREE.Vector2 === true;
 
-            @property Float2
-            @final
             @static
-            @type Number
+            @var {Number}
             @default 5
         */
         Float2              : 5,
         /**
             Attribute type id for Float3.
 
-                typeof attribute.get() === "object";
-                attribute.get() instanceof THREE.Vector3 === true;
+            * @example
+            * typeof attribute.get() === "object";
+            * attribute.get() instanceof THREE.Vector3 === true;
 
-            @property Float3
-            @final
             @static
-            @type Number
+            @var {Number}
             @default 6
         */
         Float3              : 6,
         /**
             Attribute type id for Float4.
 
-                typeof attribute.get() === "object";
-                attribute.get() instanceof THREE.Vector4 === true;
+            * @example
+            * typeof attribute.get() === "object";
+            * attribute.get() instanceof THREE.Vector4 === true;
 
-            @property Float4
-            @final
             @static
-            @type Number
+            @var {Number}
             @default 7
         */
         Float4              : 7,
         /**
             Attribute type id for Bool.
 
-                typeof attribute.get() === "boolean";
+            * @example
+            * typeof attribute.get() === "boolean";
 
-            @property Bool
-            @final
             @static
-            @type Number
+            @var {Number}
             @default 8
         */
         Bool                : 8,
         /**
             Attribute type id for UInt.
 
-                typeof attribute.get() === "number";
+            * @example
+            * typeof attribute.get() === "number";
 
-            @property UInt
-            @final
             @static
-            @type Number
+            @var {Number}
             @default 9
         */
         UInt                : 9,
         /**
             Attribute type id for Quat.
 
-                typeof attribute.get() === "number";
-                attribute.get() instanceof THREE.Quaternion === true;
+            * @example
+            * typeof attribute.get() === "number";
+            * attribute.get() instanceof THREE.Quaternion === true;
 
-            @property Quat
-            @final
             @static
-            @type Number
+            @var {Number}
             @default 10
         */
         Quat                : 10,
         /**
             Attribute type id for AssetReference.
 
-                typeof attribute.get() === "string";
+            * @example
+            * typeof attribute.get() === "string";
 
-            @property AssetReference
-            @final
             @static
-            @type Number
+            @var {Number}
             @default 11
         */
         AssetReference      : 11,
         /**
             Attribute type id for AssetReferenceList.
 
-                typeof attribute.get() === "object";
-                typeof attribute.get()[0] === "string";
-                Array.isArray(attribute.get()) === true;
+            * @example
+            * typeof attribute.get() === "object";
+            * typeof attribute.get()[0] === "string";
+            * Array.isArray(attribute.get()) === true;
 
-            @property AssetReferenceList
-            @final
             @static
-            @type Number
+            @var {Number}
             @default 12
         */
         AssetReferenceList  : 12,
         /**
             Attribute type id for EntityReference.
 
-                typeof attribute.get() === "string";
+            * @example
+            * typeof attribute.get() === "string";
 
-            @property EntityReference
-            @final
             @static
-            @type Number
+            @var {Number}
             @default 13
         */
         EntityReference     : 13,
@@ -257,50 +250,45 @@ var Attribute = Class.$extend(
 
                 typeof attribute.get() === "string";
 
-            @property QVariant
-            @final
             @static
-            @type Number
+            @var {Number}
             @default 14
         */
         QVariant            : 14,
         /**
             Attribute type id for QVariantList.
 
-                typeof attribute.get() === "object";
-                typeof attribute.get()[0] === "string";
-                Array.isArray(attribute.get()) === true;
+            * @example
+            * typeof attribute.get() === "object";
+            * typeof attribute.get()[0] === "string";
+            * Array.isArray(attribute.get()) === true;
 
-            @property QVariantList
-            @final
             @static
-            @type Number
+            @var {Number}
             @default 15
         */
         QVariantList        : 15,
         /**
             Attribute type id for Transform.
 
-                typeof attribute.get() === "object";
-                attribute.get() instanceof Transform === true;
+            * @example
+            * typeof attribute.get() === "object";
+            * attribute.get() instanceof Transform === true;
 
-            @property String
-            @final
             @static
-            @type Transform
+            @var {Transform}
             @default 16
         */
         Transform           : 16,
         /**
             Attribute type id for QPoint.
 
-                typeof attribute.get() === "object";
-                attribute.get() instanceof THREE.Vector2 === true;
+            * @example
+            * typeof attribute.get() === "object";
+            * attribute.get() instanceof THREE.Vector2 === true;
 
-            @property QPoint
-            @final
             @static
-            @type Number
+            @var {Number}
             @default 17
         */
         QPoint              : 17,
@@ -310,9 +298,9 @@ var Attribute = Class.$extend(
 
             <b>Note:</b> This function creates a new list that you can manipulate. You can use {{#crossLink "Attribute/typeNameList:property"}}{{/crossLink}}
             for faster access but be sure that you don't modify the list!
-            @method typeNames
+
             @static
-            @return {Array} Available attribute type names list.
+            @return {Array<String>} Available attribute type names list.
         */
         typeNames : function()
         {
@@ -327,9 +315,9 @@ var Attribute = Class.$extend(
 
             <b>Note:</b> This function creates a new list that you can manipulate. You can use {{#crossLink "Attribute/typIdList:property"}}{{/crossLink}}
             for faster access but be sure that you don't modify the list!
-            @method typeIds
+
             @static
-            @return {Array} Available attribute type ids list.
+            @return {Array<int>} Available attribute type ids list.
         */
         typeIds : function()
         {
@@ -341,7 +329,7 @@ var Attribute = Class.$extend(
 
         /**
             Returns attribute type name for a type id.
-            @method toTypeName
+
             @static
             @param {Number} typeId Attribute type id.
             @return {String} Attribute type name.
@@ -355,15 +343,15 @@ var Attribute = Class.$extend(
             }
             switch (typeId)
             {
-                case 1: return "String";
-                case 2: return "Int";
-                case 3: return "Real";
+                case 1: return "string";
+                case 2: return "int";
+                case 3: return "real";
                 case 4: return "Color";
-                case 5: return "Float2";
-                case 6: return "Float3";
-                case 7: return "Float4";
-                case 8: return "Bool";
-                case 9: return "Uint";
+                case 5: return "float2";
+                case 6: return "float3";
+                case 7: return "float4";
+                case 8: return "bool";
+                case 9: return "uint";
                 case 10: return "Quat";
                 case 11: return "AssetReference";
                 case 13: return "EntityReference";
@@ -378,7 +366,7 @@ var Attribute = Class.$extend(
 
         /**
             Returns attribute type id for a type name.
-            @method toTypeId
+
             @static
             @param {String} typeName Attribute type name.
             @return {Number} Attribute type id.
@@ -393,7 +381,7 @@ var Attribute = Class.$extend(
             var typeNameLower = typeName.toLowerCase();
             if (typeNameLower === "string") return 1;
             else if (typeNameLower === "int") return 2;
-            else if (typeNameLower === "eeal") return 3;
+            else if (typeNameLower === "real") return 3;
             else if (typeNameLower === "color") return 4;
             else if (typeNameLower === "float2") return 5;
             else if (typeNameLower === "float3") return 6;
@@ -404,10 +392,10 @@ var Attribute = Class.$extend(
             else if (typeNameLower === "assetreference") return 11;
             else if (typeNameLower === "entityreference") return 12;
             else if (typeNameLower === "assetreferencelist") return 13;
-            else if (typeNameLower === "qvariantlist") return 14;
-            else if (typeNameLower === "qvariant") return 15;
+            else if (typeNameLower === "qvariantlist" || typeNameLower === "variantlist") return 14;
+            else if (typeNameLower === "qvariant" || typeNameLower === "variant") return 15;
             else if (typeNameLower === "transform") return 16;
-            else if (typeNameLower === "qpoint") return 17;
+            else if (typeNameLower === "qpoint" || typeNameLower === "point") return 17;
             return null;
         },
 
@@ -415,16 +403,15 @@ var Attribute = Class.$extend(
             List of all available attribute type names.
 
             <b>Note:</b> If you need a mutable list use {{#crossLink "Attribute/typeNames:method"}}{{/crossLink}}.
-            @property typeNameList
-            @final
+
             @static
-            @type Array
+            @var {Array.<String>}
         */
         typeNameList :
         [
-                "String",       "Int",      "Real",             "Color",
-                "Float2",       "Float3",   "Float4",           "Bool",
-                "Uint",         "Quat",     "EntityReference",  "AssetReferenceList",
+                "string",       "int",      "real",             "Color",
+                "float2",       "float3",   "float4",           "bool",
+                "uint",         "Quat",     "EntityReference",  "AssetReferenceList",
                 "QVariantList", "QVariant", "Transform",        "QPoint"
         ],
 
@@ -432,10 +419,9 @@ var Attribute = Class.$extend(
             List of all available attribute type ids.
 
             <b>Note:</b> If you need a mutable list use {{#crossLink "Attribute/typeIds:method"}}{{/crossLink}}.
-            @property typIdList
-            @final
+
             @static
-            @type Array
+            @var {Array.<Number>}
         */
         typIdList :
         [
@@ -446,7 +432,7 @@ var Attribute = Class.$extend(
         /**
             Returns the size of an attribute in bytes. For String, AssetReference, AssetReferenceList,
             EntityReference, QVariant and QVariantList this function returns 'undefined'.
-            @method sizeInBytes
+
             @static
             @param {Number} typeId Attribute type id.
             @return {Number|undefined} Size in bytes or undefined.
@@ -510,7 +496,7 @@ var Attribute = Class.$extend(
         /**
             Returns the pre-known header size for an attribute type,
             if one is needed for the network deserialization.
-            @method headerSizeInBytes
+
             @static
             @param {Number} typeId Attribute type id.
             @return {Number} Size in bytes.
@@ -550,7 +536,7 @@ var Attribute = Class.$extend(
 
         /**
             Returns a default "empty" value for a type id.
-            @method defaultValueForType
+
             @static
             @param {Number} typeId Attribute type id.
             @return {Object}
@@ -624,9 +610,102 @@ var Attribute = Class.$extend(
         this.headerSizeBytes = null;
     },
 
+    serializeValue : function()
+    {
+        switch(this.typeId)
+        {
+            case 2: // int
+            case 9: // uint
+            case 3: // real
+            case 8: // Bool
+                return this.value.toString();
+            case 1: // string
+            case 11: // AssetReference
+            case 13: // EntityReference
+            case 14: // QVariant
+                return this.value;
+            case 17: // QPoint
+                return (this.value.x + " " + this.value.y);
+            case 5: // Float2
+            case 6: // Float3
+            case 7: // Float4
+            case 10: // Quat
+                return this.value.toArray().join(" ");
+            case 4: // Color
+                return this.value.serializetoString();
+            case 12: // AssetReferenceList
+            case 15: // QVariantList
+                return this.value.join(";");
+            case 16: // Transform
+                return this.value.formatParts().join(",");
+        }
+    },
+
+    /**
+        Serializes this attribute to JSON.
+        @return {object} - The attribute as JSON.
+        @example
+        * var attributeObject = someAttribute.serializeToObject();
+        * // The object is described as follows:
+        * // {
+        * //      id            : {string}, The attribute ID or "name"
+        * //      type          : {string}, The type name of the attribute
+        * //      value         : {string}, The value as string
+        * // }
+    */
+    serializeToObject : function()
+    {
+        var object = {};
+        object.id = this.name;
+        object.type = this.typeName;
+        object.value = this.serializeValue();
+
+        return object;
+    },
+
+    /**
+        Serializes this attribute to the TXML format.
+        @return {Node} - The attribute in XML 
+    */
+    serializeToXml : function()
+    {
+        var attributeElement = document.createElement("attribute");
+        attributeElement.setAttribute("id", this.name);
+        attributeElement.setAttribute("type", this.typeName);
+        attributeElement.setAttribute("value", this.serializeValue());
+
+        return attributeElement;
+    },
+
+    /**
+        Deserializes the attribute from JSON
+        @param {object} obj The object to be deserialized
+        @param {AttributeChange} [change=AttributeChange.Default] Change signaling mode.
+    */
+    deserializeFromObject : function(obj, change)
+    {
+        change = change || AttributeChange.Default;
+        var value = obj.value;
+        if (value)
+            this.setFromString(value, change);
+    },
+
+    /**
+        Deserializes the attribute from a XML node
+        @param {Node} attributeElement The XML node to be parsed
+        @param {AttributeChange} [change=AttributeChange.Default] Change signaling mode.
+    */
+    deserializeFromXml : function(attributeElement, change)
+    {
+        change = change || AttributeChange.Default;
+        var value = attributeElement.getAttribute("value");
+        if (value)
+            this.setFromString(value, change);
+    },
+
     /**
         Returns full infromation about this attribute as a string.
-        @method toString
+
         @return {String} Data string.
     */
     toString : function()
@@ -646,7 +725,6 @@ var Attribute = Class.$extend(
         Use {{#crossLink "Attribute/getClone:method"}}getClone(){{/crossLink}} if you want to be
         sure you are not changing the internal state by modifying a reference.
 
-        @method get
         @return {Object} Attribute value.
     */
     get : function()
@@ -659,7 +737,7 @@ var Attribute = Class.$extend(
         the internal state by accidentally modifying a reference.
 
         See also {{#crossLink "Attribute/get:method"}}get(){{/crossLink}}.
-        @method getClone
+
         @return {Object} Clone of the attribute value.
     */
     getClone : function()
@@ -678,7 +756,7 @@ var Attribute = Class.$extend(
         // Handles AssetReferenceList and QVariantList
         else if (Array.isArray(this.value))
         {
-            var attrClone = new Array();
+            var attrClone = [];
             for (var i = 0; i < this.value.length; i++)
                 attrClone.push(this.value[i]);
             return attrClone;
@@ -692,11 +770,10 @@ var Attribute = Class.$extend(
     /**
         Set attribute value.
 
-        @method set
         @param {Object} New attribute value.
         @param {AttributeChange} [change=AttributeChange.Default] Attribute change signaling mode.
         Note: Only AttributeChange.LocalOnly is supported at the moment!
-        @return {Boolean} True if set was successful, false othewise.
+        @return {Boolean} `true` if set was successful, `false` othewise.
     */
     set : function(value, change)
     {
@@ -712,10 +789,15 @@ var Attribute = Class.$extend(
         if (change === AttributeChange.Default)
             change = (this.owner != null && this.owner.replicated ? AttributeChange.Replicate : AttributeChange.LocalOnly);
 
+        if (this.interpolation)
+            this.interpolation.change(value);
+
         this.value = value;
 
         if (this.owner != null && change !== AttributeChange.Disconnected)
+        {
             this.owner._attributeChanged(this, change);
+        }
         return true;
     },
 
@@ -724,21 +806,20 @@ var Attribute = Class.$extend(
 
         Also see {{#crossLink "IComponent/onAttributeChanged:method"}}{{/crossLink}} for a more generic change event on a component.
 
-        @example
-            var entity = TundraSDK.framework.scene.entityById(12);
-            if (entity == null || entity.placeable == null)
-                return;
+        * @example
+        * var entity = Tundra.scene.entityById(12);
+        * if (entity == null || entity.placeable == null)
+        *     return;
+        *
+        * entity.placeable.getAttribute("transform").onChanged(null, function(newAttributeValue) {
+        *     // instenceof newAttributeValue === Transform
+        *     console.log("Transform changed to: " + newAttributeValue.toString());
+        * });
 
-            entity.placeable.getAttribute("transform").onChanged(null, function(newAttributeValue) {
-                // instenceof newAttributeValue === Transform
-                console.log("Transform changed to: " + newAttributeValue.toString());
-            });
-
-        @method onAttributeChanged
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription|null} Subscription data or null if parent entity or component not set.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onChanged : function(context, callback)
     {
@@ -748,7 +829,7 @@ var Attribute = Class.$extend(
             return null;
         }
 
-        return TundraSDK.framework.events.subscribe("Scene.AttributeChanged." + this.owner.parentEntity.id.toString() + "." +
+        return Tundra.events.subscribe("Scene.AttributeChanged." + this.owner.parentEntity.id.toString() + "." +
             this.owner.id.toString() + "." + this.index.toString(), context, callback);
     },
 
@@ -909,6 +990,120 @@ var Attribute = Class.$extend(
             return;
         }
         this.dataFromBinary(ds, len);
+    },
+
+    /**
+        Set attribute value from string. This asks the underlying attribute to serialize itself from a string.
+
+        @param {String} Attribute value.
+        @param {AttributeChange} [change=AttributeChange.Default] Attribute change signaling mode.
+        Note: Only AttributeChange.LocalOnly is supported at the moment!
+        @return {Boolean} `true` if set was successful, `false` othewise.
+    */
+    setFromString : function(str, change)
+    {
+        switch(this.typeId)
+        {
+            // String
+            case 1:
+            // AssetReference
+            case 11:
+            // EntityReference
+            case 13:
+            // QVariant
+            case 14:
+            {
+                return this.set(str, change);
+            }
+            // Int
+            case 2:
+            // Uint
+            case 9:
+            {
+                return this.set(MathUtils.parseInt(str), change);
+            }
+            // Real
+            case 3:
+            {
+                return this.set(MathUtils.parseFloat(str), change);
+            }
+            // Float2
+            case 5:
+            // QPoint
+            case 17:
+            {
+                var parts = MathUtils.splitToFloats(str);
+                if (parts.length >= 2)
+                {
+                    this.value.x = parts[0];
+                    this.value.y = parts[1];
+                    return this.set(this.value, change);
+                }
+                return false;
+            }
+            // Float3
+            case 6:
+            {
+                var parts = MathUtils.splitToFloats(str);
+                if (parts.length >= 3)
+                {
+                    this.value.x = parts[0];
+                    this.value.y = parts[1];
+                    this.value.z = parts[2];
+                    return this.set(this.value, change);
+                }
+                return false;
+            }
+            // Float4
+            case 7:
+            // Quat
+            case 10:
+            {
+                var parts = MathUtils.splitToFloats(str);
+                if (parts.length >= 4)
+                {
+                    this.value.x = parts[0];
+                    this.value.y = parts[1];
+                    this.value.z = parts[2];
+                    this.value.w = parts[3];
+                    return this.set(this.value, change);
+                }
+                return false;
+            }
+            // Bool
+            case 8:
+            {
+                var lower = str.trim().toLowerCase();
+                this.value = (lower === "true" || lower === "1");
+                return this.set(this.value, change);
+            }
+            // AssetReferenceList
+            case 12:
+            // QVariantList
+            case 15:
+            {
+                this.value = str.split(";");
+                return this.set(this.value, change);
+            }
+            // Color
+            // Transform
+            default:
+            {
+                // @todo Assume on failure that the attribute value logs and error?
+                if (typeof this.value.fromString === "function")
+                {
+                    var success = this.value.fromString(str);
+                    if (typeof success === "boolean" && success === false)
+                        return false;
+                    return this.set(this.value, change);
+                }
+                else
+                {
+                    TundraLogging.getLogger("Attribute").error("Attribute value type does not implement setFromString/fromString:", this.toString());
+                    return false;
+                }
+            }
+        }
     }
 });
 

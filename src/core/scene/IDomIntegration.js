@@ -1,18 +1,11 @@
 
 define([
         "lib/classy",
-        "core/framework/TundraSDK"
-    ], function(Class, TundraSDK) {
+        "core/framework/Tundra"
+    ], function(Class, Tundra) {
 
-/**
-    DOM integration interface.
+// Not documented, silly interface that will be removed from webtundra
 
-    Implementation can be set active with {{#crossLink "TundraClient/setDomIntegration:method"}}TundraClient.setDomIntegration{{/crossLink}}.
-
-    @class IDomIntegration
-    @constructor
-    @param {String} name Render system name.
-*/
 var IDomIntegration = Class.$extend(
 {
     __init__ : function(name)
@@ -33,28 +26,20 @@ var IDomIntegration = Class.$extend(
 
     _load : function()
     {
-        TundraSDK.framework.client.log.info("Loading " + this.name + " DOM integration system");
+        Tundra.client.log.info("Loading " + this.name + " DOM integration system");
         this.load();
     },
 
-    /**
-        Loads the DOM integration system.
-        @method load
-    */
     load : function()
     {
     },
 
     _unload : function()
     {
-        TundraSDK.framework.client.log.info("Unloading " + this.name + " DOM integration system");
+        Tundra.client.log.info("Unloading " + this.name + " DOM integration system");
         this.unload();
     },
 
-    /**
-        Unloads the DOM integration system.
-        @method unload
-    */
     unload : function()
     {
     }

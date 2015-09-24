@@ -1,63 +1,107 @@
 
 define([
-        "lib/classy",
-        "core/framework/TundraSDK",
+        "core/framework/Tundra",
+        "core/framework/ITundraAPI",
         "core/framework/TundraLogging",
         "core/framework/CoreStringUtils",
         "core/scene/Entity",
         "core/scene/IComponent",
         "core/scene/Attribute",
         "core/scene/AttributeChange",
+        "core/scene/UniqueIdGenerator",
         "core/network/Network",
         "core/data/DataDeserializer"
-    ], function(Class, TundraSDK, TundraLogging, CoreStringUtils, Entity, IComponent, Attribute, AttributeChange, Network, DataDeserializer, DataSerializer) {
-
-/**
-    Scene that is accessible from {{#crossLink "TundraClient/scene:property"}}TundraClient.scene{{/crossLink}}
-
-    Manages the current Tundra scene. Functions for querying entities and components. Events for entity and component created/removed etc.
-    @class Scene
-    @constructor
-*/
-var Scene = Class.$extend(
+    ], function(Tundra, ITundraAPI, TundraLogging, CoreStringUtils, Entity, IComponent, Attribute,
+        AttributeChange, UniqueIdGenerator, Network, DataDeserializer, DataSerializer)
 {
-    __init__ : function(params)
+
+var Scene = ITundraAPI.$extend(
+/** @lends Scene.prototype */
+{
+    /**
+        Scene is a complete manager for the current WebTundra scene. It is used for the bulk of the operations in most applications, mainly to manipulate with the scene, and listening to scene events.
+        Scene provides methods to add, get and remove entities, and listen to changes such as adding / removing entities, adding / removing components, attribute changes etc.
+
+        Only one single scene exists in a WebTundra session. Scene is a singleton and accessible from {@link Tundra.scene}.
+
+        @constructs
+        @extends ITundraAPI
+        @private
+    */
+    __init__ : function(name, options, globalOptions)
     {
-        this.log = TundraLogging.getLogger("Scene");
+        this.$super(name, options);
 
         /**
-            List of Entity objects in this scene
-            @property entities
-            @type Array
+            List of {@link Entity} objects in this scene
+            @var {Array.<Entity>}
         */
         this.entities = [];
         this.id = 1;
+        this.entityIdGenerator = new UniqueIdGenerator();
+    },
+
+    // ITundraAPI override
+    postInitialize : function()
+    {
+        var comps = Scene.registeredComponentsList();
+        for (var i = 0; i < comps.length; i++)
+            if (typeof comps[i].Implementation !== "string")
+                this._logComponentRegistration(comps[i], true);
+        for (var i = 0; i < comps.length; i++)
+            if (typeof comps[i].Implementation === "string")
+                this._logComponentRegistration(comps[i], true);
+
+        Tundra.console.registerCommand("dumpScene", "Dumps the scene to browsers developer console",
+            "(string) Optional entity name if you want to print a single entity", this, this.onDumpScene);
+    },
+
+    // ITundraAPI override
+    reset : function()
+    {
+        this.id = 1;
+        this.removeAllEntities();
+
+        Tundra.events.remove("Scene.EntityCreated");
+        Tundra.events.remove("Scene.EntityRemoved");
+        Tundra.events.remove("Scene.ComponentCreated");
+        Tundra.events.remove("Scene.ComponentRemoved");
+        Tundra.events.remove("Scene.EntityAction");
+
+        Tundra.events.send("Scene.Reset", this);
     },
 
     __classvars__ :
     {
         registeredComponents : {},
 
-        /**
-            Returns all the registered component information as a list.
-            
-            @static
-            @method registeredComponentsList
-            @return {Array<Object>}
-        */
-        registeredComponentsList : function()
+        ClearRegisteredComponents : function()
         {
-            var result = [];
-            for (var typeId in Scene.registeredComponents)
-                result.push(Scene.registeredComponents[typeId]);
-            return result;
+            this.registeredComponents = {};
         },
 
         /**
             Returns all the registered component information as a list.
 
             @static
-            @method registeredComponent
+            @return {Array.<IComponent>}
+        */
+        registeredComponentsList : function()
+        {
+            var result = [];
+            var componentIds = Object.keys(Scene.registeredComponents);
+            for (var i = 0; i < componentIds.length; i++)
+            {
+                var typeId = componentIds[i];
+                result.push(Scene.registeredComponents[typeId]);
+            }
+            return result;
+        },
+
+        /**
+            Returns component information object (typeId, typeName, prototype).
+
+            @static
             @param {Number|String} id Component type id or name.
             @return {Object|undefined}
         */
@@ -65,12 +109,14 @@ var Scene = Class.$extend(
         {
             if (typeof id === "string")
             {
-                var typeName = IComponent.ensureComponentNamePrefix(id);
-                for (var compTypeId in Scene.registeredComponents)
+                var typeName = IComponent.ensureComponentNameWithoutPrefix(id);
+                var componentIds = Object.keys(Scene.registeredComponents);
+                for (var i = 0; i < componentIds.length; i++)
                 {
-                    if (Scene.registeredComponents[compTypeId].typeName === typeName)
+                    var typeId = componentIds[i];
+                    if (Scene.registeredComponents[typeId].TypeName === typeName)
                     {
-                        id = compTypeId;
+                        id = typeId;
                         break;
                     }
                 }
@@ -81,32 +127,96 @@ var Scene = Class.$extend(
         /**
             Registers a new component to the client. Once the component is registered it can be instantiated when it is sent from server to the client.
 
-            This function is static and should be called directly with 'Scene.registerComponent(...)' without getting the Scene instance from the client.
+            This function is static and should be called directly with `Scene.registerComponent(...)` without getting the Scene instance from the client.
 
             @static
-            @method registerComponent
-            @param {Number} typeId Component type id. This needs to match the server implementation.
-            @param {String} typeName Full type name of the component e.g. "EC_Mesh".
-            @param {IComponent} componentClass Object to instantiate when this component needs to be created.
-            @return {Boolean} True if component was registered, false if failed.
+            @param {IComponent} componentClass - Object to instantiate when this component needs to be created.
+            @return {Boolean} `true` if component was registered successfully, `false` if failed.
         */
-        registerComponent : function(typeId, typeName, componentClass)
+        registerComponent : function(component)
         {
-            typeName = IComponent.ensureComponentNamePrefix(typeName);
-
-            if (this.registeredComponents[typeId] !== undefined)
+            if (!(component.prototype instanceof IComponent))
             {
-                TundraLogging.getLogger("Scene").error("Component with type id", typeId, "(" + this.registeredComponents[typeId].typeName + ") already registered!");
+                TundraLogging.getLogger("Scene").error("registerComponent: Invalid component class. First parameter must be a IComponent.");
                 return false;
             }
-            this.registeredComponents[typeId] = {
-                "typeId"    : typeId,
-                "typeName"  : typeName,
-                "prototype" : componentClass
-            };
-            if (TundraSDK.framework.scene != null)
-                TundraSDK.framework.scene._logComponentRegistration(this.registeredComponents[typeId]);
+            else if (typeof component.TypeId !== "number")
+            {
+                debugger;
+                TundraLogging.getLogger("Scene").error("registerComponent: Invalid component class. 'TypeId' is not a number.");
+                return false;
+            }
+            else if (component.TypeId <= 0)
+            {
+                TundraLogging.getLogger("Scene").error("registerComponent: Invalid component class. 'TypeId' number is invalid", component.TypeId);
+                return false;
+            }
+            else if (typeof component.TypeName !== "string")
+            {
+                TundraLogging.getLogger("Scene").error("registerComponent: Invalid component class. 'TypeName' is not a string.");
+                return false;
+            }
+            else if (component.TypeName === "")
+            {
+                TundraLogging.getLogger("Scene").error("registerComponent: Invalid component class. 'TypeName' string is invalid", component.TypeName);
+                return false;
+            }
+
+            if (this.registeredComponents[component.TypeId] !== undefined)
+            {
+                TundraLogging.getLogger("Scene").error("Component with type id", component.TypeId, "(" + this.registeredComponents[component.TypeId].TypeName + ") already registered!");
+                return false;
+            }
+
+            component.TypeName = IComponent.ensureComponentNameWithoutPrefix(component.TypeName);
+            this.registeredComponents[component.TypeId] = component;
+            this._registerComponentPropertyName(component);
+
+            if (Tundra.scene != null)
+                Tundra.scene._logComponentRegistration(component);
             return true;
+        },
+
+        /**
+            Return if component is registered
+
+            @static
+            @param {IComponent} componentClass
+            @return {Boolean}
+        */
+        registered : function(component)
+        {
+            if (!(component.prototype instanceof IComponent))
+            {
+                TundraLogging.getLogger("Scene").error("registered: Invalid component class. First parameter must be a IComponent.");
+                return false;
+            }
+            else if (typeof component.TypeId !== "number")
+            {
+                TundraLogging.getLogger("Scene").error("registered: Invalid component class. 'TypeId' is not a number.");
+                return false;
+            }
+            else if (component.TypeId <= 0)
+            {
+                TundraLogging.getLogger("Scene").error("registered: Invalid component class. 'TypeId' number is invalid", component.TypeId);
+                return false;
+            }
+            return (this.registeredComponents[component.TypeId] !== undefined);
+        },
+
+        _registerComponentPropertyName : function(component)
+        {
+            // Register unkown components property name
+            var propertyName = IComponent.propertyName(component.TypeName);
+            var added = false;
+            for (var k = 0; k < Scene.componentPropertyNames.length; k++)
+            {
+                added = (Scene.componentPropertyNames[k] === propertyName);
+                if (added)
+                    break;
+            }
+            if (!added)
+                Scene.componentPropertyNames.push(propertyName);
         },
 
         componentPropertyNames : (function() {
@@ -117,9 +227,149 @@ var Scene = Class.$extend(
         }())
     },
 
+    registerComponent : function(component)
+    {
+        return Scene.registerComponent(component);
+    },
+
+    registered : function(component)
+    {
+        return Scene.registered(component);
+    },
+
     /**
-        Utility function for log prints. Converts entity's id and name to a string and returns it.
-        @method toString
+        Serializes the whole scene into a JSON.
+        @param {boolean} [serializeTemporary=false] If true, it will also serialize temporary entities, if such case is needed
+        @return {object} The whole scene in JSON
+        @example
+        * var sceneObject = Tundra.scene.serializeToObject();
+        * // The object is described as follows:
+        * // {
+        * //      id            : {number}, The scene ID
+        * //      entities      : {Array<Entity>}, A list of all entities which are also serialized into JSONs
+        * // }
+    */
+    serializeToObject : function(serializeTemporary)
+    {
+        serializeTemporary = serializeTemporary || false;
+
+        var object = {};
+        object.id = this.id;
+        object.entities = [];
+
+        for (var i = 0; i < this.entities.length; ++i)
+        {
+            var temp = this.entities[i].temporary;
+            if (!temp || (temp && serializeTemporary))
+                object.entities.push(this.entities[i].serializeToObject(serializeTemporary));
+        }
+
+        return object;
+    },
+
+    /**
+        Serializes the whole scene to the TXML format.
+        @param {boolean} [serializeTemporary=false] If true, it will also serialize temporary entities, if such case is needed
+        @return {XMLNode} - The whole scene in XML
+    */
+    serializeToXml : function(serializeTemporary)
+    {
+        serializeTemporary = serializeTemporary || false;
+
+        var sceneElement = document.createElement("scene");
+        for (var i = 0; i < this.entities.length; ++i)
+        {
+            var temp = this.entities[i].temporary;
+            if (!temp || (temp && serializeTemporary))
+               sceneElement.appendChild(this.entities[i].serializeToXml(serializeTemporary));
+        }
+
+        return sceneElement;
+    },
+
+    /**
+        Deserializes a scene from JSON
+        @param {object} obj The object to be deserialized
+        @param {AttributeChange} [change=AttributeChange.Default] Change signaling mode.
+        @return {Array<Entity>} - The entities that were created
+    */
+    deserializeFromObject : function(obj, change)
+    {
+        change = change || AttributeChange.Default;
+        // @todo What about scene ID?
+        var entities = [];
+        for (var i = 0; i < obj.entities.length; ++i)
+        {
+            var entityObject = obj.entities[i];
+            var sync = entityObject.sync;
+            var temp = entityObject.temp || false;
+            var entity = this.createEntity(0, null, change, sync, sync, true);
+            entity.temporary = temp;
+            entity.deserializeFromObject(entityObject, change);
+            entities.push(entity);
+        }
+
+        return entities;
+    },
+
+    /**
+        Deserializes the scene from a TXML document
+        @param {Document} xmlDoc The XML document to be parsed
+        @param {AttributeChange} [change=AttributeChange.Default] Change signaling mode.
+        @return {Array<Entity>} - The entities that have been created.
+    */
+    deserializeFromXml : function(xmlDoc, change)
+    {
+        if (xmlDoc.getElementsByTagName("parsererror").length > 0)
+        {
+            Tundra.scene.log.error("[deserializeFromXml]: Error parsing a scene from TXML: the document is not a valid TXML format!");
+            return;
+        }
+
+        var sceneElement = xmlDoc.firstChild;
+        while (sceneElement && sceneElement.nodeName != "scene")
+            sceneElement = sceneElement.nextSibling;
+
+        return this.createContentFromXml(sceneElement, change);
+    },
+
+    /**
+        Creates the scene content from a <scene> XML element
+        @param {Node} sceneElement The XML <scene> element
+        @param {AttributeChange} [change=AttributeChange.Default] Change signaling mode.
+        @return {Array<Entity>} - The entities that have been created.
+    */
+    createContentFromXml : function(sceneElement, change)
+    {
+        change = change || AttributeChange.Default;
+        var entities = [];
+        if (sceneElement.nodeName != "scene")
+        {
+            Tundra.scene.log.error("[createContentFromXml]: The given element is not a <scene> element, instead it is <" + sceneElement.nodeName + ">");
+            return entities;
+        }
+
+        for (var i = 0; i < sceneElement.childNodes.length; ++i)
+        {
+            var element = sceneElement.childNodes[i];
+            if (element.nodeName != "entity")
+                continue;
+
+            var sync = (element.getAttribute("sync") == "true");
+            var temp = (element.getAttribute("temp") == "true") || false;
+
+            var entity = this.createEntity(0, null, change, sync, sync, true);
+            entity.temporary = temp;
+            entity.deserializeFromXml(element, change);
+            entities.push(entity);
+        }
+
+        return entities;
+    },
+
+    /**
+        Utility function for log prints. Converts scene's id and name to a string and returns it.
+
         @return {String}
     */
     toString : function()
@@ -127,23 +377,17 @@ var Scene = Class.$extend(
         return "id=" + this.id + " entities=" + this.entities.length;
     },
 
-    postInitialize : function()
+    _logComponentRegistration : function(component, forcePrint)
     {
-        this.postInitialized = true;
-        var comps = Scene.registeredComponentsList();
-        for (var i = 0; i < comps.length; i++)
-            this._logComponentRegistration(comps[i]);
+        if (Tundra.scene == null)
+            return;
 
-        TundraSDK.framework.console.registerCommand("dumpScene", "Dumps the scene to browsers developer console",
-            "(string) Optional entity name if you want to print a single entity", this, this.onDumpScene);
-    },
-
-    _logComponentRegistration : function(compData)
-    {
-        if (TundraSDK.framework.scene != null && TundraSDK.framework.scene.postInitialized === true)
+        if (this.staging.postInitialized || forcePrint)
         {
-            var implName = (compData.prototype.implementationName !== undefined ? compData.prototype.implementationName + " " : "");
-            TundraSDK.framework.scene.log.debug("Registered " + implName + compData.typeName);
+            var implName = (component.Implementation !== undefined ? "[" + component.Implementation + "] " : "");
+            var typeIdPretty = component.TypeId.toString();
+            while(typeIdPretty.length < 3) typeIdPretty = " " + typeIdPretty;
+            Tundra.scene.log.debug("Registered component " +  implName + typeIdPretty, component.TypeName);
         }
     },
 
@@ -196,7 +440,7 @@ var Scene = Class.$extend(
         We could leave it off to EC_Placeable to detect all situations and parent/unparent correctly, but it would require
         multiple iterations over all scene entities. Now we can iterate once per name change.
 
-        This function is called by EC_Name when a name change occurs
+        This function is called automatically by {@link EC_Name} when a name change occurs.
     */
     _onEntityNameChanged : function(entity, newName, oldName)
     {
@@ -219,148 +463,131 @@ var Scene = Class.$extend(
     /**
         Registers a callback for scene resets.
 
-        @example
-            TundraSDK.framework.scene.onReset(null, function(scene) {
-                console.log("Scene reseted: " + scene.id);
-            });
+        * @example
+        * Tundra.scene.onReset(null, function(scene) {
+        *     console.log("Scene reseted: " + scene.id);
+        * });
 
-        @method onReset
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onReset : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("Scene.Reset", context, callback);
+        return Tundra.events.subscribe("Scene.Reset", context, callback);
     },
 
     /**
         Registers a callback for entity created event.
 
-            function onEntityCreated(entity)
-            {
-                // entity == Entity
-                console.log("Entity", entity.id, entity.name, "created");
-            }
+        * @example
+        * Tundra.scene.onEntityCreated(function(entity) {
+        *     // entity == Entity
+        *     console.log("Entity", entity.id, entity.name, "created");
+        * });
 
-            TundraSDK.framework.scene.onEntityCreated(null, onEntityCreated);
-
-        @method onEntityCreated
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onEntityCreated : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("Scene.EntityCreated", context, callback);
+        return Tundra.events.subscribe("Scene.EntityCreated", context, callback);
     },
 
     /**
         Registers a callback for entity removed event.
 
-            function onEntityRemoved(entity)
-            {
-                // entity == Entity
-            }
+        * @example
+        * Tundra.scene.onEntityRemoved(function(entity) {
+        *     // entity == Entity
+        * });
 
-            TundraSDK.framework.scene.onEntityRemoved(null, onEntityRemoved);
-
-        @method onEntityRemoved
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onEntityRemoved : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("Scene.EntityRemoved", context, callback);
+        return Tundra.events.subscribe("Scene.EntityRemoved", context, callback);
     },
 
     /**
         Registers a callback for component created event.
 
-            function onComponentCreated(entity, component)
-            {
-                // entity == Entity
-                // component == IComponent or one of its implementations.
-                console.log("Entity", entity.id, entity.name, "got a new component: " + component.typeName);
-            }
+        * @example
+        * Tundra.scene.onComponentCreated(function(entity, component) {
+        *     // entity == Entity
+        *     // component == IComponent or one of its implementations.
+        *     console.log("Entity", entity.id, entity.name, "got a new component: " + component.typeName);
+        * });
 
-            TundraSDK.framework.scene.onComponentCreated(null, onComponentCreated);
-
-        @method onComponentCreated
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onComponentCreated : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("Scene.ComponentCreated", context, callback);
+        return Tundra.events.subscribe("Scene.ComponentCreated", context, callback);
     },
 
     /**
         Registers a callback for component removed event.
-        @example
-            function onComponentRemoved(entity, component)
-            {
-                // entity == Entity
-                // component == IComponent or one of its implementations.
-            }
 
-            TundraSDK.framework.scene.onComponentRemoved(null, onComponentRemoved);
+        * @example
+        * Tundra.scene.onComponentRemoved(function(entity, component) {
+        *     // entity == Entity
+        *     // component == IComponent or one of its implementations.
+        * });
 
-        @method onComponentRemoved
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onComponentRemoved : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("Scene.ComponentRemoved", context, callback);
+        return Tundra.events.subscribe("Scene.ComponentRemoved", context, callback);
     },
 
     /**
         Registers a callback for all attribute changes in the scene.
-        @example
-            TundraSDK.framework.scene.onAttributeChanged(null,
-                function(entity, component, attributeIndex, attributeName, newValue) {
-                    console.log(entity.name, component.id, attributeName, "=", newValue);
-            });
 
-        @method onAttributeChanged
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        * @example
+        * Tundra.scene.onAttributeChanged(null, function(entity, component, attributeIndex, attributeName, newValue) {
+        *     console.log(entity.name, component.id, attributeName, "=", newValue);
+        * });
+
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onAttributeChanged : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("Scene.AttributeChanged", context, callback);
+        return Tundra.events.subscribe("Scene.AttributeChanged", context, callback);
     },
 
     /**
         Registers a callback for entity actions. See {{#crossLink "core/scene/EntityAction"}}{{/crossLink}} for the event parameter.
-        @example
-            function onEntityAction(entityAction)
-            {
-                // entityAction == EntityAction
-            }
 
-            TundraSDK.framework.scene.onEntityAction(null, onEntityAction);
+        * @example
+        * Tundra.scene.onEntityAction(function(entityAction) {
+        *     // entityAction == EntityAction
+        * });
 
-        @method onEntityAction
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onEntityAction : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("Scene.EntityAction", context, callback);
+        return Tundra.events.subscribe("Scene.EntityAction", context, callback);
     },
 
     _publishEntityCreated : function(entity)
@@ -371,10 +598,10 @@ var Scene = Class.$extend(
             return;
         }
 
-        TundraSDK.framework.events.send("Scene.EntityCreated", entity);
+        Tundra.events.send("Scene.EntityCreated", entity);
     },
 
-    _publishEntityRemoved : function(entity)
+    _publishEntityRemoved : function(entity, change)
     {
         if (entity == null)
         {
@@ -382,14 +609,53 @@ var Scene = Class.$extend(
             return;
         }
 
-        TundraSDK.framework.events.send("Scene.EntityRemoved", entity);
+        // @todo Apply change, if disconnected, dont emit events?!
+        // @see Below _publishParentChanged
+        if (change === undefined || change === null || change === AttributeChange.Default)
+            change = (entity.local ? AttributeChange.LocalOnly : AttributeChange.Replicate);
+
+        try
+        {
+            if (change !== AttributeChange.Disconnected)
+                Tundra.events.send("Scene.EntityRemoved", entity);
+        }
+        catch(e)
+        {
+            this.log.error("Scene.EntityRemoved handler exception:", e.stack || e);
+        }
 
         // This entity will be removed. Unregister all callbacks.
         var idStr = entity.id.toString();
-        TundraSDK.framework.events.remove("Scene.ComponentCreated." + idStr);
-        TundraSDK.framework.events.remove("Scene.ComponentRemoved." + idStr);
-        TundraSDK.framework.events.remove("Scene.AttributeChanged." + idStr);
-        TundraSDK.framework.events.remove("Scene.EntityAction." + idStr);
+        Tundra.events.remove("Scene.ParentChanged." + idStr);
+        Tundra.events.remove("Scene.ComponentCreated." + idStr);
+        Tundra.events.remove("Scene.ComponentRemoved." + idStr);
+        Tundra.events.remove("Scene.AttributeChanged." + idStr);
+        Tundra.events.remove("Scene.EntityAction." + idStr);
+    },
+
+    _publishParentChanged : function(parent, child, change)
+    {
+        // @note null/undefined 'parent' is a valid case (prev. parent removed)
+
+        if (change === undefined || change === null || change === AttributeChange.Default)
+        {
+            if (child)
+                change = (child.local ? AttributeChange.LocalOnly : AttributeChange.Replicate);
+            else if (parent)
+                change = (parent.local ? AttributeChange.LocalOnly : AttributeChange.Replicate);
+            else
+                change = AttributeChange.LocalOnly; // good default?
+        }
+        if (change !== AttributeChange.Disconnected)
+        {
+            if (child)
+            {
+                Tundra.events.send("Entity.Parent.Changed." + child.id.toString(), child, parent, change);
+                Tundra.events.send("Scene.ParentChanged." + child.id.toString(), child, parent, change);
+            }
+            if (parent)
+                Tundra.events.send("Entity.Children.Changed." + parent.id.toString(), parent, child, change);
+        }
     },
 
     _publishComponentCreated : function(entity, component)
@@ -405,8 +671,8 @@ var Scene = Class.$extend(
             return;
         }
 
-        TundraSDK.framework.events.send("Scene.ComponentCreated", entity, component);
-        TundraSDK.framework.events.send("Scene.ComponentCreated." + entity.id.toString(), entity, component);
+        Tundra.events.send("Scene.ComponentCreated", entity, component);
+        Tundra.events.send("Scene.ComponentCreated." + entity.id.toString(), entity, component);
     },
 
     _publishComponentRemoved : function(entity, component)
@@ -422,8 +688,8 @@ var Scene = Class.$extend(
             return;
         }
 
-        TundraSDK.framework.events.send("Scene.ComponentRemoved", entity, component);
-        TundraSDK.framework.events.send("Scene.ComponentRemoved." + entity.id.toString(), entity, component);
+        Tundra.events.send("Scene.ComponentRemoved", entity, component);
+        Tundra.events.send("Scene.ComponentRemoved." + entity.id.toString(), entity, component);
     },
 
     _publishEntityAction : function(entityAction)
@@ -439,8 +705,8 @@ var Scene = Class.$extend(
             return;
         }
 
-        TundraSDK.framework.events.send("Scene.EntityAction", entityAction);
-        TundraSDK.framework.events.send("Scene.EntityAction." + entityAction.entity.id.toString(), entityAction);
+        Tundra.events.send("Scene.EntityAction", entityAction);
+        Tundra.events.send("Scene.EntityAction." + entityAction.entity.id.toString(), entityAction);
     },
 
     _publishAttributeChanged : function(entity, attribute)
@@ -461,21 +727,22 @@ var Scene = Class.$extend(
         var attrIndex = attribute.index;
         var clone = attribute.getClone();
 
-        TundraSDK.framework.events.send("Scene.AttributeChanged",
+        Tundra.events.send("Scene.AttributeChanged",
             entity, attribute.owner, attribute.index, attribute.name, clone);
-        TundraSDK.framework.events.send("Scene.AttributeChanged." + entId,
+        Tundra.events.send("Scene.AttributeChanged." + entId,
             entity, attribute.owner, attribute.index, attribute.name, clone);
-        TundraSDK.framework.events.send("Scene.AttributeChanged." + entId + "." + compId,
+        Tundra.events.send("Scene.AttributeChanged." + entId + "." + compId,
             entity, attribute.owner, attribute.index, attribute.name, clone);
-        TundraSDK.framework.events.send("Scene.AttributeChanged." + entId + "." + compId + "." + attrIndex,
+        Tundra.events.send("Scene.AttributeChanged." + entId + "." + compId + "." + attrIndex,
             clone);
     },
 
     _initComponentProperties : function(entity)
     {
-        for (var cti = Scene.componentPropertyNames.length - 1; cti >= 0; cti--)
+        var propNames = Scene.componentPropertyNames;
+        for (var cti = propNames.length - 1; cti >= 0; cti--)
         {
-            var propertyName = Scene.componentPropertyNames[cti]
+            var propertyName = propNames[cti];
 
             // We dont want EC_Name to override the name of the entity.
             // ent.name = "whee" etc. will be correctly redirected to EC_Name.
@@ -483,64 +750,34 @@ var Scene = Class.$extend(
                 continue;
 
             entity[propertyName] = null;
-            if (propertyName !== propertyName.toLowerCase())
-                entity[propertyName.toLowerCase()] = null;
-        };
+            var propertyNameLc = propertyName.toLowerCase();
+            if (propertyName !== propertyNameLc)
+                entity[propertyNameLc] = null;
+        }
     },
 
     /**
         Gets and allocates the next local free entity id.
-        @method nextFreeIdLocal
+
         @return {Number} The free id
     */
     nextFreeIdLocal : function()
     {
-        for (var entId = 100000; entId < 200000; ++entId)
-        {
-            if (this.entityById(entId) == null)
-                return entId;
-        }
-        return -1;
+        return this.entityIdGenerator.allocateLocal();
     },
 
     /**
         Gets and allocates the next replicated free entity id.
-        @method nextFreeId
+
+        <b>Note:</b> As WebTundra doesn't currently support real replicated entities created by the client
+        by design, this function always returns an ID from the replicated ID range and not from
+        the unacked ID range.
+
         @return {Number} The free id
     */
-    nextFreeId  : function()
+    nextFreeId : function()
     {
-        for (var entId = 1; entId < 100000; ++entId)
-        {
-            if (this.entityById(entId) == null)
-                return entId;
-        }
-        return -1;
-    },
-
-    /**
-        Resets the scene state. Deletes all entities.
-        @method reset
-    */
-    reset : function()
-    {
-        this.id = 1;
-        while (this.entities.length > 0)
-        {
-            var ent = this.entities[0];
-            if (ent != null)
-                ent.reset();
-            this.entities.splice(0, 1);
-        }
-        this.entities = [];
-
-        TundraSDK.framework.events.remove("Scene.EntityCreated");
-        TundraSDK.framework.events.remove("Scene.EntityRemoved");
-        TundraSDK.framework.events.remove("Scene.ComponentCreated");
-        TundraSDK.framework.events.remove("Scene.ComponentRemoved");
-        TundraSDK.framework.events.remove("Scene.EntityAction");
-
-        TundraSDK.framework.events.send("Scene.Reset", this);
+        return this.entityIdGenerator.allocateReplicated();
     },
 
     update : function(frametime)
@@ -549,11 +786,11 @@ var Scene = Class.$extend(
 
     /**
         Creates new local entity that contains the specified components. To create an empty entity, omit the components parameter.
-        @method createLocalEntity
+
         @param {Array} [components=Array()] Optional list of component names the entity will use. If omitted or the list is empty, creates an empty entity.
-        @param {AttributeChange} [change=AttributeChange.LocalOnly] Change signaling mode. Note: Only AttributeChange.LocalOnly is supported at the moment!
+        @param {AttributeChange} [change=AttributeChange.LocalOnly] Change signaling mode. Note: Only `AttributeChange.LocalOnly` is supported at the moment!
         @param {Boolean} [componentsReplicated=false] Whether created components will be replicated.
-        @return {Entity|null} The entity if created, otherwise null.
+        @return {Entity|null} `Entity` if created, otherwise `null`.
     */
     createLocalEntity : function(components, change, componentsReplicated)
     {
@@ -564,22 +801,22 @@ var Scene = Class.$extend(
         if (componentsReplicated === undefined || componentsReplicated === null || typeof componentsReplicated !== "boolean")
             componentsReplicated = false;
 
-        return this.createEntity(this.nextFreeIdLocal(), components, change, false, componentsReplicated)
+        return this.createEntity(this.nextFreeIdLocal(), components, change, false, componentsReplicated);
     },
 
     /**
         Creates new entity that contains the specified components. To create an empty entity, omit the components parameter.
-        @method createEntity
+
         @param {Number} [id=0] Id of the new entity. Specify 0 to use the next free ID
         @param {Array} [components=Array()] Optional list of component names the entity will use. If omitted or the list is empty, creates an empty entity.
-        @param {AttributeChange} [change=AttributeChange.Default] Change signaling mode. Note: Only AttributeChange.LocalOnly is supported at the moment!
-        @param {Boolean} [replicated=true] Whether entity is replicated.
+        @param {AttributeChange} [change=AttributeChange.Default] Change signaling mode. Note: Only `AttributeChange.LocalOnly` is supported at the moment!
+        @param {Boolean} [replicated=true] Whether the entity is replicated.
         @param {Boolean} [componentsReplicated=true] Whether created components will be replicated.
-        @return {Entity|null} The entity if created, otherwise null.
+        @return {Entity|null} `Entity` if created, otherwise `null`.
     */
-    createEntity : function(id, components, change, replicated, componentsReplicated)
+    createEntity : function(id, components, change, replicated, componentsReplicated, publishCreated /* no doc, for internal use only */)
     {
-        if (id === undefined || id === null || typeof id !== "number")
+        if (typeof id !== "number")
             id = 0;
 
         if (components === undefined || components === null)
@@ -598,26 +835,33 @@ var Scene = Class.$extend(
             change = AttributeChange.LocalOnly;
         }
 
-        if (replicated === undefined || replicated === null || typeof replicated !== "boolean")
+        if (typeof replicated !== "boolean")
             replicated = true;
-        if (componentsReplicated === undefined || componentsReplicated === null || typeof componentsReplicated !== "boolean")
-            componentsReplicated = true;
+        if (typeof componentsReplicated !== "boolean")
+            componentsReplicated = (typeof replicated === "boolean" ? replicated : true);
+
+        id = (id !== 0 ? id : (replicated ? this.nextFreeId() : this.nextFreeIdLocal()));
+        if (this.entityById(id))
+        {
+            this.log.error("Entity id " + id + " already exists in scene, can not create");
+            return null;
+        }
 
         var entity = new Entity();
         entity.replicated = replicated;
         entity.local = !entity.replicated;
-        entity.setId((id != 0 ? id : (entity.replicated ? this.nextFreeId() : this.nextFreeIdLocal())));
+        entity.setId(id);
 
         // Init component shorthand properties.
         this._initComponentProperties(entity);
 
         // Add entity: Sets parent scene and updates components.
-        this.addEntity(entity);
+        this.addEntity(entity, (publishCreated !== false && components.length === 0));
 
         // Create components
         for (var i = 0; i < components.length; ++i)
         {
-            var compTypeName = IComponent.ensureComponentNamePrefix(components[i]);
+            var compTypeName = IComponent.ensureComponentNameWithoutPrefix(components[i]);
             var component = entity.createComponent(compTypeName, null, (componentsReplicated ? AttributeChange.Replicate : AttributeChange.LocalOnly));
         }
 
@@ -625,47 +869,81 @@ var Scene = Class.$extend(
         if (components.length > 0)
             entity.update();
 
+        // Publish in all other cases except false being passed to the funtion.
+        // This means the network code wants to add components before the event.
+        if (publishCreated !== false)
+            this._publishEntityCreated(entity);
+
         return entity;
     },
 
     /**
         Adds entity to this scene.
-        @method addEntity
+
+        <b>Note:</b> Scene methods such as {@link Scene#createEntity} and {@link Scene#createLocalEntity}
+        immediately add new created entities to the scene.
+
         @param {Entity} entity
-        @return {Boolean} True if added successfully, otherwise false.
+        @return {Boolean} `true` if added successfully, otherwise `false`.
     */
-    addEntity : function(entity)
+    addEntity : function(entity, publishCreated)
     {
         this.entities.push(entity);
-        entity.setParent(this);
+        entity.setParentScene(this);
         entity.update();
 
-        // Send event
-        this._publishEntityCreated(entity);
+        // Send event if not suppressed
+        if (publishCreated !== false)
+            this._publishEntityCreated(entity);
 
         return true;
     },
 
+    remove : function(entityId, change)
+    {
+        return this.removeEntity(entityId, change);
+    },
+
     /**
         Removes entity from this scene by id.
-        @method removeEntity
+
         @param {Number} entityId
-        @return {Boolean} True if removed, otherwise false.
+        @param {AttributeChange} [change]
+        @return {Boolean} `true` if removed, otherwise `false`.
     */
-    removeEntity : function(entityId)
+    removeEntity : function(entityId, change)
     {
+        if (entityId instanceof Entity)
+            entityId = entityId.id;
+
         for (var i = this.entities.length - 1; i >= 0; i--)
         {
             if (this.entities[i].id === entityId)
             {
-                var ent = this.entities[i];
-                if (ent != null)
+                var ent = this.entities.splice(i, 1)[0];
+                if (ent)
                 {
                     // Send event
-                    this._publishEntityRemoved(ent);
-                    ent.reset();
+                    this._publishEntityRemoved(ent, change);
+                    try
+                    {
+                        ent.reset();
+                    }
+                    catch(e)
+                    {
+                        this.log.error("removeEntity: Failed to remove entity:");
+                        this.log.error(e.stack || e);
+                    }
+
+                    // Unparent removed entity.
+                    ent.clearParent(AttributeChange.Disconnected);
+
+                    // Remove child entities. Possibly recursive.
+                    ent.removeAllChildren(change);
+
+                    ent.id = -1;
+                    ent.parentScene = null;
                 }
-                this.entities.splice(i, 1);
                 ent = null;
                 return true;
             }
@@ -674,8 +952,37 @@ var Scene = Class.$extend(
     },
 
     /**
-        Returns entity with given id, or null if not found.
-        @method entityById
+        Removes all entities.
+
+    */
+    removeAllEntities : function()
+    {
+        while (this.entities.length > 0)
+        {
+            var ent = this.entities[0];
+            try
+            {
+                if (ent && typeof ent.reset === "function")
+                    ent.reset();
+            }
+            catch(e)
+            {
+                this.log.error("removeAllEntities: Failed to remove entity '" + ent.toString() + "'");
+                this.log.error(e.stack || e);
+            }
+            if (typeof ent === "object")
+            {
+                ent.id = -1;
+                ent.parentScene = null;
+            }
+            this.entities.splice(0, 1);
+        }
+        this.entities = [];
+    },
+
+    /**
+        Returns entity with given id `entityId`, or `null` if not found.
+
         @param {Number} entityId
         @return {Entity|null}
     */
@@ -691,7 +998,7 @@ var Scene = Class.$extend(
 
     /**
         Returns entity with given name, or null if not found.
-        @method entityByName
+
         @param {String} name
         @return {Entity|null}
     */
@@ -699,18 +1006,64 @@ var Scene = Class.$extend(
     {
         for (var i = this.entities.length - 1; i >= 0; i--)
         {
-            if (this.entities[i].name === name)
-                return this.entities[i];
+            var ent = this.entities[i];
+            var iterName = ent.getName();
+            if (iterName === name)
+                return ent;
         }
         return null;
     },
 
     /**
-        Returns list of entities that contains a component with given type/name.
-        @method entitiesWithComponent
+        Find entity by name that has a particular component.
+        This can be useful if the scene has multiple entities with
+        the same name but with different set of components. First
+        match will be returned.
+
+
+        @param {String|Number} compTypeOrId
+        @param {String} entName
+        @return {Entity|null}
+    */
+    findEntityWith : function(compTypeOrId, entName)
+    {
+        var ents = this.entitiesWithComponent(compTypeOrId);
+        for (var i = 0; i < ents.length; i++)
+        {
+            if (ents[i].name === entName)
+                return ents[i];
+        }
+        return null;
+    },
+
+    /**
+        Performs a search through the entities, and returns a list of all the entities that contain `str` substring in their Entity name.
+
+        @param {String} str String to be searched.
+        @param {Boolean} [caseSensitive=true] Case sensitivity for the string matching.
+        @return {Array<Entity>}
+    */
+    findEntitiesContaining : function(str, caseSensitive)
+    {
+        if (caseSensitive === false)
+            str = str.toLowerCase();
+
+        var ents = [];
+        for (var i = this.entities.length - 1; i >= 0; i--)
+        {
+            var src = (caseSensitive === false ? this.entities[i].name.toLowerCase() : this.entities[i].name);
+            if (src !== "" && src.indexOf(str) !== -1)
+                ents.push(this.entities[i]);
+        }
+        return ents;
+    },
+
+    /**
+        Returns list of entities that contain a component with given type/name.
+
         @param {String|Number} type Type name of the component e.g. "Placeable" or type id of the component.
         @param {String} [name=undefined] Optional component name on top of the type e.g. "MyThing".
-        @return {Array} List of Entity objects.
+        @return {Array<Entity>} List of Entity objects.
     */
     entitiesWithComponent : function(type, name)
     {
@@ -722,23 +1075,18 @@ var Scene = Class.$extend(
 
         for (var i=this.entities.length-1; i>=0; i--)
         {
-            var component = (queryById ? this.entities[i].componentById(type) : this.entities[i].component(type));
+            var component = (queryById ? this.entities[i].componentByTypeId(type, name) : this.entities[i].component(type, name));
             if (component != null)
-            {
-                if (name == null)
-                    ents.push(this.entities[i]);
-                else if (component.name == name)
-                    ents.push(this.entities[i]);
-            }
+                ents.push(this.entities[i]);
         }
         return ents;
     },
 
     /**
-        Returns list of entities that contains components with given types.
-        @method entitiesWithComponents
+        Returns list of entities that contain all of the given types of components.
+
         @param {Array} types Array or type names/ids of the component e.g. "Placeable" and "Mesh" or type id of the component.
-        @return {Array} List of Entity objects.
+        @return {Array<Entity>} List of Entity objects.
     */
     entitiesWithComponents : function(types)
     {
@@ -746,89 +1094,91 @@ var Scene = Class.$extend(
         if (types == null || types.length === undefined || types.length <= 0)
             return ents;
 
-        var queryById = (typeof types[0] !== "string");
-
         for (var i=this.entities.length-1; i>=0; i--)
         {
+            var ent = this.entities[i];
             for (var ti=0, tilen=types.length; ti<tilen; ++ti)
             {
-                var component = (queryById ? this.entities[i].componentById(types[ti]) : this.entities[i].component(types[ti]));
+                var type = types[ti];
+                var component = (typeof type !== "string" ? ent.componentByTypeId() : ent.component(types[ti]));
                 if (component != null)
-                {
-                    if (name == null)
-                        ents.push(this.entities[i]);
-                    else if (component.name == name)
-                        ents.push(this.entities[i]);
-                }
+                    ents.push(ent);
             }
         }
         return ents;
     },
 
     /**
-        Returns all components from the scene with given type/name.
-        @method components
+        Returns all components from the scene with given `type` and `name`.
+
         @param {String|Number} type Type name of the component e.g. "Placeable" or type id of the component.
         @param {String} [name=""] Optional component name on top of the type e.g. "MyThing".
-        @return {Array} List of IComponent or its implementation objects.
+        @return {Array<IComponent>} List of IComponent or its implementation objects.
     */
     components : function(type, name)
     {
         var comps = [];
-        var ents = this.entitiesWithComponent(type, name);
-        for (var i = ents.length - 1; i >= 0; i--)
-            comps.push(ents[i].component(type));
+        for (var i=this.entities.length-1; i>=0; i--)
+        {
+            var ent = this.entities[i];
+            var entComps = ent.getComponents(type, name);
+            if (entComps.length > 0)
+                comps = comps.concat(entComps);
+        }
         return comps;
     },
 
     /**
-        Creates a new non-parented Tundra Component by type name.
+        Creates a new non-parented WebTundra Component by type name.
         The component id will be set to -1, the caller is responsible
         for initializing the id to a sane value.
-        @method createComponent
-        @param {String} typeName Component type name.
-        @param {String} [compName=""] Component name.
+
+
+        @param {String|Number} type Component type name or id.
+        @param {String} [name=""] Component name.
         @return {IComponent} The created component.
     */
-    createComponent : function(typeName, compName)
+    createComponent : function(type, name)
     {
-        if (typeName === undefined || typeName === null)
-            return null;
-        if (compName === undefined || compName === null)
-            compName = "";
-        if (typeof compName !== "string")
+        if (typeof type !== "string" && typeof type !== "number")
         {
-            this.log.error("createComponent called with non-string component name.");
+            this.log.error("createComponent: 'type' must be string or a number:", type);
             return null;
         }
+        var proto = Scene.registeredComponent(type);
 
-        var typeId = -1;
-        var findTypeName = IComponent.ensureComponentNamePrefix(typeName);
-        for (var typeIdIter in Network.components)
+        // Not formally registered but might still be recognized as a valid Tundra component by the network layer.
+        if (!proto && typeof type === "string")
         {
-            if (Network.components[typeIdIter] === findTypeName)
+            var typeNameClean = IComponent.ensureComponentNameWithoutPrefix(type);
+
+            var protocolComponentDefines = Object.keys(Network.components);
+            for (var i = 0, len = protocolComponentDefines.length; i<len; i++)
             {
-                typeId = parseInt(typeIdIter);
-                break;
+                if (Network.components[protocolComponentDefines[i]] === typeNameClean)
+                {
+                    proto = { TypeId : parseInt(protocolComponentDefines[i]) };
+                    break;
+                }
             }
         }
-        if (typeId == -1)
+        if (!proto)
         {
-            this.log.error("createComponent could not find component implementation for '" + typeName + "'");
+            this.log.error("createComponent: Failed to find component implementation for type '" + type + "'");
             return null;
         }
-        return this.createComponentById(-1, typeId, compName);
+        return this.createComponentById(-1, proto.TypeId, (typeof name === "string" ? name : ""));
     },
 
     /**
         Creates a new non-parented Tundra Component by id and with optional attribute binary data.
         Used when exact component information is known, e.g. it was sent from server.
-        @method createComponentById
+
         @param {Number} compId Component id.
         @param {Number} compTypeId Component type id.
         @param {String} [compName=""] Component name.
         @param {DataDeserializer} [ds=undefined] Data deserializer for attribute data.
-        If null or undefined deserialization from binary data is skipped.
+        If `null` or `undefined` deserialization from binary data is skipped.
         @return {IComponent} The created component.
     */
     createComponentById : function(compId, compTypeId, compName, ds)
@@ -845,14 +1195,14 @@ var Scene = Class.$extend(
         {
             try
             {
-                component = this._createComponentImpl(componentImpl, compId, compTypeId, compName);
+                component = this._createComponentImpl(componentImpl, compId, compName);
             }
             catch (e)
             {
                 this.log.error("Failed to instantiate registered component " + componentImpl.typeName + ": " + e);
                 if (console.error != null)
                     console.error(e);
-                return;
+                return null;
             }
         }
 
@@ -866,7 +1216,10 @@ var Scene = Class.$extend(
         {
             var typeName = Network.components[compTypeId];
             if (typeName === undefined || typeName === null)
+            {
                 this.log.warn("Component type name could not be resolved from ID " + compTypeId);
+                return null;
+            }
 
             // Generic component. Attribute parsing not implemented.
             component = new IComponent(compId, compTypeId, typeName, compName);
@@ -875,9 +1228,9 @@ var Scene = Class.$extend(
         return component;
     },
 
-    _createComponentImpl : function(componentImpl, compId, compTypeId, compName)
+    _createComponentImpl : function(componentImpl, compId, compName)
     {
-        return (new componentImpl.prototype(compId, compTypeId, componentImpl.typeName, compName));
+        return (new componentImpl(compId, componentImpl.TypeId, componentImpl.TypeName, compName));
     },
 
     createComponentFromBinary : function(entity, ds)
@@ -944,7 +1297,7 @@ var Scene = Class.$extend(
         message.entityAction.entity = this.entityById(message.entityAction.entityId);
         if (message.entityAction.entity == null)
         {
-            if (TundraSDK.framework.client.networkDebugLogging)
+            if (Tundra.network.options.debug)
                 this.log.error("Failed to find entity with id " + message.entityAction.entityId + " to execute Entity action on!", true);
             return;
         }
@@ -954,8 +1307,11 @@ var Scene = Class.$extend(
     handleCreateEntityMessage : function(entityId, ds)
     {
         // New entity
-        var entity = this.createEntity(entityId, [], AttributeChange.Replicate, true, true);
+        var entity = this.createEntity(entityId, [], AttributeChange.Replicate, true, true, false);
         entity.temporary = ds.readBoolean();
+
+        if (entityId > this.entityIdGenerator.id)
+            this.entityIdGenerator.id = entityId;
 
         // Components
         var numComponents = ds.readVLE();
@@ -964,9 +1320,11 @@ var Scene = Class.$extend(
             if (!this.createComponentFromBinary(entity, ds))
             {
                 this.log.error("Failed to create Component to a newly created Entity " + entityId);
-                return;
+                break;
             }
         }
+
+        this._publishEntityCreated(entity);
     },
 
     handleRemoveEntityMessage : function(entityId)
@@ -974,7 +1332,7 @@ var Scene = Class.$extend(
         if (this.removeEntity(entityId))
             return;
 
-        if (TundraSDK.framework.client.networkDebugLogging)
+        if (Tundra.network.options.debug)
             this.log.error("Failed to find Entity with id " + entityId + " for removal!");
     },
 
@@ -983,7 +1341,7 @@ var Scene = Class.$extend(
         var entity = this.entityById(entityId);
         if (entity == null)
         {
-            if (TundraSDK.framework.client.networkDebugLogging)
+            if (Tundra.network.options.debug)
                 this.log.error("Failed to create Components. Entity with id " + entityId + " was not found!");
             return;
         }
@@ -1004,7 +1362,7 @@ var Scene = Class.$extend(
         var entity = this.entityById(entityId);
         if (entity == null)
         {
-            if (TundraSDK.framework.client.networkDebugLogging)
+            if (Tundra.network.options.debug)
                 this.log.error("Failed to remove Components. Entity with id " + entityId + " was not found!");
             return;
         }
@@ -1015,7 +1373,7 @@ var Scene = Class.$extend(
             if (entity.removeComponent(compId))
                 continue;
 
-            if (TundraSDK.framework.client.networkDebugLogging)
+            if (Tundra.network.options.debug)
                 this.log.error("Failed to remove Component with id " + compId + " from Entity " + entityId);
             return;
         }
@@ -1026,7 +1384,7 @@ var Scene = Class.$extend(
         var entity = this.entityById(entityId);
         if (entity == null)
         {
-            if (TundraSDK.framework.client.networkDebugLogging)
+            if (Tundra.network.options.debug)
                 this.log.error("Failed to create Attribute. Entity with id " + entityId + " was not found!");
             return;
         }
@@ -1041,7 +1399,7 @@ var Scene = Class.$extend(
                 var attributeIndex = ds.readU8();
                 component.createAttributeFromBinary(attributeIndex, ds);
             }
-            else if (TundraSDK.framework.client.networkDebugLogging)
+            else if (Tundra.network.options.debug)
             {
                 this.log.error("Failed to create Attribute from Component with id " + compId + " from Entity " + entityId + ". Component not found!");
                 return;
@@ -1054,7 +1412,7 @@ var Scene = Class.$extend(
         var entity = this.entityById(entityId);
         if (entity == null)
         {
-            if (TundraSDK.framework.client.networkDebugLogging)
+            if (Tundra.network.options.debug)
                 this.log.error("Failed to remove Attribute. Entity with id " + entityId + " was not found!");
             return;
         }
@@ -1066,7 +1424,7 @@ var Scene = Class.$extend(
             var component = entity.componentById(compId);
             if (component == null)
             {
-                if (TundraSDK.framework.client.networkDebugLogging)
+                if (Tundra.network.options.debug)
                     this.log.error("Failed to remove Attribute with component id " + compId + ". Component not found!");
                 return;
             }
@@ -1087,7 +1445,7 @@ var Scene = Class.$extend(
         var entity = this.entityById(entityId);
         if (entity == null)
         {
-            if (TundraSDK.framework.client.networkDebugLogging)
+            if (Tundra.network.options.debug)
                 this.log.error("Failed to update Attributes. Entity with id " + entityId + " was not found!");
             return;
         }
@@ -1102,7 +1460,7 @@ var Scene = Class.$extend(
             var component = entity.componentById(compId);
             if (component == null)
             {
-                if (TundraSDK.framework.client.networkDebugLogging)
+                if (Tundra.network.options.debug)
                     this.log.error("Failed to update Attributes with component id " + compId + ". Component not found!");
                 return;
             }
@@ -1116,7 +1474,7 @@ var Scene = Class.$extend(
             }
 
             // Read all bytes to bits for inspection.
-            var bitArray = ds.readBits(totalBytes);
+            var bitArray = ds.readBitArray(totalBytes);
 
             // Control bit
             // 1 = Bitmask
@@ -1173,8 +1531,8 @@ var Scene = Class.$extend(
                             bitIndex += 8;
                         }
                         _ds = new DataDeserializer(array.buffer);
-                        var readDataBytes = attribute.dataFromBinary(_ds, len);
-                        i += (readDataBytes * 8);
+                        attribute.dataFromBinary(_ds, len);
+                        i += (_ds.bytePos * 8);
                     }
                     else
                     {
