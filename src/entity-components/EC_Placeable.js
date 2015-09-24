@@ -25,32 +25,38 @@ var EC_Placeable = IComponent.$extend(
             @property transform (attribute)
             @type Attribute
         */
-        this.declareAttribute(0, "transform", new Transform(), Attribute.Transform);
+        this.declareAttribute(0, "transform", new Transform(), Attribute.Transform, "Transform");
         /**
             @property drawDebug (attribute)
             @type Attribute
         */
-        this.declareAttribute(1, "drawDebug", false, Attribute.Bool);
+        this.declareAttribute(1, "drawDebug", false, Attribute.Bool, "Show bounding box");
         /**
             @property visible (attribute)
             @type Attribute
         */
-        this.declareAttribute(2, "visible", true, Attribute.Bool);
+        this.declareAttribute(2, "visible", true, Attribute.Bool, "Visible");
         /**
             @property selectionLayer (attribute)
             @type Attribute
         */
-        this.declareAttribute(3, "selectionLayer", 1, Attribute.Int);
+        this.declareAttribute(3, "selectionLayer", 1, Attribute.Int, "Selection layer");
         /**
             @property parentRef (attribute)
             @type Attribute
         */
-        this.declareAttribute(4, "parentRef", "", Attribute.EntityReference);
+        this.declareAttribute(4, "parentRef", "", Attribute.EntityReference, "Parent entity ref");
         /**
             @property parentBone (attribute)
             @type Attribute
         */
-        this.declareAttribute(5, "parentBone", "", Attribute.String);
+        this.declareAttribute(5, "parentBone", "", Attribute.String, "Parent bone name");
+    },
+
+    __classvars__ :
+    {
+        TypeId   : 20,
+        TypeName : "Placeable"
     }
 });
 

@@ -1,9 +1,10 @@
 
 define([
         "lib/three",
+        "core/framework/Tundra",
         "core/scene/IComponent",
         "core/scene/Attribute"
-    ], function(THREE, IComponent, Attribute) {
+    ], function(THREE, Tundra, IComponent, Attribute) {
 
 /**
     This base implementation does not do anything. It declared the static attribute structure of EC_Camera
@@ -35,7 +36,7 @@ var EC_Camera = IComponent.$extend(
             @property farPlane (attribute)
             @type Attribute
         */
-        this.declareAttribute(2, "farPlane", 2000.0, Attribute.Real); /// @todo Should we increase this default?
+        this.declareAttribute(2, "farPlane", (Tundra.browser.isMobile() ? 3000 : 5000.0), Attribute.Real); /// @todo Should we increase this default?
         /**
             @property verticalFov (attribute)
             @type Attribute
@@ -46,6 +47,33 @@ var EC_Camera = IComponent.$extend(
             @type Attribute
         */
         this.declareAttribute(4, "aspectRatio", "", Attribute.String);
+
+        this._orthographic = false;
+
+        /**
+        */
+
+        Object.defineProperties(this, {
+            orthographic : {
+                get : function () {
+                    return this._orthographic;
+                },
+                set : function (value) {
+                    this._orthographic = value;
+                    this.onOrthographicChanged(this._orthographic);
+                }
+            }
+        });
+    },
+
+    onOrthographicChanged : function()
+    {
+    },
+
+    __classvars__ :
+    {
+        TypeId   : 15,
+        TypeName : "Camera"
     }
 });
 

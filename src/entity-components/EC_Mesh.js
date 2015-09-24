@@ -25,32 +25,38 @@ var EC_Mesh = IComponent.$extend(
             @property nodeTransformation (attribute)
             @type Attribute
         */
-        this.declareAttribute(0, "nodeTransformation", new Transform(), Attribute.Transform);
+        this.declareAttribute(0, "nodeTransformation", new Transform(), Attribute.Transform, "Transform");
         /**
             @property meshRef (attribute)
             @type Attribute
         */
-        this.declareAttribute(1, "meshRef", "", Attribute.AssetReference);
+        this.declareAttribute(1, "meshRef", "", Attribute.AssetReference, "Mesh ref");
         /**
             @property skeletonRef (attribute)
             @type Attribute
         */
-        this.declareAttribute(2, "skeletonRef", "", Attribute.AssetReference);
+        this.declareAttribute(2, "skeletonRef", "", Attribute.AssetReference, "Skeleton ref");
         /**
             @property materialRefs (attribute)
             @type Attribute
         */
-        this.declareAttribute(3, "materialRefs", "", Attribute.AssetReferenceList);
+        this.declareAttribute(3, "materialRefs", [], Attribute.AssetReferenceList, "Mesh materials");
         /**
             @property drawDistance (attribute)
             @type Attribute
         */
-        this.declareAttribute(4, "drawDistance", 0, Attribute.Real);
+        this.declareAttribute(4, "drawDistance", 0, Attribute.Real, "Draw distance");
         /**
             @property castShadows (attribute)
             @type Attribute
         */
-        this.declareAttribute(5, "castShadows", false, Attribute.Bool);
+        this.declareAttribute(5, "castShadows", false, Attribute.Bool, "Cast shadows");
+    },
+
+    __classvars__ :
+    {
+        TypeId   : 17,
+        TypeName : "Mesh"
     }
 });
 

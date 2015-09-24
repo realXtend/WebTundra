@@ -1,10 +1,10 @@
 
 define([
-        "core/framework/TundraSDK",
+        "core/framework/Tundra",
         "core/scene/Scene",
         "core/scene/IComponent",
         "core/scene/Attribute"
-    ], function(TundraSDK, Scene, IComponent, Attribute) {
+    ], function(Tundra, Scene, IComponent, Attribute) {
 
 /**
     Name component provides functionality for Entity indenfication, description and grouping.
@@ -23,12 +23,12 @@ var EC_Name = IComponent.$extend(
             @property name (attribute)
             @type Attribute
         */
-        this.declareAttribute(0, "name", "", Attribute.String);
+        this.declareAttribute(0, "name", "", Attribute.String, "name");
         /**
             @property description (attribute)
             @type Attribute
         */
-        this.declareAttribute(1, "description", "", Attribute.String);
+        this.declareAttribute(1, "description", "", Attribute.String, "description");
         /**
             @property group (attribute)
             @type Attribute
@@ -36,14 +36,20 @@ var EC_Name = IComponent.$extend(
         this.declareAttribute(2, "group", "", Attribute.String);
     },
 
+    __classvars__ :
+    {
+        TypeId   : 26,
+        TypeName : "Name"
+    },
+
     /**
         Event that is fired every time the Entitys name changes.
 
         @method onNameChanged
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription|null} Subscription data or null if this entity is not yes initialized correctly.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onNameChanged : function()
     {
@@ -52,7 +58,7 @@ var EC_Name = IComponent.$extend(
             this.log.error("Cannot subscribe onNameChanged, parent entity not set!");
             return null;
         }
-        return TundraSDK.framework.events.subscribe("EC_Name.NameChanged." + this.parentEntity.id + "." + this.id, context, callback);
+        return Tundra.events.subscribe("EC_Name.NameChanged." + this.parentEntity.id + "." + this.id, context, callback);
     },
 
     /**
@@ -70,7 +76,7 @@ var EC_Name = IComponent.$extend(
 
             // Send generic event about the name change
             if (this.hasParentEntity())
-                TundraSDK.framework.events.send("EC_Name.NameChanged." + this.parentEntity.id + "." + this.id, name, oldName);
+                Tundra.events.send("EC_Name.NameChanged." + this.parentEntity.id + "." + this.id, name, oldName);
 
             // Inform scene about the name change. This will update all parenting to be correct.
             if (this.hasParentScene())
@@ -85,7 +91,7 @@ var EC_Name = IComponent.$extend(
     */
     getName : function()
     {
-        return this.attributes.name.getClone();
+        return this.attributes.name.value;
     },
 
     /**
@@ -141,7 +147,7 @@ var EC_Name = IComponent.$extend(
     }
 });
 
-Scene.registerComponent(26, "EC_Name", EC_Name);
+Scene.registerComponent(EC_Name);
 
 return EC_Name;
 

@@ -36,6 +36,12 @@ var EC_Hydrax = IComponent.$extend(
             @type Attribute
         */
         this.declareAttribute(2, "position", new THREE.Vector3(0,0,0), Attribute.Float3);
+    },
+
+    __classvars__ :
+    {
+        TypeId   : 39,
+        TypeName : "Hydrax"
     }
 });
 

@@ -24,12 +24,18 @@ var EC_AnimationController = IComponent.$extend(
             @property animationState (attribute)
             @type Attribute
         */
-        this.declareAttribute(0, "animationState", "", Attribute.String);
+        this.declareAttribute(0, "animationState", "", Attribute.String, "Animation state");
         /**
             @property drawDebug (attribute)
             @type Attribute
         */
-        this.declareAttribute(1, "drawDebug", false, Attribute.Bool);
+        this.declareAttribute(1, "drawDebug", false, Attribute.Bool, "Draw debug");
+    },
+
+    __classvars__ :
+    {
+        TypeId   : 14,
+        TypeName : "AnimationController"
     }
 });
 

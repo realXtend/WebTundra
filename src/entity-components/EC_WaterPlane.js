@@ -108,6 +108,9 @@ var EC_WaterPlane = IComponent.$extend(
 
     __classvars__ :
     {
+        TypeId   : 12,
+        TypeName : "WaterPlane",
+
         FogMode :
         {
             NoFog                : 0,
