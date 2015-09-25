@@ -1,5 +1,5 @@
 
-define(["core/framework/TundraSDK",
+define(["core/framework/Tundra",
         "lib/ammo",
         "lib/three",
         "core/scene/Scene",
@@ -7,7 +7,7 @@ define(["core/framework/TundraSDK",
         "core/scene/AttributeChange",
         "core/physics/CollisionInfo",
         "entity-components/EC_RigidBody"
-    ], function(TundraSDK, Ammo, THREE, Scene, Attribute, AttributeChange, CollisionInfo, EC_RigidBody) {
+    ], function(Tundra, Ammo, THREE, Scene, Attribute, AttributeChange, CollisionInfo, EC_RigidBody) {
 
 /**
     @class EC_RigidBody_Ammo
@@ -24,7 +24,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
             @todo If possible use btMotionState for simulation updates,
             instead of directly polling changes from ammo rigidbody.
         */
-        this.updateId_ = TundraSDK.framework.frame.onUpdate(this, this.update);
+        this.updateId_ = Tundra.frame.onUpdate(this, this.update);
         
         this.ignoreTransformChange_ = false;
         this.parentChangedEvent_ = null;
@@ -38,8 +38,8 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
     
     reset : function()
     {
-        TundraSDK.framework.events.remove("EC_Rigidbody." + this.parentEntity.id + ".PhysicsCollision");
-        TundraSDK.framework.events.unsubscribe(this.updateId_.channel, this.updateId_.id);
+        Tundra.events.remove("EC_Rigidbody." + this.parentEntity.id + ".PhysicsCollision");
+        Tundra.events.unsubscribe(this.updateId_.channel, this.updateId_.id);
         this.removeCollisionShape();
         this.removeBody();
     },
@@ -176,7 +176,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
             this.createBody();
         
         if (this.parentChangedEvent_ !== null)
-            TundraSDK.framework.events.unsubscribe(this.parentChangedEvent_.channel,
+            Tundra.events.unsubscribe(this.parentChangedEvent_.channel,
                                                    this.parentChangedEvent_.id);
         
         if (this.parentEntity !== undefined && this.parentEntity !== null)
@@ -392,12 +392,12 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         
         if (collisionLayer > -1 && collisionMask > -1)
         {
-            TundraSDK.framework.physicsWorld.addRigidBody(this,
+            Tundra.physicsWorld.addRigidBody(this,
                                                           collisionLayer,
                                                           collisionMask);
         }
         else
-            TundraSDK.framework.physicsWorld.addRigidBody(this);
+            Tundra.physicsWorld.addRigidBody(this);
         
         // Push attribute values to rigidbody.
         this.rigidAmmo.setFriction(friction);
@@ -446,7 +446,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
             this.rigidAmmo === null)
             return;
 
-        TundraSDK.framework.physicsWorld.removeRigidBody(this);
+        Tundra.physicsWorld.removeRigidBody(this);
         Ammo.destroy(this.rigidAmmo);
         this.rigidAmmo = null;
 
@@ -717,7 +717,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         Registers a callback for physics collision.
 
         @example
-            TundraSDK.framework.scene.onPhysicsCollision(null, function(self, other, position, normal,
+            Tundra.scene.onPhysicsCollision(null, function(self, other, position, normal,
                                                                         distance, impulse, newCollision)
             {
                 console.log("on collision: " + self.name);
@@ -731,7 +731,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
     */
     onPhysicsCollision : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("EC_Rigidbody." + this.parentEntity.id + ".PhysicsCollision", context, callback);
+        return Tundra.events.subscribe("EC_Rigidbody." + this.parentEntity.id + ".PhysicsCollision", context, callback);
     },
     
     emitPhysicsCollision : function(entity, position, normal, distance, impulse, newCollision)
@@ -739,7 +739,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         if (this.parentEntity === null)
             return;
         
-        TundraSDK.framework.events.send("EC_Rigidbody." + this.parentEntity.id + ".PhysicsCollision",
+        Tundra.events.send("EC_Rigidbody." + this.parentEntity.id + ".PhysicsCollision",
                                         this.parentEntity,
                                         entity,
                                         position,

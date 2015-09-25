@@ -1322,7 +1322,7 @@ var Scene = ITundraAPI.$extend(
         /// Read parent entity ID
         /// @todo: use properly
         var parentEntityId = 0;
-        if (TundraSDK.framework.client.protocolVersion >= Network.protocolVersion.HierarchicScene)
+        if (Tundra.client.protocolVersion >= Network.protocolVersion.HierarchicScene)
             parentEntityId = ds.readU32();
 
         // Components
@@ -1524,7 +1524,7 @@ var Scene = ITundraAPI.$extend(
 
             if (entity == null)
             {
-                if (TundraSDK.framework.client.networkDebugLogging)
+                if (Tundra.client.networkDebugLogging)
                     this.log.error("Failed to find entity with id " + entityId + " to apply rigid body update to!");
                 // The message parsing will continue regardless, we just read the correct amount of bits
             }

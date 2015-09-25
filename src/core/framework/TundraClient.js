@@ -179,7 +179,7 @@ var TundraClient = Class.$extend(
             @property networkDebugLogging
             @type Boolean
         */
-        this.networkDebugLogging = params.networkDebugLogging;
+        this.networkDebugLogging = this.options.networkDebugLogging;
         /**
             Network protocol version supported by the server
             @property protocolVersion

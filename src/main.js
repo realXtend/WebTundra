@@ -34,7 +34,7 @@ require.config({
     },
     paths :
     {
-        "jquery"            : "lib/jquery"
+        "jquery"            : "lib/jquery",
         "lib/ammo"                      : { exports : "Ammo" }
     }
 });

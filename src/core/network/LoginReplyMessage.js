@@ -37,7 +37,7 @@ var LoginReplyMessage = INetworkMessage.$extend(
             @property protocolVersion
             @type Number
         */
-        this.protocolVersion = Network.protocolVersion.Original;
+        this.protocolVersion = 1;
     },
 
     __classvars__ :

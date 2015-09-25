@@ -5,9 +5,9 @@ define(["lib/classy",
         "core/physics/IPhysicsWorld",
         "core/physics/PhysicsRaycastResult",
         "core/physics/CollisionInfo",
-        "core/framework/TundraSDK",
+        "core/framework/Tundra",
         "core/framework/TundraLogging"
-    ], function(Class, Ammo, THREE, IPhysicsWorld, PhysicsRaycastResult, CollisionInfo, TundraSDK, TundraLogging) {
+    ], function(Class, Ammo, THREE, IPhysicsWorld, PhysicsRaycastResult, CollisionInfo, Tundra, TundraLogging) {
 
 /**
     A physics world implementation of Ammo.
@@ -78,7 +78,7 @@ var PhysicsWorld_Ammo = IPhysicsWorld.$extend(
         this.processPostTickEventId_ = null;
         this.frameUpdateEventId_ = null;
         
-        TundraSDK.framework.client.onConnected(this, this.onConnected);
+        Tundra.client.onConnected(this, this.onConnected);
         
         this.setGravity(0.0, -10.0, 0.0);
     },
@@ -113,8 +113,8 @@ var PhysicsWorld_Ammo = IPhysicsWorld.$extend(
     {
         if (this.processPostTickEventId_ === null)
         {
-            this.processPostTickEventId_ = TundraSDK.framework.frame.onUpdate(this, this.processPostTick);
-            this.frameUpdateEventId_ = TundraSDK.framework.events.subscribe("PhysicsWorld.Update", this, this.simulate);
+            this.processPostTickEventId_ = Tundra.frame.onUpdate(this, this.processPostTick);
+            this.frameUpdateEventId_ = Tundra.events.subscribe("PhysicsWorld.Update", this, this.simulate);
         }
     },
     
@@ -158,8 +158,8 @@ var PhysicsWorld_Ammo = IPhysicsWorld.$extend(
     {
         if (this.processPostTickEventId_ === null)
         {
-            this.processPostTickEventId_ = TundraSDK.framework.frame.onUpdate(this, this.processPostTick);
-            this.frameUpdateEventId_ = TundraSDK.framework.events.subscribe("PhysicsWorld.Update", this, this.simulate);
+            this.processPostTickEventId_ = Tundra.frame.onUpdate(this, this.processPostTick);
+            this.frameUpdateEventId_ = Tundra.events.subscribe("PhysicsWorld.Update", this, this.simulate);
         }
     },
     
@@ -174,7 +174,7 @@ var PhysicsWorld_Ammo = IPhysicsWorld.$extend(
         if (!this.runPhysics)
             return;
         
-        TundraSDK.framework.events.send("PhysicsWorld.AboutToUpdate", frametime);
+        Tundra.events.send("PhysicsWorld.AboutToUpdate", frametime);
         
         if (this.useVariableTimestep && frametime > this.physicsUpdatePeriod)
         {
@@ -288,7 +288,7 @@ var PhysicsWorld_Ammo = IPhysicsWorld.$extend(
             if (entityB === null || entityA === null)
                 continue;
             
-            TundraSDK.framework.events.send("PhysicsWorld.PhysicsCollision", info);
+            Tundra.events.send("PhysicsWorld.PhysicsCollision", info);
             c.bodyA.emitPhysicsCollision(entityB, info.position, info.normal,
                                          info.distance, info.impulse, info.newCollision);
             c.bodyB.emitPhysicsCollision(entityA, info.position, info.normal,
@@ -297,7 +297,7 @@ var PhysicsWorld_Ammo = IPhysicsWorld.$extend(
 
         this.previousCollisions = currentCollisions;
         
-        TundraSDK.framework.events.send("PhysicsWorld.Update", subStepTime);
+        Tundra.events.send("PhysicsWorld.Update", subStepTime);
     },
     
     /**
@@ -332,7 +332,7 @@ var PhysicsWorld_Ammo = IPhysicsWorld.$extend(
             var origin = new THREE.Vector3(0.0, 10.0, 0.0);
             var dir = new THREE.Vector3(0.0, -1.0, 0.0);
             var dist = 100;
-            var result = TundraSDK.framework.physicsWorld.raycast(origin, dir, dist);
+            var result = Tundra.physicsWorld.raycast(origin, dir, dist);
             if (result) {
                 console.log(result.entity.name);
             }
@@ -390,14 +390,14 @@ var PhysicsWorld_Ammo = IPhysicsWorld.$extend(
     {
         if (this.processPostTickEventId_ !== null)
         {
-            TundraSDK.framework.events.unsubscribe(this.processPostTickEventId_.channel,
+            Tundra.events.unsubscribe(this.processPostTickEventId_.channel,
                                                    this.processPostTickEventId_.id);
             this.processPostTickEventId_ = null;
         }
         
         if (this.frameUpdateEventId_ !== null)
         {
-            TundraSDK.framework.events.unsubscribe(this.frameUpdateEventId_.channel,
+            Tundra.events.unsubscribe(this.frameUpdateEventId_.channel,
                                                    this.frameUpdateEventId_.id);
             this.frameUpdateEventId_ = null;
         }

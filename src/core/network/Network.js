@@ -216,11 +216,11 @@ var Network = ITundraAPI.$extend(
      */
     updateObserver : function(timeNow)
     {
-        if (TundraSDK.framework.client.websocket != null)
+        if (Tundra.client.websocket != null)
         {
             if (this.lastObserverSendTime == 0 || timeNow - this.lastObserverSendTime >= this.priorityUpdatePeriod * 1000.0)
             {
-                var ent = TundraSDK.framework.scene.entityById(TundraSDK.framework.client.observerEntityId);
+                var ent = Tundra.scene.entityById(Tundra.client.observerEntityId);
                 if (ent != null && ent.placeable != null)
                 {
                     var worldPosition = ent.placeable.worldPosition();

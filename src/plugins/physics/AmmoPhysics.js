@@ -1,11 +1,11 @@
 define(["lib/classy",
-        "core/framework/TundraSDK",
+        "core/framework/Tundra",
         "core/framework/ITundraPlugin",
         "core/framework/TundraLogging",
         "core/scene/Scene",
         "plugins/physics/PhysicsWorld_Ammo",
         "plugins/physics/EC_RigidBody_Ammo"
-    ], function(Class, TundraSDK, ITundraPlugin, TundraLogging, Scene, PhysicsWorld_Ammo, EC_RigidBody_Ammo) {
+    ], function(Class, Tundra, ITundraPlugin, TundraLogging, Scene, PhysicsWorld_Ammo, EC_RigidBody_Ammo) {
 /**
     This plugin provides client side ammo physics.
 
@@ -22,19 +22,19 @@ var AmmoPhysics = ITundraPlugin.$extend(
     
     initialize: function()
     {
-        TundraSDK.framework.physicsWorld = new PhysicsWorld_Ammo();
-        TundraSDK.framework.physicsWorld.postInitialize();
+        Tundra.physicsWorld = new PhysicsWorld_Ammo();
+        Tundra.physicsWorld.postInitialize();
         Scene.registerComponent(23, "EC_RigidBody", EC_RigidBody_Ammo);
     },
     
     uninitialize: function()
     {
-        TundraSDK.framework.physicsWorld.reset();
-        TundraSDK.framework.physicsWorld = null;
+        Tundra.physicsWorld.reset();
+        Tundra.physicsWorld = null;
     }
 });
 
-TundraSDK.registerPlugin(new AmmoPhysics());
+Tundra.registerPlugin(new AmmoPhysics());
 return AmmoPhysics;
 
 }); // require js

@@ -1,12 +1,12 @@
 
-define(["core/framework/TundraSDK",
+define(["core/framework/Tundra",
         "lib/ammo",
         "lib/three",
         "core/scene/Scene",
         "core/scene/IComponent",
         "core/scene/Attribute",
         "core/scene/AttributeChange"
-    ], function(TundraSDK, Ammo, THREE, Scene, IComponent, Attribute, AttributeChange) {
+    ], function(Tundra, Ammo, THREE, Scene, IComponent, Attribute, AttributeChange) {
 
 /**
     This base implementation does not do anything. It declared the static attribute structure of EC_RigidBody

@@ -3,9 +3,9 @@ define(["lib/classy",
         "lib/three",
         "core/physics/PhysicsRaycastResult",
         "core/physics/CollisionInfo",
-        "core/framework/TundraSDK",
+        "core/framework/Tundra",
         "core/framework/TundraLogging"
-    ], function(Class, THREE, PhysicsRaycastResult, CollisionInfo, TundraSDK, TundraLogging) {
+    ], function(Class, THREE, PhysicsRaycastResult, CollisionInfo, Tundra, TundraLogging) {
 
 /**
     Interface class for physics world.
@@ -73,7 +73,7 @@ var IPhysicsWorld = Class.$extend(
         Registers a callback for physics collision.
 
         @example
-            TundraSDK.framework.physicsWorld.onPhysicsCollision(null, function(info)
+            Tundra.physicsWorld.onPhysicsCollision(null, function(info)
             {
                 console.log("on collision: " + info.bodyA.id + " " + info.bodyB.id);
             });
@@ -86,7 +86,7 @@ var IPhysicsWorld = Class.$extend(
     */
     onPhysicsCollision : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("PhysicsWorld.PhysicsCollision", context, callback);
+        return Tundra.events.subscribe("PhysicsWorld.PhysicsCollision", context, callback);
     },
     
     /**
@@ -100,7 +100,7 @@ var IPhysicsWorld = Class.$extend(
     */
     onAboutToUpdate : function(context, callback)
     {
-        return TundraSDK.framework.events.subscribe("PhysicsWorld.AboutToUpdate", context, callback);
+        return Tundra.events.subscribe("PhysicsWorld.AboutToUpdate", context, callback);
     },
     
     /**
@@ -158,7 +158,7 @@ var IPhysicsWorld = Class.$extend(
             var origin = new THREE.Vector3(0.0, 10.0, 0.0);
             var dir = new THREE.Vector3(0.0, -1.0, 0.0);
             var dist = 100;
-            var result = TundraSDK.framework.physicsWorld.raycast(origin, dir, dist);
+            var result = Tundra.physicsWorld.raycast(origin, dir, dist);
             if (result) {
                 console.log(result.entity.name);
             }
