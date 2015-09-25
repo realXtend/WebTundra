@@ -1,10 +1,11 @@
 
 define([
         "lib/three",
-        "core/framework/TundraSDK",
+        "core/framework/Tundra",
         "core/scene/Entity",
+        "core/scene/AttributeInterpolationData",
         "entity-components/EC_Placeable"
-    ], function(THREE, TundraSDK, Entity, EC_Placeable) {
+    ], function(THREE, Tundra, Entity, AttributeInterpolationData, EC_Placeable) {
 
 /**
     Placeable component implementation for the three.js render system.
@@ -19,35 +20,50 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
     {
         this.$super(id, typeId, typeName, name);
 
+        this.attributes.transform.interpolation = new AttributeInterpolationData();
+
         this.sceneNode = null;
         this._pendingChildren = [];
     },
 
     __classvars__ :
     {
-        implementationName : "three.js"
+        Implementation : "three.js",
+
+        TransformInterpolator : undefined,
     },
 
     reset : function()
     {
         if (this.sceneNode != null)
         {
-            // Fire event. This way children of this placeables node have
+            // Fire event. This way children of this placeable's node have
             // a change to restore them selves to the scene or to parent
             // to another node. The below parent.remove() will remove this
             // scene node and all its children from the scene.
-            TundraSDK.framework.events.send("EC_Placeable." + this.parentEntity.id + "." + this.id + ".AboutToBeDestroyed", this, this.sceneNode);
+            Tundra.events.send("EC_Placeable." + this.parentEntity.id + "." + this.id + ".AboutToBeDestroyed", this, this.sceneNode);
 
             var parent = this.sceneNode.parent;
             if (parent !== undefined && parent !== null)
                 parent.remove(this.sceneNode);
         }
         this.sceneNode = null;
+
+        if (this._componentAddedSub !== undefined)
+        {
+            Tundra.events.unsubscribe(this._componentAddedSub);
+            this._componentAddedSub = undefined;
+        }
+        if (this._entityCreatedSub !== undefined)
+        {
+            Tundra.events.unsubscribe(this._entityCreatedSub);
+            this._entityCreatedSub = undefined;
+        }
     },
 
     update : function()
     {
-        var renderer = TundraSDK.framework.renderer;
+        var renderer = Tundra.renderer;
 
         if (this.sceneNode == null)
         {
@@ -62,20 +78,20 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
             renderer.scene.add(this.sceneNode);
             this.checkParent();
 
-            renderer.updateSceneNode(this.sceneNode, this.transform);
+            renderer.updateSceneNode(this.sceneNode, this.attributes.transform.value);
 
-            // Parent pending childrend
+            // Parent pending children
             for (var i = 0; i < this._pendingChildren.length; i++)
                 this.addChild(this._pendingChildren[i]);
             this._pendingChildren = [];
 
-            TundraSDK.framework.events.send("EC_Placeable." + this.parentEntity.id + "." + this.id + ".SceneNodeCreated", this, this.sceneNode);
+            Tundra.events.send("EC_Placeable." + this.parentEntity.id + "." + this.id + ".SceneNodeCreated", this, this.sceneNode);
             return;
         }
         else
             this.checkParent();
 
-        renderer.updateSceneNode(this.sceneNode, this.transform);
+        renderer.updateSceneNode(this.sceneNode, this.attributes.transform.value);
     },
 
     attributeChanged : function(index, name, value)
@@ -84,7 +100,12 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
         {
         case 0: // transform
             if (this.sceneNode != null)
-                TundraSDK.framework.client.renderer.updateSceneNode(this.sceneNode, value);
+            {
+                if (EC_Placeable_ThreeJs.TransformInterpolator)
+                    EC_Placeable_ThreeJs.TransformInterpolator.update(this.parentEntity, this, this.sceneNode, this.attributes.transform);
+                else
+                    Tundra.client.renderer.updateSceneNode(this.sceneNode, value);
+            }
             break;
         case 1: // drawDebug
             break;
@@ -107,10 +128,10 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
         Event that is fired when the scene node is created. Useful if you want to parent something to this placeable.
 
         @method onSceneNodeCreated
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription|null} Subscription data or null if this entity is not yes initialized correctly.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onSceneNodeCreated : function(context, callback)
     {
@@ -119,18 +140,18 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
             this.log.error("Cannot subscribe onSceneNodeCreated, parent entity not set!");
             return null;
         }
-        return TundraSDK.framework.events.subscribe("EC_Placeable." + this.parentEntity.id + "." + this.id + ".SceneNodeCreated", context, callback);
+        return Tundra.events.subscribe("EC_Placeable." + this.parentEntity.id + "." + this.id + ".SceneNodeCreated", context, callback);
     },
 
     /**
-        Event that is fired before this placeables scene node is being removed from its parent and destroyed.
+        Event that is fired before this placeable's scene node is being removed from its parent and destroyed.
         Useful if you are currently parented to this placeable to remove the parenting and restore it to the root scene.
 
         @method onAboutToBeDestroyed
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription|null} Subscription data or null if this entity is not yes initialized correctly.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onAboutToBeDestroyed : function(context, callback)
     {
@@ -139,7 +160,7 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
             this.log.error("Cannot subscribe onAboutToBeDestroyed, parent entity not set!");
             return null;
         }
-        return TundraSDK.framework.events.subscribe("EC_Placeable." + this.parentEntity.id + "." + this.id + ".AboutToBeDestroyed", context, callback);
+        return Tundra.events.subscribe("EC_Placeable." + this.parentEntity.id + "." + this.id + ".AboutToBeDestroyed", context, callback);
     },
 
     /**
@@ -161,22 +182,57 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
     addChild : function(child)
     {
         if (child === undefined || child === null)
-            return;
+            return false;
 
+        if (child instanceof Entity)
+            return this.addChild(child.placeable);
         if (child instanceof EC_Placeable)
-        {
-            this.addChild(child.sceneNode);
-            return;
-        }
+            return this.addChild(child.sceneNode);
 
         if (this.sceneNode != null)
         {
             this.sceneNode.add(child);
-            this.updateVisibility();
+
             child.updateMatrix();
+            child.updateMatrixWorld(true);
+
+            /* This is a performance optimization for when this placeable has
+               hundreds or thousands child items. The amount of traversal via
+               updateVisibility takes WebTundra to its knees. This happens when
+               all lower Entity id children are added to the parent in sequence
+               after this parent entity+placeable has been created. */
+            if (this._visibilityTimerId !== undefined)
+                clearTimeout(this._visibilityTimerId);
+            this._visibilityTimerId = setTimeout(this.updateVisibility.bind(this), 50);
         }
         else
             this._pendingChildren.push(child);
+
+        return true;
+    },
+
+    /**
+        Returns THREE.Scene parent node.
+
+        @return {THREE.Object3D}
+    */
+    parentNode : function()
+    {
+        return (this.sceneNode && this.sceneNode.parent ? this.sceneNode.parent : null);
+    },
+
+    /**
+        Returns Entity of parent node, if applicable. This will return a valid
+        scene entity if Placeable level parenting is used (parentRef/addChild).
+
+        @return {Entity}
+    */
+    getParentEntity : function()
+    {
+        var node = this.parentNode();
+        if (node && typeof node.tundraEntityId === "number")
+            return Tundra.scene.entityById(node.tundraEntityId);
+        return null;
     },
 
     _applyParentChain : function(dest, part)
@@ -210,6 +266,23 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
         if (otherPos !== undefined)
             return this.worldPosition().distanceTo(otherPos);
         return undefined;
+    },
+
+    /**
+        Decomposes Placeable's 'transform' attribute to a Transform.
+        @method decompose
+        @param {Transform} transform
+    */
+    /**
+        Decomposes Placeable's 'transform' attribute to pos, rot and scale.
+        @method decompose
+        @param {THREE.Vector3} pos
+        @param {THREE.Vector3} rot
+        @param {THREE.Vector3} scale
+    */
+    decompose : function(pos, rot, scale)
+    {
+        this.attributes.transform.value.decompose(pos, rot, scale);
     },
 
     /**
@@ -249,25 +322,32 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
 
     /**
         Returns clone of the position of this placeable node in world space.
-        @method worldPosition
+
+        @param {Three.Vector3} [dest] Optional destination vector.
         @return {THREE.Vector3} Position vector.
     */
-    worldPosition : function()
+    worldPosition : function(dest)
     {
         if (this.sceneNode == null)
             return null;
 
-        var worldPos = this.sceneNode.position.clone();
-        this._applyParentChain(worldPos, "position");
-        return worldPos;
+        dest = dest || new THREE.Vector3();
+        dest.setFromMatrixPosition(this.sceneNode.matrixWorld);
+        return dest;
     },
 
-    /// @note Experimental!
+    /**
+        Sets the world position of this placeable node
+        @method setWorldPosition
+        @param {THREE.Vector3} position The position in world coordinates
+    */
     setWorldPosition : function(position)
     {
         var tRef = this.attributes.transform.get();
-        var localPos = (this.parentRef !== "" ? this.transform.pos.clone() : new THREE.Vector3(0,0,0));
-        tRef.pos = position.sub(localPos);
+        var pos = position.clone();
+        if (this.parentRef !== "")
+            this.sceneNode.parent.worldToLocal(pos);
+        tRef.pos.copy(pos);
         this.attributes.transform.set(tRef);
     },
 
@@ -312,9 +392,11 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
         @method rotation
         @return {THREE.Vector3} Rotation vector in degrees.
     */
-    rotation : function()
+    rotation : function(dest)
     {
-        return this.attributes.transform.get().rot.clone();
+        dest = dest || new THREE.Vector3();
+        dest.copy(this.attributes.transform.get().rot);
+        return dest;
     },
 
     /**
@@ -362,21 +444,37 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
 
         if (this._componentAddedSub !== undefined)
         {
-            TundraSDK.framework.events.unsubscribe(this._componentAddedSub);
+            Tundra.events.unsubscribe(this._componentAddedSub);
             this._componentAddedSub = undefined;
+        }
+        if (this._entityCreatedSub !== undefined)
+        {
+            Tundra.events.unsubscribe(this._entityCreatedSub);
+            this._entityCreatedSub = undefined;
         }
 
         // Remove parenting if ref is empty and we are not parented to the scene
         if (this.parentRef !== "")
         {
-            // Find by name fist, then try with entity id.
-            var foundParent = null;
-            foundParent = this.parentScene.entityByName(this.parentRef);
-            if (foundParent == null)
+            var foundParent  = null;
+            var parentRefStr = this.attributes.parentRef.value;
+            var parentRefId  = parseInt(parentRefStr);
+            var idBased      = !isNaN(parentRefId);
+
+            for (var i = 0, len = this.parentScene.entities.length; i<len; i++)
             {
-                var parentRefId = parseInt(this.parentRef);
-                if (!isNaN(parentRefId))
-                    foundParent = this.parentScene.entityById(parentRefId);
+                var entIter = this.parentScene.entities[i];
+                if (idBased && entIter.id === parentRefId)
+                {
+                    foundParent = entIter;
+                    break;
+                }
+                else if (!idBased && entIter.name === parentRefStr)
+                {
+                    foundParent = entIter;
+                    if (foundParent.placeable)
+                        break;
+                }
             }
             if (foundParent != null)
             {
@@ -388,6 +486,8 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
                 else
                     this._componentAddedSub = foundParent.onComponentCreated(this, this._onParentPlaceableEntityComponentCreated);
             }
+            else
+                this._entityCreatedSub = this.parentScene.onEntityCreated(this, this._onParentSceneEntityCreated);
         }
 
         // No parent or failed to find parent, restore to scene as unparented.
@@ -399,22 +499,54 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
         if (this.sceneNode == null || this.parentEntity == null || this.parentScene == null)
             return;
 
-        if (this.sceneNode.parent !== undefined && this.sceneNode.parent !== null && this.sceneNode.parent !== TundraSDK.framework.renderer.scene)
+        if (this.sceneNode.parent !== undefined && this.sceneNode.parent !== null && this.sceneNode.parent !== Tundra.renderer.scene)
         {
-            TundraSDK.framework.renderer.scene.add(this.sceneNode);
-            TundraSDK.framework.client.renderer.updateSceneNode(this.sceneNode, this.transform);
+            Tundra.renderer.scene.add(this.sceneNode);
+            Tundra.client.renderer.updateSceneNode(this.sceneNode, this.transform);
         }
+    },
+
+    _onParentSceneEntityCreated : function(entity)
+    {
+        /** @todo Here might lay a bug if the name is not set in entity
+            when created... it should be if coming from network and not doing
+            some weird custom script stuff. Need to support this by listening to
+            all Entity name changes in parent scene :E */
+        if (entity.name !== "" && entity.name === this.parentRef || entity.id === parseInt(this.parentRef))
+            this.checkParent();
     },
 
     _onParentPlaceableEntityComponentCreated : function(entity, component)
     {
-        if (component != null && component.typeName === "EC_Placeable")
+        if (component != null && component.typeName === "Placeable")
             this.checkParent();
     },
 
     updateVisibility : function()
     {
         this._setVisible(this.attributes.visible.get());
+    },
+
+    /**
+        Checks visibility of this node and all parent nodes up to the scene root.
+        Returns false if any node in the parent chain is not visible.
+        @method isVisibleTraverse
+        @return {Boolean}
+    */
+    isVisibleTraverse : function()
+    {
+        if (!this.attributes.visible.get())
+            return false;
+        if (!this.sceneNode)
+            return false;
+        var p = this.sceneNode.parent;
+        while (p && !(p instanceof THREE.Scene))
+        {
+            if (p.visible === false)
+                return false;
+            p = p.parent;
+        }
+        return true;
     },
 
     _setVisible : function(visible)
@@ -429,11 +561,11 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
 
             if (visible)
             {
-                // Check if this childs placeable has false visibility, then don't show the node!
+                // Check if this child's placeable has false visibility, then don't show the node!
                 // The child can be 1) EC_Placeable scene node 2) EC_Mesh mesh node or submesh node 3) EC_WebBrowser projection plane.
                 if (node.tundraEntityId !== undefined)
                 {
-                    var childEntity = TundraSDK.framework.scene.entityById(node.tundraEntityId)
+                    var childEntity = Tundra.scene.entityById(node.tundraEntityId);
                     var childPlaceable = (childEntity != null ? (node.tundraComponentId !== undefined ?
                         childEntity.componentById(node.tundraComponentId) : childEntity.placeable) : null);
                     if (childPlaceable != null && !childPlaceable.visible)
@@ -445,17 +577,30 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
     },
 
     /**
-        Makes this Placeables Transform look at a target Entity or position.
+        Makes this Placeable's Transform look at a target Entity or position.
         @method lookAt
         @param {Entity|THREE.Vector3} target Target Entity or a position to look at. If Entity is passed target.placeable.worldPosition() is used.
     */
     lookAt : function(param)
     {
         var t = this.attributes.transform.get();
+        var ownPos = this.worldPosition();
+        var destination;
         if (param instanceof THREE.Vector3)
-            t.lookAt(this.worldPosition(), param);
+            destination = param;
         else
-            t.lookAt(this.worldPosition(), param.placeable.worldPosition());
+            destination = param.placeable.worldPosition();
+
+        var lookAtQuat = t.lookAtQuaternion(ownPos, destination);
+        if (this.sceneNode && this.sceneNode.parent)
+        {
+            var parentQuat = new THREE.Quaternion();
+            parentQuat.setFromRotationMatrix(this.sceneNode.parent.matrixWorld);
+            parentQuat.inverse();
+            lookAtQuat.multiplyQuaternions(parentQuat, lookAtQuat);
+        }
+
+        t.setRotation(lookAtQuat);
         this.transform = t;
     },
 
@@ -479,10 +624,31 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
         if (this.sceneNode == null)
             return null;
 
-        var worldRot = this.sceneNode.quaternion.clone();
-        this._applyParentChain(worldRot, "quaternion");
-        return worldRot.normalize();
-    }
+        var worldOrt = new THREE.Quaternion();
+        worldOrt.setFromRotationMatrix(this.sceneNode.matrixWorld);
+        return worldOrt;
+    },
+
+    /**
+        Sets the world orientation of this placeable node
+        @method setWorldOrientation
+        @param THREE.Quaternion worldOrientation The orientation in world space
+    */
+    setWorldOrientation : function(worldOrientation)
+    {
+        var tRef = this.attributes.transform.get();
+        var worldOrt = worldOrientation.clone();
+        if (this.parentRef !== "")
+        {
+            var parentQuat = new THREE.Quaternion();
+            parentQuat.setFromRotationMatrix(this.sceneNode.parent.matrixWorld);
+            parentQuat.inverse();
+            worldOrt.multiplyQuaternions(parentQuat, worldOrt);
+        }
+
+        tRef.setRotation(worldOrt);
+        this.attributes.transform.set(tRef);
+    },
 
     /// Sets the orientation of this placeable's transform.
     /// If you want to set the orientation of this placeable using Euler angles, use e.g.
@@ -548,9 +714,9 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
     // {
     // },
 
-    /// Returns the world-space transform this scene node.
-    /// @return float3x4
-    ,
+    /** Returns the world-space transform this scene node.
+        @todo Handles only pos currently
+        @todo return Matrix4? (float3x4 used in native) */
     worldTransform : function()
     {
         var t = this.transform.clone();
@@ -558,6 +724,8 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
         return t;
     },
 
+    /** @todo Handles only pos
+        @todo Take in Matrix4? (float3x4 used in native) */
     setWorldTransform : function(transform)
     {
         var tRef = this.attributes.transform.get();
@@ -567,11 +735,22 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
         this.attributes.transform.set(tRef);
     },
 
-    /// Returns the scale of this placeable node in world space.
-    /// @return float3
-    // worldScale : function()
-    // {
-    // },
+
+    /**
+        Returns clone of the scale of this placeable node in world space.
+
+        @param {Three.Vector3} [dest] Optional destination vector.
+        @return {THREE.Vector3} Position vector.
+    */
+    worldScale : function(dest)
+    {
+        if (this.sceneNode == null)
+            return null;
+
+        dest = dest || new THREE.Vector3();
+        dest.setFromMatrixScale(this.sceneNode.matrixWorld);
+        return dest;
+    },
 
     /// Returns the concatenated world transformation of this placeable.
     /// @return float3x4

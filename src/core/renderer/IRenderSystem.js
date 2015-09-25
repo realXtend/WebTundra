@@ -1,22 +1,22 @@
 
 define([
         "lib/classy",
-        "core/framework/TundraSDK",
+        "core/framework/Tundra",
         "core/framework/TundraLogging"
-    ], function(Class, TundraSDK, TundraLogging) {
+    ], function(Class, Tundra, TundraLogging) {
 
-/**
-    Render system interface. Can be selected via client startup parameters.
-
-    Implementations can optionally be to register with {{#crossLink "TundraClient/registerRenderSystem:method"}}TundraClient.registerRenderSystem{{/crossLink}}.
-    This way the renderer can be loaded by name. Usually selecting the renderer is done by passing the renderer to client startup parameters.
-
-    @class IRenderSystem
-    @constructor
-    @param {String} name Render system name.
-*/
 var IRenderSystem = Class.$extend(
+/** @lends IRenderSystem.prototype */
 {
+    /**
+        Render system interface. Can be selected via client startup parameters.
+
+        Implementations can optionally be registered with {@link TundraClient.registerRenderSystem}.
+        This way the renderer can be loaded by name. Usually selecting the renderer is done by passing the renderer to client startup parameters.
+
+        @constructs
+        @param {String} name Render system name.
+    */
     __init__ : function(name)
     {
         this.name = name;
@@ -30,22 +30,26 @@ var IRenderSystem = Class.$extend(
             if (clientPrototype.registerRenderSystem(renderer))
                 return renderer;
             return null;
+        },
+
+        getDefaultOptions : function()
+        {
+            return {};
         }
     },
 
-    _load : function(params)
+    _load : function(options)
     {
         TundraLogging.getLogger("IRenderSystem").info("Loading " + this.name + " render system");
-        this.load(params);
+        this.load(options);
     },
 
     /**
         Loads the render system.
 
-        @method load
-        @param {Object} params Client startup parameters.
+        @param {Object} options Renderer options passed to TundraClient.
     */
-    load : function(params)
+    load : function(options)
     {
     },
 
@@ -57,8 +61,6 @@ var IRenderSystem = Class.$extend(
 
     /**
         Unloads the render system.
-
-        @method unload
     */
     unload : function()
     {
@@ -66,8 +68,6 @@ var IRenderSystem = Class.$extend(
 
     /**
         Called after all modules are loaded and all APIs have been post initialized.
-
-        @method postInitialize
     */
     postInitialize : function()
     {
@@ -76,7 +76,6 @@ var IRenderSystem = Class.$extend(
     /**
         Set active camera component.
 
-        @method setActiveCamera
         @param {EC_Camera} cameraComponent
     */
     setActiveCamera : function(cameraComponent)
@@ -87,7 +86,6 @@ var IRenderSystem = Class.$extend(
     /**
         Get the active camera component.
 
-        @method activeCamera
         @return {EC_Camera}
     */
     activeCamera : function()
@@ -99,7 +97,6 @@ var IRenderSystem = Class.$extend(
     /**
         Get the active camera entity.
 
-        @method activeCameraEntity
         @return {Entity}
     */
     activeCameraEntity : function()
@@ -111,7 +108,6 @@ var IRenderSystem = Class.$extend(
     /**
         Create a new scene node for this renderer.
 
-        @method createSceneNode
         @return {Object}
     */
     createSceneNode : function()
@@ -123,7 +119,6 @@ var IRenderSystem = Class.$extend(
     /**
         Update scene node with a Transform.
 
-        @method createSceneNode
         @param {Object} sceneNode Node to update.
         @param {Transform} transform Transform to set to node.
     */
@@ -135,7 +130,6 @@ var IRenderSystem = Class.$extend(
     /**
         Executes a raycast from origin to direction. Returns all hit objects.
 
-        @method raycastAllFrom
         @param {Object} origin Rendering system implementation specific object. Usually a float3 vector.
         @param {Object} direction Rendering system implementation specific object. Usually a normalized float3 directional vector.
         @param {Number} [selectionLayer=1] Entity selection layer.
@@ -150,7 +144,6 @@ var IRenderSystem = Class.$extend(
     /**
         Executes a raycast from origin to direction. Returns first hit object.
 
-        @method raycastFrom
         @param {Object} origin Rendering system implementation specific object. Usually a float3 vector.
         @param {Object} direction Rendering system implementation specific object. Usually a normalized float3 directional vector.
         @param {Number} [selectionLayer=1] Entity selection layer.
@@ -163,10 +156,9 @@ var IRenderSystem = Class.$extend(
     },
 
     /**
-        Executes a raycast to the renderers scene using the currently active camera 
+        Executes a raycast to the renderers scene using the currently active camera
         and screen coordinates. Returns all hit objects.
 
-        @method raycastAll
         @param {Number} [x=current-mouse-x] Screen x coordinate.
         @param {Number} [y=current-mouse-y] Screen y coordinate.
         @param {Number} [selectionLayer=1] Entity selection layer.
@@ -179,10 +171,9 @@ var IRenderSystem = Class.$extend(
     },
 
     /**
-        Executes a raycast to the renderers scene using the currently active camera 
+        Executes a raycast to the renderers scene using the currently active camera
         and screen coordinates. Returns the first hit object.
 
-        @method raycast
         @param {Number} [x=current-mouse-x] Screen x coordinate.
         @param {Number} [y=current-mouse-y] Screen y coordinate.
         @param {Number} [selectionLayer=1] Entity selection layer.

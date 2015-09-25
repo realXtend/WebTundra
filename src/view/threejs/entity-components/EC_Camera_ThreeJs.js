@@ -1,9 +1,10 @@
 
 define([
         "lib/three",
-        "core/framework/TundraSDK",
-        "entity-components/EC_Camera"
-    ], function(THREE, TundraSDK, EC_Camera) {
+        "core/framework/Tundra",
+        "entity-components/EC_Camera",
+        "view/threejs/ThreeJsCombinedCamera"
+    ], function(THREE, Tundra, EC_Camera, ThreeJsCombinedCamera) {
 
 /**
     Camera component implementation for the three.js render system.
@@ -39,26 +40,73 @@ var EC_Camera_ThreeJs = EC_Camera.$extend(
             }
         });
 
-        TundraSDK.framework.ui.onWindowResize(this, this.onWindowResize);
+        this._windowSizeSub = Tundra.ui.onWindowResize(this, this.onWindowResize);
     },
-    
+
     __classvars__ :
     {
-        implementationName : "three.js"
+        Implementation : "three.js"
+    },
+
+    /**
+        Returns the world focus position. The implementation can vary depending on the type of application camera.
+        Default implementation returns the parent Placeable components world position or null if not set.
+
+        You application can replace this function with its own implementaion.
+
+        @method getWorldFocusPosition
+        @return {THREE.Vector3|null}
+    */
+    getWorldFocusPosition : function()
+    {
+        if (this.parentEntity == null || this.parentEntity.placeable == null)
+            return null;
+        return this.parentEntity.placeable.worldPosition();
+    },
+
+    _farPlane : function()
+    {
+        // far plane cannot be overridden when using logarithmicDepthBuffer!
+        if (Tundra.renderer.options.logarithmicDepthBuffer === true)
+            return 1e27;
+        return this.farPlane;
+    },
+
+    _nearPlane : function()
+    {
+        // far plane cannot be overridden when using logarithmicDepthBuffer!
+        if (Tundra.renderer.options.logarithmicDepthBuffer === true)
+            return 1e-6;
+        return this.nearPlane;
     },
 
     update : function()
     {
+        var aspectRatio = this.aspectRatio();
+
         // Create camera
-        if (this.camera === undefined)
-            this.camera = new THREE.PerspectiveCamera(this.verticalFov, this.aspectRatio(), this.nearPlane, this.farPlane);
+        if (this._combinedCamera === undefined)
+        {
+            var viewSize = 33200;
+            this._combinedCamera = new ThreeJsCombinedCamera(viewSize, aspectRatio, this.verticalFov, this._nearPlane(), this._farPlane());
+            this._combinedCamera.onCameraChanged = function(currentCamera) {
+                this.camera = currentCamera;
+                if (this.active)
+                {
+                    this.update();
+                    Tundra.renderer.camera = currentCamera;
+                }
+            }.bind(this);
+
+            this.camera = this._combinedCamera.currentCamera;
+            this._combinedCamera.viewSize = viewSize;
+        }
         else
         {
-            this.camera.fov = this.verticalFov;
-            this.camera.aspect = this.aspectRatio();
-            this.camera.near = this.nearPlane;
-            this.camera.far = this.farPlane;
-            this.camera.updateProjectionMatrix();
+            this._combinedCamera.fov = this.verticalFov;
+            this._combinedCamera.aspect = aspectRatio;
+            this._combinedCamera.near = this._nearPlane();
+            this._combinedCamera.far = this._farPlane();
         }
 
         // Parent
@@ -71,72 +119,30 @@ var EC_Camera_ThreeJs = EC_Camera.$extend(
         }
     },
 
-    /** random test for intersect code. 
-        @todo make this work?
-    intersectsObject : function(object)
-    {
-        if (object.geometry === undefined)
-            return;
-
-        var pos = this.parentEntity.placeable.worldPosition();
-        var height = Math.tan(this.verticalFov) * this.nearPlane;
-        var width = Math.tan(this.aspectRatio() * this.verticalFov) * this.nearPlane;
-        var zero = new THREE.Vector3(-width, height, this.nearPlane);
-        zero.applyQuaternion(this.parentEntity.placeable.worldOrientation());
-        var sphere = new THREE.Sphere();
-        sphere.setFromPoints([zero.add(pos)]);
-
-        var geometry = object.geometry;
-        if ( geometry.boundingSphere === null ) geometry.computeBoundingSphere();
-
-        var other = new THREE.Sphere().copy( geometry.boundingSphere );
-        object.updateMatrix();
-        other.applyMatrix4( object.matrixWorld );
-        var res = sphere.intersectsSphere( other );
-
-        if (res)
-        {
-            if (this.debugColor === undefined)
-            {
-                this.debugColor = new THREE.Color();
-                this.debugColor.setRGB(1,0,0);
-            }
-            if (this.debugMaterial === undefined)
-                this.debugMaterial = new THREE.MeshBasicMaterial({ color: this.debugColor, wireframe: true });
-
-            var box = other.getBoundingBox();
-            var debugMesh = new THREE.Mesh(new THREE.SphereGeometry(other.radius,6,6), this.debugMaterial);
-            //box.size(debugMesh.scale);
-            box.center(debugMesh.position);
-            debugMesh.quaternion = object.quaternion.clone();
-            debugMesh.matrixAutoUpdate = false;
-            debugMesh.updateMatrix();
-
-            TundraSDK.framework.renderer.scene.add(debugMesh);
-        }
-        return res;
-    },
-    */
-
     reset : function()
     {
         if (this.active)
-            TundraSDK.framework.renderer.setActiveCamera(null);
+            Tundra.renderer.setActiveCamera(null);
 
-        if (this._componentAddedSub !== undefined)
+        if (this._componentAddedSub)
         {
-            TundraSDK.framework.events.unsubscribe(this._componentAddedSub);
+            this._componentAddedSub.reset();
             this._componentAddedSub = undefined;
+        }
+        if (this._windowSizeSub)
+        {
+            this._windowSizeSub.reset();
+            this._windowSizeSub = undefined;
         }
     },
 
     _onParentEntityComponentCreated : function(entity, component)
     {
-        if (component != null && component.typeName === "EC_Placeable")
+        if (component != null && component.typeName === "Placeable")
         {
-            if (this._componentAddedSub !== undefined)
+            if (this._componentAddedSub)
             {
-                TundraSDK.framework.events.unsubscribe(this._componentAddedSub);
+                this._componentAddedSub.reset();
                 this._componentAddedSub = undefined;
             }
 
@@ -153,24 +159,24 @@ var EC_Camera_ThreeJs = EC_Camera.$extend(
             });
 
         @method onActiveStateChanged
-        @param {Object} context Context of in which the callback function is executed. Can be null.
+        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
         @param {Function} callback Function to be called.
         @return {EventSubscription|null} Subscription data or null if parent entity is not set.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onActiveStateChanged : function(context, callback)
     {
         if (!this.hasParentEntity())
         {
-            TundraSDK.framework.client.logError("[EC_Camera]: Cannot subscribe onActiveStateChanged, parent entity not set!", true);
+            Tundra.client.logError("[EC_Camera]: Cannot subscribe onActiveStateChanged, parent entity not set!", true);
             return null;
         }
-        return TundraSDK.framework.events.subscribe("EC_Camera.ActiveStateChanged." + this.parentEntity.id + "." + this.id, context, callback);
+        return Tundra.events.subscribe("EC_Camera.ActiveStateChanged." + this.parentEntity.id + "." + this.id, context, callback);
     },
 
     _postActiveStateChanged : function(active)
     {
-        TundraSDK.framework.events.send("EC_Camera.ActiveStateChanged." + this.parentEntity.id + "." + this.id,
+        Tundra.events.send("EC_Camera.ActiveStateChanged." + this.parentEntity.id + "." + this.id,
             this.parentEntity, this, active);
     },
 
@@ -188,7 +194,7 @@ var EC_Camera_ThreeJs = EC_Camera.$extend(
             return;
 
         // Semi ugly hack. Check if the current active camera is animating before enabling shit camera.
-        if (active && TundraSDK.framework.renderer.activeCamera() && TundraSDK.framework.renderer.activeCamera()._animating === true)
+        if (active && Tundra.renderer.activeCamera() && Tundra.renderer.activeCamera()._animating === true)
         {
             this.log.warn("Current camera is animating, cannot activate " + this.parentEntity.name);
             return;
@@ -196,7 +202,7 @@ var EC_Camera_ThreeJs = EC_Camera.$extend(
 
         this._active = active;
         if (this._active)
-            TundraSDK.framework.renderer.setActiveCamera(this);
+            Tundra.renderer.setActiveCamera(this);
         this._postActiveStateChanged(this._active);
     },
 
@@ -216,22 +222,80 @@ var EC_Camera_ThreeJs = EC_Camera.$extend(
 
     aspectRatio : function()
     {
-        var windowSize = TundraSDK.framework.renderer.windowSize;
+        var windowSize = Tundra.renderer.windowSize;
         if (windowSize !== undefined && windowSize.height !== 0)
             return windowSize.width / windowSize.height;
         return 0;
     },
 
+    /**
+        Returns if the given point represented as 3-tuple is in the current view
+        @name isPointInView
+        @function
+        @param {Object} point A 3-tuple object (for example a THREE.Vector3)
+        @return {boolean}
+    */
+
+    /**
+        Returns if the given point as (x,y,z) is in the current view
+        @name isPointInView^2
+        @function
+        @param {number} x The x coordinate
+        @param {number} y The y coordinate
+        @param {number} z The z coordinate
+        @return {boolean}
+    */
+    isPointInView : function(x,y,z)
+    {
+        var point = undefined;
+        if (x instanceof THREE.Vector3)
+            point = x;
+        else if (typeof x === "number" && typeof y === "number" && typeof z === "number")
+        {
+            point = new THREE.Vector3();
+            point.x = x;
+            point.y = y;
+            point.z = z;
+        }
+        else if (typeof x === "object" && typeof x.x === "number" && typeof x.y === "number" && typeof x.z === "number")
+        {
+            point = new THREE.Vector3();
+            point.x = x.x;
+            point.y = x.y;
+            point.z = x.z;
+        }
+
+        if (!point)
+        {
+            this.log.error("isPointInView: invalid arguments provided!");
+            return false;
+        }
+
+        var frustum = new THREE.Frustum();
+        frustum.setFromMatrix(new THREE.Matrix4().multiply(this.camera.projectionMatrix, this.camera.matrixWorldInverse));
+        return frustum.containsPoint(point);
+    },
+
     onWindowResize : function(width, height)
     {
+        // @todo This also update inactive cameras? Should be changed to update at activation?
         if (this.camera === undefined)
             return;
 
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
+    },
+
+    onOrthographicChanged : function()
+    {
+        if (this.orthographic && !this._combinedCamera.orthographic)
+            this._combinedCamera.toOrthographic(true);
+        else if (!this.orthographic && this._combinedCamera.orthographic)
+            this._combinedCamera.toPerspective(true);
     }
 });
 
 return EC_Camera_ThreeJs;
+
 
 }); // require js
