@@ -184,7 +184,9 @@ module.exports = function(grunt) {
                         "core/input/InputTouchPlugin",
                         // Plugins
                         "plugins/login-screen/LoginScreenPlugin",
-                        "plugins/ogre-plugin/OgrePlugin"
+                        "plugins/ogre-plugin/OgrePlugin",
+                        "plugins/script-plugin/ScriptPlugin",
+                        "plugins/physics/AmmoPhysics"
                     ],
 
                     skipProcessingModules : [
@@ -196,7 +198,8 @@ module.exports = function(grunt) {
                         "lib/three/MTLLoader",
                         "lib/loglevel",
                         "lib/signals",
-                        "lib/hammer"
+                        "lib/hammer",
+                        "lib/ammo"
                     ],
 
                     excludeGlobalModules : [
@@ -213,7 +216,8 @@ module.exports = function(grunt) {
                         "lib/Tween",
                         "lib/loglevel",
                         "lib/signals",
-                        "lib/hammer"
+                        "lib/hammer",
+                        "lib/ammo"
                     ],
 
                     shouldSkipProcessing : function(moduleName)

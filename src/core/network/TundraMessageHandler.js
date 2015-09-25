@@ -37,7 +37,7 @@ var TundraMessageHandler = INetworkMessageHandler.$extend(
             return true;
         // Scene/Entity/Component/Attribute related.
         // Expand this when new messages handling is implemented.
-        else if (id >= 110 && id <= 116)
+        else if ((id >= 110 && id <= 116) || id == 119)
             return true;
         return false;
     },
@@ -51,7 +51,7 @@ var TundraMessageHandler = INetworkMessageHandler.$extend(
 
         var client = Tundra.client;
 
-        if (id >= 110 && id <= 116)
+        if ((id >= 110 && id <= 116) || id == 119)
         {
             // Immediate mode message parsing, no predefined objects.
             var msg = new INetworkMessage(id);
@@ -73,8 +73,9 @@ var TundraMessageHandler = INetworkMessageHandler.$extend(
 
             if (msg.success)
             {
-                // Set the clients connection id.
+                // Set the clients connection id and supported protocol version
                 client.connectionId = msg.connectionId;
+                client.protocolVersion = msg.protocolVersion;
 
                 // Pass storage information to AssetAPI.
                 if (msg.loginReplyData !== "")

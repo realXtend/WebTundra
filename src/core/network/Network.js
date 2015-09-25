@@ -7,11 +7,12 @@ define([
         "core/network/INetworkMessageHandler",
         "core/network/INetworkMessage",
         "core/network/TundraMessageHandler",
-        "core/network/WebSocketTester"
+        "core/network/WebSocketTester",
+        "core/network/ObserverPositionMessage"
     ], function(Tundra, ITundraAPI, TundraLogging,
                 DataDeserializer, INetworkMessageHandler,
                 INetworkMessage, TundraMessageHandler,
-                WebSocketTester) {
+                WebSocketTester, ObserverPositionMessage) {
 
 var Network = ITundraAPI.$extend(
 /** @lends Network.prototype */
@@ -27,6 +28,18 @@ var Network = ITundraAPI.$extend(
         this.$super(name, options);
 
         this.messageHandlers = [];
+        
+        /**
+            Send interval in seconds for the observer position & orientation. 
+            Only has relevance when observerEntityId in Client is nonzero. Will be sent only when actually changed.
+            @property priorityUpdatePeriod
+            @type Number
+        */
+        this.priorityUpdatePeriod = 1;
+        
+        this.lastObserverSendTime = 0;
+        this.lastObserverPosition = new THREE.Vector3();
+        this.lastObserverOrientation = new THREE.Quaternion();
     },
 
     initialize : function()
@@ -108,6 +121,17 @@ var Network = ITundraAPI.$extend(
             41  : "SlideShow",               52  : "GraphicsViewCanvas",
             42  : "WidgetBillboard",         108 : "StencilGlow",
             43  : "PhysicsMotor"
+        },
+
+        /**
+            Network protocol versions
+        */
+        protocolVersion:
+        {
+            Original : 1,
+            CustomComponents : 2,
+            HierarchicScene : 3,
+            WebClientRigidBodyMessage : 4
         }
     },
 
@@ -181,6 +205,41 @@ var Network = ITundraAPI.$extend(
 
         var msg = new INetworkMessage(id);
         this.log.warn("Received an unhandled network message", msg.name, msg.id);
+    },
+
+    /**
+        Handles sending an observer entity's changed position & orientation to the server at set intervals.
+        Called by Client as part of the frame update.
+
+        @method updateObserver
+        @param {number} timeNow Current frame time in milliseconds
+     */
+    updateObserver : function(timeNow)
+    {
+        if (TundraSDK.framework.client.websocket != null)
+        {
+            if (this.lastObserverSendTime == 0 || timeNow - this.lastObserverSendTime >= this.priorityUpdatePeriod * 1000.0)
+            {
+                var ent = TundraSDK.framework.scene.entityById(TundraSDK.framework.client.observerEntityId);
+                if (ent != null && ent.placeable != null)
+                {
+                    var worldPosition = ent.placeable.worldPosition();
+                    var worldOrientation = ent.placeable.worldOrientation();
+
+                    if (this.lastObserverSendTime == 0 || !this.lastObserverPosition.equals(worldPosition) ||
+                        !this.lastObserverOrientation.equals(worldOrientation))
+                    {
+                        this.lastObserverPosition.copy(worldPosition);
+                        this.lastObserverOrientation.copy(worldOrientation);
+
+                        var message = new ObserverPositionMessage();
+                        message.serialize(worldPosition, worldOrientation);
+                        this.send(message);
+                        this.lastObserverSendTime = timeNow;
+                    }
+                }
+            }
+        }
     }
 });
 

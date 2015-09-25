@@ -173,6 +173,27 @@ var TundraClient = Class.$extend(
         */
         this.connectionId = 0;
 
+        /**
+            If verbose network message debug info should be printed to browsers console.
+            Can be passed in the TundraClient contructor parameters or toggled during runtime.
+            @property networkDebugLogging
+            @type Boolean
+        */
+        this.networkDebugLogging = params.networkDebugLogging;
+        /**
+            Network protocol version supported by the server
+            @property protocolVersion
+            @type Number
+        */
+        this.protocolVersion = Network.protocolVersion.Original;
+        /**
+            Id for entity that reflects the client's observer position for interest management.
+            Set to nonzero to enable sending the observer position & orientation regularly
+            @property observerEntityId
+            @type Number
+        */
+        this.observerEntityId = 0;
+
         // Reset state
         this.reset();
 
@@ -317,6 +338,9 @@ var TundraClient = Class.$extend(
 
         // Reset frametime
         this.lastTime = performance.now();
+        // Reset observer 
+        this.observerEntityId = 0;
+        this.network.lastObserverSendTime = 0;
 
         this.cameraApplications = [];
         this.cameraApplicationIndex = 0;
@@ -827,6 +851,10 @@ var TundraClient = Class.$extend(
 
         // Render scene
         that.renderer.update(frametime, frametimeMsec);
+
+        // Update interest management
+        if (that.observerEntityId > 0)
+            that.network.updateObserver(timeNow);
 
         that.frame._postUpdate(frametime);
     },

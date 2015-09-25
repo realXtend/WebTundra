@@ -36,11 +36,15 @@ var DataDeserializer = Class.$extend(
             this.setBuffer(buffer, pos, length);
 
         // Backwards compatibility for .pos > this.bytesRead() > this.bytePos
+        // Disabled due to this causing slowdown on Firefox when using DataDeserializer 
+        // even if the pos property is not accessed
+        /*
         Object.defineProperties(this, {
             pos : {
                 get : function () { return this.bytesRead(); }
             }
         });
+        */
     },
 
     __classvars__ :
@@ -315,7 +319,12 @@ var DataDeserializer = Class.$extend(
             return ret;
         }
         else
-            return this.readBits(8);
+        {
+            var s8 = this.readBits(8);
+            if (s8 >= 0x80)
+                s8 -= 0x100;
+            return s8;
+        }
     },
 
     /**
@@ -349,7 +358,12 @@ var DataDeserializer = Class.$extend(
             return ret;
         }
         else
-            return this.readBits(16);
+        {
+            var s16 = this.readBits(16);
+            if (s16 >= 0x8000)
+                s16 -= 0x10000;
+            return s16;
+        }
     },
 
     /**
@@ -383,7 +397,12 @@ var DataDeserializer = Class.$extend(
             return ret;
         }
         else
-            return this.readBits(32);
+        {
+            var s32 = this.readBits(32);
+            if (s32 >= 0x80000000)
+                s32 -= 0x100000000;
+            return s32;
+        }
     },
 
     /**
@@ -438,8 +457,8 @@ var DataDeserializer = Class.$extend(
         }
         else
         {
-            // TODO Test this code path!
-            DataDeserializer.doubleReadDataView.setUint64(0, this.readBits(64), true);
+            DataDeserializer.doubleReadDataView.setUint32(0, this.readBits(32), true);
+            DataDeserializer.doubleReadDataView.setUint32(4, this.readBits(32), true);
             return DataDeserializer.doubleReadDataView.getFloat64(0, true);
         }
     },
@@ -562,41 +581,44 @@ var DataDeserializer = Class.$extend(
     /** Input parameters ints.
 
         @return {Number} Float */
-    /*readUnsignedFixedPoint : function(numIntegerBits, numDecimalBits)
+    readUnsignedFixedPoint : function(numIntegerBits, numDecimalBits)
     {
         var fp = this.readBits(numIntegerBits + numDecimalBits);
         return fp / (1 << numDecimalBits);
-    },*/
+    },
 
     /** Input parameters ints.
 
         @return {Number} Float */
-    /*readSignedFixedPoint : function(numIntegerBits, numDecimalBits)
+
+    readSignedFixedPoint : function(numIntegerBits, numDecimalBits)
     {
         // Reading a [0, 2k-1] range -> remap back to [-k, k-1] range.
         return this.readUnsignedFixedPoint(numIntegerBits, numDecimalBits) - (1 << (numIntegerBits-1));
-    },*/
+    },
 
     /** minRange and maxRange floats, numBits int
 
         @return {Number} Float */
-    /*readQuantizedFloat : function(minRange, maxRange, numBits)
+
+    readQuantizedFloat : function(minRange, maxRange, numBits)
     {
         var val = this.readBits(numBits);
         return minRange + val * (maxRange-minRange) / ((1 << numBits) - 1);
-    },*/
+    },
 
     /** @return {Object} { x : <value>, y : <value> } */
-    /*readNormalizedVector2D : function(numBits)
+    readNormalizedVector2D : function(numBits)
     {
         var angle = this.readQuantizedFloat(-Math.PI, Math.PI, numBits);
         return { x: Math.cos(angle), y : Math.sin(angle) };
-    },*/
+    },
 
     /**  All input parameters int.
 
         @return {Object} { x : <value>, y : <value> } */
-    /*readVector2D : function(magnitudeIntegerBits, magnitudeDecimalBits, directionBits)
+
+    readVector2D : function(magnitudeIntegerBits, magnitudeDecimalBits, directionBits)
     {
         // this.read the length in unsigned fixed point format.
         // The following line is effectively the same as calling this.readUnsignedFixedPoint, but manually perform it
@@ -613,23 +635,24 @@ var DataDeserializer = Class.$extend(
         {
             return { x : 0, y : 0 };
         }
-    },*/
+    },
 
     /** All input parameters int.
 
         @return {Object} { x : <value>, y : <value>, z : <value> } */
-    /*readNormalizedVector3D : function(numBitsYaw, numBitsPitch)
+    readNormalizedVector3D : function(numBitsYaw, numBitsPitch)
     {
         var azimuth = this.readQuantizedFloat(-Math.PI, Math.PI, numBitsYaw);
         var inclination = this.readQuantizedFloat(-Math.PI/2, Math.PI/2, numBitsPitch);
         var cx = Math.cos(inclination);
         return { x : cx * Math.sin(azimuth),y : -Math.sin(inclination), z : cx * Math.cos(azimuth) };
-    },*/
+    },
 
     /** All input parameters int.
 
         @return {Object} { x : <value>, y : <value>, z : <value> } */
-    /*readVector3D : function(numBitsYaw, numBitsPitch, magnitudeIntegerBits,  magnitudeDecimalBits)
+
+    readVector3D : function(numBitsYaw, numBitsPitch, magnitudeIntegerBits,  magnitudeDecimalBits)
     {
         // Read the length in unsigned fixed point format.
         // The following line is effectively the same as calling this.readUnsignedFixedPoint, but manually perform it
@@ -649,66 +672,72 @@ var DataDeserializer = Class.$extend(
         {
             return { x : 0, y : 0, z : 0 };
         }
-    },*/
+
+    },
     /** All input parameters int.
 
         @return {Array} Array of 2 values. */
-    /*readArithmeticEncoded2 : function(numBits, max1, max2)
+    readArithmeticEncoded2 : function(numBits, max1, max2)
     {
         // assert(max1 * max2 < (1 << numBits));
         var ret = [];
         var val = this.readBits(numBits);
         ret[1] = val % max2;
-        ret[0] = val / max2;
+
+        ret[0] = Math.floor(val / max2);
         return ret;
-    },*/
+    },
     /** All input parameters int.
 
         @return {Array} Array of 3 values. */
-    /*readArithmeticEncoded3 : function(numBits, max1, max2, max3)
+    readArithmeticEncoded3 : function(numBits, max1, max2, max3)
     {
         // assert(max1 * max2 * max3 < (1 << numBits));
         var ret = [];
         var val = this.readBits(numBits);
         val3 = val % max3;
-        val /= max3;
+
+        val = Math.floor(val / max3);
         ret[1] = val % max2;
-        ret[0] = val / max2;
+        ret[0] = Math.floor(val / max2);
         return ret;
-    },*/
+    },
     /** All input parameters int.
 
         @return {Array} Array of 4 values. */
-    /*readArithmeticEncoded4 : function(numBits, max1, max2, max3, max4)
+    readArithmeticEncoded4 : function(numBits, max1, max2, max3, max4)
     {
         // assert(max1 * max2 * max3 * max4 < (1 << numBits));
         var ret = [];
         var val = this.readBits(numBits);
         ret[3] = val % max4;
-        val /= max4;
+
+        val = Math.floor(val / max4);
         ret[2] = val % max3;
-        val /= max3;
+        val = Math.floor(val / max3);
         ret[1] = val % max2;
-        ret[0] = val / max2;
-        return 0;
-    },*/
+        ret[0] = Math.floor(val / max2);
+        return ret;
+    },
     /** All input parameters int.
 
         @return {Array} Array of 5 values. */
-    /*readArithmeticEncoded5 : function(max1, max2, max3, max4, max5)
+    readArithmeticEncoded5 : function(numBits, max1, max2, max3, max4, max5)
     {
         // assert(max1 * max2 * max3 * max4 * max5 < (1 << numBits));
         var ret = [];
         var val = this.readBits(numBits);
         ret[4] = val % max5;
-        val /= max5;
+
+        val = Math.floor(val / max5);
         ret[3] = val % max4;
-        val /= max4;
+        val = Math.floor(val / max4);
         ret[2] = val % max3;
-        val /= max3;
+        val = Math.floor(val / max3);
         ret[1] = val % max2;
-        ret[0] = val / max2;
-    }*/
+        ret[0] = Math.floor(val / max2);
+        return ret;
+    }
 });
 
 return DataDeserializer;

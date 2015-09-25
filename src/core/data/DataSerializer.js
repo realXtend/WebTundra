@@ -60,11 +60,16 @@ var DataSerializer = Class.$extend(
         this.type = arrayType;
 
         // Backwards compatibility for .pos > this.readBytes() > this.bytePos
+
+        // Disabled due to this causing slowdown on Firefox when using DataSerializer
+        // even if the pos property is not accessed
+        /*
         Object.defineProperties(this, {
             pos : {
                 get : function () { return this.filledBytes(); }
             }
         });
+        */
     },
 
     __classvars__ :
@@ -474,8 +479,8 @@ var DataSerializer = Class.$extend(
         }
         else
         {
-            Tundra.floatWriteDataView.setFloat32(0, value, true);
-            this.writeBits(Tundra.floatWriteDataView.getUint32(0, true), 32);
+            DataSerializer.floatWriteDataView.setFloat32(0, value, true);
+            this.writeBits(DataSerializer.floatWriteDataView.getUint32(0, true), 32);
         }
     },
 
@@ -493,9 +498,9 @@ var DataSerializer = Class.$extend(
         }
         else
         {
-            // TODO Test this code path!
-            Tundra.doubleWriteDataView.setFloat64(0, value, true);
-            this.writeBits(Tundra.doubleWriteDataView.getUint64(0, true), 64);
+            DataSerializer.doubleWriteDataView.setFloat64(0, value, true);
+            this.writeBits(DataSerializer.doubleWriteDataView.getUint32(0, true), 32);
+            this.writeBits(DataSerializer.doubleWriteDataView.getUint32(4, true), 32);
         }
     },
 
@@ -566,7 +571,8 @@ var DataSerializer = Class.$extend(
         result in complete garbage due to over/underflow.
         @note The total number of bits written is numIntegerBits + numDecimalBits, which must in total be <= 32.
         @return The bit pattern that was written to the buffer. */
-    /* writeUnsignedFixedPoint : function(numIntegerBits, numDecimalBits, value)
+
+    writeUnsignedFixedPoint : function(numIntegerBits, numDecimalBits, value)
     {
         // assert(numIntegerBits >= 0);
         // assert(numDecimalBits > 0);
@@ -578,7 +584,7 @@ var DataSerializer = Class.$extend(
         // assert(outVal <= maxBitPattern);
         this.writeBits(outVal, numIntegerBits + numDecimalBits);
         return outVal;
-    }, */
+    },
 
     /** Writes the given float quantized to the given fixed-point precision.
         @param value The floating-point value to send. This float must have a value in the range [-2^(numIntegerBits-1), 2^(numIntegerBits-1)[.
@@ -588,11 +594,12 @@ var DataSerializer = Class.$extend(
         result in complete garbage due to over/underflow.
         @note The total number of bits written is numIntegerBits + numDecimalBits, which must in total be <= 32.
         @return The bit pattern that was written to the buffer. */
-    /* writeSignedFixedPoint : function(numIntegerBits, numDecimalBits, value)
+
+    writeSignedFixedPoint : function(numIntegerBits, numDecimalBits, value)
     {
         // Adding a [-k, k-1] range -> remap to unsigned.[0, 2k-1] range and send that instead.
         return this.writeUnsignedFixedPoint(numIntegerBits, numDecimalBits, value + (1 << (numIntegerBits-1)));
-    }, */
+    },
 
     /** Writes the given float quantized to the number of bits, that are distributed evenly over the range [minRange, maxRange].
         @param value The floating-point value to send. This float must have a value in the range [minRange, maxRange].
@@ -602,13 +609,14 @@ var DataSerializer = Class.$extend(
         @param maxRange The upper limit for the value that is being written.
         @return The bit pattern that was written to the buffer.
         @note This function performs quantization, which results in lossy serialization/deserialization. */
-    /* writeQuantizedFloat : function(minRange, maxRange, numBits, value)
+
+    writeQuantizedFloat : function(minRange, maxRange, numBits, value)
     {
-        var outVal = (MathUtils.clamp(value, minRange, maxRange) - minRange) * ((1 << numBits)-1) / (maxRange - minRange);
-        // TODO floor(outVal) as it should be u32?
+        var outVal = Math.floor((Math.min(Math.max(value, minRange), maxRange) - minRange) * ((1 << numBits)-1) / (maxRange - minRange));
         this.writeBits(outVal, numBits);
         return outVal;
-    }, */
+    },
+
     /** Writes the given normalized 2D vector compressed to a single 1D polar angle value. Then the angle is quantized to the specified
         precision.
         @param x The x coordinate of the 2D vector.
@@ -618,11 +626,13 @@ var DataSerializer = Class.$extend(
         advance prior to calling this). When deserializing, (x,y) is reconstructed as a normalized direction vector.
         @note Do not call this function with (x,y) == (0,0).
         @note This function performs quantization, which results in lossy serialization/deserialization. */
-    /* writeNormalizedVector2D : function(x, y, numBits)
+
+    writeNormalizedVector2D : function(x, y, numBits)
     {
         // Call atan2() to get the aimed angle of the 2D vector in the range [-Math.PI, Math.PI], then quantize the 1D result to the desired precision.
         this.writeQuantizedFloat(-Math.PI, Math.PI, numBits, atan2(y, x));
-    }, */
+    },
+
     /** Writes the given 2D vector in polar form and quantized to the given precision.
         The length of the 2D vector is stored as fixed-point in magnitudeIntegerBits.magnitudeDecimalBits format.
         The direction of the 2D vector is stores with directionBits.
@@ -637,7 +647,8 @@ var DataSerializer = Class.$extend(
         Therefore only use DataDeserializer.readVector2D to extract the vector from the buffer. */
     // float x, float y, int magnitudeIntegerBits, int magnitudeDecimalBits, int directionBits
     // returns The number of bits written to the stream.
-    /* writeVector2D : function(x, y, magnitudeIntegerBits, magnitudeDecimalBits, directionBits)
+
+    writeVector2D : function(x, y, magnitudeIntegerBits, magnitudeDecimalBits, directionBits)
     {
         // Compute the length of the vector. Use a fixed-point representation to store the length.
         var length = Math.sqrt(x*x+y*y);
@@ -653,7 +664,8 @@ var DataSerializer = Class.$extend(
         }
         else
             return magnitudeIntegerBits + magnitudeDecimalBits;
-    }, */
+    },
+
     /** Writes the given normalized 3D vector converted to spherical form (azimuth/yaw, inclination/pitch) and quantized to the specified range.
         The given vector (x,y,z) must be normalized in advance.
         @param numBitsYaw The number (integer) of bits to use for storing the azimuth/yaw part of the vector.
@@ -664,7 +676,8 @@ var DataSerializer = Class.$extend(
         amount of precision.
         @note This function uses the convention that the +Y axis points towards up, i.e. +Y is the "Zenith direction", and the X-Z plane is the horizontal
         "map" plane. */
-    /* writeNormalizedVector3D : function(x, y, z, numBitsYaw, numBitsPitch)
+
+    writeNormalizedVector3D : function(x, y, z, numBitsYaw, numBitsPitch)
     {
         // Convert to spherical coordinates. We assume that the vector (x,y,z) has been normalized beforehand.
         var azimuth = Math.atan2(x, z); // The 'yaw'
@@ -672,7 +685,8 @@ var DataSerializer = Class.$extend(
 
         this.writeQuantizedFloat(-Math.PI, Math.PI, numBitsYaw, azimuth);
         this.writeQuantizedFloat(-Math.PI/2, Math.PI/2, numBitsPitch, inclination);
-    }, */
+    },
+
     /** Writes the given 3D vector converted to spherical form (azimuth/yaw, inclination/pitch, length) and quantized to the specified range.
         @param numBitsYaw The number of bits to use for storing the azimuth/yaw part of the vector.
         @param numBitsPitch The number of bits to use for storing the inclination/pitch part of the vector.
@@ -688,7 +702,8 @@ var DataSerializer = Class.$extend(
         amount of precision.
         @note This function uses the convention that the +Y axis points towards up, i.e. +Y is the "Zenith direction", and the X-Z plane is the horizontal
         "map" plane. */
-    /* writeVector3D : function(x, y, z, numBitsYaw, numBitsPitch, magnitudeIntegerBits, magnitudeDecimalBits)
+
+    writeVector3D : function(x, y, z, numBitsYaw, numBitsPitch, magnitudeIntegerBits, magnitudeDecimalBits)
     {
         var length = Math.sqrt(x*x + y*y + z*z);
         var bitVal = this.writeUnsignedFixedPoint(magnitudeIntegerBits, magnitudeDecimalBits, length);
@@ -704,10 +719,10 @@ var DataSerializer = Class.$extend(
         }
         else // The vector is (0,0,0). Don't send spherical angles as they're redundant.
             return magnitudeIntegerBits + magnitudeDecimalBits;
-    }, */
+    },
 
     /** All values ints */
-    /* writeArithmeticEncoded2 : function(numBits, val1, max1, val2, max2)
+    writeArithmeticEncoded2 : function(numBits, val1, max1, val2, max2)
     {
         // assert(max1 * max2 < (1 << numBits));
         // assert(val1 >= 0);
@@ -715,9 +730,9 @@ var DataSerializer = Class.$extend(
         // assert(val2 >= 0);
         // assert(val2 < max2);
         this.writeBits(val1 * max2 + val2, numBits);
-    }, */
+    },
     /** All values ints */
-    /* writeArithmeticEncoded3 : function(numBits, val1, max1, val2, max2, val3, max3)
+    writeArithmeticEncoded3 : function(numBits, val1, max1, val2, max2, val3, max3)
     {
         // assert(max1 * max2 * max3 < (1 << numBits));
         // assert(val1 >= 0);
@@ -727,9 +742,9 @@ var DataSerializer = Class.$extend(
         // assert(val3 >= 0);
         // assert(val3 < max3);
         this.writeBits((val1 * max2 + val2) * max3 + val3, numBits);
-    }, */
+    },
     /** All values ints */
-    /* writeArithmeticEncoded4 : function(numBits, val1, max1, val2, max2, val3, max3, val4, max4)
+    writeArithmeticEncoded4 : function(numBits, val1, max1, val2, max2, val3, max3, val4, max4)
     {
         // assert(max1 * max2 * max3 * max4 < (1 << numBits));
         // assert(val1 >= 0);
@@ -741,9 +756,9 @@ var DataSerializer = Class.$extend(
         // assert(val4 >= 0);
         // assert(val4 < max4);
         this.writeBits(((val1 * max2 + val2) * max3 + val3) * max4 + val4, numBits);
-    }, */
+    },
     /** All values ints */
-    /*writeArithmeticEncoded5 : function(numBits, val1, max1, val2, max2, val3, max3, val4, max4, val5, max5)
+    writeArithmeticEncoded5 : function(numBits, val1, max1, val2, max2, val3, max3, val4, max4, val5, max5)
     {
         // assert(max1 * max2 * max3 * max4 * max5 < (1 << numBits));
         // assert(val1 >= 0);
@@ -757,7 +772,7 @@ var DataSerializer = Class.$extend(
         // assert(val5 >= 0);
         // assert(val5 < max5);
         this.writeBits((((val1 * max2 + val2) * max3 + val3) * max4 + val4) * max5 + val5, numBits);
-    },*/
+    }
 });
 
 return DataSerializer;
