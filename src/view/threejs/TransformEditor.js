@@ -465,6 +465,7 @@ var TransformEditor = Class.$extend(
 
         if (states.length == 1)
             Tundra.events.send("TransformEditor.DragEnd", states[0].target.parentEntity);
+        Tundra.events.send("TransformEditor.MultiTransform", states);
     },
 
     clearSelection : function()

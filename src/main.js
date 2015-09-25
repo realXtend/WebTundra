@@ -87,7 +87,7 @@ require([
                     loglevel  : "debug",
                     applications : {
                         "Freecamera" : "webtundra-applications://freecamera.webtundrajs",
-                        "Editor" : "webtundra-applications://editor/RocketEditor.webtundrajs"
+                        "Editor" : "webtundra-applications://editor/WebTundraEditor.webtundrajs"
                     }
                 },
                 AssetAPI : {
