@@ -344,6 +344,11 @@ module.exports = function(grunt) {
                         return outlines.join("\n");
                     },
 
+                    isEditorInApps : function()
+                    {
+                        return grunt.file.exists("build/application/editor/WebTundraEditor.webtundrajs")
+                    },
+
                     processDependencies : function()
                     {
                         grunt.log.ok("Processing dependencies");
@@ -363,8 +368,12 @@ module.exports = function(grunt) {
                     {
                         grunt.log.ok("Processing applications");
 
+                        var apps = [ "build/application/*.webtundrajs" ];
+                        if (this.isEditorInApps())
+                            apps.push("build/application/editor/*.webtundrajs");
+
                         // Pre process app scripts for uglifying
-                        var scripts = grunt.file.expand([ "build/application/*.webtundrajs"]);
+                        var scripts = grunt.file.expand(apps);
                         for (var i = 0; i < scripts.length; i++)
                             processEC_Script(scripts[i]);
 
@@ -397,10 +406,15 @@ module.exports = function(grunt) {
                             if (contents.indexOf("<!-- @inject-tags -->") === -1)
                                 grunt.fail.fatal('Failed to find "<!-- @inject-tags -->" from client page template');
 
-                            return contents.replace("<!-- @inject-tags -->", [
+                            var scriptTags = [
                                 '<script src="lib/realxtend-webtundra-deps.js"></script>',
                                 '<script src="realxtend-webtundra.js"></script>',
-                            ].join("\n    "));
+                            ];
+
+                            if (this.isEditorInApps())
+                                scriptTags.push('<script src="application/editor/InterfaceDesigner-main.js"></script>');
+
+                            return contents.replace("<!-- @inject-tags -->", scriptTags.join("\n    "));
                         }.bind(this);
 
                         var replaceBody = function(contents, polymer)
@@ -420,6 +434,7 @@ module.exports = function(grunt) {
                             ];
                             if (polymer)
                                 body.push('var startWebTundra = function() {');
+                            var editor = this.isEditorInApps();
                             body = body.concat([
                                 '    new TundraClient({',
                                 '        Tundra : {',
@@ -431,7 +446,8 @@ module.exports = function(grunt) {
                                 '            container : "#webtundra-container-custom",',
                                 '            loglevel  : "debug",',
                                 '            applications: {',
-                                '                "Freecamera" : "webtundra-applications://freecamera.webtundrajs"',
+                                '                "Freecamera" : "webtundra-applications://freecamera.webtundrajs",',
+                                editor ? '                "Editor" : "webtundra-applications://editor/WebTundraEditor.webtundrajs"' : "",
                                 '            }',
                                 '        },',
                                 '        AssetAPI : {',
