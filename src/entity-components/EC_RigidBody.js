@@ -1,12 +1,11 @@
 
 define(["core/framework/Tundra",
-        "lib/ammo",
         "lib/three",
         "core/scene/Scene",
         "core/scene/IComponent",
         "core/scene/Attribute",
         "core/scene/AttributeChange"
-    ], function(Tundra, Ammo, THREE, Scene, IComponent, Attribute, AttributeChange) {
+    ], function(Tundra, THREE, Scene, IComponent, Attribute, AttributeChange) {
 
 /**
     This base implementation does not do anything. It declared the static attribute structure of EC_RigidBody
@@ -161,7 +160,11 @@ var EC_RigidBody = IComponent.$extend(
         this.declareAttribute(18, "useGravity", true, Attribute.Bool);
     },
     
-    __classvars__ : {
+    __classvars__ :
+    {
+        TypeId : 23,
+        TypeName: "RigidBody",
+
         /**
             @property ShapeType
             @static

@@ -24,7 +24,7 @@ var AmmoPhysics = ITundraPlugin.$extend(
     {
         Tundra.physicsWorld = new PhysicsWorld_Ammo();
         Tundra.physicsWorld.postInitialize();
-        Scene.registerComponent(23, "EC_RigidBody", EC_RigidBody_Ammo);
+        Scene.registerComponent(EC_RigidBody_Ammo);
     },
     
     uninitialize: function()

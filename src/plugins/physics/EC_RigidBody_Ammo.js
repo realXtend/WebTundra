@@ -35,6 +35,11 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         this.pendingMeshAsset_ = false; // Is EC_Mesh assets loaded
         this.dirty_ = false; // If dirty create new isntance of rigidbody
     },
+
+    __classvars__ : 
+    {
+        Implementation : "ammo.js",
+    },
     
     reset : function()
     {
@@ -148,10 +153,10 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
     /**
         Check whether body mass is more than zero and collision shape is not TriMesh
 
-        @method isDynamic
+        @method isDynamicBody
         @return {boolean}
     */
-    isDynamic : function()
+    isDynamicBody : function()
     {
         return this.attributes.mass.get() > 0.0 &&
                this.attributes.shapeType.get() !== EC_RigidBody.ShapeType.TriMesh;
@@ -353,7 +358,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         var isPhantom      = this.attributes.phantom.get();
         var drawDebug      = this.attributes.drawDebug.get();
 
-        var isDynamic = this.isDynamic();
+        var isDynamicBody = this.isDynamicBody();
         
         // Read placeables position and rotation
         var pos = this.parentEntity.placeable.worldPosition();
@@ -366,7 +371,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         
 
         var localInertia = new Ammo.btVector3(0.0, 0.0, 0.0);
-        if (isDynamic)
+        if (isDynamicBody)
             this.collisionShapeAmmo.calculateLocalInertia(mass, localInertia);
         
         var myMotionState = new Ammo.btDefaultMotionState(transform);
@@ -380,7 +385,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         this.rigidAmmo = new Ammo.btRigidBody(rbInfo);
 
         var collisionFlags = 0;
-        if (!isDynamic)
+        if (!isDynamicBody)
             collisionFlags |= EC_RigidBody.CollisionFlags.STATIC_OBJECT;
         if (isKinematic)
             collisionFlags |= EC_RigidBody.CollisionFlags.KINEMATIC_OBJECT;
