@@ -1,6 +1,6 @@
 # How to use this Dockerfile
 
-This Dockerfile can be used to build an image of the FIWARE 3D-UI WebTundra GE server, aka realXtend WebTundra.
+This Dockerfile can be used to build an image of the FIWARE 3D-UI WebTundra GE, aka realXtend WebTundra.
 
 The [Docker Hub repository](https://hub.docker.com/r/adminotech/webtundra/) contains a ready made image that you can pull with:
 
