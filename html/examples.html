@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+<head>
+    <title>realXtend WebTundra examples page</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+    <meta charset="utf-8" />
+    <!-- CSS -->
+    <style type="text/css">
+    html, body {
+        overflow: hidden;
+        margin: 0px;
+        padding: 0px;
+    }
+    body {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+
+        font-family: 'Roboto', sans-serif;
+        font-size: 16px;
+        font-weight: 400;
+        background-color: rgb(221,221,221);
+    }
+
+    .exampleitems {
+        width: 300px;
+        height: 150px;
+        /*border: 1px solid black;*/
+        display: inline-block;
+
+        transition: transform 0.4s ease-in-out;
+        -webkit-transition: transform 0.2s ease-in-out;
+
+        -moz-animation-name: showExampleItems;
+        -moz-animation-iteration-count: 1;
+        -moz-animation-timing-function: ease-in-out;
+        -moz-animation-duration: 0.5s;
+
+        -webkit-animation-name: showExampleItems;
+        -webkit-animation-iteration-count: 1;
+        -webkit-animation-timing-function: ease-in-out;
+        -webkit-animation-duration: 0.5s;
+
+        animation-name: showExampleItems;
+        animation-iteration-count: 1;
+        animation-timing-function: ease-in-out;
+        animation-duration: 0.5s;
+    }
+
+    @-moz-keyframes showExampleItems {
+        0% {
+            -moz-transform: scale3d(0,0,0);
+        }
+        75% {
+            -moz-transform: scale3d(1.2,1.2,1.2);
+        }
+        100% {
+            -moz-transform: scale3d(1,1,1);
+        }
+    }
+    @-webkit-keyframes showExampleItems {
+        0% {
+            -webkit-transform: scale3d(0,0,0);
+        }
+        75% {
+            -webkit-transform: scale3d(1.2,1.2,1.2);
+        }
+        100% {
+            -webkit-transform: scale3d(1,1,1);
+        }
+    }
+    @keyframes showExampleItems {
+        0% {
+            transform: scale3d(0,0,0);
+        }
+        75% {
+            transform: scale3d(1.2,1.2,1.2);
+        }
+        100% {
+            transform: scale3d(1,1,1);
+        }
+    }
+
+    .exampleitems:hover {
+        transform: scale3d(1.05, 1.05, 1.05);
+    }
+
+    #container {
+        display: inline-block;
+        overflow: hidden;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+    }
+
+    #sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 200px;
+        height: 100%;
+        padding: 20px;
+    }
+
+    #exampleScroller {
+        position: absolute;
+        overflow-y: scroll;
+        top: 0px;
+        right: 0px;
+        left: 200px;
+        padding: 10px;
+        height: 100vh;
+    }
+    </style>
+</head>
+<body>
+
+<div id="container">
+    <div id="sidebar">
+        <div style="margin-bottom: 30px;">realXtend WebTundra</div>
+        <a href="https://www.github.com/realXtend/WebTundra">github repository</a><br>
+        <a href="https://webtundra.readthedocs.org/">documentation</a><br>
+        <a href="http://catalogue.fiware.org/enablers/3dui-webtundra">FIWARE catalogue</a><br>
+    </div>
+    <div id="exampleScroller">
+<!-- @inject-examples -->
+    </div>
+</div>
+<script type="text/javascript">
+    $("[data-tooltip='tooltip']").tooltip({
+            track: true,
+            content : function()
+            {
+                return $(this).attr("title") + "<br><br>" + $(this).attr("alt");
+            }
+        });
+</script>
+</body>
+</html>

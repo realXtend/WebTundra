@@ -1,0 +1,179 @@
+define([
+    "lib/three",
+    "core/framework/Tundra",
+    "core/script/IApplication"
+], function(THREE, Tundra, IApplication) {
+
+var InputAPIExample = IApplication.$extend(
+{
+    __init__ : function()
+    {
+        this.$super("Input API example");
+
+        this.ui = {};
+        this.selectedEntity = null;
+        this.editEnabled = false;
+
+        this.data = {
+            // Rotation vectors.
+            rotateLeft          : new THREE.Vector3(0,-1,0),
+            rotateRight         : new THREE.Vector3(0,1,0),
+
+            // Position vectors.
+            moveUp    : new THREE.Vector3(0,1,0),
+            moveDown  : new THREE.Vector3(0,-1,0),
+            moveLeft  : new THREE.Vector3(-1,0,0),
+            moveRight : new THREE.Vector3(1,0,0)
+        }
+
+        if (!Tundra.client.isConnected())
+           Tundra.client.onConnected(this, this.start);
+        else
+            this.start();
+    },
+
+    start : function()
+    {
+        this.createEditModeCamera();
+        // Monitor user mouse/keyboard events (using InputAPI).
+        this.subscribeEvent(Tundra.input.onMousePress(this, this.onMousePress));
+        this.subscribeEvent(Tundra.input.onMouseDoubleClicked(this, this.onMouseDoubleClicked));
+        this.subscribeEvent(Tundra.input.onKeyRelease(this, this.onKeyRelease));
+        this.subscribeEvent(Tundra.input.onKeyEvent(this, this.onKeyEvent));
+
+        this.ui = {};
+        this.ui.baseCSS = {
+            "position" : "absolute",
+            "padding"  : 25,
+            "top" : 25,
+            "left" : 25,
+            "font-family" : "RobotoDraft, Arial",
+            "color" : "white",
+            "background-color" : "rgba(8,149,195,0.8)"
+        };
+
+        this.ui.infoText = $("<div/>");
+        this.ui.infoText.html("Double-click on either cube to enter edit mode.<br>" + 
+            "Once in edit mode, use WSAD or left and right arrow keys to move or rotate the selected cube.<br>" + 
+            "You can also switch between cubes by clicking on them.<br>" +
+            "Hit 'Esc' to exit edit mode");
+        this.ui.infoText.css(this.ui.baseCSS);
+        this.ui.infoText.hide();
+
+        Tundra.ui.add(this.ui.infoText);
+        this.ui.infoText.fadeIn(5000);
+    },
+
+    onMousePress: function(e)
+    {
+        // Handling mouse events.
+        if (e.isButtonDown("left") || e.isButtonDown("right"))
+        {
+            var result = Tundra.renderer.raycast();
+            if (result.entity && (result.entity.name == "Cube1" || result.entity.name == "Cube2"))
+                this.selectedEntity = result.entity;
+        }
+    },
+
+    onMouseDoubleClicked: function(e)
+    {
+        if (e.isButtonDown("left") && !this.editEnabled)
+        {
+            var result = Tundra.renderer.raycast();
+            if (result.entity && (result.entity.name == "Cube1" || result.entity.name == "Cube2"))
+            {
+                this.selectedEntity = result.entity;
+                this.enableEdit();
+            }
+        }
+    },
+
+    onKeyRelease: function(e)
+    {
+        if (e.key === "esc")
+        {
+            if (this.editEnabled)
+                this.disableEdit();
+        }
+    },
+
+    rotateEntity: function(entity, rotateVec)
+    {
+        var t = entity.placeable.transform;
+        t.rot.x += rotateVec.x;
+        t.rot.y += rotateVec.y;
+        t.rot.z += rotateVec.z;
+        entity.placeable.transform = t;
+    },
+
+    moveEntity: function(entity, moveVec)
+    {
+        var t = entity.placeable.transform;
+        t.pos.x += moveVec.x;
+        t.pos.y += moveVec.y;
+        t.pos.z += moveVec.z;
+        entity.placeable.transform = t;
+    },
+
+    enableEdit: function()
+    {
+        this.editEnabled = true;
+    },
+
+    disableEdit: function()
+    {
+        this.editEnabled = false;
+    },
+
+    onKeyEvent: function(e)
+    {
+        if (!this.editEnabled)
+            return;
+
+        // Handling kayboard arrows. Determine the pressed key from the event.
+        if (e.key === "left")
+            this.rotateEntity(this.selectedEntity, this.data.rotateLeft);
+        if (e.key === "right")
+            this.rotateEntity(this.selectedEntity, this.data.rotateRight);
+
+        // Handling kayboard a, s, d, w keys. Determine the pressed key from InputAPI.
+        if (Tundra.input.keyboard.pressed["a"])
+            this.moveEntity(this.selectedEntity, this.data.moveLeft);
+        if (Tundra.input.keyboard.pressed["d"])
+            this.moveEntity(this.selectedEntity, this.data.moveRight);
+        if (Tundra.input.keyboard.pressed["w"])
+            this.moveEntity(this.selectedEntity, this.data.moveUp);
+        if (Tundra.input.keyboard.pressed["s"])
+            this.moveEntity(this.selectedEntity, this.data.moveDown);
+    },
+
+    createEditModeCamera : function()
+    {
+        var editModeCamera = Tundra.scene.createEntity(Tundra.scene.nextFreeId() + 36, ["EC_Placeable", "EC_Name", "EC_Camera"]);
+        editModeCamera.name = "EditModeCamera";
+        editModeCamera.temporary = true;
+
+        var cube1 = Tundra.scene.entityByName("Cube1");
+
+        if (editModeCamera && cube1)
+        {
+            var tcube = cube1.placeable.transform;
+            var tcam = editModeCamera.placeable.transform;
+
+            tcam.pos.copy(tcube.pos);
+            tcam.pos.z += 20;
+            tcam.pos.x -= 5;
+            tcam.scale.set(4,4,4);
+
+            var focusPoint = new THREE.Vector3(tcube.pos.x - 5, tcube.pos.y, tcube.pos.z);
+            tcam.lookAt(tcam.pos, focusPoint);
+            editModeCamera.placeable.transform = tcam;
+        }
+
+        editModeCamera.camera.active = true;
+    }
+});
+
+return InputAPIExample;
+
+});

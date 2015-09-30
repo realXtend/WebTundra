@@ -1,0 +1,74 @@
+define([
+    "lib/three",
+    "core/framework/Tundra",
+    "core/script/IApplication"
+], function(THREE, Tundra, IApplication) {
+
+var HelloWorld = IApplication.$extend(
+{
+    __init__ : function()
+    {
+        this.$super("RotatingCube");
+
+        if (!Tundra.client.isConnected())
+            Tundra.client.onConnected(this, this.start);
+        else
+            this.start();
+    },
+
+    onScriptDestroyed : function()
+    {
+        this.log.info("Shutting down");
+
+        if (this.ui && this.ui.rotateButton)
+            this.ui.rotateButton.remove();
+        this.ui = null;
+    },
+
+    start : function()
+    {
+        var camera = Tundra.renderer.activeCameraEntity();
+        camera.placeable.setPosition(0, 2, 8.33);
+        camera.placeable.setRotation(-15.8, -6, 0);
+
+        this.ui = {};
+        this.ui.baseCSS = {
+            "position" : "absolute",
+            "padding"  : 25,
+            "top" : 25,
+            "left" : 25,
+            "font-family" : "RobotoDraft, Arial",
+            "color" : "white",
+            "background-color" : "rgba(8,149,195,0.8)"
+        };
+
+        this.ui.rotateButton = $("<button/>", { text : "Rotate cube" });
+        this.ui.rotateButton.css(this.ui.baseCSS);
+        this.ui.rotateButton.hide();
+
+        Tundra.ui.add(this.ui.rotateButton);
+        this.ui.rotateButton.fadeIn(5000);
+
+        this.ui.rotateButton.click(function()
+        {
+            Tundra.frame.onUpdate(this, this.rotateCube);
+        }.bind(this));
+    },
+
+    rotateCube : function()
+    {
+        var cubeEntity = Tundra.scene.entityByName("Cube");
+        if (cubeEntity)
+        {
+            var t = cubeEntity.placeable.transform; 
+            t.rot.x += 1;
+            t.rot.y += 1;
+            t.rot.z += 1;
+            cubeEntity.placeable.transform = t;
+        }
+    }
+});
+
+return HelloWorld;
+
+});

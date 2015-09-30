@@ -57,8 +57,8 @@ require([
         //"plugins/dom-integration/TundraDomIntegrationPlugin", // Disabled by default for performance reasons
         "plugins/login-screen/LoginScreenPlugin",
         "plugins/ogre-plugin/OgrePlugin",
-        "plugins/script-plugin/ScriptPlugin"
-        //"plugins/physics/AmmoPhysics", // Disabled by default as server typically simulates physics; client-side physics can be performance-heavy
+        "plugins/script-plugin/ScriptPlugin",
+        "plugins/physics/AmmoPhysics", // Disabled by default as server typically simulates physics; client-side physics can be performance-heavy
 
     ],
     function($, _jqueryUI, _jqueryMW, _jqueryTA,
@@ -70,7 +70,7 @@ require([
              //TundraDomIntegrationPlugin, // Disabled by default for performance reasons
              LoginScreenPlugin,
              OgrePlugin,
-             ScriptPlugin /*, AmmoPhysics*/)
+             ScriptPlugin , AmmoPhysics)
     {
         var createClient = function()
         {
@@ -92,7 +92,8 @@ require([
                 },
                 AssetAPI : {
                     storages : {
-                        "webtundra-applications://" : "../src/application"
+                        "webtundra-applications://" : "../src/application",
+                        "webtundra-examples://" : "../html/examples"
                     }
                 },
                 FrameAPI : {
@@ -114,6 +115,19 @@ require([
                     }
                 }
             });
+
+            var example = CoreStringUtils.queryValue("example");
+            if (example != "")
+            {
+                jQuery.ajax({
+                    type: "GET",
+                    url: "examples/" + example + "/scene.txml",
+                    dataType: "xml",
+                    success: function(txmlDoc) {
+                        Tundra.scene.deserializeFromXml(txmlDoc);
+                    }
+                });
+            }
         };
 
         /* Single place to change your server host entry point.

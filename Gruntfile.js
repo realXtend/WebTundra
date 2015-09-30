@@ -129,7 +129,7 @@ module.exports = function(grunt) {
                       dest : "build/" },
 
                     { expand: true, cwd: "html/",
-                      src : [ "img/**" ],
+                      src : [ "img/**", "examples/**" ],
                       dest : "build/" }
                 ]
             },
@@ -397,6 +397,45 @@ module.exports = function(grunt) {
                         }
                     },
 
+                    processExamples : function()
+                    {
+                        grunt.log.ok("Processing examples");
+
+                        var injectExampleItems = function(contents, exampleItems)
+                        {
+                            if (contents.indexOf("<!-- @inject-examples -->") === -1)
+                                grunt.fail.fatal('Failed to find "<!-- @inject-examples -->" from examples page template');
+
+                            return contents.replace("<!-- @inject-examples -->", exampleItems.join("\n"));
+                        }.bind(this);
+
+                        var examples = ["build/examples/*/*.webtundrajs"];
+                        var exampleConfigs = ["build/examples/*/example.json"];
+
+                        var scripts = grunt.file.expand(examples);
+                        for (var i = 0; i < scripts.length; ++i)
+                            processEC_Script(scripts[i]);
+
+                        var configs = grunt.file.expand(exampleConfigs);
+                        var htmlItems = [];
+                        for (var i = 0; i < configs.length; ++i)
+                        {
+                            var exampleFolder = configs[i];
+                            exampleFolder = exampleFolder.substring(0, exampleFolder.indexOf("/example.json"));
+                            exampleFolder = exampleFolder.substring(exampleFolder.lastIndexOf("/") + 1);
+
+                            var exampleConfig = JSON.parse(grunt.file.read(configs[i]));
+                            var htmlItem = '        <a class="exampleitems" data-tooltip="tooltip" title="' + exampleConfig.name + '"'
+                                + 'alt="' + exampleConfig.description + '"'
+                                + 'href="client.html?example=' + exampleFolder + '"'
+                                + 'style="background-image: url(./examples/' + exampleFolder + '/screenshot.png); background-size: cover;">'
+                                + '</a>'
+                            htmlItems.push(htmlItem);
+                        }
+
+                        grunt.file.write("build/examples.html", injectExampleItems(grunt.file.read("html/examples.html"), htmlItems));
+                    },
+
                     createClientHTML : function()
                     {
                         grunt.log.ok("Creating client pages");
@@ -452,7 +491,8 @@ module.exports = function(grunt) {
                                 '        },',
                                 '        AssetAPI : {',
                                 '            storages : {',
-                                '                "webtundra-applications://" : "./application"',
+                                '                "webtundra-applications://" : "./application",',
+                                '                "webtundra-examples://"     : "./examples"',
                                 '            }',
                                 '        },',
                                 '        plugins : {',
@@ -464,7 +504,21 @@ module.exports = function(grunt) {
                                 '                connectingText : "Loading 3D Space"',
                                 '            }',
                                 '        }',
-                                '    });'
+                                '    });',
+                                '',
+                                '    var example = CoreStringUtils.queryValue("example");',
+                                '    if (example != "")',
+                                '    {',
+                                '        jQuery.ajax({',
+                                '            type: "GET",',
+                                '            url: "examples/" + example + "/scene.txml",',
+                                '            dataType: "xml",',
+                                '            success: function(txmlDoc) {',
+                                '                Tundra.scene.deserializeFromXml(txmlDoc);',
+                                '                Tundra.client.fakeConnectionState();',
+                                '            }',
+                                '        });',
+                                '    }',
                             ]);
 
                             body = body.concat([
@@ -498,6 +552,7 @@ module.exports = function(grunt) {
 
                         that.processDependencies();
                         that.processApplications();
+                        that.processExamples();
                         that.createClientHTML();
                         that.createAdditionalFiles();
 
