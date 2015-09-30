@@ -1,0 +1,22 @@
+
+WebTundra is released with a permissive license. See LICENSE for more information.
+
+CONTRIBUTIONS
+
+    This repository was originally developed by Adminotech Oy for the Meshmoon hosting platform.
+    The code was open sourced at 03.04.2014 with the Tundra license to the realXtend
+    WebTundra repository. Open sourcing was done to bring a web browser based SDK and client 
+    to the core Tundra platform for everyone, and in hopes of that this code will be helpful
+    to the open source realXtend ecosystem and its users.
+
+    The repository from this point on has been developed further as open source for the common good by
+    Adminotech Oy and other contributors.
+
+SPONSORS
+
+    University of Oulu,
+    Department of Computer Science and Engineering and UBIOulu
+    http://www.oulu.fi/cse/ http://www.ubioulu.fi/en/home 
+
+    Adminotech Oy
+    http://adminotech.com/ http://meshmoon.com/

@@ -1,10 +1,3 @@
-// For conditions of distribution and use, see copyright notice in LICENSE
-/*
- *      @author Tapani Jamsa
- *      @author Erno Kuusela
- *      @author Toni Alatalo
- *      Date: 2014
- */
 
 require.config({
     // Module name
@@ -26,7 +19,8 @@ require.config({
         "lib/three"                     : { exports : "THREE" },
         "lib/three/CSS3DRenderer"       : [ "lib/three" ],
         "lib/three/OBJLoader"           : [ "lib/three" ],
-        "lib/polymer.min"               : { exports : "Polymer" }
+        "lib/polymer.min"               : { exports : "Polymer" },
+        "lib/ammo"                      : { exports : "Ammo" }
     }
 });
 
@@ -39,18 +33,23 @@ require([
         "lib/jquery.titlealert.min",            /// @todo Remove as core dependency (afaik UiAPI)
         // Client
         "core/framework/TundraClient",
+        "core/scene/EntityAction",
         // Renderer
         "view/threejs/ThreeJsRenderer",
         // Plugins
-        "plugins/scene-parser/SceneParserPlugin",
+        "plugins/login-screen/LoginScreenPlugin",
         "plugins/asset-redirect/AssetRedirectPlugin"
     ],
     function(THREE, $, _jqueryUI, _jqueryMW, _jqueryTA,
              Client,
+             EntityAction,
              ThreeJsRenderer,
-             SceneParserPlugin,
-             AssetRedirectPlugin)
+             LoginScreenPlugin)
 {
+    // Setup loading screen
+    LoginScreenPlugin.LoadingScreenHeaderText = "WebTundra Physics2 Example";
+    LoginScreenPlugin.LoadingScreenHeaderLinkUrl = "https://github.com/realXtend/tundra/tree/tundra2/bin/scenes/Physics2";
+
     // Create client
     var client = new Client({
         container     : "#webtundra-container-custom",
@@ -64,7 +63,7 @@ require([
 
     // App variables
     var freecamera = null;
-//    var instructions = null;
+    var instructions = null;
 
     // Start freecam app
     $.getScript("../../src/application/freecamera.js")
@@ -76,7 +75,6 @@ require([
         }
     );
 
-/*
     // Connected to server
     client.onConnected(null, function() {
         // Setup initial camera position
@@ -99,14 +97,35 @@ require([
         client.ui.addWidgetToScene(instructions);
         instructions.hide();
         instructions.fadeIn(5000);
-*/
+
         var dirLight = new THREE.DirectionalLight();
         client.renderer.scene.add(dirLight);
-//    });
+    });
 
-    var sceneParserPlugin = TundraSDK.plugin("SceneParserPlugin");
-    var xml3dParser = sceneParserPlugin.newXML3DParser(client.scene);
-    $(document).ready(function() {
-        xml3dParser.parseDocXml3D(document);
+    // Disconnected from server
+    client.onDisconnected(null, function() {
+        if (instructions)
+            instructions.remove()
+        instructions = null;
+    });
+
+    // Mouse pressed
+    client.input.onMousePress(null, function(mouse) {
+        if (!mouse.leftDown)
+            return;
+
+        var result = client.renderer.raycast();
+        if (result.entity != null && result.entity.name === "Boulder")
+        {
+            result.entity.exec(EntityAction.Server, "MousePress");
+            if (instructions)
+            {
+                instructions.text("Good job!");
+                instructions.fadeOut(5000, function() {
+                    instructions.remove();
+                    instructions = null;
+                });
+            }
+        }
     });
 });

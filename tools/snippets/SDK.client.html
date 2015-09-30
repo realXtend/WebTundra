@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+    <title>realXtend WebTundra</title>
+    <meta charset="utf-8" />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+
+    <style type="text/css">
+    html {
+        margin: 0px; padding: 0px; overflow: hidden;
+    }
+    body {
+        position: absolute; padding: 0px; margin: 0px; width: 100%; height: 100%; overflow: hidden;
+    }
+    #webrocket-container-custom {
+        position: absolute; background-color: black; width: 100%; height: 100%;
+    }
+    </style>
+</head>
+<body>
+
+<script src="realxtend-webtundra-sdk.js"></script>
+
+<div id="webtundra-container-custom"></div>
+
+<script>
+    var client = tundra.createWebTundraClient({
+        container    : "#webtundra-container-custom",
+        renderSystem : ThreeJsRenderer
+    });
+
+    // Run application. EC_Script is not yet implemented in the WebTundra SDK
+    // so we are just going to ensure the scripts dependencies here and run it.
+    $.getScript("application/freecamera.js")
+        .done(function( script, textStatus ) {
+            var freecamera = new FreeCameraApplication();
+        })
+        .fail(function( jqxhr, settings, exception ) {
+            console.error(exception);
+        }
+    );
+</script>
+</body>
+</html>
