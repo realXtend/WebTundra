@@ -1,9 +1,9 @@
 
 define([
-        "core/framework/TundraSDK",
+        "core/framework/Tundra",
         "core/framework/CoreStringUtils",
         "core/asset/IHttpProxyResolver",
-    ], function(TundraSDK, CoreStringUtils, IHttpProxyResolver) {
+    ], function(Tundra, CoreStringUtils, IHttpProxyResolver) {
 
 /**
     @class RedirectResolver
@@ -15,7 +15,7 @@ var RedirectResolver = IHttpProxyResolver.$extend(
     __init__ : function()
     {
         this.$super("RedirectResolver");
-        this.framework = TundraSDK.framework;
+        this.framework = Tundra.framework;
 
         this.typeSwaps = {};
     },
