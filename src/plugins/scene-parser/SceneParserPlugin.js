@@ -1,9 +1,9 @@
 
 define([
-        "core/framework/TundraSDK",
+        "core/framework/Tundra",
         "core/framework/ITundraPlugin",
         "plugins/scene-parser/SceneParser"
-    ], function(TundraSDK, ITundraPlugin, SceneParser) {
+    ], function(Tundra, ITundraPlugin, SceneParser) {
 
 var SceneParserPlugin = ITundraPlugin.$extend(
 {
@@ -18,7 +18,7 @@ var SceneParserPlugin = ITundraPlugin.$extend(
     }
 });
 
-TundraSDK.registerPlugin(new SceneParserPlugin());
+Tundra.registerPlugin(new SceneParserPlugin());
 
 return SceneParserPlugin;
 

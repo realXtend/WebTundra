@@ -1,11 +1,11 @@
 
 define([
-        "core/framework/TundraSDK",
+        "core/framework/Tundra",
         "core/framework/ITundraPlugin",
         "core/framework/CoreStringUtils",
         "core/asset/AssetAPI",
         "plugins/asset-redirect/RedirectResolver"
-    ], function(TundraSDK, ITundraPlugin, CoreStringUtils, AssetAPI, RedirectResolver) {
+    ], function(Tundra, ITundraPlugin, CoreStringUtils, AssetAPI, RedirectResolver) {
 
 /**
     This plugin provides a IHttpProxyResolver implementation that can be configured
@@ -194,7 +194,7 @@ var AssetRedirectPlugin = ITundraPlugin.$extend(
     }
 });
 
-TundraSDK.registerPlugin(new AssetRedirectPlugin());
+Tundra.registerPlugin(new AssetRedirectPlugin());
 
 return AssetRedirectPlugin;
 

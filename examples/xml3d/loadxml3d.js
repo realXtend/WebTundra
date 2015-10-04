@@ -58,7 +58,7 @@ require([
     });
 
     // Configure asset redirects.
-    var redirectPlugin = TundraSDK.plugin("AssetRedirectPlugin");
+    var redirectPlugin = Tundra.plugin("AssetRedirectPlugin");
     redirectPlugin.registerAssetTypeSwap(".mesh", ".json", "ThreeJsonMesh");
     redirectPlugin.setupDefaultStorage();
 
@@ -67,7 +67,7 @@ require([
 //    var instructions = null;
 
     // Start freecam app
-    $.getScript("../../src/application/freecamera.js")
+    $.getScript("../../src/application/freecamera.webtundrajs")
         .done(function( script, textStatus ) {
             freecamera = new FreeCameraApplication();
         })
@@ -104,7 +104,7 @@ require([
         client.renderer.scene.add(dirLight);
 //    });
 
-    var sceneParserPlugin = TundraSDK.plugin("SceneParserPlugin");
+    var sceneParserPlugin = Tundra.plugin("SceneParserPlugin");
     var xml3dParser = sceneParserPlugin.newXML3DParser(client.scene);
     $(document).ready(function() {
         xml3dParser.parseDocXml3D(document);
