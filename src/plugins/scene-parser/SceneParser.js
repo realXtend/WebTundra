@@ -271,25 +271,31 @@ var SceneParser = Class.$extend(
             viewPosition = xview.getAttribute("position");
             viewOrientation = xview.getAttribute("orientation");
 
-            var entity = this.scene.createLocalEntity(["Name", "Placeable", "Camera"]);
-            entity.name = viewId || "XML3D View";
-
-            // Placeable
-            var px = entity.placeable.transform;
-            if (viewPosition)
-                wtSplitToXyz(viewPosition, px.pos);
-            if (viewOrientation)
-                wtSplitAxisAngleToEulerXyz(viewOrientation, px.rot);
-            entity.placeable.transform = px; // trigger signal
-
             // Camera
-            /// @todo Read and set aspect ratio to camera from <view>
-            //entity.camera.aspectRatio = ??;
+            var actcam = TundraSDK.framework.renderer.activeCamera();
+            var cament;
+            if (!actcam) {
+                cament = this.scene.createLocalEntity(["Name", "Placeable", "Camera"]);
+                cament.name = viewId || "XML3D View";
+                this.log.debug("    Created", cament.camera.toString());
+                cament.camera.setActive();
+                this.log.debug("    Activated camera in", cament.toString());
+            } else {
+                cament = actcam.parentEntity;
+                this.log.debug("    Configuring pre-existing active camera", cament.camera.toString());
+            }
+            // Placeable
+            var px = cament.placeable.transform;
+            if (viewPosition) {
+                wtSplitToXyz(viewPosition, px.pos);
+            }
+            if (viewOrientation) {
+                wtSplitAxisAngleToEulerXyz(viewOrientation, px.rot);
+            }
+            cament.placeable.transform = px; // trigger signal
 
-            this.log.debug("    Created", entity.camera.toString());
-            entity.camera.setActive();
-            this.log.debug("    Activated camera in", entity.toString());
-            
+            /// @todo Read and set aspect ratio to camera from <view>
+            //cament.camera.aspectRatio = ??;
         }
     }
 });
