@@ -30,12 +30,13 @@ require.config({
         "lib/three/DDSLoader"           : [ "lib/three" ],
         "lib/three/CSS3DRenderer"       : [ "lib/three" ],
         "lib/three/OBJLoader"           : [ "lib/three" ],
-        "lib/polymer.min"               : { exports : "Polymer" }
+        "lib/polymer.min"               : { exports : "Polymer" },
+        "lib/ammo"                      : { exports : "Ammo" }
     },
     paths :
     {
         "jquery"            : "lib/jquery",
-        "lib/ammo"                      : { exports : "Ammo" }
+
     }
 });
 
