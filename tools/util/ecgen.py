@@ -4,11 +4,17 @@ import re
 
 typetrans = {
     'float': 'Real',
-    'qstring': 'String',
-    'qvariantlist': 'QVariantList',
-    'qvariant': 'QVariant',
+    'bool': 'Bool'
+    #'qstring': 'String',
+    #'qvariantlist': 'QVariantList',
+    #'qvariant': 'QVariant'
 }
 
+attrtemplate = """        /**
+            @property %s (attribute)
+            @type Attribute
+        */
+        this.declareAttribute(%d, "%s", %s, %s, "%s");"""
 
 def main():
     for input_fn in sys.argv[1:]:
@@ -17,6 +23,7 @@ def main():
 def gen_ec(filename):
     attr_defaults= read_defaults(re.sub(r'\.h$', '.cpp', filename))
 
+    aidx = 0
     for line in open(filename):
         m = re.search(r'COMPONENT_NAME\("(\w+)", (\d+)', line)
         if m:
@@ -31,13 +38,16 @@ def gen_ec(filename):
         m = re.search(r'DEFINE_QPROPERTY_ATTRIBUTE\((\w+), (\w+)', line)
         if m:
             atype, aid = m.groups()
-            atype = atype.capitalize()
             atype = typetrans.get(atype.lower(), atype)
+            atype = 'Attribute.' + atype
             aname, adefault = attr_defaults.get(aid)
-            if adefault:
-                print '    this.addAttribute(cAttribute%s, "%s", "%s", %s);' % (atype, aid, aname, adefault)
-            else:
-                print '    this.addAttribute(cAttribute%s, "%s", "%s");' % (atype, aid, aname)
+            if adefault.startswith('AssetReference(""'):
+                adefault = '""'
+            #if adefault:
+            print attrtemplate % (aid, aidx, aid, adefault, atype, aname)
+            #"else:
+            #    print '    this.addAttribute(cAttribute%s, "%s", "%s");' % (atype, aid, aname)
+            aidx += 1
 
     print '}'
     print
