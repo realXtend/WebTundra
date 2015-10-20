@@ -15,8 +15,6 @@ var RedirectResolver = IHttpProxyResolver.$extend(
     __init__ : function()
     {
         this.$super("RedirectResolver");
-        this.framework = Tundra.framework;
-
         this.typeSwaps = {};
     },
 
