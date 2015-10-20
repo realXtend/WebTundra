@@ -10,6 +10,9 @@ define([
         "core/renderer/IRenderSystem",
         "core/renderer/RaycastResult",
         "view/threejs/TransformInterpolator",
+        "core/asset/AssetFactory",
+        "view/threejs/asset/ObjMeshAsset",
+        "view/threejs/asset/ThreeJsonAsset",
         "view/threejs/entity-components/EC_Fog_ThreeJs",
         "view/threejs/entity-components/EC_Sky_ThreeJs",
         "view/threejs/entity-components/EC_SkyX_ThreeJs",
@@ -19,7 +22,9 @@ define([
         "view/threejs/entity-components/EC_Mesh_ThreeJs",
         "view/threejs/entity-components/EC_Placeable_ThreeJs"
     ], function(THREE, TWEEN, Tundra, TundraLogging, CoreStringUtils,
-                Scene, Color, IRenderSystem, RaycastResult, TransformInterpolator,
+                Scene, Color, IRenderSystem, RaycastResult, TransformInterpolator, AssetFactory,
+                ObjMeshAsset,
+                ThreeJsonAsset,
                 EC_Fog_ThreeJs,
                 EC_Sky_ThreeJs,
                 EC_SkyX_ThreeJs,
@@ -210,6 +215,9 @@ var ThreeJsRenderer = IRenderSystem.$extend(
         this.materialLoadError = new THREE.MeshPhongMaterial({ "color": this.convertColor("rgb(240,50,50)"), "wireframe" : false });
         this.materialLoadError.name = "tundra.MaterialLibrary.LoadError";
 
+        // Register the three.js asset and component implementations
+        this.registerAssetFactories();
+
         // Register the three.js implementations of Tundra components
         this.registerComponents();
     },
@@ -323,6 +331,15 @@ var ThreeJsRenderer = IRenderSystem.$extend(
         for (var key in this._sceneObjects)
             list = list.concat(this._sceneObjects[key]);
         return list;
+    },
+
+    registerAssetFactories : function()
+    {
+        /** @note It would be too wide of acceptance range if the three.js json accepted all .json file extensions.
+         * .3geo is a three.js "standardized" extensions for mesh assets, but not widely used (yet).
+         * You can load from .json/.js files via AssetAPI but you need to force the type to "ThreeJsonMesh". */
+        Tundra.framework.asset.registerAssetFactory(new AssetFactory("ThreeJsonMesh", ThreeJsonAsset, { ".3geo" : "json", ".json" : "json", ".js" : "json" }, "json"));
+        Tundra.framework.asset.registerAssetFactory(new AssetFactory("ObjMesh", ObjMeshAsset, { ".obj" : "text" }));
     },
 
     registerComponents : function()

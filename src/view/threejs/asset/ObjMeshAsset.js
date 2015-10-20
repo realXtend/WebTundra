@@ -2,9 +2,9 @@
 define([
         "lib/three",
         "lib/three/OBJLoader",
-        "core/framework/TundraSDK",
+        "core/framework/Tundra",
         "core/asset/IAsset"
-    ], function(THREE, OBJLoader, TundraSDK, IAsset) {
+    ], function(THREE, OBJLoader, Tundra, IAsset) {
 
 /**
     Represents a OBJ mesh asset. This asset is processed and Three.js rendering engine meshes are generated.
@@ -82,7 +82,7 @@ var ObjMeshAsset = IAsset.$extend(
         /// @todo This is probaly very slow. Figure out a faster way to do this.
         /// We could do internal bookkeeping on how many with this UUID have been created.
         var used = false;
-        TundraSDK.framework.renderer.scene.traverse(function(node) {
+        Tundra.framework.renderer.scene.traverse(function(node) {
             // We are only interested in things that are using a geometry.
             if (used === true || node == null || node.geometry === undefined ||
                 (!(node.geometry instanceof THREE.BufferGeometry) && !(node.geometry instanceof THREE.Geometry)))
@@ -102,16 +102,16 @@ var ObjMeshAsset = IAsset.$extend(
         // is safe to unload.
 
         var meshAsset = new ObjMeshAsset(newAssetName);
-        meshAsset.mesh = TundraSDK.framework.renderer.createSceneNode();
+        meshAsset.mesh = Tundra.framework.renderer.createSceneNode();
         for (var i=0, len=this.numSubmeshes(); i<len; ++i)
         {
             var existingSubmesh = this.getSubmesh(i);
             var clonedSubmesh = null;
 
             if (existingSubmesh instanceof THREE.SkinnedMesh)
-                clonedSubmesh = new THREE.SkinnedMesh(existingSubmesh.geometry, TundraSDK.framework.renderer.materialWhite, false);
+                clonedSubmesh = new THREE.SkinnedMesh(existingSubmesh.geometry, Tundra.framework.renderer.materialWhite, false);
             else
-                clonedSubmesh = new THREE.Mesh(existingSubmesh.geometry, TundraSDK.framework.renderer.materialWhite);
+                clonedSubmesh = new THREE.Mesh(existingSubmesh.geometry, Tundra.framework.renderer.materialWhite);
 
             clonedSubmesh.name = meshAsset.name + "_submesh_" + i;
             clonedSubmesh.tundraSubmeshIndex = existingSubmesh.tundraSubmeshIndex;
@@ -144,7 +144,7 @@ var ObjMeshAsset = IAsset.$extend(
         }
 
         if (this.mesh === undefined || this.mesh === null)
-            this.mesh = TundraSDK.framework.renderer.createSceneNode();
+            this.mesh = Tundra.framework.renderer.createSceneNode();
 
         // Placeable will update the matrix when changes occur.
         this.mesh.name = this.name;

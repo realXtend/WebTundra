@@ -13,10 +13,10 @@
 
 define([
         "lib/classy",
-        "core/framework/TundraSDK",
+        "core/framework/Tundra",
         "core/framework/CoreStringUtils",
         "core/framework/TundraLogging"
-    ], function(Class, TundraSDK, CoreStringUtils, TundraLogging) {
+    ], function(Class, Tundra, CoreStringUtils, TundraLogging) {
 
 var SceneParser = Class.$extend(
 {
@@ -34,7 +34,7 @@ var SceneParser = Class.$extend(
     {
         this.log.debug("Fetching source", url);
 
-        var transfer = TundraSDK.framework.asset.requestAsset(url, "Text");
+        var transfer = Tundra.framework.asset.requestAsset(url, "Text");
         transfer.onCompleted(this, function(asset) {
             this.log.debug("Creating asset refs with base", asset.baseRef);
             this.baseRef = asset.baseRef;
@@ -48,23 +48,23 @@ var SceneParser = Class.$extend(
         xhttp.send(null);
         var doc = xhttp.responseXML;
         this.log.debug(typeof doc, xhttp);
-        TundraSDK.check(doc !== null);
+        Tundra.check(doc !== null);
         return this.parseDocXml3D(doc);*/
     },
 
     parseFromUrlXml3D : function(url)
     {
-        TundraSDK.checkDefined(url);
+        Tundra.checkDefined(url);
         var xhttp = new XMLHttpRequest();
         //xhttp.overrideMimeType('text/xml');
-        TundraSDK.check(typeof(url) === "string");
+        Tundra.check(typeof(url) === "string");
         this.log.debug("xhr start");
         xhttp.onreadystatechange = function() {
             console.log("xhr callback");
             if (xhttp.readyState == 4) {
                 if (xhttp.status == 200) {
                     var doc = xhttp.response;
-                    TundraSDK.check(doc !== null);               
+                    Tundra.check(doc !== null);
                     this.parseDocXml3D(doc);
                 }
             } else {
@@ -174,7 +174,7 @@ var SceneParser = Class.$extend(
 
         var setPlaceableFromGroupNode = function(placeable, groupNode)
         {
-            TundraSDK.check(!!groupNode);
+            Tundra.check(!!groupNode);
             var xTransform = groupNode.getAttribute("transform");
             if (!xTransform)
                 return false;
@@ -204,7 +204,7 @@ var SceneParser = Class.$extend(
 
             entity = this.createEntityWithPlaceable();
             this.log.debug("  Created Entity", entity.toString());
-            TundraSDK.check(!!entity.placeable);
+            Tundra.check(!!entity.placeable);
             var gotTransform = setPlaceableFromGroupNode(entity.placeable, group);
             if (!gotTransform)
                 this.log.debug("using default transform for group", group);
@@ -310,7 +310,7 @@ function getDirectChildNodesByTagName(node, tagName)
 function xyzAngleToQuaternion(nums)
 {
     /* formula from xml3d.js's rotation.js */
-    TundraSDK.check(nums.length === 4);
+    Tundra.check(nums.length === 4);
     var axisVec = new THREE.Vector3(nums[0], nums[1], nums[2]);
     var axisLength = axisVec.length();
     var quatXyzw;
@@ -333,7 +333,7 @@ function wtNodeListToArray(nodeList)
 {
     var out = [];
     out.push.apply(out, nodeList);
-    TundraSDK.check(out.length === nodeList.length);
+    Tundra.check(out.length === nodeList.length);
     return out;
 }
 
@@ -393,7 +393,7 @@ function wtFindTransformDefs(root)
             TundraLogging.getLogger("SceneParserUtils").debug("incomplete transform " + transformId + ":", trans, rot, scale);
         }
         TundraLogging.getLogger("SceneParserUtils").debug("transform: " + transformId);
-        TundraSDK.check(!!(trans || rot || scale));
+        Tundra.check(!!(trans || rot || scale));
         foundTransforms[transformId] = makeSetter(trans, rot, scale);
     }
     TundraLogging.getLogger("SceneParserUtils").debug("transform finding finished");
@@ -403,7 +403,7 @@ function wtFindTransformDefs(root)
 function wtSplitToXyz(s, v3)
 {
     var nums = s.split(/\s+/).map(parseFloat);
-    TundraSDK.check(nums.length === 3);
+    Tundra.check(nums.length === 3);
     v3.x = nums[0]; v3.y = nums[1]; v3.z = nums[2];
     // console.log("wtSplitToXyz: " + nums);
 }
@@ -412,7 +412,7 @@ function wtSplitAxisAngleToEulerXyz(s, xfrmRot)
 {
     var nums = s.split(/\s+/).map(parseFloat);
     var euler = new THREE.Euler();
-    TundraSDK.check(nums.length === 4);
+    Tundra.check(nums.length === 4);
     var q = xyzAngleToQuaternion(nums);
     euler.setFromQuaternion(q);
     /* ec convention is degrees */
