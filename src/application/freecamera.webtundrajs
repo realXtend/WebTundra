@@ -36,6 +36,8 @@ var FreeCameraApplication = ICameraApplication.$extend(
             pointerEntity       : null
         };
 
+        this.entity.temporary = true;
+
         this.subscribeEvent(this.entity.onEntityAction(this, function(entityAction) {
             if (entityAction.name === "SetPreserveYAxis")
             {
@@ -110,6 +112,8 @@ var FreeCameraApplication = ICameraApplication.$extend(
 
         // Start up the ICameraApplication
         this.startCameraApplication("Free Look", "FreeLookCamera", 60);
+
+        this.cameraEntity.temporary = true;
 
         // Initiate camera pos/rot and activate it
         var t = this.cameraEntity.placeable.transform;
