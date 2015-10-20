@@ -34,7 +34,7 @@ var SceneParser = Class.$extend(
     {
         this.log.debug("Fetching source", url);
 
-        var transfer = Tundra.framework.asset.requestAsset(url, "Text");
+        var transfer = Tundra.asset.requestAsset(url, "Text");
         transfer.onCompleted(this, function(asset) {
             this.log.debug("Creating asset refs with base", asset.baseRef);
             this.baseRef = asset.baseRef;

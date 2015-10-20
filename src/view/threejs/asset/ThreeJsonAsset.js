@@ -81,7 +81,7 @@ var ThreeJsonAsset = IAsset.$extend(
         /// @todo This is probaly very slow. Figure out a faster way to do this.
         /// We could do internal bookkeeping on how many with this UUID have been created.
         var used = false;
-        Tundra.framework.renderer.scene.traverse(function(node) {
+        Tundra.renderer.scene.traverse(function(node) {
             // We are only interested in things that are using a geometry.
             if (used === true || node == null || node.geometry === undefined ||
                 (!(node.geometry instanceof THREE.BufferGeometry) && !(node.geometry instanceof THREE.Geometry)))
@@ -101,16 +101,16 @@ var ThreeJsonAsset = IAsset.$extend(
         // is safe to unload.
 
         var meshAsset = new ThreeJsonAsset(newAssetName);
-        meshAsset.mesh = Tundra.framework.renderer.createSceneNode();
+        meshAsset.mesh = Tundra.renderer.createSceneNode();
         for (var i=0, len=this.numSubmeshes(); i<len; ++i)
         {
             var existingSubmesh = this.getSubmesh(i);
             var clonedSubmesh = null;
 
             if (existingSubmesh instanceof THREE.SkinnedMesh)
-                clonedSubmesh = new THREE.SkinnedMesh(existingSubmesh.geometry, Tundra.framework.renderer.materialWhite, false);
+                clonedSubmesh = new THREE.SkinnedMesh(existingSubmesh.geometry, Tundra.renderer.materialWhite, false);
             else
-                clonedSubmesh = new THREE.Mesh(existingSubmesh.geometry, Tundra.framework.renderer.materialWhite);
+                clonedSubmesh = new THREE.Mesh(existingSubmesh.geometry, Tundra.renderer.materialWhite);
 
             clonedSubmesh.name = meshAsset.name + "_submesh_" + i;
             clonedSubmesh.tundraSubmeshIndex = existingSubmesh.tundraSubmeshIndex;
@@ -143,7 +143,7 @@ var ThreeJsonAsset = IAsset.$extend(
                 if (threejsData.materials !== undefined)
                     material = (threejsData.materials.length === 1 ? threejsData.materials[0] : new THREE.MeshFaceMaterial(threejsData.materials));
 
-                this.mesh = Tundra.framework.renderer.createSceneNode();
+                this.mesh = Tundra.renderer.createSceneNode();
                 this.mesh.add(new THREE.Mesh(threejsData.geometry, material));
             }
             else
@@ -156,7 +156,7 @@ var ThreeJsonAsset = IAsset.$extend(
         }
 
         if (this.mesh === undefined || this.mesh === null)
-            this.mesh = Tundra.framework.renderer.createSceneNode();
+            this.mesh = Tundra.renderer.createSceneNode();
 
         // Placeable will update the matrix when changes occur.
         this.mesh.name = this.name;
