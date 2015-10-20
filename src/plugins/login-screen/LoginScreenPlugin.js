@@ -177,6 +177,14 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
                 "font-weight" : "bold"
             }
         }).button();
+        this.ui.localButton = $("<button/>", {
+            id      : "local-button",
+            text    : "NEW LOCAL SCENE",
+            css : {
+                "font-size"   : 12,
+                "font-weight" : "bold"
+            }
+        }).button();
 
         this.ui.loginControls.css({
             "position"          : "absolute",
@@ -193,7 +201,7 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
             "background-color"  : "transparent"
         });
 
-        var inputs = [ this.ui.loginHost, this.ui.loginUsername, this.ui.loginButton ];
+        var inputs = [ this.ui.loginHost, this.ui.loginUsername, this.ui.loginButton, this.ui.localButton ];
         for (var i = 0; i < inputs.length; i++)
         {
             inputs[i].css({
@@ -201,7 +209,7 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
                 "max-height"    : 25,
                 "margin-left"   : 6,
                 "margin-right"  : 9,
-                "padding"       : inputs[i] === this.ui.loginButton ? 0 : 3,
+                "padding"       : inputs[i] === this.ui.loginButton || inputs[i] === this.ui.localButton ? 0 : 3,
                 "border"        : "1px solid lightgrey",
                 "border-radius" : 4
             });
@@ -210,6 +218,7 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
         this.ui.loginControls.append(this.ui.loginHost);
         this.ui.loginControls.append(this.ui.loginUsername);
         this.ui.loginControls.append(this.ui.loginButton);
+        this.ui.loginControls.append(this.ui.localButton);
         this.ui.loginControls.append(this.ui.loginError);
         this.ui.loginControls.fadeIn(1000);
 
@@ -217,6 +226,7 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
 
         // Login button click
         this.ui.loginButton.click(this.onToggleConnectionState.bind(this));
+        this.ui.localButton.click(function() { Tundra.client.fakeConnectionState(); });
     },
 
     onToggleConnectionState : function()
