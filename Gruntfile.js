@@ -696,6 +696,7 @@ module.exports = function(grunt) {
     tasks = tasks.concat([
         "hack_amd_production",
         "clean:build",
+        "doc",
         "compress:build"
     ]);
     grunt.registerTask("build", "", tasks);
