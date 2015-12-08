@@ -59,7 +59,8 @@ require([
         "plugins/login-screen/LoginScreenPlugin",
         "plugins/ogre-plugin/OgrePlugin",
         "plugins/script-plugin/ScriptPlugin",
-        "plugins/physics/AmmoPhysics", // Disabled by default as server typically simulates physics; client-side physics can be performance-heavy
+        "plugins/audio/AudioPlugin"
+        //"plugins/physics/AmmoPhysics", // Disabled by default as server typically simulates physics; client-side physics can be performance-heavy
 
     ],
     function($, _jqueryUI, _jqueryMW, _jqueryTA,
@@ -71,7 +72,7 @@ require([
              //TundraDomIntegrationPlugin, // Disabled by default for performance reasons
              LoginScreenPlugin,
              OgrePlugin,
-             ScriptPlugin , AmmoPhysics)
+             ScriptPlugin, AudioPlugin /*, AmmoPhysics*/)
     {
         var createClient = function()
         {
