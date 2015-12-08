@@ -16,7 +16,7 @@ var AudioAPI = ITundraAPI.$extend(
         this.$super(name, options);
     },
 
-    __classvars__ : 
+    __classvars__: 
     {
         getDefaultOptions : function()
         {
