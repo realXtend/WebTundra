@@ -19,6 +19,12 @@ var Tundra =
     */
     client      : null,
     /**
+        AudioAPI instance
+        @type {AudioAPI}
+        @readonly
+    */
+    audio       : null,
+    /**
         ConfigAPI instance
         @type {ConfigAPI}
         @readonly
@@ -87,6 +93,7 @@ var Tundra =
     {
         return [ "Tundra",
                  "TundraClient",
+                 "AudioAPI",
                  "ConfigAPI",
                  "Network",
                  "FrameAPI",

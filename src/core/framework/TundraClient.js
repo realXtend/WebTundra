@@ -25,6 +25,7 @@ define([
         // Core APIs
         "core/network/Network",
         "core/event/EventAPI",
+        "core/audio/AudioAPI",
         "core/config/ConfigAPI",
         "core/console/ConsoleAPI",
         "core/scene/Scene",
@@ -50,10 +51,10 @@ define([
         // Pluggable interfaces
         IRenderSystem,              IDomIntegration,            ICameraApplication,
         // Core APIs
-        Network,                    EventAPI,                   ConfigAPI,
-        ConsoleAPI,                 Scene,                      AttributeChange,
-        AssetAPI,                   InputAPI,                   UiAPI,
-        FrameAPI,
+        Network,                    EventAPI,                   AudioAPI,
+        ConfigAPI,                  ConsoleAPI,                 Scene,
+        AttributeChange,            AssetAPI,                   InputAPI,
+        UiAPI,                      FrameAPI,
         // Network
         LoginMessage,
         // Core Components
@@ -110,7 +111,13 @@ var TundraClient = Class.$extend(
         */
         this.APIs = [];
 
-        /** @property config
+        /**
+            @property audio
+            @var {AudioAPI}
+        */
+        this.audio = Tundra.audio = this.loadAPI("AudioAPI", AudioAPI);
+        /**
+            @property config
             @var {ConfigAPI}
         */
         this.config = Tundra.config = this.loadAPI("ConfigAPI", ConfigAPI);
