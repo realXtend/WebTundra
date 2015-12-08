@@ -534,6 +534,7 @@ var TundraClient = Class.$extend(
 
             $.extend(options.Tundra, Tundra.getDefaultOptions());
             $.extend(options.Network, Network.getDefaultOptions());
+            $.extend(options.AudioAPI, AudioAPI.getDefaultOptions());
             $.extend(options.UiAPI, UiAPI.getDefaultOptions());
             $.extend(options.AssetAPI, AssetAPI.getDefaultOptions());
 
