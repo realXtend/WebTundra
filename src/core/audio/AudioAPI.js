@@ -51,11 +51,55 @@ var AudioAPI = ITundraAPI.$extend(
         }));
     },
 
+    registerEvents : function()
+    {
+        //TODO: REMOVE THIS AUDIO PLAYBACK TEST
+        Tundra.asset.requestAsset("https://ia902508.us.archive.org/5/items/testmp3testfile/mpthreetest.mp3").onCompleted(this, function(asset)
+        {
+            Tundra.audio.context.decodeAudioData(asset.data, function(decodedData) { 
+                console.log("Decoded data", decodedData);
+                var source = Tundra.audio.context.createBufferSource();
+                source.buffer = decodedData;
+                source.loop = false;
+                source.onended = function() { };
+                source.playbackRate.value = 1;
+                source.start(0, 0);
+
+                source.connect(Tundra.audio.panner);
+            });
+        }.bind(this));
+    },
+
     /// ITundraAPI override
     initialize : function()
     {
+        this.context = new (window.AudioContext || window.webkitAudioContext)();
+        this.panner = this.context.createPanner();
+        this.gain = this.context.createGain();
+        this.gain.connect(this.context.destination);
+
     	this.registerAssetFactories();
     	this.registerComponents();
+
+        if (Tundra.client.isConnected())
+            this.registerEvents();
+        else
+            Tundra.client.onConnected(this, this.registerEvents);
+    },
+
+    setActiveSoundListener : function(soundListener)
+    {
+        var soundListenerEntities = Tundra.scene.entitiesWithComponent("SoundListener");
+        for (var i = 0; i < soundListenerEntities.length; i++)
+        {
+            var current = soundListenerEntities[i].soundListener;
+            //console.log(current.id, soundListener.id);
+            if (current.id !== soundListener.id && current.active)
+            {
+                current.active = false;
+                break;
+            }
+        }
     },
 
     /// ITundraAPI override
