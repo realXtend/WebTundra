@@ -162,7 +162,7 @@ var FreeCameraApplication = ICameraApplication.$extend(
 
     onUpdate : function(frametime)
     {
-        if (!this.cameraEntity.camera.active)
+        if (this.cameraEntity == null || !this.cameraEntity.camera.active)
             return;
 
         if (this.movementTarget != null)
@@ -244,7 +244,7 @@ var FreeCameraApplication = ICameraApplication.$extend(
 
     onKeyEvent : function(event)
     {
-        if (!this.cameraEntity.camera.active)
+        if (this.cameraEntity == null || !this.cameraEntity.camera.active)
             return;
         
         if (event.type === "release")
@@ -357,7 +357,7 @@ var FreeCameraApplication = ICameraApplication.$extend(
 
     onTouchPan : function(event)
     {
-        if (!this.cameraEntity.camera.active)
+        if (this.cameraEntity == null || !this.cameraEntity.camera.active)
             return;
 
         if (event.isMultiTouch)
@@ -370,7 +370,7 @@ var FreeCameraApplication = ICameraApplication.$extend(
 
     onTouchPinch : function(event)
     {
-        if (!this.cameraEntity.camera.active)
+        if (this.cameraEntity == null || !this.cameraEntity.camera.active)
             return;
 
         if (event.targetNodeName !== "canvas" && event.targetId.indexOf("CSS3DRenderer") !== 0)
@@ -386,7 +386,7 @@ var FreeCameraApplication = ICameraApplication.$extend(
 
     onMouseMove : function(event)
     {
-        if (!this.cameraEntity.camera.active)
+        if (this.cameraEntity == null || !this.cameraEntity.camera.active)
             return;
 
         if (!event.rightDown)
