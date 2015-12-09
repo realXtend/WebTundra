@@ -14,6 +14,15 @@ var AudioAPI = ITundraAPI.$extend(
     __init__ : function(name, options)
     {
         this.$super(name, options);
+
+        // define audio context
+        this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Master GainNode to be used as destination of other sources
+        this.masterGainNode = this.audioCtx.createGain();
+        this.masterGainNode.connect(this.audioCtx.destination);
+        this.masterGainNode.gain.value = options.masterGain;
+
     },
 
     __classvars__: 
@@ -22,7 +31,8 @@ var AudioAPI = ITundraAPI.$extend(
         {
             return {
                 enabled             : true,
-                followActiveCamera  : false
+                followActiveCamera  : false,
+                masterGain          : 0.5
             };
         }
     },
