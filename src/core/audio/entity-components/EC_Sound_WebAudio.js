@@ -27,6 +27,7 @@ var EC_Sound_WebAudio = EC_Sound.$extend(
 
     update : function()
     {
+        // @todo Remove, used for test only
         if (this.soundRef != "")
             this.load(this.soundRef);
     },
@@ -48,7 +49,10 @@ var EC_Sound_WebAudio = EC_Sound.$extend(
 
     load : function(value)
     {
-    }
+
+    },
+
+
 });
 
 return EC_Sound_WebAudio;
