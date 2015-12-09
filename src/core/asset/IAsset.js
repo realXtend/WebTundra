@@ -304,7 +304,7 @@ var IAsset = Class.$extend(
         @param {ArrayBuffer|Text|Xml} data
         @param {String} dataType eg. 'arraybuffer', 'text'
         @return {Boolean} Return false if loading the asset from input data fails.
-        Returning true on success if optional, auto return of 'undefined' is assumed to be a successful load.
+        Returning true on success is optional, auto return of 'undefined' is assumed to be a successful load.
     */
     deserializeFromData : function(data, dataType, transfer)
     {
