@@ -14,15 +14,6 @@ var AudioAPI = ITundraAPI.$extend(
     __init__ : function(name, options)
     {
         this.$super(name, options);
-
-        // define audio context
-        this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        // Master GainNode to be used as destination of other sources
-        this.masterGainNode = this.audioCtx.createGain();
-        this.masterGainNode.connect(this.audioCtx.destination);
-        this.masterGainNode.gain.value = options.masterGain;
-
     },
 
     __classvars__: 
@@ -75,8 +66,11 @@ var AudioAPI = ITundraAPI.$extend(
     {
         this.context = new (window.AudioContext || window.webkitAudioContext)();
         this.panner = this.context.createPanner();
-        this.gain = this.context.createGain();
-        this.gain.connect(this.context.destination);
+
+        // Master GainNode to be used as destination of other sources
+        this.masterGainNode = this.context.createGain();
+        this.masterGainNode.connect(this.context.destination);
+        this.masterGainNode.gain.value = this.options.masterGain;
 
     	this.registerAssetFactories();
     	this.registerComponents();
