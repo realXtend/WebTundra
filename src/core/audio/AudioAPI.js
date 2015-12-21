@@ -138,9 +138,7 @@ var AudioAPI = ITundraAPI.$extend(
             var current = soundListenerEntities[i].soundListener;
 
             if (current.active)
-            {
                 return true;
-            }
         }
 
         return false;
