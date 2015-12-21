@@ -25,11 +25,14 @@ var EC_Sound_WebAudio = EC_Sound.$extend(
         Implementation : "webaudio"
     },
 
+    /*
+     * The initialization function
+     */
     update : function()
     {
         // @todo Remove, used for test only
         if (this.soundRef != "")
-            this.load(this.soundRef);
+            this.load();
     },
 
     attributeChanged : function(index, name, value)
@@ -37,19 +40,22 @@ var EC_Sound_WebAudio = EC_Sound.$extend(
         switch(index)
         {
         case 0: // sound ref
+            this.load();
             break;
         case 4: // play on creation
             break;
-        case 5:
+        case 5: // loop sound
+            Tundra.audio.setLoop(value);
             break;
         default:
             break;
         }
     },
 
-    load : function(value)
+    load : function()
     {
-
+        if (this.soundRef != "" && this.playOnLoad)
+            Tundra.audio.loadSound(this.soundRef, this.playOnLoad, this.loopSound);
     },
 
 

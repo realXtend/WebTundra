@@ -35,15 +35,6 @@ var AudioAsset = IAsset.$extend(
     deserializeFromData : function(data, dataType, transfer)
     {
         this.data = data;
-        /*
-        Tundra.audio.context.decodeAudioData(data, function(decodedData) { 
-            this.data = decodedData;
-        }.bind(this), function(err) {
-            this.log.warn("AudioAsset: Error while decoding audio data", err);
-        }.bind(this));
-
-        return this.isLoaded();
-        */
     },
 
     unload : function()
