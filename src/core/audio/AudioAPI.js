@@ -76,76 +76,35 @@ var AudioAPI = ITundraAPI.$extend(
 
     /*
      * Loads a sound based on the ref-param (should be a website)
-     * Autoplay should be true if you want to play the sound on-load, 
-     * loop should be true if you want to loop the sound forever.
+     * The source should be the EC_Sound-component's source. Pass it in.
+     * Loop should be true if you want to loop the sound forever.
+     * The return function should be allowed to be given a source param to.
      */
-    loadSound : function(ref, autoplay, loop)
+    loadSound : function(ref, source, loop, returnFunction)
     {
-        // Clean the source element
-        this.destroyOldData();
+        if (Tundra.audio.context.listener == null || !Tundra.audio.sceneHasActiveSoundListener())
+            console.warn("[AudioAPI] No active sound listeners.");
 
         Tundra.asset.requestAsset(ref).onCompleted(this, function(asset) {
             Tundra.audio.context.decodeAudioData(asset.data, function(decodedData) {
-                //@TODO Debug log - remove
-                console.log(decodedData, asset.data);
-
                 // Create the source by using context, set the buffer
-                this.source = Tundra.audio.context.createBufferSource();
-                this.source.buffer = decodedData;
+                source.buffer = decodedData;
 
                 // Set loop settings. loopEnd & loopStart default are zeros. loop is a bool value.
-                this.source.loopEnd = decodedData.duration;
-                this.source.loop = loop;
+                source.loopEnd = decodedData.duration;
+                source.loop = loop;
 
                 // On ended? Maybe inform the user in some situations? Or something like that.
-                this.source.onended = function() { };
+                source.onended = function() { };
 
                 // Playback rate, default is 1, 2 is twice the normal speed?
-                this.source.playbackRate.value = 1;
+                source.playbackRate.value = 1;
 
-                this.source.connect(this.panner);
+                source.connect(Tundra.audio.panner);
 
-                if (autoplay)
-                    this.playSound();
+                returnFunction(source);
             }.bind(this));
         }.bind(this));
-    },
-
-    /*
-     * Plays a sound that has been loaded using the loadSound()-method.
-     */
-    playSound : function()
-    {
-        // Connect to the destination, start.
-        this.source.start();
-    },
-
-    /*
-     * Stops the audio/sound from playing
-     */
-    stopSound : function()
-    {
-        if (this.source != undefined)
-            this.source.stop();
-    },
-
-    /*
-     * Destroys old audio source data
-     * Should be called upon loading a new sound
-     */
-    destroyOldData : function()
-    {
-        this.source = null;
-    },
-
-    /*
-     * Set the current source's loop value.
-     * Has no effect if the source is undefined or not playing
-     */
-    setLoop : function(bool)
-    {
-        if (this.source != undefined)
-            this.source.loop = bool;
     },
 
     /*
@@ -165,6 +124,26 @@ var AudioAPI = ITundraAPI.$extend(
                 break;
             }
         }
+    },
+
+    sceneHasActiveSoundListener : function()
+    {
+        var soundListenerEntities = Tundra.scene.entitiesWithComponent("SoundListener");
+
+        if (soundListenerEntities.length <= 0)
+            return false;
+
+        for (var i = 0; i < soundListenerEntities.length; i++)
+        {
+            var current = soundListenerEntities[i].soundListener;
+
+            if (current.active)
+            {
+                return true;
+            }
+        }
+
+        return false;
     },
 
     /// ITundraAPI override

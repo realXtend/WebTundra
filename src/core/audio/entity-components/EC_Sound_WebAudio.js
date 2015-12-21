@@ -30,9 +30,10 @@ var EC_Sound_WebAudio = EC_Sound.$extend(
      */
     update : function()
     {
+        this.source = Tundra.audio.context.createBufferSource();
+
         // @todo Remove, used for test only
-        if (this.soundRef != "")
-            this.load();
+        this.load();
     },
 
     attributeChanged : function(index, name, value)
@@ -45,7 +46,8 @@ var EC_Sound_WebAudio = EC_Sound.$extend(
         case 4: // play on creation
             break;
         case 5: // loop sound
-            Tundra.audio.setLoop(value);
+            if (this.source != null)
+                this.source.loop = value;
             break;
         default:
             break;
@@ -54,11 +56,28 @@ var EC_Sound_WebAudio = EC_Sound.$extend(
 
     load : function()
     {
-        if (this.soundRef != "" && this.playOnLoad)
-            Tundra.audio.loadSound(this.soundRef, this.playOnLoad, this.loopSound);
+        if (this.soundRef != "" && (this.soundRef.indexOf(".mp3") > -1 || this.soundRef.indexOf(".ogg") > -1))
+        {
+            Tundra.audio.loadSound(this.soundRef, this.source, this.loopSound, this.soundLoad.bind(this));
+        }
     },
 
+    soundLoad : function(newSource) 
+    {
+        this.source = newSource;
 
+        console.log(this.source);
+
+         if (this.source != null)
+        {
+            if (this.playOnLoad)
+            {
+                console.log("Started playing");
+
+                this.source.start();
+            }
+        }
+    }
 });
 
 return EC_Sound_WebAudio;
