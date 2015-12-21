@@ -57,25 +57,17 @@ var EC_Sound_WebAudio = EC_Sound.$extend(
     load : function()
     {
         if (this.soundRef != "" && (this.soundRef.indexOf(".mp3") > -1 || this.soundRef.indexOf(".ogg") > -1))
-        {
             Tundra.audio.loadSound(this.soundRef, this.source, this.loopSound, this.soundLoad.bind(this));
-        }
     },
 
     soundLoad : function(newSource) 
     {
         this.source = newSource;
 
-        console.log(this.source);
-
-         if (this.source != null)
+        if (this.source != null)
         {
             if (this.playOnLoad)
-            {
-                console.log("Started playing");
-
                 this.source.start();
-            }
         }
     }
 });
