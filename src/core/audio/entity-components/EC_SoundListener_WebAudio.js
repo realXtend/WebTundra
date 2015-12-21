@@ -19,7 +19,11 @@ var EC_SoundListener_WebAudio = EC_SoundListener.$extend(
     __init__ : function(id, typeId, typeName, name)
     {
         this.$super(id, typeId, typeName, name);
+        this._prevPositionCache = new THREE.Vector3();
         this._positionCache = new THREE.Vector3();
+        this._velocityCache = new THREE.Vector3();
+        this._orientationCache = new THREE.Vector3();
+        this._quaternion = new THREE.Quaternion();
     },
 
     __classvars__ :
@@ -36,16 +40,26 @@ var EC_SoundListener_WebAudio = EC_SoundListener.$extend(
 
     onUpdate : function(time) 
     {
-        if (this.hasParentEntity() && this.active)
+        //@TODO Remove useless, commented-out stuff if DEEMED USELESS
+
+        if (this.hasParentEntity() && this.parentEntity.placeable != null && this.active)
         {
             this.parentEntity.placeable.worldPosition(this._positionCache);
-            Tundra.audio.context.listener.setPosition(this._positionCache.x, this._positionCache.y, this._positionCache.z);
-        }
-    },
+            
+            //Tundra.audio.context.listener.setPosition(this._positionCache.x, this._positionCache.y, this._positionCache.z);
 
-    setContext : function(newContext) 
-    {
-        Tundra.audio.context = newContext;
+            this._orientationCache.set(this._positionCache.x, this._positionCache.y, this._positionCache.x).applyQuaternion(this.parentEntity.placeable.orientation());
+            this._velocityCache.subVectors(this._positionCache, this._prevPositionCache);
+
+            //Tundra.audio.panner.setPosition(this._positionCache.x, this._positionCache.y, this._positionCache.z);
+            //Tundra.audio.panner.setOrientation(this._orientationCache.x, this._orientationCache.y, this._orientationCache.z);
+
+            Tundra.audio.context.listener.setPosition(this._positionCache.x, this._positionCache.y, this._positionCache.z);
+            Tundra.audio.context.listener.setOrientation(this._orientationCache.x, this._orientationCache.y, this._orientationCache.z, 0, 1, 0); //@TODO this.up stuff????
+            //Tundra.audio.context.listener.setVelocity(this._velocityCache.x, this._velocityCache.y, this._velocityCache.z);
+
+            this._prevPositionCache.copy(this._positionCache);
+        }
     },
 
     getContext : function() 
