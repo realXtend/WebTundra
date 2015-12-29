@@ -1,0 +1,18 @@
+<!DOCTYPE Scene>
+<scene>
+ <entity id="0" sync="1">
+  <component type="EC_Name" sync="1">
+   <attribute value="Obj0" name="name"/>
+   <attribute value="" name="description"/>
+  </component>
+  <component type="EC_Placeable" sync="1">
+   <attribute value="5,0,0,1,2,3,4,5,6" name="Transform"/>
+  </component>
+  <component type="EC_Sound" sync="1">
+   <attribute value="viper.ogg" name="Sound ref"/>
+   <attribute value="true" name="Play on load"/>
+   <attribute value="1" name="Sound gain"/>
+   <attribute value="true" name="Spatial"/>
+  </component>
+ </entity>
+</scene>
