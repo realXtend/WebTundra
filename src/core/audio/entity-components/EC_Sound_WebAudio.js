@@ -28,17 +28,17 @@ var EC_Sound_WebAudio = EC_Sound.$extend(
     update : function()
     {
         this.cache = {
-            //_soundGainNode: Tundra.audio.context.createGain(),
+            _soundGainNode: Tundra.audio.context.createGain(),
             _position: new THREE.Vector3(),
             _pannerNode: Tundra.audio.context.createPanner(),
             _placeable: undefined
         };
 
         this.cache._pannerNode.setPosition(this.cache._position.x, this.cache._position.y, this.cache._position.z);
-        //this.cache._soundGainNode.gain.value = this.soundGain;
+        this.cache._soundGainNode.gain.value = this.soundGain;
 
-        this.cache._pannerNode.connect(Tundra.audio.masterGainNode);
-        //this.cache._soundGainNode.connect(Tundra.audio.masterGainNode);
+        this.cache._pannerNode.connect(this.cache._soundGainNode);
+        this.cache._soundGainNode.connect(Tundra.audio.masterGainNode);
         
         this.checkAndUpdatePlaceable();
         this.checkAndUpdateSoundRef();
@@ -49,24 +49,43 @@ var EC_Sound_WebAudio = EC_Sound.$extend(
 
         console.log('EC_Sound_WebAudio initialized!');
     },
-    
-    startPlaying: function()
+
+    reset : function ()
+    {
+        console.log("Reset EC_Sound component!");
+        this.disposeSource();
+    },
+
+    disposeSource : function ()
+    {
+        if(this.cache._element)
+            this.cache._element.pause();
+
+        if(this.cache._source)
+            this.cache._source.disconnect();
+
+        this.cache._element = undefined;
+        this.cache._source = undefined;
+    },
+
+    play: function()
     {
         if(this.cache._element)
         {
-            this.cache._element.start();
+            this.cache._element.play();
         }
     },
 
-    stopPlaying: function()
+    stop: function()
     {
         if(this.cache._element)
         {
-            this.cache._element.stop();
+            this.cache._element.pause();
+            this.cache._element.currentTime = 0;
         }
     },
 
-    pausePlaying: function()
+    pause: function()
     {
         if(this.cache._element)
         {
@@ -74,45 +93,36 @@ var EC_Sound_WebAudio = EC_Sound.$extend(
         }
     },
 
-    _testGetAudioElement: function (soundRef)
-    {
-        var audioElement = new Audio(soundRef);
-        return audioElement;
-    },
-
     checkAndUpdateSoundRef: function()
     {
         if(this.soundRef)
         {
-            var _element = this._testGetAudioElement(this.soundRef);
-            //Tundra.asset.requestAsset(newSoundRef).onCompleted(this, function (asset)
-            //{
-                // TODO: Properly dispose old HTMLAudioElement and MediaElementSourceNode
-                // for now just disconnect the old source
-                if(this.cache._element)
-                    this.cache._element.stop();
+            this.disposeSource();
 
-                if(this.cache._source)
-                    this.cache._source.disconnect();
+            var _element = new Audio(this.soundRef);
 
-                this.cache._element = _element;
-                this.cache._source =  Tundra.audio.context.createMediaElementSource(_element);
+            if(this.cache._source)
+                this.cache._source.disconnect();
 
-                if(this.playOnLoad)
-                {
-                    // Setting it to false still performs autoplay, 
-                    // so set it only if playOnLoad
-                    _element.autoplay = true;
-                }
+            this.cache._element = _element;
+            this.cache._source =  Tundra.audio.context.createMediaElementSource(_element);
 
-                _element.loop = this.loopSound;
-                _element.volume = this.soundGain;
+            if(this.playOnLoad)
+            {
+                // Setting it to false still performs autoplay, 
+                // so set it only if playOnLoad
+                _element.autoplay = true;
+            }
 
-                this._reconnectSourceNode();
+            _element.loop = this.loopSound;
+            this.cache._soundGainNode.gain.value = this.soundGain;
 
-            //}.bind(this));
+            this._reconnectSourceNode();
         }
-        // TODO: What to do if set to empty string
+        else
+        {
+            this.disposeSource();
+        }
     },
 
     _reconnectSourceNode: function()
@@ -124,7 +134,7 @@ var EC_Sound_WebAudio = EC_Sound.$extend(
             // Spatial is not set, connect to gain node regardless of placeable or pannerNode
             if(!this.spatial)
             {
-                this.cache._source.connect(Tundra.audio.masterGainNode);
+                this.cache._source.connect(this.cache._soundGainNode);
                 console.log('### EC_Sound_WebAudio, _reconnectSourceNode - connect to masterGainNode');
             }
             // Spatial is set, pannerNode exists, placeable is available
@@ -134,11 +144,11 @@ var EC_Sound_WebAudio = EC_Sound.$extend(
                 this.cache._source.connect(this.cache._pannerNode);
                 console.log('### EC_Sound_WebAudio, _reconnectSourceNode - connect to pannerNode');
             }
-            // Something is wrong (spatial is set but no pannerNode or no placeable), stop playing
+            // Something is wrong (spatial is set but no pannerNode or no placeable), just disconnect
             else
             {
-                if(this.cache._element)
-                    this.cache._element.stop();
+                if(this.cache._source)
+                    this.cache._source.disconnect();
             }
         }
 
@@ -181,8 +191,9 @@ var EC_Sound_WebAudio = EC_Sound.$extend(
 
     onComponentCreated: function(ent, component)
     {
+        console.log("Component created!");
         /* Check if the created component is Placeable */
-        if(component.id==20)
+        if(component.typeId==20)
         {
             this.checkAndUpdatePlaceable();
             this._reconnectSourceNode();
@@ -191,9 +202,11 @@ var EC_Sound_WebAudio = EC_Sound.$extend(
 
     onComponentRemoved: function(ent, component)
     {
+        console.log("Component removed!");
         /* Check if the removed component is Placeable and the same placeable cached */
-        if(component.id==20 && this.cache._placeable && this.cache._placeable.id === component.id)
+        if(component.typeId==20 && this.cache._placeable && this.cache._placeable.id === component.id)
         {
+            console.log("... and it is placeable component!");
             this.cache._placeable = undefined;
             this._reconnectSourceNode();
         }
@@ -201,9 +214,10 @@ var EC_Sound_WebAudio = EC_Sound.$extend(
 
     changeGain: function()
     {
-        if(this.cache._element)
+        if(this.cache._soundGainNode)
         {
-            this.cache._element.volume = this.soundGain;
+            console.log("Gain changed to:", this.soundGain);
+            this.cache._soundGainNode.gain.value = this.soundGain;
         }
     },
 
