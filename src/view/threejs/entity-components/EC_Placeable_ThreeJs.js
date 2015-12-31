@@ -617,16 +617,17 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
     /**
         Returns the orientation of this placeable node in world space.
         @method worldOrientation
+        @param {THREE.Quaternion} [dest] Destination where the world orientation should be written, if provided.
         @return {THREE.Quaternion} Position vector.
     */
-    worldOrientation : function()
+    worldOrientation : function(dest)
     {
         if (this.sceneNode == null)
             return null;
 
-        var worldOrt = new THREE.Quaternion();
-        worldOrt.setFromRotationMatrix(this.sceneNode.matrixWorld);
-        return worldOrt;
+        dest = dest || new THREE.Quaternion();
+        dest.setFromRotationMatrix(this.sceneNode.matrixWorld);
+        return dest;
     },
 
     /**

@@ -30,9 +30,9 @@
         <component type="EC_Sound" sync="1">
            <attribute value="https://upload.wikimedia.org/wikipedia/commons/a/ae/American_police_siren_i.ogg" name="Sound ref"/>
            <attribute value="true" name="Play on load"/>
-           <attribute value="10" name="Sound gain"/>
+           <attribute value="5" name="Sound gain"/>
            <attribute value="1" name="Loop sound"/>
-           <attribute value="false" name="Spatial"/>
+           <attribute value="true" name="Spatial"/>
         </component>
 
     </entity>
@@ -85,9 +85,9 @@
         <component type="EC_Sound" sync="1">
            <attribute value="https://upload.wikimedia.org/wikipedia/commons/9/9d/Alessandro_Moreschi_-_Crucifixus_%28Rossini%29%2C_1902.ogg" name="Sound ref"/>
            <attribute value="true" name="Play on load"/>
-           <attribute value="1" name="Sound gain"/>
+           <attribute value="10" name="Sound gain"/>
            <attribute value="1" name="Loop sound"/>
-           <attribute value="true" name="Spatial"/>
+           <attribute value="false" name="Spatial"/>
         </component>
 
     </entity>
