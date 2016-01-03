@@ -81,6 +81,9 @@ var FreeCameraApplication = ICameraApplication.$extend(
                 this._stopAnimation();
             }
         }));
+
+        if (Tundra.client.isConnected())
+            this.onConnected();
     },
 
     onConnected : function()
