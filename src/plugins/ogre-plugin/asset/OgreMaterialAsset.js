@@ -477,8 +477,8 @@ var OgreMaterialAsset = IAsset.$extend(
             }
 
             // Relative reference. Make full url with parent material ref url base.
-            if (!CoreStringUtils.startsWith(textureUnit.texture, "http", true))
-                textureUnit.textureRef = this.baseRef + textureUnit.texture;
+            // if (!CoreStringUtils.startsWith(textureUnit.texture, "http", true))
+            //     textureUnit.textureRef = this.baseRef + textureUnit.texture;
 
             // Request the dependency
             var transfer = Tundra.asset.requestDependencyAsset(this, textureUnit.textureRef, "Texture");
