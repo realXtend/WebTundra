@@ -34,7 +34,10 @@ Second, clone the Interface Designer repository in `WEBTUNDRA_ROOT/src/applicati
 	cd src/application
 	git clone git@github.com:Adminotech/fiware-interface-designer.git editor
 
-Install and run an empty Tundra server. Refer to [Synchronization GE docs](http://synchronization.readthedocs.org/en/latest/User_and_Programmers_guide/#user-guide) for instructions. Navigate with a command prompt to the installed Tundra, and run:
+
+If you want only a local scene without a server, click on "New local scene" button where you will be brought to an empty scene.
+
+If you want to continue from an existing scene in a TXML file, install and run a Tundra server. Refer to [Synchronization GE docs](http://synchronization.readthedocs.org/en/latest/User_and_Programmers_guide/#user-guide) for instructions. Navigate with a command prompt to the installed Tundra, and run the following for an empty scene:
 
 	TundraConsole.exe --server --headless
 
