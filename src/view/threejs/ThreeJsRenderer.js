@@ -20,7 +20,8 @@ define([
         "view/threejs/entity-components/EC_Light_ThreeJs",
         "view/threejs/entity-components/EC_Camera_ThreeJs",
         "view/threejs/entity-components/EC_Mesh_ThreeJs",
-        "view/threejs/entity-components/EC_Placeable_ThreeJs"
+        "view/threejs/entity-components/EC_Placeable_ThreeJs",
+        "view/threejs/entity-components/EC_ParticleSystem_ThreeJs"
     ], function(THREE, TWEEN, Tundra, TundraLogging, CoreStringUtils,
                 Scene, Color, IRenderSystem, RaycastResult, TransformInterpolator, AssetFactory,
                 ObjMeshAsset,
@@ -32,7 +33,8 @@ define([
                 EC_Light_ThreeJs,
                 EC_Camera_ThreeJs,
                 EC_Mesh_ThreeJs,
-                EC_Placeable_ThreeJs) {
+                EC_Placeable_ThreeJs,
+                EC_ParticleSystem_ThreeJs) {
 
 var ThreeJsRenderer = IRenderSystem.$extend(
 /** @lends IRenderSystem.prototype */
@@ -354,6 +356,8 @@ var ThreeJsRenderer = IRenderSystem.$extend(
         Scene.registerComponent(EC_Camera_ThreeJs);
         Scene.registerComponent(EC_Mesh_ThreeJs);
         Scene.registerComponent(EC_Placeable_ThreeJs);
+
+        Scene.registerComponent(EC_ParticleSystem_ThreeJs);
     },
 
     getCssRenderer : function()
