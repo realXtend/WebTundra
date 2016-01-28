@@ -6,20 +6,12 @@
     </entity>
     <entity id="2" sync="1" temp="false">
         <component type="Placeable" typeid="20" sync="1" temp="false">
-            <attribute id="transform" type="Transform" value="0,0,-5,0,0,0,1,1,1"></attribute>
+            <attribute id="transform" type="Transform" value="0,2,-5,0,0,0,1,1,1"></attribute>
             <attribute id="drawDebug" type="bool" value="false"></attribute>
             <attribute id="visible" type="bool" value="true"></attribute>
             <attribute id="selectionLayer" type="int" value="1"></attribute>
             <attribute id="parentRef" type="EntityReference" value=""></attribute>
             <attribute id="parentBone" type="string" value=""></attribute>
-        </component>
-        <component type="Mesh" typeid="17" sync="1" temp="false">
-            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
-            <attribute id="meshRef" type="AssetReference" value="http://meshmoon.data.s3.amazonaws.com/asset-library/meshes/primitives/Cube.mesh"></attribute>
-            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
-            <attribute id="materialRefs" type="AssetReferenceList" value=""></attribute>
-            <attribute id="drawDistance" type="real" value="0"></attribute>
-            <attribute id="castShadows" type="bool" value="false"></attribute>
         </component>
         <component type="Name" typeid="26" sync="1" temp="false">
             <attribute id="name" type="string" value="Cube"></attribute>
