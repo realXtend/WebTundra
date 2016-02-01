@@ -19,7 +19,7 @@
             <attribute id="group" type="string" value=""></attribute>
         </component>
         <component type="ParticleSystem" typeid="27" sync="1" temp="false">
-            <attribute id="particleRef" type="AssetReference" value=""></attribute>
+            <attribute id="particleRef" type="AssetReference" value="http://localhost:8082/html/particles.json"></attribute>
         </component>
     </entity>
     <entity id="3" sync="1" temp="false">

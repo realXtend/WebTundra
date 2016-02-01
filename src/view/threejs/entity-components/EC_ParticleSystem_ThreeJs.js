@@ -34,13 +34,19 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
 
         // Check how OgreMeshAsset clears Geometry
         this.cache._particleSystem = undefined;
+        this.cache._startParticleSpawn = false;
     },
 
     update : function()
     {
         var particleRef = this.particleRef;
-        // TODO: Load parameters from particleRef JSON file
-        
+        if(particleRef)
+        {
+            var transfer = Tundra.asset.requestAsset(particleRef, "Text");
+            if (transfer != null)
+                transfer.onCompleted(this, this._particlePropertiesLoaded);
+        }
+                
         this.cache = {
             _particleSystem: new THREE.GPUParticleSystem({
                 maxParticles: 250000
@@ -49,7 +55,7 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
             // options passed during each spawned
             _options: {
                 position: new THREE.Vector3(),
-                positionRandomness: .3,
+                positionRandomness: .0,
                 velocity: new THREE.Vector3(),
                 velocityRandomness: .5,
                 color: 0xaa88ff,
@@ -66,7 +72,8 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
                 verticalSpeed: 1.33,
                 timeScale: 1
             },
-            _tick: 0
+            _tick: 0,
+            _startParticleSpawn: false
         };
 
         Tundra.renderer.scene.add(this.cache._particleSystem);
@@ -80,8 +87,21 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
         this.updater = Tundra.frame.onUpdate(this, this.onUpdate);        
     },
 
+    _particlePropertiesLoaded: function(asset)
+    {
+        var loadedOptions = asset.data;
+        console.log(loadedOptions);
+        if(loadedOptions && loadedOptions.type && loadedOptions.options){
+            $.extend(true, this.cache._options, loadedOptions.options);
+            this.cache._startParticleSpawn = true;
+        }
+    },
+
     onUpdate: function(time)
     {
+        if(!this.cache._startParticleSpawn)
+            return;
+
         var pOptions = this.cache._options;
         var spawnerOptions = this.cache._spawnerOptions; 
 

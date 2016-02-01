@@ -1,0 +1,13 @@
+{
+  "type": "particles",
+  "options": {
+    "positionRandomness": 0.0,
+    "velocityRandomness": 0.5,
+    "color": 11176191,
+    "colorRandomness": 0.2,
+    "turbulence": 0.5,
+    "lifetime": 2,
+    "size": 5,
+    "sizeRandomness": 1  
+  }
+}
