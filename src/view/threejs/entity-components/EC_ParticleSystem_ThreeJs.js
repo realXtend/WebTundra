@@ -4,8 +4,9 @@ define([
         "core/framework/Tundra",
         "core/math/Color",
         "entity-components/EC_ParticleSystem",
-        "lib/GPUParticleSystem"
-    ], function(THREE, Tundra, Color, EC_ParticleSystem, GPUParticleSystem) {
+        "lib/GPUParticleSystem",
+        "lib/SmokeParticleSystem"
+    ], function(THREE, Tundra, Color, EC_ParticleSystem, GPUParticleSystem, SmokeParticleSystem) {
 
 /**
     Sky component implementation for the three.js render system.
@@ -48,9 +49,6 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
         }
                 
         this.cache = {
-            _particleSystem: new THREE.GPUParticleSystem({
-                maxParticles: 250000
-            }),
             _placeable: undefined,
             // options passed during each spawned
             _options: {
@@ -73,10 +71,9 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
                 timeScale: 1
             },
             _tick: 0,
-            _startParticleSpawn: false
+            _startParticleSpawn: false,
+            _type: "dots"
         };
-
-        Tundra.renderer.scene.add(this.cache._particleSystem);
 
         this.checkAndUpdatePlaceable();
 
@@ -92,7 +89,20 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
         var loadedOptions = asset.data;
         console.log(loadedOptions);
         if(loadedOptions && loadedOptions.type && loadedOptions.options){
+
             $.extend(true, this.cache._options, loadedOptions.options);
+
+            if(loadedOptions.type == "dots"){
+                this.cache._particleSystem = new THREE.GPUParticleSystem({
+                    maxParticles: 250000
+                });
+            } else if (loadedOptions.type == "smoke") {
+                this.cache._particleSystem = new THREE.SmokeParticleSystem(this.cache._options);
+            }
+            
+            Tundra.renderer.scene.add(this.cache._particleSystem);
+
+            this.cache._type = loadedOptions.type;
             this.cache._startParticleSpawn = true;
         }
     },
@@ -111,14 +121,17 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
         var tick = this.cache._tick; 
 
         if (delta > 0) {
-            for (var x = 0; x < spawnerOptions.spawnRate * delta; x++) {
-              // Yep, that's really it.  Spawning particles is super cheap, and once you spawn them, the rest of
-              // their lifecycle is handled entirely on the GPU, driven by a time uniform updated below
-              this.cache._particleSystem.spawnParticle(pOptions);
+            if(this.cache._type == 'dots') {
+                for (var x = 0; x < spawnerOptions.spawnRate * delta; x++) {
+                  // Yep, that's really it.  Spawning particles is super cheap, and once you spawn them, the rest of
+                  // their lifecycle is handled entirely on the GPU, driven by a time uniform updated below
+                  this.cache._particleSystem.spawnParticle(pOptions);
+                }
+                this.cache._particleSystem.update(tick);
+            } else if (this.cache._type == 'smoke') {
+                this.cache._particleSystem.update(tick);
             }
         }
-
-        this.cache._particleSystem.update(tick);
 
     },
 
@@ -170,7 +183,6 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
         if (attributeIndex == 0) // transform
             this._updatePosition();
     },
-
 
     attributeChanged : function(index, name, value)
     {

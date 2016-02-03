@@ -1,5 +1,5 @@
 {
-  "type": "particles",
+  "type": "dots",
   "options": {
     "positionRandomness": 0.0,
     "velocityRandomness": 0.5,
@@ -8,6 +8,6 @@
     "turbulence": 0.5,
     "lifetime": 2,
     "size": 5,
-    "sizeRandomness": 1  
+    "sizeRandomness": 1
   }
 }
