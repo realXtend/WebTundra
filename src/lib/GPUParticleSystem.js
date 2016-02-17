@@ -31,7 +31,6 @@ THREE.GPUParticleSystem = function(options) {
   self.PARTICLE_CURSOR = 0;
   self.time = 0;
 
-
   // Custom vertex and fragement shader
   var GPUParticleShader = {
 
@@ -279,11 +278,10 @@ THREE.GPUParticleSystem = function(options) {
 
   }
 
-  this.update = function(time) {
+  this.update = function(delta) {
+    this.time += delta; 
     for (var i = 0; i < self.PARTICLE_CONTAINERS; i++) {
-
-      self.particleContainers[i].update(time);
-
+      self.particleContainers[i].update(this.time);
     }
   };
 

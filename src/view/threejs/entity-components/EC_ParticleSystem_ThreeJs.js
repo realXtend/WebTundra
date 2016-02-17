@@ -51,6 +51,7 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
         this.cache = {
             _placeable: undefined,
             // options passed during each spawned
+            _type: "dots",
             _options: {
                 position: new THREE.Vector3(),
                 positionRandomness: .0,
@@ -70,9 +71,7 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
                 verticalSpeed: 1.33,
                 timeScale: 1
             },
-            _tick: 0,
-            _startParticleSpawn: false,
-            _type: "dots"
+            _startParticleSpawn: false
         };
 
         this.checkAndUpdatePlaceable();
@@ -116,9 +115,6 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
         var spawnerOptions = this.cache._spawnerOptions; 
 
         var delta = time * spawnerOptions.timeScale;
-        this.cache._tick += delta;
-        if (this.cache._tick < 0) this.cache._tick = 0;
-        var tick = this.cache._tick; 
 
         if (delta > 0) {
             if(this.cache._type == 'dots') {
@@ -127,9 +123,10 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
                   // their lifecycle is handled entirely on the GPU, driven by a time uniform updated below
                   this.cache._particleSystem.spawnParticle(pOptions);
                 }
-                this.cache._particleSystem.update(tick);
+                this.cache._particleSystem.update(delta);
             } else if (this.cache._type == 'smoke') {
-                this.cache._particleSystem.update(tick);
+                this.cache._particleSystem.position.set(pOptions.position.x, pOptions.position.y, pOptions.position.z);
+                this.cache._particleSystem.update(delta);
             }
         }
 
