@@ -1,6 +1,11 @@
 realXtend Web Tundra
 ===================
 
+[![License badge](https://img.shields.io/hexpm/l/plug.svg)](http://www.apache.org/licenses/LICENSE-2.0)
+[![Documentation badge](https://readthedocs.org/projects/webtundra/badge/?version=latest)](http://webtundra.readthedocs.org/en/latest/?badge=latest)
+[![Docker badge](https://img.shields.io/docker/pulls/adminotech/webtundra.svg)](https://hub.docker.com/r/adminotech/webtundra/)
+[![Support badge]( https://img.shields.io/badge/support-sof-yellowgreen.svg)](mailto:support@meshmoon.com)
+
 Web Tundra is a project for taking realXtend 3D virtual worlds into modern web browsers. The provided `TundraSDK` and `TundraClient` can connect to a realXtend Tundra server. Implementing the Tundra network protocol via WebSocket and rendering with WebGL.
 
 Running locally
