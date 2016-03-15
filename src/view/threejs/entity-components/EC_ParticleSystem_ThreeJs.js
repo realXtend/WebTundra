@@ -5,8 +5,9 @@ define([
         "core/math/Color",
         "entity-components/EC_ParticleSystem",
         "lib/GPUParticleSystem",
-        "lib/SmokeParticleSystem"
-    ], function(THREE, Tundra, Color, EC_ParticleSystem, GPUParticleSystem, SmokeParticleSystem) {
+        "lib/SmokeParticleSystem",
+        "lib/RainParticleSystem"
+    ], function(THREE, Tundra, Color, EC_ParticleSystem, GPUParticleSystem, SmokeParticleSystem, RainParticleSystem) {
 
 /**
     Sky component implementation for the three.js render system.
@@ -98,6 +99,9 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
             } else if (loadedOptions.type == "smoke") {
                 this.cache._particleSystem = new THREE.SmokeParticleSystem(this.cache._options);
             }
+            else if (loadedOptions.type == "rain") {
+                this.cache._particleSystem = new THREE.RainParticleSystem(this.cache._options);
+            }
             
             Tundra.renderer.scene.add(this.cache._particleSystem);
 
@@ -125,6 +129,10 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
                 }
                 this.cache._particleSystem.update(delta);
             } else if (this.cache._type == 'smoke') {
+                this.cache._particleSystem.position.set(pOptions.position.x, pOptions.position.y, pOptions.position.z);
+                this.cache._particleSystem.update(delta);
+            }
+            else if (this.cache._type == 'rain') {
                 this.cache._particleSystem.position.set(pOptions.position.x, pOptions.position.y, pOptions.position.z);
                 this.cache._particleSystem.update(delta);
             }

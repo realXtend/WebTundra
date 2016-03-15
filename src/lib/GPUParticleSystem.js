@@ -155,7 +155,7 @@ THREE.GPUParticleSystem = function(options) {
       '}'
 
     ].join("\n"),
-
+    
     fragmentShader: [
 
       'float scaleLinear(float value, vec2 valueDomain) {',

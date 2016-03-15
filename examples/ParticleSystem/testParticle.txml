@@ -63,5 +63,23 @@
             <attribute id="particleRef" type="AssetReference" value="http://localhost:8082/html/smoke_particles.json"></attribute>
         </component>
     </entity>
+    <entity id="4" sync="1" temp="false">
+        <component type="Placeable" typeid="20" sync="1" temp="false">
+            <attribute id="transform" type="Transform" value="-1,-2,-5,0,0,0,1,0,1"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Name" typeid="26" sync="1" temp="false">
+            <attribute id="name" type="string" value="Cube"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="ParticleSystem" typeid="27" sync="1" temp="false">
+            <attribute id="particleRef" type="AssetReference" value="http://localhost:8082/html/rain_particles.json"></attribute>
+        </component>
+    </entity>
 
 </scene>
