@@ -1,9 +1,0 @@
-{
-  "type": "smoke",
-  "options": {
-    "size": 0.1,
-    "color": 1118481,
-    "boxGeometry": {"x": 0.1, "y": 1, "z": 0.1},
-    "timeScale": 10
-  }
-}
