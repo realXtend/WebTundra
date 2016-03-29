@@ -30,6 +30,8 @@ THREE.GPUParticleSystem = function(options) {
   self.PARTICLES_PER_CONTAINER = Math.ceil(self.PARTICLE_COUNT / self.PARTICLE_CONTAINERS);
   self.PARTICLE_CURSOR = 0;
   self.time = 0;
+  self.scaleOnCameraDistance = options.scaleOnCameraDistance || false;
+  self._posCache = new THREE.Vector3();
 
   // Custom vertex and fragement shader
   var GPUParticleShader = {
@@ -100,6 +102,7 @@ THREE.GPUParticleSystem = function(options) {
 
       'uniform float uTime;',
       'uniform float uScale;',
+      'uniform float scaleMultiplier;',
       'uniform sampler2D tNoise;',
 
       'attribute vec4 particlePositionsStartTime;',
@@ -137,25 +140,31 @@ THREE.GPUParticleSystem = function(options) {
 
       'newPosition = mix(newPosition, newPosition + vec3(noiseVel * ( turbulence * 5. ) ), (timeElapsed / particleVelColSizeLife.a) );',
 
+      // Get the world position
+      "vec4 worldPosition = modelMatrix * vec4(newPosition, 1.0);",
+
+      // Scale the particle
+      (self.scaleOnCameraDistance ? "gl_PointSize *= 1.0 / (length(cameraPosition - worldPosition.xyz) * scaleMultiplier);" : ""),
+
       'if( velocity.y > 0. && velocity.y < .05 ) {',
-      'lifeLeft = 0.;',
+      ' lifeLeft = 0.;',
       '}',
 
       'if( velocity.x < -1.45 ) {',
-      'lifeLeft = 0.;',
+      ' lifeLeft = 0.;',
       '}',
 
       'if( timeElapsed > 0. ) {',
-      'gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );',
+      ' gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );',
       '} else {',
-      'gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
-      'lifeLeft = 0.;',
-      'gl_PointSize = 0.;',
+      ' gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
+      ' lifeLeft = 0.;',
+      ' gl_PointSize = 0.;',
       '}',
       '}'
 
     ].join("\n"),
-    
+
     fragmentShader: [
 
       'float scaleLinear(float value, vec2 valueDomain) {',
@@ -183,7 +192,7 @@ THREE.GPUParticleSystem = function(options) {
 
       'vec4 tex = texture2D( tSprite, gl_PointCoord );',
 
-      'gl_FragColor = vec4( vColor.rgb * tex.a, alpha * tex.a );',
+      'gl_FragColor = vec4( vColor.rgb, alpha * tex.a );',
       '}'
 
     ].join("\n")
@@ -204,7 +213,7 @@ THREE.GPUParticleSystem = function(options) {
   self.particleNoiseTex = THREE.ImageUtils.loadTexture("textures/perlin-512.png");
   self.particleNoiseTex.wrapS = self.particleNoiseTex.wrapT = THREE.RepeatWrapping;
 
-  self.particleSpriteTex = THREE.ImageUtils.loadTexture("textures/particle2.png");
+  self.particleSpriteTex = THREE.ImageUtils.loadTexture(options.texture);
   self.particleSpriteTex.wrapS = self.particleSpriteTex.wrapT = THREE.RepeatWrapping;
 
   self.particleShaderMat = new THREE.ShaderMaterial({
@@ -226,6 +235,10 @@ THREE.GPUParticleSystem = function(options) {
       "tSprite": {
         type: "t",
         value: self.particleSpriteTex
+      },
+      "scaleMultiplier": {
+        type: "f",
+        value: 0.0
       }
     },
     attributes: {
@@ -237,8 +250,8 @@ THREE.GPUParticleSystem = function(options) {
             type: "v4",
             value: new THREE.Vector4()
         }
-    },    
-    blending: THREE.AdditiveBlending,
+    },
+    blending: THREE.NormalBlending,
     vertexShader: GPUParticleShader.vertexShader,
     fragmentShader: GPUParticleShader.fragmentShader
   });
@@ -279,7 +292,11 @@ THREE.GPUParticleSystem = function(options) {
   }
 
   this.update = function(delta) {
-    this.time += delta; 
+    // Scale the particles proportionally
+    if (self.scaleOnCameraDistance)
+      self.particleShaderMat.uniforms["scaleMultiplier"].value = Math.tan(Tundra.renderer.activeCameraComponent.camera.fov) * 1.0;
+
+    this.time += delta;
     for (var i = 0; i < self.PARTICLE_CONTAINERS; i++) {
       self.particleContainers[i].update(this.time);
     }
