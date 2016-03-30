@@ -10,6 +10,7 @@ define([
         "core/renderer/IRenderSystem",
         "core/renderer/RaycastResult",
         "view/threejs/TransformInterpolator",
+        "view/threejs/ThreeJsParticleEngine",
         "core/asset/AssetFactory",
         "view/threejs/asset/ObjMeshAsset",
         "view/threejs/asset/ThreeJsonAsset",
@@ -20,10 +21,9 @@ define([
         "view/threejs/entity-components/EC_Light_ThreeJs",
         "view/threejs/entity-components/EC_Camera_ThreeJs",
         "view/threejs/entity-components/EC_Mesh_ThreeJs",
-        "view/threejs/entity-components/EC_Placeable_ThreeJs",
-        "view/threejs/entity-components/EC_ParticleSystem_ThreeJs"
+        "view/threejs/entity-components/EC_Placeable_ThreeJs"
     ], function(THREE, TWEEN, Tundra, TundraLogging, CoreStringUtils,
-                Scene, Color, IRenderSystem, RaycastResult, TransformInterpolator, AssetFactory,
+                Scene, Color, IRenderSystem, RaycastResult, TransformInterpolator, ThreeJsParticleEngine, AssetFactory,
                 ObjMeshAsset,
                 ThreeJsonAsset,
                 EC_Fog_ThreeJs,
@@ -33,8 +33,7 @@ define([
                 EC_Light_ThreeJs,
                 EC_Camera_ThreeJs,
                 EC_Mesh_ThreeJs,
-                EC_Placeable_ThreeJs,
-                EC_ParticleSystem_ThreeJs) {
+                EC_Placeable_ThreeJs) {
 
 var ThreeJsRenderer = IRenderSystem.$extend(
 /** @lends IRenderSystem.prototype */
@@ -194,6 +193,11 @@ var ThreeJsRenderer = IRenderSystem.$extend(
         */
         this.axisZ = new THREE.Vector3(0,0,1);
 
+        /**
+            @var {ThreeJsParticleEngine}
+        */
+        this.particleEngine = new ThreeJsParticleEngine();
+
         // DOM hookup
         $(this.renderer.domElement).attr("id", "threejs-webgl-canvas").css("pointer-events", "auto");
         $(this.renderer.domElement).css({ position : "absolute", top : 0, left : 0 });
@@ -241,6 +245,8 @@ var ThreeJsRenderer = IRenderSystem.$extend(
 
         this.onSceneReset();
         Tundra.scene.onReset(this, this.onSceneReset);
+
+        this.particleEngine.registerParticleFactories();
     },
 
     onConnected : function()
@@ -357,7 +363,7 @@ var ThreeJsRenderer = IRenderSystem.$extend(
         Scene.registerComponent(EC_Mesh_ThreeJs);
         Scene.registerComponent(EC_Placeable_ThreeJs);
 
-        Scene.registerComponent(EC_ParticleSystem_ThreeJs);
+        this.particleEngine.registerComponents();
     },
 
     getCssRenderer : function()

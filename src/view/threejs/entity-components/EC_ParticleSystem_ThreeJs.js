@@ -3,14 +3,11 @@ define([
         "lib/three",
         "core/framework/Tundra",
         "core/math/Color",
-        "entity-components/EC_ParticleSystem",
-        "lib/GPUParticleSystem",
-        "lib/SmokeParticleSystem",
-        "lib/RainParticleSystem"
-    ], function(THREE, Tundra, Color, EC_ParticleSystem, GPUParticleSystem, SmokeParticleSystem, RainParticleSystem) {
+        "entity-components/EC_ParticleSystem"
+    ], function(THREE, Tundra, Color, EC_ParticleSystem) {
 
 /**
-    Sky component implementation for the three.js render system.
+    Particle system component implementation for the three.js render system.
 
     @class EC_ParticleSystem_ThreeJs
     @extends EC_ParticleSystem
@@ -21,6 +18,10 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
     __init__ : function(id, typeId, typeName, name)
     {
         this.$super(id, typeId, typeName, name);
+        this.properties = {};
+        this.systemId = "";
+        this.placeableCache = undefined;
+        this.posCache = new THREE.Vector3();
     },
 
     __classvars__ :
@@ -28,136 +29,84 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
         Implementation : "three.js"
     },
 
-    reset : function(forced)
+    reset: function()
     {
-        if (this.cache._particleSystem)
-            if (this.cache._particleSystem.parent)
-                this.cache._particleSystem.parent.remove(this.cache._particleSystem);
-
-        // Check how OgreMeshAsset clears Geometry
-        this.cache._particleSystem = undefined;
-        this.cache._startParticleSpawn = false;
+        Tundra.renderer.particleEngine.destroySystem(this.systemId);
+        delete this.properties;
+        this.properties = {};
     },
 
     update : function()
     {
-        var particleRef = this.particleRef;
-        if(particleRef)
-        {
-            var transfer = Tundra.asset.requestAsset(particleRef, "Text");
-            if (transfer != null)
-                transfer.onCompleted(this, this._particlePropertiesLoaded);
-        }
-                
-        this.cache = {
-            _placeable: undefined,
-            // options passed during each spawned
-            _type: "dots",
-            _options: {
-                position: new THREE.Vector3(),
-                positionRandomness: .0,
-                velocity: new THREE.Vector3(),
-                velocityRandomness: .5,
-                color: 0xaa88ff,
-                colorRandomness: .2,
-                turbulence: .5,
-                lifetime: 2,
-                size: 5,
-                sizeRandomness: 1
-            },
-            _spawnerOptions:
-            {
-                spawnRate: 15000,
-                horizontalSpeed: 1.5,
-                verticalSpeed: 1.33,
-                timeScale: 1
-            },
-            _startParticleSpawn: false
-        };
+        this.systemId = this.parentEntity.id + "_" + this.id;
+        if (this.particleRef !== "")
+            this.handleParticleRef(this.particleRef);
 
         this.checkAndUpdatePlaceable();
 
-        // Register events listener for creating/removing placeable components 
+        // Register events listener for creating/removing placeable components
         this.parentEntity.onComponentCreated(this, this.onComponentCreated);
         this.parentEntity.onComponentRemoved(this, this.onComponentRemoved);
-
-        this.updater = Tundra.frame.onUpdate(this, this.onUpdate);        
     },
 
-    _particlePropertiesLoaded: function(asset)
+    handleParticleRef: function(ref)
     {
-        var loadedOptions = asset.data;
-        console.log(loadedOptions);
-        if(loadedOptions && loadedOptions.type && loadedOptions.options){
+        this.reset();
+        if (ref !== "")
+        {
+            var system = Tundra.renderer.particleEngine.createSystemFromFactory(this.systemId, ref);
 
-            $.extend(true, this.cache._options, loadedOptions.options);
-
-            if(loadedOptions.type == "dots"){
-                this.cache._particleSystem = new THREE.GPUParticleSystem({
-                    maxParticles: 250000
-                });
-            } else if (loadedOptions.type == "smoke") {
-                this.cache._particleSystem = new THREE.SmokeParticleSystem(this.cache._options);
-            }
-            else if (loadedOptions.type == "rain") {
-                this.cache._particleSystem = new THREE.RainParticleSystem(this.cache._options);
-            }
-            
-            Tundra.renderer.scene.add(this.cache._particleSystem);
-
-            this.cache._type = loadedOptions.type;
-            this.cache._startParticleSpawn = true;
-        }
-    },
-
-    onUpdate: function(time)
-    {
-        if(!this.cache._startParticleSpawn)
-            return;
-
-        var pOptions = this.cache._options;
-        var spawnerOptions = this.cache._spawnerOptions; 
-
-        var delta = time * spawnerOptions.timeScale;
-
-        if (delta > 0) {
-            if(this.cache._type == 'dots') {
-                for (var x = 0; x < spawnerOptions.spawnRate * delta; x++) {
-                  // Yep, that's really it.  Spawning particles is super cheap, and once you spawn them, the rest of
-                  // their lifecycle is handled entirely on the GPU, driven by a time uniform updated below
-                  this.cache._particleSystem.spawnParticle(pOptions);
+            if (!system)
+            {
+                var transfer = Tundra.asset.requestAsset(ref, "Text");
+                if (transfer != null)
+                {
+                    transfer.onCompleted(this, this._onParticleLoaded);
+                    transfer.onFailed(this, this._onParticleFailed);
                 }
-                this.cache._particleSystem.update(delta);
-            } else if (this.cache._type == 'smoke') {
-                this.cache._particleSystem.position.set(pOptions.position.x, pOptions.position.y, pOptions.position.z);
-                this.cache._particleSystem.update(delta);
             }
-            else if (this.cache._type == 'rain') {
-                this.cache._particleSystem.position.set(pOptions.position.x, pOptions.position.y, pOptions.position.z);
-                this.cache._particleSystem.update(delta);
-            }
-        }
+            else
+                this.properties = system.exportProperties();
 
+            this.checkAndUpdatePlaceable();
+        }
+    },
+
+    _onParticleLoaded: function(asset)
+    {
+        var system = Tundra.renderer.particleEngine.createSystem(this.systemId, asset.data);
+        this.properties = system.exportProperties();
+        this.checkAndUpdatePlaceable();
+    },
+
+    _onParticleFailed: function(transfer, reason, metadata)
+    {
+        this.log.error("Failed to load particle description file: ", transfer.ref, " reason: ", reason);
     },
 
     _updatePosition: function()
     {
-        if (this.cache._placeable)
+        if (this.properties.followCamera === true)
+            return;
+        if (this.properties.particle && this.properties.particle.position)
         {
-            this.parentEntity.placeable.worldPosition(this.cache._options.position);
+            this.placeableCache.worldPosition(this.posCache);
+            this.properties.particle.position.x = this.posCache.x;
+            this.properties.particle.position.y = this.posCache.y;
+            this.properties.particle.position.z = this.posCache.z;
         }
+
     },
 
     checkAndUpdatePlaceable: function()
     {
-        /* If there is already a placeable attached do nothing (only first placeable component is considered) */
-        if (this.cache._placeable)
+        if (this.properties.followCamera === true)
             return;
 
         /* Otherwise, get read its initial position and attach an attribute change listener to it */
         if (this.hasParentEntity() && this.parentEntity.placeable)
         {
-            this.cache._placeable = this.parentEntity.placeable;
+            this.placeableCache = this.parentEntity.placeable;
             this._updatePosition();
 
             // TODO: Check if unsubscribe is required later
@@ -169,18 +118,14 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
     {
         // Check if the created component is Placeable
         if (component.typeId == 20)
-        {
             this.checkAndUpdatePlaceable();
-        }
     },
 
     onComponentRemoved: function(ent, component)
     {
         /* Check if the removed component is Placeable and the same placeable cached */
-        if (component.typeId == 20 && this.cache._placeable && this.cache._placeable.id === component.id)
-        {
-            this.cache._placeable = undefined;
-        }
+        if (component.typeId == 20 && this.placeableCache && this.placeableCache.id === component.id)
+            this.placeableCache = undefined;
     },
 
     onPlaceableAttributeChanged: function(entity, component, attributeIndex, attributeName, attributeValue)
@@ -193,7 +138,7 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
     {
         // particleRef
         if (index === 0)
-            console.log("ParticleSystem Ref changed, new value", value);
+            this.handleParticleRef(value);
     }
 });
 

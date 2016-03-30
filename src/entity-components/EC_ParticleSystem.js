@@ -25,7 +25,6 @@ var EC_ParticleSystem = IComponent.$extend(
             @type Attribute
         */
         this.declareAttribute(0, "particleRef", "", Attribute.AssetReference, "Particle ref");
-        console.log("### EC_ParticleSystem init");
     },
 
     __classvars__ :
