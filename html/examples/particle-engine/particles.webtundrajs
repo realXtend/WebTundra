@@ -1,0 +1,41 @@
+define([
+    "lib/three",
+    "core/framework/Tundra",
+    "core/script/IApplication"
+], function(THREE, Tundra, IApplication) {
+
+var InputAPIExample = IApplication.$extend(
+{
+    __init__ : function()
+    {
+        this.$super("Particle engine example");
+
+        this.ui = {};
+        this.stators = [];
+        if (!Tundra.client.isConnected())
+           Tundra.client.onConnected(this, this.start);
+        else
+            this.start();
+    },
+
+    start : function()
+    {
+        this.stators = Tundra.scene.findEntitiesContaining("stator");
+        Tundra.frame.onUpdate(this, this.onUpdate);
+        console.log(this.stators);
+    },
+
+    onUpdate: function()
+    {
+        for (var i = 0, len = this.stators.length; i < len; ++i)
+        {
+            var t = this.stators[i].placeable.transform;
+            t.rot.x += 1.42803468051;
+            this.stators[i].placeable.transform = t;
+        }
+    }
+});
+
+return InputAPIExample;
+
+});

@@ -1,153 +1,1088 @@
 ﻿<scene
     xmlns="http://www.w3.org/1999/xhtml">
     <entity id="1" sync="true" temp="false">
-        <component type="SkyX" typeid="38" sync="true" temp="false"></component>
-        <component type="EnvironmentLight" typeid="8" sync="true" name="EC_Sky Created Light" temp="false"></component>
-    </entity>
-    <entity id="2" sync="true" temp="false">
-        <component type="Placeable" typeid="20" sync="true" temp="false">
-            <attribute id="transform" type="Transform" value="0,11.011634,5,0,0,0,1,1,1"></attribute>
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-275.983429,0.284514,-3.33289,0,0,0,1.045304,1.045304,1.045304"></attribute>
             <attribute id="drawDebug" type="bool" value="false"></attribute>
             <attribute id="visible" type="bool" value="true"></attribute>
             <attribute id="selectionLayer" type="int" value="1"></attribute>
             <attribute id="parentRef" type="EntityReference" value=""></attribute>
             <attribute id="parentBone" type="string" value=""></attribute>
         </component>
-        <component type="Light" typeid="16" sync="true" temp="false">
-            <attribute id="type" type="int" value="0"></attribute>
-            <attribute id="diffColor" type="Color" value="1 1 1 1"></attribute>
-            <attribute id="specColor" type="Color" value="0 0 0 1"></attribute>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree2.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
             <attribute id="castShadows" type="bool" value="false"></attribute>
-            <attribute id="range" type="real" value="250"></attribute>
-            <attribute id="brightness" type="real" value="1"></attribute>
-            <attribute id="constAtten" type="real" value="0"></attribute>
-            <attribute id="linearAtten" type="real" value="0.009999999776482582"></attribute>
-            <attribute id="quadraAtten" type="real" value="0.009999999776482582"></attribute>
-            <attribute id="innerAngle" type="real" value="30"></attribute>
-            <attribute id="outerAngle" type="real" value="40"></attribute>
+        </component>
+    </entity>
+    <entity id="2" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="pole"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-50.286308,-0.497761,14.550674,0,0,0,1,1,1"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pole.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/blades.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
         </component>
     </entity>
     <entity id="3" sync="true" temp="false">
-        <component type="Placeable" typeid="20" sync="true" temp="false">
-            <attribute id="transform" type="Transform" value="5,-2,-10,0,0,0,1,1,1"></attribute>
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="generator"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-51.614426,24.058538,14.550674,0,0,0,0.822739,0.489252,0.533311"></attribute>
             <attribute id="drawDebug" type="bool" value="false"></attribute>
             <attribute id="visible" type="bool" value="true"></attribute>
             <attribute id="selectionLayer" type="int" value="1"></attribute>
             <attribute id="parentRef" type="EntityReference" value=""></attribute>
             <attribute id="parentBone" type="string" value=""></attribute>
         </component>
-        <component type="Name" typeid="26" sync="true" temp="false">
-            <attribute id="name" type="string" value="Cube"></attribute>
-            <attribute id="description" type="string" value=""></attribute>
-            <attribute id="group" type="string" value=""></attribute>
-        </component>
-        <component type="ParticleSystem" typeid="27" sync="true" temp="false">
-            <attribute id="particleRef" type="AssetReference" value="http://localhost:8082/html/dots_particles.json"></attribute>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/generator.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/generator.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
         </component>
     </entity>
     <entity id="4" sync="true" temp="false">
-        <component type="Placeable" typeid="20" sync="true" temp="false">
-            <attribute id="transform" type="Transform" value="-2.488852,-3.361045,-8.62776,0,0,0,1,1,1"></attribute>
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="stator4"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-52.411682,24.058538,14.550674,0,0,0,0.822739,0.457598,0.450128"></attribute>
             <attribute id="drawDebug" type="bool" value="false"></attribute>
             <attribute id="visible" type="bool" value="true"></attribute>
             <attribute id="selectionLayer" type="int" value="1"></attribute>
             <attribute id="parentRef" type="EntityReference" value=""></attribute>
             <attribute id="parentBone" type="string" value=""></attribute>
         </component>
-        <component type="Name" typeid="26" sync="true" temp="false">
-            <attribute id="name" type="string" value="Cube"></attribute>
-            <attribute id="description" type="string" value=""></attribute>
-            <attribute id="group" type="string" value=""></attribute>
-        </component>
-        <component type="ParticleSystem" typeid="27" sync="true" temp="false">
-            <attribute id="particleRef" type="AssetReference" value="http://localhost:8082/html/smoke_particles.json"></attribute>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/stator.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/blades.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
         </component>
     </entity>
     <entity id="5" sync="true" temp="false">
-        <component type="Placeable" typeid="20" sync="true" temp="false">
-            <attribute id="transform" type="Transform" value="-5.870476,-0.086485,-5.5655,0,0,0,1,0,1"></attribute>
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="stator3"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-24.810362,24.182926,5.032351,154,0,0,0.822739,0.457598,0.450128"></attribute>
             <attribute id="drawDebug" type="bool" value="false"></attribute>
             <attribute id="visible" type="bool" value="true"></attribute>
             <attribute id="selectionLayer" type="int" value="1"></attribute>
             <attribute id="parentRef" type="EntityReference" value=""></attribute>
             <attribute id="parentBone" type="string" value=""></attribute>
         </component>
-        <component type="Name" typeid="26" sync="true" temp="false">
-            <attribute id="name" type="string" value="Cube"></attribute>
-            <attribute id="description" type="string" value=""></attribute>
-            <attribute id="group" type="string" value=""></attribute>
-        </component>
-        <component type="ParticleSystem" typeid="27" sync="true" temp="false">
-            <attribute id="particleRef" type="AssetReference" value="http://localhost:8082/html/rain_particles.json"></attribute>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/stator.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/blades.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
         </component>
     </entity>
     <entity id="6" sync="true" temp="false">
-        <component type="Name" typeid="26" sync="true" temp="false">
-            <attribute id="name" type="string" value="Cube"></attribute>
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="generator"></attribute>
             <attribute id="description" type="string" value=""></attribute>
             <attribute id="group" type="string" value=""></attribute>
         </component>
-        <component type="Placeable" typeid="20" sync="true" temp="false">
-            <attribute id="transform" type="Transform" value="-17.826374,-13.547044,-14.338198,0,0,0,1,1,1"></attribute>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-24.013098,24.182926,5.032351,0,0,0,0.822739,0.489252,0.533311"></attribute>
             <attribute id="drawDebug" type="bool" value="false"></attribute>
             <attribute id="visible" type="bool" value="true"></attribute>
             <attribute id="selectionLayer" type="int" value="1"></attribute>
             <attribute id="parentRef" type="EntityReference" value=""></attribute>
             <attribute id="parentBone" type="string" value=""></attribute>
         </component>
-        <component type="Mesh" typeid="17" sync="true" temp="false">
+        <component type="Mesh" typeid="17" sync="false" temp="false">
             <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
-            <attribute id="meshRef" type="AssetReference" value="http://meshmoon.data.s3.amazonaws.com/asset-library/meshes/primitives/Cube.mesh"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/generator.mesh"></attribute>
             <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
-            <attribute id="materialRefs" type="AssetReferenceList" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/generator.material"></attribute>
             <attribute id="drawDistance" type="real" value="0"></attribute>
             <attribute id="castShadows" type="bool" value="false"></attribute>
         </component>
     </entity>
     <entity id="7" sync="true" temp="false">
-        <component type="Name" typeid="26" sync="true" temp="false">
-            <attribute id="name" type="string" value="Ball"></attribute>
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="pole"></attribute>
             <attribute id="description" type="string" value=""></attribute>
             <attribute id="group" type="string" value=""></attribute>
         </component>
-        <component type="Placeable" typeid="20" sync="true" temp="false">
-            <attribute id="transform" type="Transform" value="10.3893,-13.634544,-5.784483,0,0,0,1,1,1"></attribute>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-22.684984,-0.373373,5.032351,0,0,0,1,1,1"></attribute>
             <attribute id="drawDebug" type="bool" value="false"></attribute>
             <attribute id="visible" type="bool" value="true"></attribute>
             <attribute id="selectionLayer" type="int" value="1"></attribute>
             <attribute id="parentRef" type="EntityReference" value=""></attribute>
             <attribute id="parentBone" type="string" value=""></attribute>
         </component>
-        <component type="Mesh" typeid="17" sync="true" temp="false">
+        <component type="Mesh" typeid="17" sync="false" temp="false">
             <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
-            <attribute id="meshRef" type="AssetReference" value="http://meshmoon.data.s3.amazonaws.com/asset-library/meshes/primitives/Sphere.mesh"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pole.mesh"></attribute>
             <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
-            <attribute id="materialRefs" type="AssetReferenceList" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/blades.material"></attribute>
             <attribute id="drawDistance" type="real" value="0"></attribute>
             <attribute id="castShadows" type="bool" value="false"></attribute>
         </component>
     </entity>
     <entity id="8" sync="true" temp="false">
-        <component type="Name" typeid="26" sync="true" temp="false">
-            <attribute id="name" type="string" value="Cube"></attribute>
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="pole"></attribute>
             <attribute id="description" type="string" value=""></attribute>
             <attribute id="group" type="string" value=""></attribute>
         </component>
-        <component type="Placeable" typeid="20" sync="true" temp="false">
-            <attribute id="transform" type="Transform" value="0,-16.231688,0,0,0,0,37.603795,1,40.941974"></attribute>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="1.841766,0,-1.088345,0,0,0,1,1,1"></attribute>
             <attribute id="drawDebug" type="bool" value="false"></attribute>
             <attribute id="visible" type="bool" value="true"></attribute>
             <attribute id="selectionLayer" type="int" value="1"></attribute>
             <attribute id="parentRef" type="EntityReference" value=""></attribute>
             <attribute id="parentBone" type="string" value=""></attribute>
         </component>
-        <component type="Mesh" typeid="17" sync="true" temp="false">
+        <component type="Mesh" typeid="17" sync="false" temp="false">
             <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
-            <attribute id="meshRef" type="AssetReference" value="http://meshmoon.data.s3.amazonaws.com/asset-library/meshes/primitives/Cube.mesh"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pole.mesh"></attribute>
             <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
-            <attribute id="materialRefs" type="AssetReferenceList" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/blades.material"></attribute>
             <attribute id="drawDistance" type="real" value="0"></attribute>
             <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="9" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="generator"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="0.513651,24.556299,-1.088345,0,0,0,0.822739,0.489252,0.533311"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/generator.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/generator.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="10" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="stator2"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-0.283613,24.556299,-1.088345,74,0,0,0.822739,0.457598,0.450128"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/stator.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/blades.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="11" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="stator1"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="24.174622,24.556299,-1.732348,31,0,0,0.822739,0.457598,0.450128"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/stator.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/blades.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="12" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="blades1"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="3.734885,0.407876,0.437406,-10.569027,0,90,5.136579,0.25,0.5"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value="stator1"></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/blade.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/blades.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="13" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="generator"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="24.971886,24.556299,-1.732348,0,0,0,0.822739,0.489252,0.533311"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/generator.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/generator.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="14" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="pole"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="26.300001,0,-1.732348,0,0,0,1,1,1"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pole.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/blades.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="15" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="Lamp"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="13.515537,5.69241,-47.800907,6.537199,-15.788063,0,1,1,1"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="Lamp"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+    </entity>
+    <entity id="16" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-297.571777,-3.959254,-4.34361,0,0,0,1.217283,1.217283,1.217283"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="17" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="field"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-263.108521,-1.223103,0,0,0,0,339.871674,153.099945,153.099945"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/field.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/field.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="18" sync="true" temp="false">
+        <component type="Sky" typeid="10" sync="false" temp="false">
+            <attribute id="materialRef" type="AssetReference" value=""></attribute>
+            <attribute id="textureRefs" type="AssetReferenceList" value=""></attribute>
+            <attribute id="distance" type="real" value="999"></attribute>
+            <attribute id="orientation" type="Quat" value="0 0 0 1"></attribute>
+            <attribute id="drawFirst" type="bool" value="true"></attribute>
+            <attribute id="enabled" type="bool" value="true"></attribute>
+        </component>
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="Sky"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="EnvironmentLight" typeid="8" sync="false" name="EC_Sky Created Light" temp="false"></component>
+    </entity>
+    <entity id="19" sync="true" temp="false">
+        <component type="Light" typeid="16" sync="false" temp="false">
+            <attribute id="type" type="int" value="0"></attribute>
+            <attribute id="diffColor" type="Color" value="1 1 1 1"></attribute>
+            <attribute id="specColor" type="Color" value="0 0 0 1"></attribute>
+            <attribute id="castShadows" type="bool" value="true"></attribute>
+            <attribute id="range" type="real" value="2500"></attribute>
+            <attribute id="brightness" type="real" value="2"></attribute>
+            <attribute id="constAtten" type="real" value="0"></attribute>
+            <attribute id="linearAtten" type="real" value="0.1"></attribute>
+            <attribute id="quadraAtten" type="real" value="0.1"></attribute>
+            <attribute id="innerAngle" type="real" value="20"></attribute>
+            <attribute id="outerAngle" type="real" value="30"></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-42.619637,205.870416,72.959959,0,0,0,1,1,1"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="light"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+    </entity>
+    <entity id="20" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="blades4"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="3.734885,0.407876,0.437406,-10.569027,0,90,5.136579,0.25,0.5"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value="stator4"></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/blade.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/blades.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="21" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="blades2"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="3.734885,0.407876,0.437406,-10.569027,0,90,5.136579,0.25,0.5"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value="stator2"></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/blade.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/blades.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="22" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="blades3"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="3.734885,0.407876,0.437406,-10.569027,0,90,5.136579,0.25,0.5"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value="stator3"></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/blade.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/blades.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="23" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-295.070129,-3.959254,-27.871962,0,0,0,1.217283,1.217283,1.217283"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="24" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-254.39504,0.891555,-42.359682,0,0,0,1.045304,1.045304,1.045304"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree2.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="25" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-280.412659,0.284514,-46.54702,0,0,0,1.045304,1.045304,1.045304"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree2.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="26" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-279.256134,0.284514,-23.663771,0,0,0,1.045304,1.045304,1.045304"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree2.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="27" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-258.138062,0.284514,-52.46843,0,0,0,1.045304,1.045304,1.045304"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree2.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="28" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-257.58667,0.284514,-45.942711,0,0,0,1.045304,1.045304,1.045304"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree2.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="29" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-245.907364,0.284514,-59.736835,0,0,0,1.045304,1.045304,1.045304"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree2.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="30" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-270.168488,0.266495,-38.310543,0,0,0,1.045304,1.045304,1.045304"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree2.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="31" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-283.706116,0.284514,-34.564369,0,0,0,1.045304,1.045304,1.045304"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree2.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="32" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-245.963715,0.284514,-35.421036,0,0,0,1.045304,1.045304,1.045304"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree2.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="33" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-271.098511,0.284514,-45.547928,0,0,0,1.045304,1.045304,1.045304"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree2.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="34" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-265.041077,0.284514,-31.717123,0,0,0,1.045304,1.045304,1.045304"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree2.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="35" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-299.234161,-3.977272,11.101392,0,0,0,1.217283,1.217283,1.217283"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="36" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-277.645813,0.266495,12.112112,0,0,0,1.045304,1.045304,1.045304"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree2.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="37" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-280.918518,0.266495,-8.21876,0,0,0,1.045304,1.045304,1.045304"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree2.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="38" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-296.732544,-3.977272,-12.426959,0,0,0,1.217283,1.217283,1.217283"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="39" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-285.3685,0.266495,-19.119366,0,0,0,1.045304,1.045304,1.045304"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree2.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="40" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-282.075073,0.266495,-31.102016,0,0,0,1.045304,1.045304,1.045304"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree2.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="41" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-272.760895,0.266495,-30.102924,0,0,0,1.045304,1.045304,1.045304"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree2.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="42" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-266.703461,0.266495,-16.272121,0,0,0,1.045304,1.045304,1.045304"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree2.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="43" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-259.249084,0.266495,-30.497707,0,0,0,1.045304,1.045304,1.045304"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree2.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="44" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-247.626099,0.266495,-19.976032,0,0,0,1.045304,1.045304,1.045304"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree2.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="45" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-284.228181,0.531568,-64.794968,0,0,0,1.045304,1.045304,1.045304"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree2.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="46" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="tree"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-247.569778,0.266495,-44.291836,0,0,0,1.045304,1.045304,1.045304"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://localhost:8083/html/examples/particle-engine/assets/pine_tree2.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value="http://localhost:8083/html/examples/particle-engine/assets/bark_rough.material;http://localhost:8083/html/examples/particle-engine/assets/leaf_pine.material"></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="47" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="ParticleEngine"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Script" typeid="5" sync="false" temp="false">
+            <attribute id="scriptRef" type="AssetReferenceList" value="webtundra-examples://particle-engine/particles.webtundrajs"></attribute>
+            <attribute id="runOnLoad" type="bool" value="true"></attribute>
+            <attribute id="runMode" type="int" value="0"></attribute>
+            <attribute id="applicationName" type="string" value=""></attribute>
+            <attribute id="className" type="string" value=""></attribute>
+        </component>
+    </entity>
+    <entity id="48" sync="true" temp="false">
+        <component type="ParticleSystem" typeid="27" sync="false" temp="false">
+            <attribute id="particleRef" type="AssetReference" value="webtundra.particles.rain"></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="0,27.788115,0,0,0,0,1,1,1"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="rain"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
         </component>
     </entity>
 </scene>
