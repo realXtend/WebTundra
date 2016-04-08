@@ -19,6 +19,8 @@ define([
         "lib/three"
     ], function(THREE) {
 
+(function () {
+
 THREE.GPUParticleSystem = function(options) {
 
   var self = this;
@@ -534,5 +536,8 @@ THREE.GPUParticleContainer = function(maxParticles, particleSystem) {
 
 THREE.GPUParticleContainer.prototype = Object.create(THREE.Object3D.prototype);
 THREE.GPUParticleContainer.prototype.constructor = THREE.GPUParticleContainer;
+}());
+
+return THREE.GPUParticleSystem;
 
 });
