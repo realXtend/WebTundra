@@ -1481,9 +1481,6 @@ var Scene = ITundraAPI.$extend(
                 continue;
             }
 
-            // Read all bytes to bits for inspection.
-            var bitArray = ds.readBitArray(totalBytes);
-
             // Control bit
             // 1 = Bitmask
             // 0 = Indices
