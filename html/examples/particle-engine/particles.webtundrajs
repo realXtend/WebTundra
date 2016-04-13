@@ -4,7 +4,7 @@ define([
     "core/script/IApplication"
 ], function(THREE, Tundra, IApplication) {
 
-var InputAPIExample = IApplication.$extend(
+var ParticleEngineExample = IApplication.$extend(
 {
     __init__ : function()
     {
@@ -22,7 +22,6 @@ var InputAPIExample = IApplication.$extend(
     {
         this.stators = Tundra.scene.findEntitiesContaining("stator");
         Tundra.frame.onUpdate(this, this.onUpdate);
-        console.log(this.stators);
     },
 
     onUpdate: function()
@@ -36,6 +35,6 @@ var InputAPIExample = IApplication.$extend(
     }
 });
 
-return InputAPIExample;
+return ParticleEngineExample;
 
 });
