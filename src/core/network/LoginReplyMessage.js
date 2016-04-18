@@ -54,7 +54,6 @@ var LoginReplyMessage = INetworkMessage.$extend(
         // Read optional protocol version if present
         if (ds.bytesLeft() >= 1)
             this.protocolVersion = ds.readVLE();
-        delete ds;
     }
 });
 

@@ -561,7 +561,6 @@ var AssetAPI = ITundraAPI.$extend(
                 var asset = this.getAsset(transfer.ref);
                 if (asset)
                     transfer._emitCompleted(asset);
-                delete transfer;
 
                 this.readyTransfers.splice(i, 1);
 
@@ -1252,7 +1251,7 @@ var AssetAPI = ITundraAPI.$extend(
 
         // Cleanup
         asset = null;
-        delete transfer; transfer = null;
+        transfer = null;
     },
 
     assetTransferFailed : function(transfer, reason)
@@ -1270,7 +1269,7 @@ var AssetAPI = ITundraAPI.$extend(
         this.removeTransfer(transfer);
         transfer._emitFailed(reason);
 
-        delete transfer; transfer = null;
+        transfer = null;
     },
 
     createEmptyAsset : function(assetRef, assetType)

@@ -48,7 +48,6 @@ var EntityActionMessage = INetworkMessage.$extend(
             var strLen = ds.readVLE();
             this.entityAction.parameters[i] = ds.readString(strLen, utf8);
         }
-        delete ds;
     },
 
     /**

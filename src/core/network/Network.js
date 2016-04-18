@@ -28,15 +28,15 @@ var Network = ITundraAPI.$extend(
         this.$super(name, options);
 
         this.messageHandlers = [];
-        
+
         /**
-            Send interval in seconds for the observer position & orientation. 
+            Send interval in seconds for the observer position & orientation.
             Only has relevance when observerEntityId in Client is nonzero. Will be sent only when actually changed.
             @property priorityUpdatePeriod
             @type Number
         */
         this.priorityUpdatePeriod = 1;
-        
+
         this.lastObserverSendTime = 0;
         this.lastObserverPosition = new THREE.Vector3();
         this.lastObserverOrientation = new THREE.Quaternion();
@@ -177,7 +177,6 @@ var Network = ITundraAPI.$extend(
         else
             this.log.error("Cannot send message as it's buffer is null! Are you sure it's an outgoing message and serialize() has been called?");
 
-        delete message;
         message = null;
     },
 

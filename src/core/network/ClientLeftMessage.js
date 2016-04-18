@@ -32,7 +32,6 @@ var ClientLeftMessage = INetworkMessage.$extend(
     deserialize : function(ds)
     {
         this.connectionId = ds.readVLE();
-        delete ds;
     }
 });
 

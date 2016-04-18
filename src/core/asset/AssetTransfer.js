@@ -478,8 +478,8 @@ var AssetTransfer = Class.$extend(
         // Cleanup
         jqXHR.responseText = null;
         jqXHR.responseXml = null;
-        delete jqXHR; jqXHR = null;
-        delete data; data = null;
+        jqXHR = null;
+        data = null;
 
         this._ajax = undefined;
     },
@@ -498,7 +498,7 @@ var AssetTransfer = Class.$extend(
 
         // Cleanup
         request.response = null;
-        delete request; request = null;
+        request = null;
 
         this._ajax = undefined;
     },
@@ -519,7 +519,7 @@ var AssetTransfer = Class.$extend(
         // Cleanup
         jqXHR.responseText = null;
         jqXHR.responseXml = null;
-        delete jqXHR; jqXHR = null;
+        jqXHR = null;
 
         this._ajax = undefined;
     },
@@ -540,7 +540,7 @@ var AssetTransfer = Class.$extend(
 
         // Cleanup
         request.response = null;
-        delete request; request = null;
+        request = null;
 
         this._ajax = undefined;
     },

@@ -93,7 +93,7 @@ PlaceableUtils.Animator = Class.$extend(
         @param {Object|THREE.Vector3} [options.from] - Source position. If left out, the current position will be retrieved from 'placeable'
         @param {Object|THREE.Vector3} options.to - Destination position.
         @param {number} [options.duration=1000] - Duration of the animation, default is 1 second (1000 miliseconds).
-        @param {string|TWEEN.Easing} [options.easing] - Easing function. Can be a TWEEN.Easing function, or one of "linear", "quadratic", "bounce" and "cubic" 
+        @param {string|TWEEN.Easing} [options.easing] - Easing function. Can be a TWEEN.Easing function, or one of "linear", "quadratic", "bounce" and "cubic"
         @return {TWEEN.Tween}
     */
     position : function(placeable, options)
@@ -171,14 +171,14 @@ PlaceableUtils.Animator = Class.$extend(
     },
 
     /**
-        Animate rotation. 
+        Animate rotation.
 
         @param {EC_Placeable} placeable
         @param {Object} options
         @param {Object|THREE.Vector3} [options.from] - Source rotation. If left out, the current rotation will be retrieved from 'placeable'
         @param {Object|THREE.Vector3} options.to - Destination rotation.
         @param {number} [options.duration=1000] - Duration of the animation, default is 1 second (1000 miliseconds).
-        @param {string|TWEEN.Easing} [options.easing] - Easing function. Can be a TWEEN.Easing function, or one of "linear", "quadratic", "bounce" and "cubic" 
+        @param {string|TWEEN.Easing} [options.easing] - Easing function. Can be a TWEEN.Easing function, or one of "linear", "quadratic", "bounce" and "cubic"
         @return {TWEEN.Tween}
     */
     rotation : function(placeable, options)
@@ -238,7 +238,7 @@ PlaceableUtils.Animator = Class.$extend(
 
         this.schedule.push(sheduled);
         sheduled.animation.start();
-    
+
         // TODO: Quaternions also
         // var fromQuat = new THREE.Quaternion().copy(options.from);
         // var toQuat = new THREE.Quaternion().copy(options.to);
@@ -449,8 +449,6 @@ PlaceableUtils.Animator = Class.$extend(
                         wasPlaying = sheduled.animation.isPlaying();
                     sheduled.animation.stop();
                 }
-
-                delete sheduled;
             }
         }
         return wasPlaying;
