@@ -690,7 +690,7 @@ var AssetAPI = ITundraAPI.$extend(
         @param {String} ref Reference to resolve.
         @return {String}
     */
-    resolveAssetRef : function(context, ref)
+    resolveRef : function(context, ref)
     {
         if (typeof ref !== "string" && typeof context === "string")
         {
@@ -731,6 +731,11 @@ var AssetAPI = ITundraAPI.$extend(
         }
         this.log.error("resolveAssetRef: Allowed 'context' types are IAsset and String, given:", context, "for ref", ref);
         return originalRef;
+    },
+
+    resolveAssetRef : function(context, ref)
+    {
+        return this.resolveRef(context, ref);
     },
 
     /**
