@@ -625,17 +625,21 @@ var ThreeJsRenderer = IRenderSystem.$extend(
         }
 
         /// @todo Investigate cascading shadows.
-        var changed = (this.renderer.shadowMap.enabled !== (this.shadowSettings.enabled === true && this.shadowSettings.shadowCastingLights > 0));
-        changed = (changed || this.renderer.shadowMap.type !== (this.shadowSettings.softShadows === true ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap));
+        var changed = false;
+        if (this.renderer.shadowMap)
+        {
+            changed = (this.renderer.shadowMap.enabled !== (this.shadowSettings.enabled === true && this.shadowSettings.shadowCastingLights > 0));
+            changed = (changed || this.renderer.shadowMap.type !== (this.shadowSettings.softShadows === true ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap));
 
-        // Removed in THREE.js r72
-        //changed = (changed || this.renderer.shadowMapDebug !== this.shadowSettings.drawDebug);
+            // Removed in THREE.js r72
+            //changed = (changed || this.renderer.shadowMapDebug !== this.shadowSettings.drawDebug);
 
-        this.renderer.shadowMap.enabled = (this.shadowSettings.enabled === true && this.shadowSettings.shadowCastingLights > 0);
-        this.renderer.shadowMap.type = (this.shadowSettings.softShadows === true ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap);
+            this.renderer.shadowMap.enabled = (this.shadowSettings.enabled === true && this.shadowSettings.shadowCastingLights > 0);
+            this.renderer.shadowMap.type = (this.shadowSettings.softShadows === true ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap);
 
-        // Removed in THREE.js r72
-        //this.renderer.shadowMapDebug = this.shadowSettings.drawDebug;
+            // Removed in THREE.js r72
+            //this.renderer.shadowMapDebug = this.shadowSettings.drawDebug;
+        }
 
         Tundra.events.send("ThreeJsRenderer.ShadowSettingsChanged", this.shadowSettings, changed, observer);
 
@@ -770,7 +774,7 @@ var ThreeJsRenderer = IRenderSystem.$extend(
         TWEEN.update();
 
         // Update three.js animations
-        THREE.AnimationHandler.update(frametimeMsec);
+        // THREE.AnimationHandler.update(frametimeMsec);
 
         // Render
         this.render();

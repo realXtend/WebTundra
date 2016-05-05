@@ -90,7 +90,7 @@ THREE.GPUParticleSystem = function(options) {
       '{',
       'const vec4 bit_shift = vec4(256.0*256.0*256.0, 256.0*256.0, 256.0, 1.0);',
       'const vec4 bit_mask  = vec4(0.0, 1.0/256.0, 1.0/256.0, 1.0/256.0);',
-      'vec4 res = fract(depth * bit_shift);',
+      'vec4 res = mod(depth*bit_shift*vec4(255), vec4(256))/vec4(255);',
       'res -= res.xxyz * bit_mask;',
       'return res;',
       '}',
@@ -212,10 +212,13 @@ THREE.GPUParticleSystem = function(options) {
     return ++i >= self.rand.length ? self.rand[i = 1] : self.rand[i];
   }
 
-  self.particleNoiseTex = THREE.ImageUtils.loadTexture(Tundra.asset.resolveRef("webtundra://media/textures/perlin-512.png"));
+  var textureLoader = new THREE.TextureLoader();
+  textureLoader.crossOrigin = "";
+
+  self.particleNoiseTex = textureLoader.load(Tundra.asset.resolveRef("webtundra://media/textures/perlin-512.png"));
   self.particleNoiseTex.wrapS = self.particleNoiseTex.wrapT = THREE.RepeatWrapping;
 
-  self.particleSpriteTex = THREE.ImageUtils.loadTexture(options.texture);
+  self.particleSpriteTex = textureLoader.load(options.texture);
   self.particleSpriteTex.wrapS = self.particleSpriteTex.wrapT = THREE.RepeatWrapping;
 
   self.particleShaderMat = new THREE.ShaderMaterial({
@@ -243,24 +246,14 @@ THREE.GPUParticleSystem = function(options) {
         value: 0.0
       }
     },
-    attributes: {
-        "particlePositionsStartTime": {
-            type: "v4",
-            value: new THREE.Vector4()
-        },
-        "particleVelColSizeLife": {
-            type: "v4",
-            value: new THREE.Vector4()
-        }
-    },
     blending: THREE.NormalBlending,
     vertexShader: GPUParticleShader.vertexShader,
     fragmentShader: GPUParticleShader.fragmentShader
   });
 
   // define defaults for all values
-  //self.particleShaderMat.defaultAttributeValues.particlePositionsStartTime = [0, 0, 0, 0];
-  //self.particleShaderMat.defaultAttributeValues.particleVelColSizeLife = [0, 0, 0, 0];
+  self.particleShaderMat.defaultAttributeValues.particlePositionsStartTime = [0, 0, 0, 0];
+  self.particleShaderMat.defaultAttributeValues.particleVelColSizeLife = [0, 0, 0, 0];
 
   self.particleContainers = [];
 
@@ -390,20 +383,17 @@ THREE.GPUParticleContainer = function(maxParticles, particleSystem) {
     self.particleVelColSizeLife[i * 4 + 3] = 0.0; //lifespan
   }
 
-  // TODO: threejs r73 - THREE.DynamicBufferAttribute has been removed. Use new THREE.BufferAttribute().setDynamic( true ) instead.
   self.particleShaderGeo.addAttribute('position', new THREE.BufferAttribute(self.particleVertices, 3));
-  self.particleShaderGeo.addAttribute('particlePositionsStartTime', new THREE.DynamicBufferAttribute(self.particlePositionsStartTime, 4));
-  self.particleShaderGeo.addAttribute('particleVelColSizeLife', new THREE.DynamicBufferAttribute(self.particleVelColSizeLife, 4));
+  self.particleShaderGeo.addAttribute('particlePositionsStartTime', new THREE.BufferAttribute(self.particlePositionsStartTime, 4).setDynamic(true));
+  self.particleShaderGeo.addAttribute('particleVelColSizeLife', new THREE.BufferAttribute(self.particleVelColSizeLife, 4).setDynamic(true));
 
   self.posStart = self.particleShaderGeo.getAttribute('particlePositionsStartTime')
   self.velCol = self.particleShaderGeo.getAttribute('particleVelColSizeLife');
 
   self.particleShaderMat = self.GPUParticleSystem.particleShaderMat;
 
-  // TODO: threejs r73 - THREE.PointCloud has been renamed to THREE.Points
-  // NOTE: threejs r71 - THREE.ParticleSystem has been renamed to THREE.PointCloud
   this.init = function() {
-    self.particleSystem = new THREE.PointCloud(self.particleShaderGeo, self.particleShaderMat);
+    self.particleSystem = new THREE.Points(self.particleShaderGeo, self.particleShaderMat);
     self.particleSystem.frustumCulled = false;
     this.add(self.particleSystem);
   };
