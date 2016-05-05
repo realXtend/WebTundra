@@ -43,7 +43,7 @@ var TextureAsset = IAsset.$extend(
 
             // If three.js reports it does not support DXT compressed formats
             // we will use WebGLTextureUtil for ETC1/PVR1.
-            var threeCheck = framework.renderer.renderer.supportsCompressedTextureS3TC();
+            var threeCheck = framework.renderer.renderer.extensions.get("WEBGL_compressed_texture_s3tc");
             if ((threeCheck === null || threeCheck === undefined || threeCheck === false) && TextureAsset.WebGLTextureLoader.supportsDXT() !== true)
                 TextureAsset.SupportsDXT = false;
 

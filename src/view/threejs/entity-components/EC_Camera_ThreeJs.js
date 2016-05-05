@@ -110,7 +110,7 @@ var EC_Camera_ThreeJs = EC_Camera.$extend(
         }
 
         // Parent
-        if (this.camera.parent == null && this.parentEntity != null)
+        if (!this.camera.parent && this.parentEntity)
         {
             if (this.parentEntity.placeable != null)
                 this.parentEntity.placeable.addChild(this.camera);
@@ -146,7 +146,7 @@ var EC_Camera_ThreeJs = EC_Camera.$extend(
                 this._componentAddedSub = undefined;
             }
 
-            if (this.camera != null && this.camera.parent == null)
+            if (this.camera && !this.camera.parent)
                 component.addChild(this.camera);
         }
     },

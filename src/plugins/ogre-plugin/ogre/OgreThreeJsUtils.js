@@ -79,14 +79,6 @@ var OgreThreeJsUtils =
 
                 if (geometry.attributes["normal"] === undefined)
                     geometry.computeVertexNormals();
-                if (geometry.attributes["tangent"] === undefined &&
-                    geometry.attributes["index"] !== undefined &&
-                    geometry.attributes["position"] !== undefined &&
-                    geometry.attributes["normal"] !== undefined &&
-                    geometry.attributes["uv"] !== undefined)
-                {
-                    geometry.computeTangents();
-                }
 
                 var threejsSubmesh = null;
                 if (geometry.attributes["skinIndex"] !== undefined && geometry.attributes["skinWeight"] !== undefined)
@@ -259,8 +251,8 @@ var OgreThreeJsUtils =
 
         geometry.addDrawCall(0, newIndiceCount);
 
-        if (dsIndexes != null)      { geometry.addAttribute("index",        new THREE.BufferAttribute(dsIndexes.array,    1)); 
-                                      geometry.attributes.index.is32bit = face32bit;                                           }
+        if (dsIndexes != null)      { geometry.setIndex(new THREE.BufferAttribute(dsIndexes.array,    1));
+                                      geometry.index.is32bit = face32bit;                                                      }
         if (dsVertices != null)     { geometry.addAttribute("position",     new THREE.BufferAttribute(dsVertices.array,   3)); }
         if (dsNormals != null)      { geometry.addAttribute("normal",       new THREE.BufferAttribute(dsNormals.array,    3)); }
         if (dsUVs != null)          { geometry.addAttribute("uv",           new THREE.BufferAttribute(dsUVs.array,        vertexUV1ItemCount)); }

@@ -625,13 +625,17 @@ var ThreeJsRenderer = IRenderSystem.$extend(
         }
 
         /// @todo Investigate cascading shadows.
-        var changed = (this.renderer.shadowMapEnabled !== (this.shadowSettings.enabled === true && this.shadowSettings.shadowCastingLights > 0));
-        changed = (changed || this.renderer.shadowMapType !== (this.shadowSettings.softShadows === true ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap));
-        changed = (changed || this.renderer.shadowMapDebug !== this.shadowSettings.drawDebug);
+        var changed = (this.renderer.shadowMap.enabled !== (this.shadowSettings.enabled === true && this.shadowSettings.shadowCastingLights > 0));
+        changed = (changed || this.renderer.shadowMap.type !== (this.shadowSettings.softShadows === true ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap));
 
-        this.renderer.shadowMapEnabled = (this.shadowSettings.enabled === true && this.shadowSettings.shadowCastingLights > 0);
-        this.renderer.shadowMapType = (this.shadowSettings.softShadows === true ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap);
-        this.renderer.shadowMapDebug = this.shadowSettings.drawDebug;
+        // Removed in THREE.js r72
+        //changed = (changed || this.renderer.shadowMapDebug !== this.shadowSettings.drawDebug);
+
+        this.renderer.shadowMap.enabled = (this.shadowSettings.enabled === true && this.shadowSettings.shadowCastingLights > 0);
+        this.renderer.shadowMap.type = (this.shadowSettings.softShadows === true ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap);
+
+        // Removed in THREE.js r72
+        //this.renderer.shadowMapDebug = this.shadowSettings.drawDebug;
 
         Tundra.events.send("ThreeJsRenderer.ShadowSettingsChanged", this.shadowSettings, changed, observer);
 

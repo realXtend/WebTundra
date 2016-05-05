@@ -50,7 +50,7 @@ var ObjMeshAsset = IAsset.$extend(
         if (this.logging && this.mesh != null && numSubmeshes > 0)
             this.log.debug("unload", this.name);
 
-        if (this.mesh != null && this.mesh.parent != null)
+        if (this.mesh && this.mesh.parent)
             this.mesh.parent.remove(this.mesh);
 
         for (var i = 0; i < numSubmeshes; i++)

@@ -715,7 +715,7 @@ var EC_Mesh_ThreeJs = EC_Mesh.$extend(
         }
         this.update();
 
-        if (this.meshAsset.mesh.parent != null && this._loadsEmitted.mesh === false)
+        if (this.meshAsset.mesh.parent && this._loadsEmitted.mesh === false)
         {
             this._loadsEmitted.mesh = true;
             Tundra.events.send("EC_Mesh." + this.parentEntity.id + "." + this.id + ".MeshLoaded", this.parentEntity, this, this.meshAsset);

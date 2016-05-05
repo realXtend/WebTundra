@@ -183,7 +183,7 @@ var EC_Light_ThreeJs = EC_Light.$extend(
     {
         this._destroyDebugger();
 
-        if (this.lightNode != null && this.lightNode.parent != null)
+        if (this.lightNode && this.lightNode.parent)
         {
             this.lightNode.parent.remove(this.lightNode);
             Tundra.renderer.updateLights(this);
@@ -200,7 +200,7 @@ var EC_Light_ThreeJs = EC_Light.$extend(
         if (this._drawDebug !== true)
             return;
 
-        if (this.lightNode == null || this.lightNode.parent == null)
+        if (!this.lightNode || !this.lightNode.parent)
             return;
 
         // Create

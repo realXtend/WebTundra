@@ -496,10 +496,10 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
 
     removeParent : function()
     {
-        if (this.sceneNode == null || this.parentEntity == null || this.parentScene == null)
+        if (!this.sceneNode || this.parentEntity == null || this.parentScene == null)
             return;
 
-        if (this.sceneNode.parent !== undefined && this.sceneNode.parent !== null && this.sceneNode.parent !== Tundra.renderer.scene)
+        if (this.sceneNode.parent && this.sceneNode.parent !== Tundra.renderer.scene)
         {
             Tundra.renderer.scene.add(this.sceneNode);
             Tundra.client.renderer.updateSceneNode(this.sceneNode, this.transform);

@@ -74,7 +74,7 @@ var OgreMeshAsset = IAsset.$extend(
                 submesh.material = Tundra.renderer.materialWhite;
         }
 
-        if (this.mesh != null && this.mesh.parent != null)
+        if (this.mesh && this.mesh.parent)
             this.mesh.parent.remove(this.mesh);
 
         /// @todo Geometry unload below
@@ -88,7 +88,7 @@ var OgreMeshAsset = IAsset.$extend(
         {
             //if (this.logging) console.log("  submesh " + i);
             var submesh = this.getSubmesh(i);
-            if (submesh != null && submesh.parent != null)
+            if (submesh && submesh.parent)
                 submesh.parent.remove(submesh);
 
             if (submesh != null && submesh.geometry != null)
@@ -702,7 +702,6 @@ var OgreMeshAsset = IAsset.$extend(
             //submeshGeometry.computeCentroids();
             //submeshGeometry.computeFaceNormals();
             //submeshGeometry.computeVertexNormals();
-            //submeshGeometry.computeTangents();
 
             // Create submesh instance
             var submesh = null;
