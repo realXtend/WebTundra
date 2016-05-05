@@ -317,27 +317,43 @@ var OgreMaterialAsset = IAsset.$extend(
         this.material.name = this.name;
         this.material.hasTundraShadowShader = this.ogreMaterial.shaders.hasShadowShaders();
 
-        this.material.ambient = this.ogreMaterial.ambient.toThreeColor();
-        this.material.color = this.material.diffuse = this.ogreMaterial.diffuse.toThreeColor();
-        this.material.specular = this.ogreMaterial.specular.toThreeColor();
-        this.material.emissive = this.ogreMaterial.emissive.toThreeColor();
+        if (this.material instanceof THREE.ShaderMaterial || (!(this.material instanceof THREE.ShaderMaterial) && this.material.ambient))
+            this.material.ambient = this.ogreMaterial.ambient.toThreeColor();
+
+        var threeDiffuse = this.ogreMaterial.diffuse.toThreeColor();
+        if (this.material instanceof THREE.ShaderMaterial || (!(this.material instanceof THREE.ShaderMaterial) && this.material.color))
+            this.material.color = threeDiffuse;
+        if (this.material instanceof THREE.ShaderMaterial || (!(this.material instanceof THREE.ShaderMaterial) && this.material.diffuse))
+            this.material.diffuse = threeDiffuse;
+
+        if (this.material instanceof THREE.ShaderMaterial || (!(this.material instanceof THREE.ShaderMaterial) && this.material.specular))
+            this.material.specular = this.ogreMaterial.specular.toThreeColor();
+        if (this.material instanceof THREE.ShaderMaterial || (!(this.material instanceof THREE.ShaderMaterial) && this.material.emissive))
+            this.material.emissive = this.ogreMaterial.emissive.toThreeColor();
         this.material.opacity = this.ogreMaterial.opacity;
 
         // Ogre 1 1 1 emissive is closer to three.js 0.5 0.5 0.5
-        OgreMaterial.clampColor(OgreMaterial.Color.Emissive, this.material.emissive, 0.5, this.logging);
+        if (this.material.emissive)
+            OgreMaterial.clampColor(OgreMaterial.Color.Emissive, this.material.emissive, 0.5, this.logging);
 
-        if (!this.ogreMaterial.shaders.fragment.isValid() && this.material instanceof THREE.MeshPhongMaterial &&
+		if (this.material.specular)
+		{
+        	if (!this.ogreMaterial.shaders.fragment.isValid() && this.material instanceof THREE.MeshPhongMaterial &&
                   this.ogreMaterial.numTextures() <= 1)
-        {
-            OgreMaterial.clampColor(OgreMaterial.Color.Specular, this.material.specular, 0.1, this.logging);
-        }
+        	{
+            	OgreMaterial.clampColor(OgreMaterial.Color.Specular, this.material.specular, 0.1, this.logging);
+        	}
+		}
 
         if (this.ogreMaterial.depthWrite === false)
         {
             this.material.transparent = true;
             this.material.depthWrite = false;
-            this.material.color.setRGB(1,1,1);
-            this.material.diffuse.setRGB(1,1,1);
+
+            if (this.material.color)
+                this.material.color.setRGB(1,1,1);
+            if (this.material.diffuse)
+                this.material.diffuse.setRGB(1,1,1);
         }
 
         // Shininess
@@ -380,7 +396,7 @@ var OgreMaterialAsset = IAsset.$extend(
            but seems how our artists are using it, and it does look like its producing the same
            color as in the native client. See http://www.ogre3d.org/docs/manual/manual_17.html#colour_005fop_005fex */
         var colorOpParts = this.ogreMaterial.attributes["colour_op_ex"];
-        if (Array.isArray(colorOpParts) && colorOpParts.length >= 6)
+        if (Array.isArray(colorOpParts) && colorOpParts.length >= 6 && this.material.color)
         {
             this.material.color.r = Math.min(parseFloat(colorOpParts[3]), 1.0);
             this.material.color.g = Math.min(parseFloat(colorOpParts[4]), 1.0);
@@ -460,6 +476,12 @@ var OgreMaterialAsset = IAsset.$extend(
         for (var i=0, num=this.ogreMaterial.numTextures(); i<num; ++i)
         {
             var textureUnit = this.ogreMaterial.textureUnits[i];
+            if (textureUnit.type == TextureAsset.REFLECTION)
+            {
+                if (this.logging) console.warn("Skipping reflection map loading as it breaks rendering with THREE.js r75 and later.");
+                continue;
+            }
+
             if (textureUnit.texture === "")
             {
                 if (this.logging) console.warn("  -- Ignoring texture_unit " + i + ": Does not have a texture.");

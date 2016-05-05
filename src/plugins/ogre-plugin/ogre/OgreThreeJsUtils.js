@@ -45,7 +45,7 @@ var OgreThreeJsUtils =
             for (var iSubmesh = 0; iSubmesh < numSubmeshes; ++iSubmesh)
             {
                 var ogreSubmesh = ogreMesh.getSubmesh(iSubmesh);
-                if (ogreSubmesh == null)
+                if (!ogreSubmesh)
                     return this.logError("Failed to get submesh index " + iSubmesh);
 
                 if (ogreSubmesh.operationType !== OgreDefines.RenderOperation.TRIANGLE_LIST)
@@ -249,9 +249,9 @@ var OgreThreeJsUtils =
             }
         }
 
-        geometry.addDrawCall(0, newIndiceCount);
+        geometry.addGroup(0, newIndiceCount);
 
-        if (dsIndexes != null)      { geometry.setIndex(new THREE.BufferAttribute(dsIndexes.array,    1));
+        if (dsIndexes != null)      { geometry.setIndex(new THREE.BufferAttribute(dsIndexes.array, 1));
                                       geometry.index.is32bit = face32bit;                                                      }
         if (dsVertices != null)     { geometry.addAttribute("position",     new THREE.BufferAttribute(dsVertices.array,   3)); }
         if (dsNormals != null)      { geometry.addAttribute("normal",       new THREE.BufferAttribute(dsNormals.array,    3)); }

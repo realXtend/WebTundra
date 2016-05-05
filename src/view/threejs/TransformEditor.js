@@ -209,7 +209,7 @@ var TransformEditor = Class.$extend(
 
     _isAncestorInTargets : function(node, ancestorList)
     {
-        ancestorList = ancestorList || this._getAncestors(node); 
+        ancestorList = ancestorList || this._getAncestors(node);
         for (var i = ancestorList.length - 1; i >= 0; i--)
         {
             var ancestorUuid = ancestorList[i].uuid;
@@ -368,6 +368,13 @@ var TransformEditor = Class.$extend(
     {
         if (this.transformControl.isAttached())
             this.transformControl.update();
+
+        var helpersKeys = Object.keys(this.helpers);
+        for (var i = 0; i < helpersKeys.length; ++i)
+        {
+            if (this.helpers[helpersKeys[i]].box && this.helpers[helpersKeys[i]].originalMesh)
+                this.helpers[helpersKeys[i]].box.update(this.helpers[helpersKeys[i]].originalMesh);
+        }
     },
 
     onActiveCameraChanged : function(activeCam, previousCam)
@@ -391,7 +398,7 @@ var TransformEditor = Class.$extend(
     {
         /* Critical state. We are detaching the target parents (if available), and attaching the active node,
            so we can translate / rotate / scale with it. If something / someone changes the transform during dragging,
-           target transforms will be erratic. */ 
+           target transforms will be erratic. */
         this._detachParents();
         var helpersKeys = Object.keys(this.helpers);
         for (var i = 0; i < helpersKeys.length; ++i)
@@ -423,7 +430,7 @@ var TransformEditor = Class.$extend(
                    By doing this, we can be sure of valid transform states (before the drag started and after it stopped), much easier
                    than calculating everything by hand.
                    Again, if someone / something changed the transform during dragging, the transforms will be erratic.
-                   Collaborative editing is out of scope of this transform editor implementation. */ 
+                   Collaborative editing is out of scope of this transform editor implementation. */
                 this._reAttachParent(node);
                 t.setPosition(node.position);
                 t.setRotation(node.quaternion);

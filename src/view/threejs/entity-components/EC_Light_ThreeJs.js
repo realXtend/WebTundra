@@ -71,7 +71,10 @@ var EC_Light_ThreeJs = EC_Light.$extend(
             if (type === EC_Light.Type.PointLight)
                 light = new THREE.PointLight(color, intensity, distance);
             else if (type === EC_Light.Type.SpotLight)
-                light = new THREE.SpotLight(color, intensity, distance, true);
+            {
+                console.warn("[EC_Light]: createLight(): Update spotlights to THREE.js r76");
+                // light = new THREE.SpotLight(color, intensity, distance, true);
+            }
             else if (type === EC_Light.Type.DirectionalLight)
                 light = new THREE.DirectionalLight(color, intensity, distance);
             else if (type === EC_Light.Type.AmbientLight)

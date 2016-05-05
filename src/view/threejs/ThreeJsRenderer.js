@@ -1491,14 +1491,10 @@ var ThreeJsRenderer = IRenderSystem.$extend(
         // Verify scale is not negative or zero.
         if (sceneNode.scale.x < 0.0000001 || sceneNode.scale.y < 0.0000001 || sceneNode.scale.z < 0.0000001)
         {
-            // Allow exact integral 0,0,0
-            if (sceneNode.scale.x !== 0 || sceneNode.scale.y !== 0 || sceneNode.scale.z !== 0)
-            {
-                this.log.warn("Fixing negative/zero scale", sceneNode.scale.toString(), "for object", sceneNode.name);
-                if (sceneNode.scale.x < 0.0000001) sceneNode.scale.x = 0.0000001;
-                if (sceneNode.scale.y < 0.0000001) sceneNode.scale.y = 0.0000001;
-                if (sceneNode.scale.z < 0.0000001) sceneNode.scale.z = 0.0000001;
-            }
+            this.log.warn("Fixing negative/zero scale", sceneNode.scale.toString(), "for object", sceneNode.name);
+            if (sceneNode.scale.x < 0.0000001) sceneNode.scale.x = 0.0000001;
+            if (sceneNode.scale.y < 0.0000001) sceneNode.scale.y = 0.0000001;
+            if (sceneNode.scale.z < 0.0000001) sceneNode.scale.z = 0.0000001;
         }
 
         sceneNode.updateMatrix();
