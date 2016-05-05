@@ -212,7 +212,7 @@ THREE.GPUParticleSystem = function(options) {
     return ++i >= self.rand.length ? self.rand[i = 1] : self.rand[i];
   }
 
-  self.particleNoiseTex = THREE.ImageUtils.loadTexture("textures/perlin-512.png");
+  self.particleNoiseTex = THREE.ImageUtils.loadTexture(Tundra.asset.resolveRef("webtundra://media/textures/perlin-512.png"));
   self.particleNoiseTex.wrapS = self.particleNoiseTex.wrapT = THREE.RepeatWrapping;
 
   self.particleSpriteTex = THREE.ImageUtils.loadTexture(options.texture);

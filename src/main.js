@@ -13,7 +13,7 @@
 require.config({
     // Module name
     name    : "main",
-    
+
     // Base for all RequireJS paths
     baseUrl : "../src",
 
@@ -58,7 +58,8 @@ require([
         //"plugins/dom-integration/TundraDomIntegrationPlugin", // Disabled by default for performance reasons
         "plugins/login-screen/LoginScreenPlugin",
         "plugins/ogre-plugin/OgrePlugin",
-        "plugins/script-plugin/ScriptPlugin"
+        "plugins/script-plugin/ScriptPlugin",
+        "plugins/particle-engine/ParticleEnginePlugin",
         //"plugins/physics/AmmoPhysics", // Disabled by default as server typically simulates physics; client-side physics can be performance-heavy
 
     ],
@@ -71,7 +72,8 @@ require([
              //TundraDomIntegrationPlugin, // Disabled by default for performance reasons
              LoginScreenPlugin,
              OgrePlugin,
-             ScriptPlugin /*, AmmoPhysics*/)
+             ScriptPlugin,
+             ParticleEnginePlugin /*, AmmoPhysics*/)
     {
         var createClient = function()
         {

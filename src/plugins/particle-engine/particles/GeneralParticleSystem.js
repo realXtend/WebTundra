@@ -34,6 +34,11 @@ var GeneralParticleSystem = IParticleSystem.$extend(
             scaleOnCameraDistance: false
         }, options);
 
+        Object.defineProperty(this, "visible", {
+            get: function() { return this.cache.system ? this.cache.system.visible : false; },
+            set: function(val) { if (this.cache.system) this.cache.system.visible = val; }
+        });
+
         this.create();
     },
 

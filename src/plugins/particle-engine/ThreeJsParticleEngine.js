@@ -4,11 +4,11 @@ define([
         "lib/three",
         "core/scene/Scene",
         "core/renderer/IParticleEngine",
-        "view/threejs/entity-components/EC_ParticleSystem_ThreeJs",
-        "view/threejs/particles/GeneralParticleSystem",
-        "view/threejs/particles/RainParticleFactory",
-        "view/threejs/particles/SmokeParticleFactory",
-        "view/threejs/particles/StardustParticleFactory"
+        "plugins/particle-engine/entity-components/EC_ParticleSystem_ThreeJs",
+        "plugins/particle-engine/particles/GeneralParticleSystem",
+        "plugins/particle-engine/particles/RainParticleFactory",
+        "plugins/particle-engine/particles/SmokeParticleFactory",
+        "plugins/particle-engine/particles/StardustParticleFactory"
     ], function(Tundra, THREE, Scene, IParticleEngine, EC_ParticleSystem_ThreeJs,
         GeneralParticleSystem,
         RainParticleFactory,

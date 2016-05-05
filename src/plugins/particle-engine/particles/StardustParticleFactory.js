@@ -1,7 +1,7 @@
 
 define([
         "core/renderer/IParticleFactory",
-        "view/threejs/particles/GeneralParticleSystem"
+        "plugins/particle-engine/particles/GeneralParticleSystem"
     ], function(IParticleFactory, GeneralParticleSystem) {
 
 var StardustParticleFactory = IParticleFactory.$extend(
@@ -10,6 +10,7 @@ var StardustParticleFactory = IParticleFactory.$extend(
     /**
         Stardust particle.
 
+        @extends IParticleFactory
         @constructs
     */
     __init__ : function()
@@ -17,7 +18,7 @@ var StardustParticleFactory = IParticleFactory.$extend(
         this.$super("Stardust");
         this.options = {
             "name": "Stardust",
-            "texture" : "textures/star.png",
+            "texture" : Tundra.asset.resolveRef("webtundra://media/textures/star.png"),
             "spawnRate" : 1000,
             "timeScale" : 0.2,
             "scaleOnCameraDistance": true,

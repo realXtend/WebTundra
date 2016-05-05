@@ -18,9 +18,12 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
     __init__ : function(id, typeId, typeName, name)
     {
         this.$super(id, typeId, typeName, name);
+        this.engine = Tundra.plugins.particleEngine.impl;
         this.properties = {};
         this.systemId = "";
+        this.system = undefined;
         this.placeableCache = undefined;
+        this.placeableSub = undefined;
         this.posCache = new THREE.Vector3();
     },
 
@@ -31,7 +34,9 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
 
     reset: function()
     {
-        Tundra.renderer.particleEngine.destroySystem(this.systemId);
+        this.engine.destroySystem(this.systemId);
+        this.system = undefined;
+
         delete this.properties;
         this.properties = {};
     },
@@ -54,9 +59,9 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
         this.reset();
         if (ref !== "")
         {
-            var system = Tundra.renderer.particleEngine.createSystemFromFactory(this.systemId, ref);
+            this.system = this.engine.createSystemFromFactory(this.systemId, ref);
 
-            if (!system)
+            if (!this.system)
             {
                 var transfer = Tundra.asset.requestAsset(ref, "Text");
                 if (transfer != null)
@@ -66,15 +71,16 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
                 }
             }
             else
-                this.properties = system.exportProperties();
-
-            this.checkAndUpdatePlaceable();
+            {
+                this.properties = this.system.exportProperties();
+                this.checkAndUpdatePlaceable();
+            }
         }
     },
 
     _onParticleLoaded: function(asset)
     {
-        var system = Tundra.renderer.particleEngine.createSystem(this.systemId, asset.data);
+        this.system = this.engine.createSystem(this.systemId, asset.data);
         this.properties = system.exportProperties();
         this.checkAndUpdatePlaceable();
     },
@@ -95,22 +101,36 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
             this.properties.particle.position.y = this.posCache.y;
             this.properties.particle.position.z = this.posCache.z;
         }
+    },
 
+    _updateVisibility: function()
+    {
+        if (this.system && this.placeableCache)
+            this.system.visible = this.placeableCache.visible;
     },
 
     checkAndUpdatePlaceable: function()
     {
-        if (this.properties.followCamera === true)
+        if (this.placeableCache)
+        {
+            this._updatePosition();
+            this._updateVisibility();
             return;
+        }
 
         /* Otherwise, get read its initial position and attach an attribute change listener to it */
         if (this.hasParentEntity() && this.parentEntity.placeable)
         {
             this.placeableCache = this.parentEntity.placeable;
             this._updatePosition();
+            this._updateVisibility();
+            if (this.placeableSub)
+            {
+                Tundra.events.unsubscribe(this.placeableSub);
+                delete this.placeableSub;
+            }
 
-            // TODO: Check if unsubscribe is required later
-            this.parentEntity.placeable.onAttributeChanged(this, this.onPlaceableAttributeChanged);
+            this.placeableSub = this.parentEntity.placeable.onAttributeChanged(this, this.onPlaceableAttributeChanged);
         }
     },
 
@@ -125,13 +145,19 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
     {
         /* Check if the removed component is Placeable and the same placeable cached */
         if (component.typeId == 20 && this.placeableCache && this.placeableCache.id === component.id)
+        {
+            Tundra.events.unsubscribe(this.placeableSub);
+            this.placeableSub = undefined;
             this.placeableCache = undefined;
+        }
     },
 
-    onPlaceableAttributeChanged: function(entity, component, attributeIndex, attributeName, attributeValue)
+    onPlaceableAttributeChanged: function(entity, component, attributeIndex)
     {
         if (attributeIndex == 0) // transform
             this._updatePosition();
+        else if (attributeIndex == 2)
+            this._updateVisibility();
     },
 
     attributeChanged : function(index, name, value)

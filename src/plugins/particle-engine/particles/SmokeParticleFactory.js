@@ -1,7 +1,7 @@
 
 define([
         "core/renderer/IParticleFactory",
-        "view/threejs/particles/GeneralParticleSystem"
+        "plugins/particle-engine/particles/GeneralParticleSystem"
     ], function(IParticleFactory, GeneralParticleSystem) {
 
 var SmokeParticleFactory = IParticleFactory.$extend(
@@ -10,15 +10,15 @@ var SmokeParticleFactory = IParticleFactory.$extend(
     /**
         Smoke particle.
 
-        @constructs
         @extends IParticleFactory
+        @constructs
     */
     __init__ : function()
     {
         this.$super("Smoke");
         this.options = {
             "name": "Smoke",
-            "texture" : "textures/smoke.png",
+            "texture" : Tundra.asset.resolveRef("webtundra://media/textures/smoke.png"),
             "spawnRate" : 10,
             "timeScale" : 0.1,
             "scaleOnCameraDistance": true,

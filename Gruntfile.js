@@ -186,7 +186,8 @@ module.exports = function(grunt) {
                         "plugins/login-screen/LoginScreenPlugin",
                         "plugins/ogre-plugin/OgrePlugin",
                         "plugins/script-plugin/ScriptPlugin",
-                        "plugins/physics/AmmoPhysics"
+                        "plugins/physics/AmmoPhysics",
+                        "plugins/particle-engine/ParticleEnginePlugin"
                     ],
 
                     skipProcessingModules : [

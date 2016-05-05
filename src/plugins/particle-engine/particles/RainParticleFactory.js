@@ -1,10 +1,8 @@
 
 define([
-        "core/framework/Tundra",
-        "core/framework/TundraLogging",
         "core/renderer/IParticleFactory",
-        "view/threejs/particles/GeneralParticleSystem"
-    ], function(Class, Tundra, IParticleFactory, GeneralParticleSystem) {
+        "plugins/particle-engine/particles/GeneralParticleSystem"
+    ], function(IParticleFactory, GeneralParticleSystem) {
 
 var RainParticleFactory = IParticleFactory.$extend(
 /** @lends RainParticleFactory.prototype */
@@ -20,7 +18,7 @@ var RainParticleFactory = IParticleFactory.$extend(
         this.$super("Rain");
         this.options = {
             "name"      : "Rain",
-            "texture"   : "textures/droplet.png",
+            "texture"   : Tundra.asset.resolveRef("webtundra://media/textures/droplet.png"),
             "spawnRate" : 10000,
             "timeScale" : 10,
             "particle"  : {
