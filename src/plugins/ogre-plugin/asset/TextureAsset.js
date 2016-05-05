@@ -47,7 +47,7 @@ var TextureAsset = IAsset.$extend(
             // If three.js reports it does not support DXT compressed formats
             // we will use WebGLTextureUtil for ETC1/PVR1.
             var threeCheck = framework.renderer.renderer.extensions.get("WEBGL_compressed_texture_s3tc");
-            if ((threeCheck === null || threeCheck === undefined || threeCheck === false) && TextureAsset.WebGLTextureLoader.supportsDXT() !== true)
+            //if ((threeCheck === null || threeCheck === undefined || threeCheck === false) && TextureAsset.WebGLTextureLoader.supportsDXT() !== true)
                 TextureAsset.SupportsDXT = false;
 
             TextureAsset.SupportsETC1 = TextureAsset.WebGLTextureLoader.supportsETC1();
@@ -414,7 +414,7 @@ var TextureAsset = IAsset.$extend(
             return true;
         }
         // Desktop: Normal DXT texture load
-        else if (TextureAsset.SupportsDXT !== false && (TextureAsset.EnabledFormat === "" || TextureAsset.EnabledFormat === "dxt"))
+        else if ((TextureAsset.SupportsDXT !== false || TextureAsset.SupportsETC1 !== false) && (TextureAsset.EnabledFormat === "" || TextureAsset.EnabledFormat === "dxt" || TextureAsset.EnabledFormat == "etc1"))
         {
             var dds = THREE.DDSLoader.parse(data, true);
             if (dds == null || dds.format == null)
@@ -455,63 +455,6 @@ var TextureAsset = IAsset.$extend(
 
             delete dds; dds = null;
             return true;
-        }
-        // Mobile: Load DDS container ETC1 texture to the GPU.
-        // This involves some trickery to go around three.js load steps.
-        else if (TextureAsset.SupportsETC1 === true && TextureAsset.EnabledFormat === "etc1")
-        {
-            TextureAsset.WebGLTextureLoader.parseDDS(data, function(dxtData, width, height, levels, internalFormat) {
-                if (internalFormat !== TextureAsset.Format.COMPRESSED_RGB_ETC1_WEBGL)
-                {
-                    this.log.error("Decoded compression format", internalFormat, "is not ETC1 and cannot be loaded.");
-                    return;
-                }
-
-                this.texture = new THREE.CompressedTexture();
-                this.texture.tundraAsset = this;
-                this.texture.name = this.name;
-
-                this.texture.mipmaps = [];
-                this.texture.image.width = width;
-                this.texture.image.height = height;
-                this.texture.generateMipmaps = false;
-
-                // @todo Set these to the webgl texture to mimic three.js loading.
-                this.texture.wrapS = THREE.RepeatWrapping;
-                this.texture.wrapT = THREE.RepeatWrapping;
-                this.texture.magFilter = THREE.LinearFilter;
-                this.texture.minFilter = THREE.LinearFilter;
-                this.texture.anisotropy = 4;
-
-                // hack three.js webgl init
-                // todo this is a private/anon function and cannot be hooked to
-                //this.texture.addEventListener( 'dispose', <webgl_renderer_anon_func>onTextureDispose );
-                Tundra.renderer.renderer.info.memory.textures++;
-
-                this.texture.needsUpdate = false;
-                this.texture.__webglInit = true;
-                this.texture.__webglTexture = TextureAsset.WebGLTextureLoader.gl.createTexture();
-
-                TextureAsset.WebGLTextureLoader._uploadCompressedData(dxtData, width, height, levels, internalFormat, this.texture.__webglTexture, function(glTexture, nothing, stats)
-                {
-                    var _gl = TextureAsset.WebGLTextureLoader.gl;
-
-                    // Setup THREE.Texture properties from private/anon WebGlRenderer.setTexture
-                    _gl.pixelStorei( _gl.UNPACK_FLIP_Y_WEBGL, this.flipY );
-                    _gl.pixelStorei( _gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, this.premultiplyAlpha );
-                    _gl.pixelStorei( _gl.UNPACK_ALIGNMENT, this.unpackAlignment );
-
-                    // pow2 based min/mag filters
-                    var isPow2 = (TextureAsset.WebGLTextureLoader.isPowerOfTwo(stats.width) && TextureAsset.WebGLTextureLoader.isPowerOfTwo(stats.height));
-                    _gl.texParameteri( _gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, (isPow2 ? _gl.NEAREST : _gl.LINEAR) );
-                    _gl.texParameteri( _gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, (isPow2 ? _gl.NEAREST_MIPMAP_NEAREST : _gl.LINEAR) );
-
-                }.bind(this.texture));
-            }.bind(this), function(err) {
-                this.log.error("Failed to load ETC1 texture:", err);
-            }.bind(this));
-
-            return this.isLoaded();
         }
         /// @todo iOS devices
         /*else if (TextureAsset.SupportsPVR === true && TextureAsset.EnabledFormat === "pvr")
