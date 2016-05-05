@@ -39,6 +39,9 @@ var TextureAsset = IAsset.$extend(
     {
         __init__ : function(framework)
         {
+            TextureAsset.TextureLoader = new THREE.TextureLoader();
+            TextureAsset.CubeTextureLoader = new THREE.CubeTextureLoader();
+
             TextureAsset.WebGLTextureLoader = new WebGLTextureUtil(framework.renderer.renderer.getContext());
 
             // If three.js reports it does not support DXT compressed formats
@@ -387,8 +390,8 @@ var TextureAsset = IAsset.$extend(
         // PNG loading
         if ((transfer.suffix === ".png" && transfer.proxyMetadata.type !== ".dds") || transfer.proxyMetadata.type === ".png")
         {
-            THREE.ImageUtils.crossOrigin = "anonymous";
-            THREE.ImageUtils.loadTexture(transfer.suffix === ".png" ? transfer.ref : transfer.proxyRef, undefined, function(texture) {
+            TextureAsset.TextureLoader.crossOrigin = "anonymous";
+            TextureAsset.TextureLoader.load(transfer.suffix === ".png" ? transfer.ref : transfer.proxyRef, function(texture) {
                 this.texture = texture;
                 this.texture.tundraAsset = this;
                 this.texture.width = texture.image.width;
@@ -405,7 +408,7 @@ var TextureAsset = IAsset.$extend(
                 this.texture.needsUpdate = true;
 
                 this._emitLoaded();
-            }.bind(this), function(error) {
+            }.bind(this), undefined, function(error) {
                 this._emitFailed("Failed to load png via <img>");
             }.bind(this));
             return true;

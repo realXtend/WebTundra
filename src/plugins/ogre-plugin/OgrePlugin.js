@@ -45,6 +45,8 @@ var OgrePlugin = ITundraPlugin.$extend({
     /// ITundraPlugin override
 	postInitialize : function()
     {
+        if (TextureAsset.__init__ !== undefined)
+            TextureAsset.__init__(this.framework);
 	}
 
 });
