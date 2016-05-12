@@ -2,7 +2,7 @@
     "name"          : "realxtend-webtundra-sdk",
     "description"   : "realXtend WebTundra SDK is a web browser virtual world SDK",
     "homepage"      : "http://realxtend.org/",
-    "version"       : "2.0.0",
+    "version"       : "5.2.3",
 
     "dependencies"  : {
     "command-line-args"         : "^0.5.9",
@@ -23,5 +23,8 @@
     "jaguarjs-jsdoc"            : "0.0.1",
     "node.extend"               : "^1.1.5",
     "requirejs"                 : "^2.1.18"
+  },
+  "scripts" : {
+    "test" : "echo 'Tests: todo'"
   }
 }
