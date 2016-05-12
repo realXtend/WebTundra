@@ -217,6 +217,8 @@ var EC_Sound_WebAudio = EC_Sound.$extend(
                 this.changeGain();
                 break;
             case 4: // playOnLoad
+                if (value)
+                    this.play();
                 break;
             case 5: // loopSound
                 this.changeLoopSound();
