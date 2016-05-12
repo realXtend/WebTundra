@@ -1,6 +1,7 @@
 realXtend Web Tundra
 ===================
 
+[![Build Status](https://travis-ci.org/realXtend/WebTundra.svg?branch=master)](https://travis-ci.org/realXtend/WebTundra)
 [![License badge](https://img.shields.io/hexpm/l/plug.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Documentation badge](https://readthedocs.org/projects/webtundra/badge/?version=latest)](http://webtundra.readthedocs.org/en/latest/?badge=latest)
 [![Docker badge](https://img.shields.io/docker/pulls/adminotech/webtundra.svg)](https://hub.docker.com/r/adminotech/webtundra/)
