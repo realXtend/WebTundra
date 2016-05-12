@@ -2,6 +2,11 @@
     "name"          : "realxtend-webtundra-sdk",
     "description"   : "realXtend WebTundra SDK is a web browser virtual world SDK",
     "homepage"      : "http://realxtend.org/",
+    "license"       : "Apache-2.0",
+    "repository" : {
+       "type" : "git",
+       "url" : "https://github.com/realXtend/WebTundra.git"
+     },
     "version"       : "5.2.3",
 
     "dependencies"  : {
@@ -16,7 +21,6 @@
     "grunt-contrib-requirejs"   : "=0.4.4",
     "grunt-contrib-uglify"      : "=0.9.1",
     "grunt-contrib-watch"       : "=0.6.1",
-    "grunt-contrib-yuidoc"      : "=0.8.0",
     "grunt-git-describe"        : "=2.3.2",
     "grunt-jsdoc"               : "^0.6.7",
     "grunt-parallel"            : "^0.4.1",
