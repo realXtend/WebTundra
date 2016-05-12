@@ -38,11 +38,11 @@ var EC_Sound_WebAudio = EC_Sound.$extend(
 
         this.cache._pannerNode.setPosition(this.cache._position.x, this.cache._position.y, this.cache._position.z);
         this.cache._pannerNode.connect(Tundra.audio.masterGainNode);
-        
+
         this.checkAndUpdatePlaceable();
         this.checkAndUpdateSoundRef();
 
-        // Register events listener for creating/removing placeable components 
+        // Register events listener for creating/removing placeable components
         this.parentEntity.onComponentCreated(this, this.onComponentCreated);
         this.parentEntity.onComponentRemoved(this, this.onComponentRemoved);
     },
@@ -92,6 +92,7 @@ var EC_Sound_WebAudio = EC_Sound.$extend(
             this.disposeSource();
 
             var _element = new Audio(this.soundRef);
+            _element.crossOrigin = "anonymous";
 
             if (this.cache._source)
                 this.cache._source.disconnect();
@@ -101,7 +102,7 @@ var EC_Sound_WebAudio = EC_Sound.$extend(
 
             if (this.playOnLoad)
             {
-                // Setting it to false still performs autoplay, 
+                // Setting it to false still performs autoplay,
                 // so set it only if playOnLoad
                 _element.autoplay = true;
             }

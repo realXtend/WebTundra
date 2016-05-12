@@ -17,7 +17,7 @@ var AudioAPI = ITundraAPI.$extend(
         Object.defineProperties(this, {
             masterGain: {
                 get: function() { return this.options.masterGain },
-                set: function(gain) { 
+                set: function(gain) {
                     this.options.masterGain = gain;
                     this.updateActiveNode();
                 }
@@ -25,7 +25,7 @@ var AudioAPI = ITundraAPI.$extend(
 
             followActiveCamera: {
                 get: function() { return this.options.followActiveCamera },
-                set: function(enable) { 
+                set: function(enable) {
                     this.options.followActiveCamera = enable;
                     this.onActiveCameraChanged(Tundra.renderer.activeCameraComponent);
                 }
@@ -33,7 +33,7 @@ var AudioAPI = ITundraAPI.$extend(
         });
     },
 
-    __classvars__: 
+    __classvars__:
     {
         getDefaultOptions : function()
         {
