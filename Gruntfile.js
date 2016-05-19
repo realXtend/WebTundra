@@ -48,12 +48,6 @@ module.exports = function(grunt) {
         config.build.options.archive = "build/realxtend-webtundra-" + (grunt.option("stable") ? info.tag : "nightly") + ".zip";
         config.build.files[0].dest = "realxtend-webtundra-" + (grunt.option("stable") ? info.tag : "nightly") + "/";
         grunt.config.set("compress", config);
-
-        config = grunt.config.get("yuidoc");
-        config.compile.version = (grunt.option("stable") ? info.tag : info.toString());
-        if (config.compile.version.indexOf("-dirty") !== -1)
-            config.compile.version = config.compile.version.replace("-dirty", "-nightly");
-        grunt.config.set("yuidoc", config);
     };
 
     var platform = function()
@@ -129,7 +123,7 @@ module.exports = function(grunt) {
                       dest : "build/" },
 
                     { expand: true, cwd: "html/",
-                      src : [ "img/**", "examples/**", "textures/**" ],
+                      src : [ "img/**", "examples/**", "media/**" ],
                       dest : "build/" }
                 ]
             },
@@ -625,26 +619,6 @@ module.exports = function(grunt) {
             }
         },
 
-        yuidoc : {
-            compile : {
-                name        : "realXtend WebTundra SDK",
-                description : "<%= pkg.description %>",
-                version     : "<%= pkg.version %>",
-                url         : "<%= pkg.homepage %>",
-                logo        : "assets/img/realxtend_logo-doc-header.png",
-                options     : {
-                    paths           : "src/",
-                    exclude         : "src/application/",
-                    outdir          : "build/doc",
-                    nocode          : true,
-                    linkNatives     : true,
-                    attributesEmit  : false,
-                    selleck         : false,
-                    tabtospace      : 4
-                }
-            }
-        },
-
         connect : {
             webtundra : {
                 options: {
@@ -697,7 +671,6 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks("grunt-contrib-clean");
     grunt.loadNpmTasks("grunt-contrib-watch");
     grunt.loadNpmTasks("grunt-contrib-compress");
-    grunt.loadNpmTasks("grunt-contrib-yuidoc");
     grunt.loadNpmTasks("grunt-contrib-requirejs");
     grunt.loadNpmTasks("grunt-contrib-uglify");
     grunt.loadNpmTasks("grunt-contrib-connect");
@@ -776,7 +749,6 @@ module.exports = function(grunt) {
     // doc
     grunt.registerTask("doc", "", [
         "clean:doc",
-        // "yuidoc"
         "doc_pre",
         "jsdoc",
         "doc_post",
