@@ -1,6 +1,16 @@
 language: node_js
 node_js:
-  - "4.4.0"
-before_install: npm install -g grunt-cli
+- 4.4.0
+before_install:
+- openssl aes-256-cbc -K $encrypted_ce809f0e9aa8_key -iv $encrypted_ce809f0e9aa8_iv
+  -in travis.enc -out travis -d
+- chmod 600 travis
+- npm install -g grunt-cli
 install: npm install
 before_script: grunt
+after_success: scp -i travis -r build/* $DEPLOY_PATH
+env:
+  global:
+    secure: ETOw5qtG+rFrHc89jlwrjU2dvNXL0SYyqW0vlMLkokEe+/1/iACxmKjhidlPW9OsVa5VuhrQGQ4YGGj4tR5lrqSjwQxr50BCx6G6xXbTVzXeuEc57TbCgaM6x7zhEMwc8S0L4GhrbRWcI7Qel9PhjqUiDoKae6nphGiEjSfZnOw=
+addons:
+  ssh_known_hosts: 130.206.124.229
