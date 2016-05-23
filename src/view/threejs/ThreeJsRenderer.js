@@ -13,6 +13,8 @@ define([
         "core/asset/AssetFactory",
         "view/threejs/asset/ObjMeshAsset",
         "view/threejs/asset/ThreeJsonAsset",
+        "view/threejs/asset/GltfAsset",
+        "view/threejs/asset/WebTundraGltfWrapper",
         "view/threejs/entity-components/EC_Fog_ThreeJs",
         "view/threejs/entity-components/EC_Sky_ThreeJs",
         "view/threejs/entity-components/EC_SkyX_ThreeJs",
@@ -25,6 +27,8 @@ define([
                 Scene, Color, IRenderSystem, RaycastResult, TransformInterpolator, AssetFactory,
                 ObjMeshAsset,
                 ThreeJsonAsset,
+                GltfAsset,
+                WebTundraGltfWrapper,
                 EC_Fog_ThreeJs,
                 EC_Sky_ThreeJs,
                 EC_SkyX_ThreeJs,
@@ -340,6 +344,7 @@ var ThreeJsRenderer = IRenderSystem.$extend(
          * You can load from .json/.js files via AssetAPI but you need to force the type to "ThreeJsonMesh". */
         Tundra.asset.registerAssetFactory(new AssetFactory("ThreeJsonMesh", ThreeJsonAsset, { ".3geo" : "json", ".json" : "json", ".js" : "json" }, "json"));
         Tundra.asset.registerAssetFactory(new AssetFactory("ObjMesh", ObjMeshAsset, { ".obj" : "text" }));
+        Tundra.asset.registerAssetFactory(new AssetFactory("Gltf", GltfAsset, { ".gltf" : "json" }));
     },
 
     registerComponents : function()
@@ -775,6 +780,9 @@ var ThreeJsRenderer = IRenderSystem.$extend(
 
         // Update three.js animations
         // THREE.AnimationHandler.update(frametimeMsec);
+
+        WebTundraGltfWrapper.Animator.update();
+        WebTundraGltfWrapper.Shaders.update(this.scene, this.camera);
 
         // Render
         this.render();
