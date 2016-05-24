@@ -191,6 +191,12 @@ module.exports = function(grunt) {
                         "lib/three/CSS3DRenderer",
                         "lib/three/OBJLoader",
                         "lib/three/MTLLoader",
+                        "lib/three/gltf/glTF-parser",
+                        "lib/three/gltf/glTFAnimation",
+                        "lib/three/gltf/glTFLoader",
+                        "lib/three/gltf/glTFLoaderUtils",
+                        "lib/three/gltf/glTFShaders",
+                        "lib/three/gltf/glTFUtilities",
                         "lib/loglevel",
                         "lib/signals",
                         "lib/hammer",
@@ -584,21 +590,21 @@ module.exports = function(grunt) {
                     preserveComments : "all"
                 },
                 files : {
-                    "build/lib/three.js"                  : [ "build/lib/three.js" ],
-                    "build/lib/three/DDSLoader.js"        : [ "build/lib/three/DDSLoader.js" ],
-                    "build/lib/three/CSS3DRenderer.js"    : [ "build/lib/three/CSS3DRenderer.js" ],
-                    "build/lib/three/OBJLoader.js"        : [ "build/lib/three/OBJLoader.js" ],
-                    "build/lib/three/three-TransformControls.js"  : [ "build/lib/three/three-TransformControls.js" ],
-                    "build/lib/Tween.js"                  : [ "build/lib/Tween.js" ],
-                    "build/lib/jquery.js"                 : [ "build/lib/jquery.js" ],
-                    "build/lib/jquery.mousewheel.js"      : [ "build/lib/jquery.mousewheel.js" ],
-                    "build/lib/jquery.contextmenu.js"     : [ "build/lib/jquery.contextmenu.js" ],
-                    "build/lib/jquery-ui.js"              : [ "build/lib/jquery-ui.js" ],
+                    "build/lib/three.js"                         : [ "build/lib/three.js" ],
+                    "build/lib/three/DDSLoader.js"               : [ "build/lib/three/DDSLoader.js" ],
+                    "build/lib/three/CSS3DRenderer.js"           : [ "build/lib/three/CSS3DRenderer.js" ],
+                    "build/lib/three/OBJLoader.js"               : [ "build/lib/three/OBJLoader.js" ],
+                    "build/lib/three/three-TransformControls.js" : [ "build/lib/three/three-TransformControls.js" ],
+                    "build/lib/Tween.js"                         : [ "build/lib/Tween.js" ],
+                    "build/lib/jquery.js"                        : [ "build/lib/jquery.js" ],
+                    "build/lib/jquery.mousewheel.js"             : [ "build/lib/jquery.mousewheel.js" ],
+                    "build/lib/jquery.contextmenu.js"            : [ "build/lib/jquery.contextmenu.js" ],
+                    "build/lib/jquery-ui.js"                     : [ "build/lib/jquery-ui.js" ],
                     //
-                    "build/lib/classy.js"                 : [ "build/lib/classy.js" ],
-                    "build/lib/loglevel.js"               : [ "build/lib/loglevel.js" ],
-                    "build/lib/signals.js"                : [ "build/lib/signals.js" ],
-                    "build/lib/hammer.js"                 : [ "build/lib/hammer.js" ]
+                    "build/lib/classy.js"                        : [ "build/lib/classy.js" ],
+                    "build/lib/loglevel.js"                      : [ "build/lib/loglevel.js" ],
+                    "build/lib/signals.js"                       : [ "build/lib/signals.js" ],
+                    "build/lib/hammer.js"                        : [ "build/lib/hammer.js" ]
                 }
             },
             build : {

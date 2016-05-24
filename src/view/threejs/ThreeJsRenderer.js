@@ -782,7 +782,8 @@ var ThreeJsRenderer = IRenderSystem.$extend(
         // THREE.AnimationHandler.update(frametimeMsec);
 
         WebTundraGltfWrapper.Animator.update();
-        WebTundraGltfWrapper.Shaders.update(this.scene, this.camera);
+        if (this.scene && this.camera)
+            WebTundraGltfWrapper.Shaders.update(this.scene, this.camera);
 
         // Render
         this.render();
