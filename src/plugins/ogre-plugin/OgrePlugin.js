@@ -5,10 +5,12 @@ define([
         "core/asset/AssetFactory",
         "plugins/ogre-plugin/asset/OgreMeshAsset",
         "plugins/ogre-plugin/asset/OgreMaterialAsset",
+        "plugins/ogre-plugin/asset/OgreSkeletonAsset",
         "plugins/ogre-plugin/asset/TextureAsset"
     ], function(Tundra, ITundraPlugin, AssetFactory,
                 OgreMeshAsset,
                 OgreMaterialAsset,
+                OgreSkeletonAsset,
                 TextureAsset)
 {
 
@@ -36,6 +38,10 @@ var OgrePlugin = ITundraPlugin.$extend({
             ".material"     : "text"
         }));
 
+        this.framework.asset.registerAssetFactory(new AssetFactory("OgreSkeleton", OgreSkeletonAsset, {
+            ".skeleton"     : "arraybuffer",
+            ".skeleton.xml" : "xml"
+        }));
 
         this.framework.asset.registerAssetFactory(new AssetFactory("Texture", TextureAsset, {
             ".dds" : undefined, ".crn" : undefined, ".png" : undefined, ".jpg" : undefined, ".jpeg" : undefined, ".bmp" : undefined, ".gif" : undefined

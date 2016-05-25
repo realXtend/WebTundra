@@ -28,7 +28,8 @@ var OgreMeshSerializer = Class.$extend(
         supportedVersions :
         [
             "[MeshSerializer_v1.8]",
-            "[MeshSerializer_v1.41]"
+            "[MeshSerializer_v1.41]",
+            "[MeshSerializer_v1.40]"
         ],
 
         isSupportedVersion : function(version)

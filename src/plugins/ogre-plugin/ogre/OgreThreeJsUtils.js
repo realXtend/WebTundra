@@ -5,10 +5,12 @@ define([
         "plugins/ogre-plugin/ogre/OgreDefines",
         "plugins/ogre-plugin/ogre/OgreMesh",
         "plugins/ogre-plugin/ogre/OgreVertexElement",
+        "plugins/ogre-plugin/ogre/OgreSkeleton",
+        "plugins/ogre-plugin/ogre/OgreAnimation",
         "core/data/DataDeserializer",
         "core/data/DataSerializer"
     ], function(THREE, Tundra,
-                OgreDefines, OgreMesh, OgreVertexElement, DataDeserializer, DataSerializer) {
+                OgreDefines, OgreMesh, OgreVertexElement, OgreSkeleton, OgreAnimation, DataDeserializer, DataSerializer) {
 
 var OgreThreeJsUtils =
 {
@@ -337,6 +339,142 @@ var OgreThreeJsUtils =
         }
     },
 
+    convertOgreAnimation : function(ogreSkeleton, ogreAnimation, animation, logging)
+    {
+        if (logging === undefined || typeof logging !== "boolean")
+            logging = false;
+        if (!(ogreSkeleton instanceof OgreSkeleton))
+            return this.logError("convertOgreAnimation() 'ogreSkeleton' parameter is not of type OgreSkeleton");
+        if (ogreSkeleton.name === undefined)
+            return this.logError("convertOgreAnimation() 'ogreSkeleton' parameter needs to have a unique 'name' property!");
+        if (!(ogreAnimation instanceof OgreAnimation))
+            return this.logError("convertOgreAnimation() 'ogreAnimation' parameter is not of type OgreAnimation");
+        if (typeof animation !== "object")
+            return this.logError("convertOgreAnimation() 'animation' parameter is not of type 'object'");
+
+        animation.name = ogreAnimation.name;
+        animation.duration = ogreAnimation.length;
+        animation.tracks = [];
+
+        var bonesFlat = this.convertOgreBones(ogreSkeleton);
+        //animation.bones = this.createThreeJsBoneHierarchy(animation.bonesFlat);
+
+        if (logging) console.log(animation.name);
+        if (logging) console.log("  >> Tracks: " + ogreAnimation.tracks.length);
+
+        var nameRegex = /\(|\)/g;
+
+        for (var i = 0; i < ogreAnimation.tracks.length; ++i)
+        {
+            var ogreTrack = ogreAnimation.tracks[i];
+
+            // three.js does not like parans in the names (internal regex borks)
+            var boneName = ogreTrack.bone.name.replace(nameRegex, "_");
+            if (logging) console.log("    >> " + boneName);
+
+            var positionKeys = [];
+            var quaternionKeys = [];
+            var times = [];
+
+            if (logging) console.log("      >> Keyframes: " + ogreTrack.keyFrames.length);
+            for (var k = 0; k < ogreTrack.keyFrames.length; k++)
+            {
+                var ogreKeyframe = ogreTrack.keyFrames[k];
+
+                var posArray = ogreKeyframe.toArray("position", true);
+                positionKeys.push(posArray[0], posArray[1], posArray[2]);
+                var quat = this.quaternionFromObject(ogreKeyframe.quaternion);
+                quat.multiplyQuaternions(this.quaternionFromObject(ogreKeyframe.bone.quaternion), quat);
+
+                quaternionKeys.push(
+                    quat.x,
+                    quat.y,
+                    quat.z,
+                    quat.w
+                );
+
+                times.push(ogreKeyframe.time);
+            }
+
+            animation.tracks.push(new THREE.VectorKeyframeTrack("undefined.bones[" + boneName + "].position", times, positionKeys));
+            animation.tracks.push(new THREE.QuaternionKeyframeTrack("undefined.bones[" + boneName + "].quaternion", times, quaternionKeys));
+        }
+        return true;
+    },
+
+    convertOgreBones : function(ogreSkeleton)
+    {
+        var nameRegex = /\(|\)/g;
+
+        var bones = [];
+        for (var i = 0; i < ogreSkeleton.bonesFlat.length; i++)
+        {
+            var src = ogreSkeleton.bonesFlat[i];
+
+            // three.js does not like parans in the names (internal regex borks)
+            var name = src.name.replace(nameRegex, "_");
+            var nameParent = (src.parent != null ? src.parent.name.replace(nameRegex, "_") : "")
+
+            var bone = new THREE.Bone();
+            bone.sourceBoneId = src.id;
+            bone.name = name;
+            bone.parentName = nameParent;
+
+            this.copyObjectToVector3(bone.position, src.position);
+            this.copyObjectToQuaternion(bone.quaternion, src.quaternion);
+            bone.originalPosition = bone.position.clone();
+            bone.originalQuaternion = bone.quaternion.clone();
+
+            bones.push(bone);
+        }
+        return bones;
+    },
+
+    createThreeJsBoneHierarchy : function(bonesFlat)
+    {
+        var hierarchied = [];
+        var createHierarchy__getBone = function(boneName, parentCandidates)
+        {
+            var bone = null;
+            for (var i = 0; i < parentCandidates.length; i++)
+            {
+                if (parentCandidates[i].name === boneName)
+                    bone = parentCandidates[i];
+                else if (parentCandidates[i].children != null && parentCandidates[i].children.length > 0)
+                    bone = createHierarchy__getBone(boneName, parentCandidates[i].children);
+                if (bone != null)
+                    break;
+            }
+            return bone;
+        };
+
+        var createHierarchy_getBone = function(boneName)
+        {
+            var bone = null;
+            for (var i = 0; i < bonesFlat.length; i++)
+            {
+                if (bonesFlat[i].name === boneName)
+                    bone = bonesFlat[i];
+                else if (bonesFlat[i].children != null && bonesFlat[i].children.length > 0)
+                    bone = createHierarchy__getBone(boneName, bonesFlat[i].children);
+                if (bone != null)
+                    break;
+            }
+            return bone;
+        };
+
+        for (var i = 0; i < bonesFlat.length; i++)
+        {
+            var bone = bonesFlat[i];
+            var parent = createHierarchy_getBone(bone.parentName);
+            if (bone != null && parent != null)
+                parent.add(bone);
+            else
+                hierarchied.push(bone);
+        }
+        return hierarchied;
+    },
+
     copyObjectToVector3 : function(dest, src)
     {
         dest.set(src.x, src.y, src.z);
@@ -350,6 +488,19 @@ var OgreThreeJsUtils =
     quaternionFromObject : function(src)
     {
         return new THREE.Quaternion(src.x, src.y, src.z, src.w);
+    },
+
+    loadOgreAnimations : function(ogreSkeleton, logging)
+    {
+        var animationHierarchy = {};
+        for (var i = 0; i < ogreSkeleton.animationsFlat.length; i++)
+        {
+            var threeJsAnimation = {};
+            if (!OgreThreeJsUtils.convertOgreAnimation(ogreSkeleton, ogreSkeleton.animationsFlat[i], threeJsAnimation, logging))
+                return [];
+            animationHierarchy[threeJsAnimation.name] = new THREE.AnimationClip(threeJsAnimation.name, threeJsAnimation.duration, threeJsAnimation.tracks);
+        }
+        return animationHierarchy;
     }
 };
 
