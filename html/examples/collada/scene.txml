@@ -1,0 +1,54 @@
+﻿<scene
+    xmlns="http://www.w3.org/1999/xhtml">
+    <entity id="3" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="true" temp="false">
+            <attribute id="name" type="string" value="Pump"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="true" temp="false">
+            <attribute id="transform" type="Transform" value="26.993074,-26.63167403606193,-160.936155,0,0,0,1,1,1"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="true" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="examples/collada/assets/pump.dae"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value=""></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
+    <entity id="5" sync="true" temp="false">
+        <component type="Light" typeid="16" sync="true" temp="false">
+            <attribute id="type" type="int" value="0"></attribute>
+            <attribute id="diffColor" type="Color" value="1 1 1 1"></attribute>
+            <attribute id="specColor" type="Color" value="0 0 0 1"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+            <attribute id="range" type="real" value="250"></attribute>
+            <attribute id="brightness" type="real" value="1"></attribute>
+            <attribute id="constAtten" type="real" value="0"></attribute>
+            <attribute id="linearAtten" type="real" value="0.009999999776482582"></attribute>
+            <attribute id="quadraAtten" type="real" value="0.009999999776482582"></attribute>
+            <attribute id="innerAngle" type="real" value="30"></attribute>
+            <attribute id="outerAngle" type="real" value="40"></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="true" temp="false">
+            <attribute id="transform" type="Transform" value="1.778754,2.315444,-1,0,0,0,1,1,1"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Name" typeid="26" sync="true" temp="false">
+            <attribute id="name" type="string" value="Light"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+    </entity>
+</scene>

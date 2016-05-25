@@ -14,7 +14,9 @@ define([
         "view/threejs/asset/ObjMeshAsset",
         "view/threejs/asset/ThreeJsonAsset",
         "view/threejs/asset/GltfAsset",
+        "view/threejs/asset/ColladaAsset",
         "view/threejs/gltf/WebTundraGltfWrapper",
+        "view/threejs/collada/WebTundraColladaWrapper",
         "view/threejs/entity-components/EC_Fog_ThreeJs",
         "view/threejs/entity-components/EC_Sky_ThreeJs",
         "view/threejs/entity-components/EC_SkyX_ThreeJs",
@@ -28,7 +30,9 @@ define([
                 ObjMeshAsset,
                 ThreeJsonAsset,
                 GltfAsset,
+                ColladaAsset,
                 WebTundraGltfWrapper,
+                WebTundraColladaWrapper,
                 EC_Fog_ThreeJs,
                 EC_Sky_ThreeJs,
                 EC_SkyX_ThreeJs,
@@ -345,6 +349,7 @@ var ThreeJsRenderer = IRenderSystem.$extend(
         Tundra.asset.registerAssetFactory(new AssetFactory("ThreeJsonMesh", ThreeJsonAsset, { ".3geo" : "json", ".json" : "json", ".js" : "json" }, "json"));
         Tundra.asset.registerAssetFactory(new AssetFactory("ObjMesh", ObjMeshAsset, { ".obj" : "text" }));
         Tundra.asset.registerAssetFactory(new AssetFactory("Gltf", GltfAsset, { ".gltf" : "json" }));
+        Tundra.asset.registerAssetFactory(new AssetFactory("Collada", ColladaAsset, { ".dae" : "text" }));
     },
 
     registerComponents : function()
@@ -785,6 +790,7 @@ var ThreeJsRenderer = IRenderSystem.$extend(
         if (this.scene && this.camera)
             WebTundraGltfWrapper.Shaders.update(this.scene, this.camera);
 
+        WebTundraColladaWrapper.KeyFrameAnimationHandler.update(frametime);
         // Render
         this.render();
     },
