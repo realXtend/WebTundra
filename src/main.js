@@ -30,7 +30,7 @@ require.config({
         "lib/three/DDSLoader"           : [ "lib/three" ],
         "lib/three/CSS3DRenderer"       : [ "lib/three" ],
         "lib/three/OBJLoader"           : [ "lib/three" ],
-        "view/threejs/asset/WebTundraGltfWrapper"  : [ "lib/three" ],
+        "view/threejs/gltf/WebTundraGltfWrapper"   : [ "lib/three" ],
         "lib/polymer.min"               : { exports : "Polymer" },
         "lib/ammo"                      : { exports : "Ammo" }
     },

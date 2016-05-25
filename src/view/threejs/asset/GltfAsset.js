@@ -3,7 +3,7 @@ define([
         "lib/three",
         "core/framework/Tundra",
         "core/asset/IAsset",
-        "view/threejs/asset/WebTundraGltfWrapper"
+        "view/threejs/gltf/WebTundraGltfWrapper"
     ], function(THREE, Tundra, IAsset, WebTundraGltfWrapper) {
 
 /**

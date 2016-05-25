@@ -14,7 +14,7 @@ define([
         "view/threejs/asset/ObjMeshAsset",
         "view/threejs/asset/ThreeJsonAsset",
         "view/threejs/asset/GltfAsset",
-        "view/threejs/asset/WebTundraGltfWrapper",
+        "view/threejs/gltf/WebTundraGltfWrapper",
         "view/threejs/entity-components/EC_Fog_ThreeJs",
         "view/threejs/entity-components/EC_Sky_ThreeJs",
         "view/threejs/entity-components/EC_SkyX_ThreeJs",
