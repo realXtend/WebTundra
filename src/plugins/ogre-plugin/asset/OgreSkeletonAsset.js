@@ -2,26 +2,26 @@
 define([
         "lib/classy",
         "lib/three",
-        "core/asset/IAsset",
+        "view/threejs/asset/AnimationProviderAsset",
         "plugins/ogre-plugin/ogre/OgreThreeJsUtils",
         "plugins/ogre-plugin/ogre/OgreSkeletonSerializer",
         "plugins/ogre-plugin/ogre/OgreSkeleton"
-    ], function(Class, THREE, IAsset, OgreThreeJsUtils, OgreSkeletonSerializer, OgreSkeleton) {
+    ], function(Class, THREE, AnimationProviderAsset, OgreThreeJsUtils, OgreSkeletonSerializer, OgreSkeleton) {
 
 "use strict";
 
-var OgreSkeletonAsset = IAsset.$extend(
+var OgreSkeletonAsset = AnimationProviderAsset.$extend(
 /** @lends OgreSkeletonAsset.prototype */
 {
     /**
         Represents a Ogre rendering engine skeleton asset. This asset is processed and Three.js rendering engine skeleton/bones/animations are generated.
-        @extends IAsset
+        @extends AnimationProviderAsset
         @constructs
         @param {String} name Unique name of the asset, usually this is the asset reference.
     */
     __init__ : function(name)
     {
-        this.$super(name, "OgreSkeletonAsset");
+        this.$super(name, "OgreSkeletonAsset", AnimationProviderAsset.Type.SkinnedMesh);
 
         /**
             For OgreSkeletonAsset this property is true. Meaning the skeleton is cloned for each callback so they <br>
@@ -132,24 +132,6 @@ var OgreSkeletonAsset = IAsset.$extend(
     },
 
     /**
-        Returns available animation names for this skeleton.
-        @return {Array} List of strings.
-    */
-    getAvailableAnimations : function()
-    {
-        return Object.keys(this.animationHierarchy);
-    },
-
-    /**
-        Returns if animation is available in this skeleton.
-        @return {Boolean}
-    */
-    hasAnimation : function(name)
-    {
-        return (this.animationHierarchy[name] !== undefined);
-    },
-
-    /**
         Returns if this skeleton asset is attached to a mesh.
         @return {Boolean}
     */
@@ -174,23 +156,6 @@ var OgreSkeletonAsset = IAsset.$extend(
     getBoneParent : function()
     {
         return (this.isAttached() ? this.skin.getSubmesh(0) : null);
-    },
-
-    getAnimation : function(name)
-    {
-        if (!this.isAttached())
-        {
-            this.log.error("Cannot get animation, skeleton", this.name, "not attached.");
-            return null;
-        }
-
-        var animation = this.animationHierarchy[name];
-        if (animation === undefined)
-        {
-            this.log.error("Could not find animation", name, "for playback in", this.name, ". See getAvailableAnimations() for available animation names.");
-            return null;
-        }
-        return animation;
     },
 
     /**

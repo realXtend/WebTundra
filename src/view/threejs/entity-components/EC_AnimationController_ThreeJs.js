@@ -168,6 +168,9 @@ var EC_AnimationController_ThreeJs = EC_AnimationController.$extend(
         var animation = skeletonAsset.getAnimation(name);
         if (animation != null)
         {
+            if (skeletonAsset.animationType !== 0) // skinned mesh
+                return;
+
             var animationAction = this.mixer.clipAction(animation);
             animationAction.timeScale = speed;
             animationAction.loop = (loop === false ? THREE.LoopOnce : THREE.LoopRepeat);
@@ -206,8 +209,12 @@ var EC_AnimationController_ThreeJs = EC_AnimationController.$extend(
 
     getSkeletonAsset : function()
     {
-        if (this.parentEntity && this.parentEntity.mesh && this.parentEntity.mesh.skeletonAsset)
+        if (this.parentEntity && this.parentEntity.mesh && this.parentEntity.mesh.meshAsset && this.parentEntity.mesh.meshAsset.providesAnimations)
+            return this.parentEntity.mesh.meshAsset;
+
+        if (this.parentEntity && this.parentEntity.mesh && this.parentEntity.mesh.skeletonAsset && this.parentEntity.mesh.skeletonAsset.providesAnimations)
             return this.parentEntity.mesh.skeletonAsset;
+
         return null;
     }
 });
