@@ -1,5 +1,34 @@
 ﻿<scene
     xmlns="http://www.w3.org/1999/xhtml">
+    <entity id="1" sync="true">
+        <component typeId="38" type="SkyX" sync="true">
+           <attribute value="1" type="int" id="cloudType" name="Cloud type"/>
+           <attribute value="0" type="real" id="timeMultiplier" name="Time multiplier"/>
+           <attribute value="14" type="real" id="time" name="Time [0-24]"/>
+           <attribute value="7.5" type="real" id="sunriseTime" name="Time sunrise [0-24]"/>
+           <attribute value="20.5" type="real" id="sunsetTime" name="Time sunset [0-24]"/>
+           <attribute value="50" type="real" id="cloudCoverage" name="Cloud coverage [0-100]"/>
+           <attribute value="50" type="real" id="cloudAverageSize" name="Cloud average size [0-100]"/>
+           <attribute value="100" type="real" id="cloudHeight" name="Cloud height"/>
+           <attribute value="50" type="real" id="moonPhase" name="Moon phase [0-100]"/>
+           <attribute value="9.75" type="real" id="sunInnerRadius" name="Sun inner radius"/>
+           <attribute value="10.25" type="real" id="sunOuterRadius" name="Sun outer radius"/>
+           <attribute value="0" type="real" id="windDirection" name="Wind direction"/>
+           <attribute value="5" type="real" id="windSpeed" name="Wind speed"/>
+           <attribute value="0.638999999 0.638999999 0.638999999 1" type="Color" id="sunlightDiffuseColor" name="Sunlight diffuse color"/>
+           <attribute value="0 0 0 1" type="Color" id="sunlightSpecularColor" name="Sunlight specular color"/>
+           <attribute value="0.638999999 0.638999999 0.638999999 0.25" type="Color" id="moonlightDiffuseColor" name="Moonlight color"/>
+           <attribute value="0 0 0 1" type="Color" id="moonlightSpecularColor" name="Moonlight specular color"/>
+           <attribute value="0.363999993 0.363999993 0.363999993 1" type="Color" id="ambientLightColor" name="Ambient light color"/>
+        </component>
+        <component typeId="8" type="EnvironmentLight" sync="true" name="EC_Sky Created Light">
+           <attribute value="0.638999999 0.638999999 0.638999999 1" type="Color" id="sunColor" name="Sunlight color"/>
+           <attribute value="0.363999993 0.363999993 0.363999993 1" type="Color" id="ambientColor" name="Ambient light color"/>
+           <attribute value="-1 -1 -1" type="float3" id="sunDirection" name="Sunlight direction vector"/>
+           <attribute value="true" type="bool" id="sunCastShadows" name="Sunlight cast shadows"/>
+           <attribute value="1" type="real" id="brightness" name="Brightness"/>
+          </component>
+    </entity>
     <entity id="3" sync="true" temp="false">
         <component type="Name" typeid="26" sync="true" temp="false">
             <attribute id="name" type="string" value="Pump"></attribute>
@@ -7,7 +36,7 @@
             <attribute id="group" type="string" value=""></attribute>
         </component>
         <component type="Placeable" typeid="20" sync="true" temp="false">
-            <attribute id="transform" type="Transform" value="26.993074,-26.63167403606193,-160.936155,0,0,0,1,1,1"></attribute>
+            <attribute id="transform" type="Transform" value="71.9194538874664,-26.63167403606193,-160.936155,0,0,0,1,1,1"></attribute>
             <attribute id="drawDebug" type="bool" value="false"></attribute>
             <attribute id="visible" type="bool" value="true"></attribute>
             <attribute id="selectionLayer" type="int" value="1"></attribute>
@@ -23,7 +52,58 @@
             <attribute id="castShadows" type="bool" value="false"></attribute>
         </component>
     </entity>
+    <entity id="4" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="true" temp="false">
+            <attribute id="name" type="string" value="Avatar"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="true" temp="false">
+            <attribute id="transform" type="Transform" value="-2.2447665886421744,1.5125490766291056,-4.222826037891517,270,0,0,1,1,1"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="true" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="examples/collada/assets/avatar.dae"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value=""></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+    </entity>
     <entity id="5" sync="true" temp="false">
+        <component type="Light" typeid="16" sync="true" temp="false">
+            <attribute id="type" type="int" value="0"></attribute>
+            <attribute id="diffColor" type="Color" value="1 1 1 1"></attribute>
+            <attribute id="specColor" type="Color" value="0 0 0 1"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+            <attribute id="range" type="real" value="750"></attribute>
+            <attribute id="brightness" type="real" value="1"></attribute>
+            <attribute id="constAtten" type="real" value="0"></attribute>
+            <attribute id="linearAtten" type="real" value="0.009999999776482582"></attribute>
+            <attribute id="quadraAtten" type="real" value="0.009999999776482582"></attribute>
+            <attribute id="innerAngle" type="real" value="30"></attribute>
+            <attribute id="outerAngle" type="real" value="40"></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="true" temp="false">
+            <attribute id="transform" type="Transform" value="-5.452923798466812,7.544038815568316,-91.66932394443228,0,0,0,1,1,1"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Name" typeid="26" sync="true" temp="false">
+            <attribute id="name" type="string" value="Light"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+    </entity>
+    <entity id="6" sync="true" temp="false">
         <component type="Light" typeid="16" sync="true" temp="false">
             <attribute id="type" type="int" value="0"></attribute>
             <attribute id="diffColor" type="Color" value="1 1 1 1"></attribute>
@@ -38,7 +118,7 @@
             <attribute id="outerAngle" type="real" value="40"></attribute>
         </component>
         <component type="Placeable" typeid="20" sync="true" temp="false">
-            <attribute id="transform" type="Transform" value="1.778754,2.315444,-1,0,0,0,1,1,1"></attribute>
+            <attribute id="transform" type="Transform" value="-2.2447665886421744,1.5125490766291056,-4.222826037891517,0,0,0,1,1,1"></attribute>
             <attribute id="drawDebug" type="bool" value="false"></attribute>
             <attribute id="visible" type="bool" value="true"></attribute>
             <attribute id="selectionLayer" type="int" value="1"></attribute>
@@ -46,7 +126,7 @@
             <attribute id="parentBone" type="string" value=""></attribute>
         </component>
         <component type="Name" typeid="26" sync="true" temp="false">
-            <attribute id="name" type="string" value="Light"></attribute>
+            <attribute id="name" type="string" value="Light2"></attribute>
             <attribute id="description" type="string" value=""></attribute>
             <attribute id="group" type="string" value=""></attribute>
         </component>
