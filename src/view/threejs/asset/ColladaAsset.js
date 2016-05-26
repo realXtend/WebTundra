@@ -2,24 +2,26 @@
 define([
         "lib/three",
         "core/framework/Tundra",
-        "core/asset/IAsset",
-        "view/threejs/collada/WebTundraColladaWrapper"
-    ], function(THREE, Tundra, IAsset, WebTundraColladaWrapper) {
+        "view/threejs/asset/AnimationProviderAsset",
+        "view/threejs/collada/WebTundraColladaWrapper",
+        "view/threejs/collada/ColladaThreeJsUtils"
+    ], function(THREE, Tundra, AnimationProviderAsset, WebTundraColladaWrapper, ColladaThreeJsUtils) {
 
 /**
     Represents a Ogre rendering engine mesh asset. This asset is processed and Three.js rendering engine meshes are generated.
     @class ColladaAsset
-    @extends IAsset
+    @extends AnimationProviderAsset
     @constructor
     @param {String} name Unique name of the asset, usually this is the asset reference.
 */
-var ColladaAsset = IAsset.$extend(
+var ColladaAsset = AnimationProviderAsset.$extend(
 {
     __init__ : function(name)
     {
-        this.$super(name, "ColladaAsset");
+        this.$super(name, "ColladaAsset", AnimationProviderAsset.Type.SkinnedMesh);
         this.requiresCloning = true;
         this.mesh = undefined;
+        this.skin = undefined;
         this.animations = [];
     },
 
@@ -50,6 +52,16 @@ var ColladaAsset = IAsset.$extend(
         return (this.mesh !== undefined);
     },
 
+    isAttached: function()
+    {
+        return Object.keys(this.animationHierarchy).length > 0;
+    },
+
+    getBoneParent : function()
+    {
+        return (this.skin ? this.skin : (this.isLoaded() ? this.mesh : null));
+    },
+
     deserializeFromData : function(data, dataType, transfer)
     {
         try
@@ -58,14 +70,38 @@ var ColladaAsset = IAsset.$extend(
             loader.parse(data, function(result)
             {
                 this.mesh = result.scene;
-                WebTundraColladaWrapper.KeyFrameAnimationHandler.load(result.animations, true);
+                this.skin = Array.isArray(result.skins) ? result.skins[0] : undefined;
+                if (this.skin)
+                {
+                    this.animationType = AnimationProviderAsset.Type.SkinnedMesh;
+                    this.animationHierarchy = ColladaThreeJsUtils.loadSkinnedMeshAnimations(this.skin);
+                }
+                else
+                {
+                    this.animationType = AnimationProviderAsset.Type.KeyFrame;
+                    this.animationHierarchy = ColladaThreeJsUtils.loadKeyFrameAnimations(result.animations);
+                }
+
                 this._emitLoaded();
             }.bind(this), transfer.proxyRef || transfer.ref);
         }
         catch(e)
         {
+            this.log.error("Could not load collada asset:", e);
             return false;
         };
+    },
+
+    unload: function()
+    {
+        if (this.requiresCloning && this.isCloneSource)
+            return;
+
+        if (this.mesh && this.mesh.parent)
+            this.mesh.parent.remove(this.mesh);
+
+        if (this.mesh && this.mesh.parent)
+            this.mesh.parent.remove(this.mesh);
     }
 });
 

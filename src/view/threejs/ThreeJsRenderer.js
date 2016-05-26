@@ -786,11 +786,12 @@ var ThreeJsRenderer = IRenderSystem.$extend(
         // Update three.js animations
         // THREE.AnimationHandler.update(frametimeMsec);
 
+        WebTundraColladaWrapper.KeyFrameAnimationHandler.update(frametime);
+
         WebTundraGltfWrapper.Animator.update();
         if (this.scene && this.camera)
             WebTundraGltfWrapper.Shaders.update(this.scene, this.camera);
 
-        WebTundraColladaWrapper.KeyFrameAnimationHandler.update(frametime);
         // Render
         this.render();
     },
