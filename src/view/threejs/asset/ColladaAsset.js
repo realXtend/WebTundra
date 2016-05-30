@@ -100,8 +100,8 @@ var ColladaAsset = AnimationProviderAsset.$extend(
         if (this.mesh && this.mesh.parent)
             this.mesh.parent.remove(this.mesh);
 
-        if (this.mesh && this.mesh.parent)
-            this.mesh.parent.remove(this.mesh);
+        if (this.skin && this.skin.parent)
+            this.skin.parent.remove(this.skin);
     }
 });
 
