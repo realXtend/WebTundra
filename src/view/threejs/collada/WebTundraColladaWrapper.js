@@ -28,6 +28,7 @@ var KeyFrameAnimationHandler = Class.$extend(
         this.isPlaying = false;
         this.loop = false;
         this.speed = 1.0;
+        this.length = 0.0;
         KeyFrameAnimationHandler.instances.push(this);
     },
 
@@ -38,6 +39,7 @@ var KeyFrameAnimationHandler = Class.$extend(
             var animation = animations[i];
             var keyFrameAnim = new THREE.KeyFrameAnimation(animation);
             keyFrameAnim.timeScale = 1;
+            this.length = (animation.length > this.length ? animation.length : this.length);
             this.animations.push(keyFrameAnim);
         }
     },
@@ -79,6 +81,7 @@ var KeyFrameAnimationHandler = Class.$extend(
             animation.play();
         }
 
+        this.progress = 0;
         this.isPlaying = true;
     },
 
@@ -96,12 +99,12 @@ var KeyFrameAnimationHandler = Class.$extend(
         if (!this.isPlaying)
             return;
 
-        if (this.progress > 0 && this.progress < 48)
+        if (this.progress > 0 && this.progress < this.length)
         {
             for (var i = 0, len = this.animations.length; i < len; ++i)
                 this.animations[i].update(frametime * this.speed);
         }
-        else if (this.progress >= 48)
+        else if (this.progress >= this.length)
         {
             this.stop();
             if (this.loop)
