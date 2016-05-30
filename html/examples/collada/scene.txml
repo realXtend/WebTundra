@@ -21,13 +21,6 @@
            <attribute value="0 0 0 1" type="Color" id="moonlightSpecularColor" name="Moonlight specular color"/>
            <attribute value="0.363999993 0.363999993 0.363999993 1" type="Color" id="ambientLightColor" name="Ambient light color"/>
         </component>
-        <component typeId="8" type="EnvironmentLight" sync="true" name="EC_Sky Created Light">
-           <attribute value="0.638999999 0.638999999 0.638999999 1" type="Color" id="sunColor" name="Sunlight color"/>
-           <attribute value="0.363999993 0.363999993 0.363999993 1" type="Color" id="ambientColor" name="Ambient light color"/>
-           <attribute value="-1 -1 -1" type="float3" id="sunDirection" name="Sunlight direction vector"/>
-           <attribute value="true" type="bool" id="sunCastShadows" name="Sunlight cast shadows"/>
-           <attribute value="1" type="real" id="brightness" name="Brightness"/>
-          </component>
     </entity>
     <entity id="3" sync="true" temp="false">
         <component type="Name" typeid="26" sync="true" temp="false">
