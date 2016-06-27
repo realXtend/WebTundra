@@ -15,6 +15,7 @@ define([
         "view/threejs/asset/ThreeJsonAsset",
         "view/threejs/asset/GltfAsset",
         "view/threejs/asset/ColladaAsset",
+        "view/threejs/asset/FBXAsset",
         "view/threejs/gltf/WebTundraGltfWrapper",
         "view/threejs/collada/WebTundraColladaWrapper",
         "view/threejs/entity-components/EC_Fog_ThreeJs",
@@ -31,6 +32,7 @@ define([
                 ThreeJsonAsset,
                 GltfAsset,
                 ColladaAsset,
+                FBXAsset,
                 WebTundraGltfWrapper,
                 WebTundraColladaWrapper,
                 EC_Fog_ThreeJs,
@@ -350,6 +352,7 @@ var ThreeJsRenderer = IRenderSystem.$extend(
         Tundra.asset.registerAssetFactory(new AssetFactory("ObjMesh", ObjMeshAsset, { ".obj" : "text" }));
         Tundra.asset.registerAssetFactory(new AssetFactory("Gltf", GltfAsset, { ".gltf" : "json" }));
         Tundra.asset.registerAssetFactory(new AssetFactory("Collada", ColladaAsset, { ".dae" : "text" }));
+        Tundra.asset.registerAssetFactory(new AssetFactory("Fbx", FBXAsset, { ".fbx" : "text" }));
     },
 
     registerComponents : function()
