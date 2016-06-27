@@ -1,0 +1,81 @@
+<!DOCTYPE Scene>
+<scene>
+ <entity id="1" sync="true">
+  <component typeId="38" type="SkyX" sync="true">
+   <attribute value="1" type="int" id="cloudType" name="Cloud type"/>
+   <attribute value="0" type="real" id="timeMultiplier" name="Time multiplier"/>
+   <attribute value="14" type="real" id="time" name="Time [0-24]"/>
+   <attribute value="7.5" type="real" id="sunriseTime" name="Time sunrise [0-24]"/>
+   <attribute value="20.5" type="real" id="sunsetTime" name="Time sunset [0-24]"/>
+   <attribute value="50" type="real" id="cloudCoverage" name="Cloud coverage [0-100]"/>
+   <attribute value="50" type="real" id="cloudAverageSize" name="Cloud average size [0-100]"/>
+   <attribute value="100" type="real" id="cloudHeight" name="Cloud height"/>
+   <attribute value="50" type="real" id="moonPhase" name="Moon phase [0-100]"/>
+   <attribute value="9.75" type="real" id="sunInnerRadius" name="Sun inner radius"/>
+   <attribute value="10.25" type="real" id="sunOuterRadius" name="Sun outer radius"/>
+   <attribute value="0" type="real" id="windDirection" name="Wind direction"/>
+   <attribute value="5" type="real" id="windSpeed" name="Wind speed"/>
+   <attribute value="0.638999999 0.638999999 0.638999999 1" type="Color" id="sunlightDiffuseColor" name="Sunlight diffuse color"/>
+   <attribute value="0 0 0 1" type="Color" id="sunlightSpecularColor" name="Sunlight specular color"/>
+   <attribute value="0.638999999 0.638999999 0.638999999 0.25" type="Color" id="moonlightDiffuseColor" name="Moonlight color"/>
+   <attribute value="0 0 0 1" type="Color" id="moonlightSpecularColor" name="Moonlight specular color"/>
+   <attribute value="0.363999993 0.363999993 0.363999993 1" type="Color" id="ambientLightColor" name="Ambient light color"/>
+  </component>
+ </entity>
+ <entity id="5" sync="true">
+  <component typeId="16" type="Light" sync="true">
+   <attribute value="0" type="int" id="type" name="Light type"/>
+   <attribute value="1 1 1 1" type="Color" id="diffColor" name="Diffuse color"/>
+   <attribute value="0 0 0 1" type="Color" id="specColor" name="Specular color"/>
+   <attribute value="false" type="bool" id="castShadows" name="Cast shadows"/>
+   <attribute value="25" type="real" id="range" name="Light range"/>
+   <attribute value="1" type="real" id="brightness" name="Brightness"/>
+   <attribute value="0" type="real" id="constAtten" name="Constant atten"/>
+   <attribute value="0.00999999978" type="real" id="linearAtten" name="Linear atten"/>
+   <attribute value="0.00999999978" type="real" id="quadraAtten" name="Quadratic atten"/>
+   <attribute value="30" type="real" id="innerAngle" name="Light inner angle"/>
+   <attribute value="40" type="real" id="outerAngle" name="Light outer angle"/>
+  </component>
+  <component typeId="20" type="Placeable" sync="true">
+   <attribute value="2,0,-1,0,0,0,1,1,1" type="Transform" id="transform" name="Transform"/>
+   <attribute value="false" type="bool" id="drawDebug" name="Show bounding box"/>
+   <attribute value="true" type="bool" id="visible" name="Visible"/>
+   <attribute value="1" type="int" id="selectionLayer" name="Selection layer"/>
+   <attribute value="" type="EntityReference" id="parentRef" name="Parent entity ref"/>
+   <attribute value="" type="string" id="parentBone" name="Parent bone name"/>
+  </component>
+  <component typeId="26" type="Name" sync="true">
+   <attribute value="Light" type="string" id="name" name="Name"/>
+   <attribute value="" type="string" id="description" name="Description"/>
+   <attribute value="" type="string" id="group" name="Group"/>
+  </component>
+ </entity>
+ <entity id="6" sync="true">
+  <component typeId="26" type="Name" sync="true">
+   <attribute value="Avatar" type="string" id="name" name="Name"/>
+   <attribute value="" type="string" id="description" name="Description"/>
+   <attribute value="" type="string" id="group" name="Group"/>
+  </component>
+  <component typeId="20" type="Placeable" sync="true">
+   <attribute value="1.447964279182465,-8.227429054991648,-23.481493193614476,0,0,0,1,1,1" type="Transform" id="transform" name="Transform"/>
+   <attribute value="false" type="bool" id="drawDebug" name="Show bounding box"/>
+   <attribute value="true" type="bool" id="visible" name="Visible"/>
+   <attribute value="1" type="int" id="selectionLayer" name="Selection layer"/>
+   <attribute value="" type="EntityReference" id="parentRef" name="Parent entity ref"/>
+   <attribute value="" type="string" id="parentBone" name="Parent bone name"/>
+  </component>
+  <component typeId="17" type="Mesh" sync="true">
+   <attribute value="0,0,0,0,0,0,1,1,1" type="Transform" id="nodeTransformation" name="Transform"/>
+   <attribute value="examples/fbx/assets/xsi_man_skinning.fbx" type="AssetReference" id="meshRef" name="Mesh ref"/>
+   <attribute value="" type="AssetReference" id="skeletonRef" name="Skeleton ref"/>
+   <attribute value="" type="AssetReferenceList" id="materialRefs" name="Mesh materials"/>
+   <attribute value="0" type="real" id="drawDistance" name="Draw distance"/>
+   <attribute value="false" type="bool" id="castShadows" name="Cast shadows"/>
+   <attribute value="false" type="bool" id="useInstancing" name="Use instancing"/>
+  </component>
+  <component typeId="14" type="AnimationController" sync="true">
+   <attribute value="" type="string" id="animationState" name="Animation state"/>
+   <attribute value="false" type="bool" id="drawDebug" name="Draw debug"/>
+  </component>
+ </entity>
+</scene>
