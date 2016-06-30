@@ -201,6 +201,8 @@ module.exports = function(grunt) {
                         "lib/three/collada/AnimationHandler",
                         "lib/three/collada/KeyFrameAnimation",
                         "lib/three/collada/ColladaLoader",
+                        "lib/three/fbx/FBXLoader",
+                        "lib/three/assimp/AssimpJsonLoader",
                         "lib/loglevel",
                         "lib/signals",
                         "lib/hammer",

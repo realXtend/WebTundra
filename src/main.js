@@ -21,17 +21,19 @@ require.config({
         'exports' is a way to note what the module will export to the global window object. */
     shim    :
     {
-        "lib/jquery-ui"                 : [ "jquery" ],
-        "lib/jquery.mousewheel"         : [ "jquery" ],
-        "lib/jquery.titlealert.min"     : [ "jquery" ],
-        "lib/jquery.jgestures"          : [ "jquery" ],
-        "lib/jquery.contextmenu"        : [ "jquery" ],
-        "lib/three"                     : { exports : "THREE" },
-        "lib/three/DDSLoader"           : [ "lib/three" ],
-        "lib/three/CSS3DRenderer"       : [ "lib/three" ],
-        "lib/three/OBJLoader"           : [ "lib/three" ],
-        "view/threejs/gltf/WebTundraGltfWrapper"   : [ "lib/three" ],
-        "view/threejs/collada/WebTundraColladaWrapper": [ "lib/three" ],
+        "lib/jquery-ui"                                 : [ "jquery" ],
+        "lib/jquery.mousewheel"                         : [ "jquery" ],
+        "lib/jquery.titlealert.min"                     : [ "jquery" ],
+        "lib/jquery.jgestures"                          : [ "jquery" ],
+        "lib/jquery.contextmenu"                        : [ "jquery" ],
+        "lib/three"                                     : { exports : "THREE" },
+        "lib/three/DDSLoader"                           : [ "lib/three" ],
+        "lib/three/CSS3DRenderer"                       : [ "lib/three" ],
+        "lib/three/OBJLoader"                           : [ "lib/three" ],
+        "lib/three/fbx/FBXLoader"                       : [ "lib/three" ],
+        "lib/three/assimp/AssimpJSONLoader"             : [ "lib/three" ],
+        "view/threejs/gltf/WebTundraGltfWrapper"        : [ "lib/three" ],
+        "view/threejs/collada/WebTundraColladaWrapper"  : [ "lib/three" ],
         "lib/polymer.min"               : { exports : "Polymer" },
         "lib/ammo"                      : { exports : "Ammo" }
     },
@@ -130,6 +132,7 @@ require([
                     dataType: "xml",
                     success: function(txmlDoc) {
                         Tundra.scene.deserializeFromXml(txmlDoc);
+                        // Tundra.client.fakeConnectionState();
                     }
                 });
             }
