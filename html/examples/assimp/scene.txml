@@ -1,0 +1,83 @@
+<!DOCTYPE Scene>
+<scene>
+ <entity id="1" sync="true">
+  <component typeId="38" type="SkyX" sync="true">
+  </component>
+ </entity>
+ <entity id="5" sync="true">
+  <component typeId="16" type="Light" sync="true">
+   <attribute value="0" type="int" id="type" name="Light type"/>
+   <attribute value="1 1 1 1" type="Color" id="diffColor" name="Diffuse color"/>
+   <attribute value="0 0 0 1" type="Color" id="specColor" name="Specular color"/>
+   <attribute value="false" type="bool" id="castShadows" name="Cast shadows"/>
+   <attribute value="25" type="real" id="range" name="Light range"/>
+   <attribute value="1" type="real" id="brightness" name="Brightness"/>
+   <attribute value="0" type="real" id="constAtten" name="Constant atten"/>
+   <attribute value="0.00999999978" type="real" id="linearAtten" name="Linear atten"/>
+   <attribute value="0.00999999978" type="real" id="quadraAtten" name="Quadratic atten"/>
+   <attribute value="30" type="real" id="innerAngle" name="Light inner angle"/>
+   <attribute value="40" type="real" id="outerAngle" name="Light outer angle"/>
+  </component>
+  <component typeId="20" type="Placeable" sync="true">
+   <attribute value="2,0,-1,0,0,0,1,1,1" type="Transform" id="transform" name="Transform"/>
+   <attribute value="false" type="bool" id="drawDebug" name="Show bounding box"/>
+   <attribute value="true" type="bool" id="visible" name="Visible"/>
+   <attribute value="1" type="int" id="selectionLayer" name="Selection layer"/>
+   <attribute value="" type="EntityReference" id="parentRef" name="Parent entity ref"/>
+   <attribute value="" type="string" id="parentBone" name="Parent bone name"/>
+  </component>
+  <component typeId="26" type="Name" sync="true">
+   <attribute value="Light" type="string" id="name" name="Name"/>
+   <attribute value="" type="string" id="description" name="Description"/>
+   <attribute value="" type="string" id="group" name="Group"/>
+  </component>
+ </entity>
+ <entity id="6" sync="true">
+  <component typeId="26" type="Name" sync="true">
+   <attribute value="Jeep" type="string" id="name" name="Name"/>
+   <attribute value="" type="string" id="description" name="Description"/>
+   <attribute value="" type="string" id="group" name="Group"/>
+  </component>
+  <component typeId="20" type="Placeable" sync="true">
+   <attribute value="-0.13914106786251068,1.2,-6.465120315551758,0,180,0,0.166,0.166,0.166" type="Transform" id="transform" name="Transform"/>
+   <attribute value="false" type="bool" id="drawDebug" name="Show bounding box"/>
+   <attribute value="true" type="bool" id="visible" name="Visible"/>
+   <attribute value="1" type="int" id="selectionLayer" name="Selection layer"/>
+   <attribute value="" type="EntityReference" id="parentRef" name="Parent entity ref"/>
+   <attribute value="" type="string" id="parentBone" name="Parent bone name"/>
+  </component>
+  <component typeId="17" type="Mesh" sync="true">
+   <attribute value="0,0,0,0,0,0,1,1,1" type="Transform" id="nodeTransformation" name="Transform"/>
+   <attribute value="examples/assimp/assets/jeep/jeep.assimp.json" type="AssetReference" id="meshRef" name="Mesh ref"/>
+   <attribute value="" type="AssetReference" id="skeletonRef" name="Skeleton ref"/>
+   <attribute value="" type="AssetReferenceList" id="materialRefs" name="Mesh materials"/>
+   <attribute value="0" type="real" id="drawDistance" name="Draw distance"/>
+   <attribute value="false" type="bool" id="castShadows" name="Cast shadows"/>
+   <attribute value="false" type="bool" id="useInstancing" name="Use instancing"/>
+  </component>
+</entity>
+   <entity id="7" sync="true">
+    <component typeId="26" type="Name" sync="true">
+     <attribute value="Interior" type="string" id="name" name="Name"/>
+     <attribute value="" type="string" id="description" name="Description"/>
+     <attribute value="" type="string" id="group" name="Group"/>
+    </component>
+    <component typeId="20" type="Placeable" sync="true">
+     <attribute value="-0.13914106786251068,1.2,-6.465120315551758,0,0,0,1,1,1" type="Transform" id="transform" name="Transform"/>
+     <attribute value="false" type="bool" id="drawDebug" name="Show bounding box"/>
+     <attribute value="true" type="bool" id="visible" name="Visible"/>
+     <attribute value="1" type="int" id="selectionLayer" name="Selection layer"/>
+     <attribute value="" type="EntityReference" id="parentRef" name="Parent entity ref"/>
+     <attribute value="" type="string" id="parentBone" name="Parent bone name"/>
+    </component>
+    <component typeId="17" type="Mesh" sync="true">
+     <attribute value="0,0,0,0,0,0,1,1,1" type="Transform" id="nodeTransformation" name="Transform"/>
+     <attribute value="examples/assimp/assets/interior/interior.assimp.json" type="AssetReference" id="meshRef" name="Mesh ref"/>
+     <attribute value="" type="AssetReference" id="skeletonRef" name="Skeleton ref"/>
+     <attribute value="" type="AssetReferenceList" id="materialRefs" name="Mesh materials"/>
+     <attribute value="0" type="real" id="drawDistance" name="Draw distance"/>
+     <attribute value="false" type="bool" id="castShadows" name="Cast shadows"/>
+     <attribute value="false" type="bool" id="useInstancing" name="Use instancing"/>
+    </component>
+ </entity>
+</scene>
