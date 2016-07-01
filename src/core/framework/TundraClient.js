@@ -40,7 +40,8 @@ define([
         "entity-components/EC_Name",
         "entity-components/EC_Script",
         "entity-components/EC_Avatar",
-        "entity-components/EC_DynamicComponent"
+        "entity-components/EC_DynamicComponent",
+        "entity-components/EC_HtmlBillboard"
     ], function(
         // Core dependencies
         $,                          jqueryUI,
@@ -59,7 +60,8 @@ define([
         LoginMessage,
         // Core Components
         EC_Name,                    EC_Script,
-        EC_Avatar,                  EC_DynamicComponent) {
+        EC_Avatar,                  EC_DynamicComponent,
+        EC_HtmlBillboard) {
 
 var TundraClient = Class.$extend(
 /** @lends TundraClient.prototype */
@@ -345,7 +347,7 @@ var TundraClient = Class.$extend(
 
         // Reset frametime
         this.lastTime = performance.now();
-        // Reset observer 
+        // Reset observer
         this.observerEntityId = 0;
         this.network.lastObserverSendTime = 0;
 
