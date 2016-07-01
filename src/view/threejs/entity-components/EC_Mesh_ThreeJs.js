@@ -176,9 +176,7 @@ var EC_Mesh_ThreeJs = EC_Mesh.$extend(
             if (meshRef != null && meshRef != "")
             {
                 // Support force requesting three.js meshes with correct type
-                var forcedType = undefined;
-                if (CoreStringUtils.endsWith(meshRef, ".json", true) || CoreStringUtils.endsWith(meshRef, ".js", true))
-                    forcedType = "ThreeJsonMesh";
+                var forcedType = this._determineType(meshRef);
 
                 this.meshRequested = true;
                 var transfer = Tundra.asset.requestAsset(meshRef, forcedType);
@@ -280,7 +278,7 @@ var EC_Mesh_ThreeJs = EC_Mesh.$extend(
                     submesh.material = materialAsset.createMaterial(submesh);
                 else if (materialAsset instanceof THREE.Material)
                     submesh.material = materialAsset;
-                else
+                else if (!submesh.material)
                     submesh.material = Tundra.renderer.materialWhite;
 
                 submesh.receiveShadow = (submesh.material != null && submesh.material.hasTundraShadowShader !== undefined && submesh.material.hasTundraShadowShader === true);
@@ -312,6 +310,17 @@ var EC_Mesh_ThreeJs = EC_Mesh.$extend(
         // Attachements
         if (this.skeletonRef === "" || this.skeletonAsset != null)
             this.attachAttachements();
+    },
+
+    _determineType: function(meshRef)
+    {
+        if (CoreStringUtils.endsWith(meshRef, ".assimp.json", true))
+            return "AssimpJson";
+
+        if (CoreStringUtils.endsWith(meshRef, ".json", true) || CoreStringUtils.endsWith(meshRef, ".js", true))
+            return "ThreeJsonMesh";
+
+        return undefined;
     },
 
     _onParentEntityComponentCreated : function(entity, component)
@@ -697,6 +706,17 @@ var EC_Mesh_ThreeJs = EC_Mesh.$extend(
         return Tundra.events.subscribe("EC_Mesh." + this.parentEntity.id + "." + this.id + ".MaterialsLoaded", context, callback);
     },
 
+    onAnimationsLoaded: function(context, callback)
+    {
+        if (!this.hasParentEntity())
+        {
+            this.log.error("Cannot subscribe onAnimationsLoaded, parent entity not set!");
+            return null;
+        }
+
+        return Tundra.events.subscribe("EC_Mesh." + this.parentEntity.id + "." + this.id + ".AnimationsLoaded", context, callback);
+    },
+
     _meshAssetLoaded : function(asset)
     {
         if (!this.hasParentEntity())
@@ -720,6 +740,9 @@ var EC_Mesh_ThreeJs = EC_Mesh.$extend(
             this._loadsEmitted.mesh = true;
             Tundra.events.send("EC_Mesh." + this.parentEntity.id + "." + this.id + ".MeshLoaded", this.parentEntity, this, this.meshAsset);
         }
+
+        if (this.meshAsset.providesAnimations === true)
+            Tundra.events.send("EC_Mesh." + this.parentEntity.id + "." + this.id + ".AnimationsLoaded", this.parentEntity, this, this.meshAsset);
     },
 
     _skeletonAssetLoaded : function (asset, metadata)
@@ -731,6 +754,9 @@ var EC_Mesh_ThreeJs = EC_Mesh.$extend(
         this.update();
 
         Tundra.events.send("EC_Mesh." + this.parentEntity.id + "." + this.id + ".SkeletonLoaded", this.parentEntity, this, this.skeletonAsset);
+
+        if (this.skeletonAsset.providesAnimations === true)
+            Tundra.events.send("EC_Mesh." + this.parentEntity.id + "." + this.id + ".AnimationsLoaded", this.parentEntity, this, this.skeletonAsset);
     },
 
     _materialAssetLoaded : function(asset, index)

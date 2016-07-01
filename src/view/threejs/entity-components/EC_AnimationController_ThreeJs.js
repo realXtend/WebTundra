@@ -77,10 +77,10 @@ var EC_AnimationController_ThreeJs = EC_AnimationController.$extend(
         if (!this.parentEntity.mesh)
             return;
 
-        // Get notified when skeleton is loaded or reloaded (ref is changed).
+        // Get notified when animations are loaded (ref is changed).
         // This sub should not be cleared when it fires!
-        this.unsub("onSkeletonLoaded");
-        this.subs.onSkeletonLoaded = this.parentEntity.mesh.onSkeletonLoaded(this, this.onSkeletonLoaded);
+        this.unsub("onAnimationsLoaded");
+        this.subs.onAnimationsLoaded = this.parentEntity.mesh.onAnimationsLoaded(this, this.onAnimationsLoaded);
 
         // If already loaded (above signal will never fire), exec now
         if (this.getSkeletonAsset())
@@ -95,7 +95,7 @@ var EC_AnimationController_ThreeJs = EC_AnimationController.$extend(
             this.update();
     },
 
-    onSkeletonLoaded : function(ent, meshComp, asset)
+    onAnimationsLoaded : function(ent, meshComp, asset)
     {
         this._reloadMixer();
     },
@@ -108,6 +108,9 @@ var EC_AnimationController_ThreeJs = EC_AnimationController.$extend(
 
     attributeChanged : function(index, name, value)
     {
+        if (index === 0)
+            this.playAnimation(value);
+
         // @todo Reimplement draw debug!
         //if (index === 1)
         //    this.update();
