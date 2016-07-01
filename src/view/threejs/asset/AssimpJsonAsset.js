@@ -81,6 +81,15 @@ var AssimpJsonAsset = IAsset.$extend(
             this.log.error("Could not load assimp asset:", e);
             return false;
         };
+    },
+
+    unload: function()
+    {
+        if (this.requiresCloning && this.isCloneSource)
+            return;
+
+        if (this.mesh && this.mesh.parent)
+            this.mesh.parent.remove(this.mesh);
     }
 });
 

@@ -89,6 +89,18 @@ var FBXAsset = AnimationProviderAsset.$extend(
             console.log("[FBXAsset]: Failed to deserialize FBX asset from data: ", e);
             return false;
         };
+    },
+
+    unload: function()
+    {
+        if (this.requiresCloning && this.isCloneSource)
+            return;
+
+        if (this.mesh && this.mesh.parent)
+            this.mesh.parent.remove(this.mesh);
+
+        if (this.skin && this.skin.parent)
+            this.skin.parent.remove(this.skin);
     }
 });
 
