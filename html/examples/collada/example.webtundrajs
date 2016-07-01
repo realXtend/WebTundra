@@ -1,0 +1,35 @@
+define([
+    "lib/three",
+    "core/framework/Tundra",
+    "core/script/IApplication"
+], function(THREE, Tundra, IApplication) {
+
+var ColladaExample = IApplication.$extend(
+{
+    __init__ : function()
+    {
+        this.$super("Collada example");
+
+        this.ui = {};
+        if (!Tundra.client.isConnected())
+           Tundra.client.onConnected(this, this.start);
+        else
+            this.start();
+    },
+
+    start : function()
+    {
+        var avatar = Tundra.scene.entityByName("Avatar");
+        var pump = Tundra.scene.entityByName("Pump");
+
+        avatar.createComponent("AnimationController");
+        pump.createComponent("AnimationController");
+
+        avatar.animationController.playAnimation("animation0", true);
+        pump.mesh.meshAsset.animationHierarchy.__keyframe_animation__.play(true, 2.0);
+    }
+});
+
+return ColladaExample;
+
+});

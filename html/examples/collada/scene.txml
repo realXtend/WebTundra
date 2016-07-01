@@ -124,4 +124,18 @@
             <attribute id="group" type="string" value=""></attribute>
         </component>
     </entity>
+    <entity id="7" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="ParticleEngine"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Script" typeid="5" sync="false" temp="false">
+            <attribute id="scriptRef" type="AssetReferenceList" value="webtundra-examples://collada/example.webtundrajs"></attribute>
+            <attribute id="runOnLoad" type="bool" value="true"></attribute>
+            <attribute id="runMode" type="int" value="0"></attribute>
+            <attribute id="applicationName" type="string" value=""></attribute>
+            <attribute id="className" type="string" value=""></attribute>
+        </component>
+    </entity>
 </scene>
