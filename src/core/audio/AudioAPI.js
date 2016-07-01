@@ -38,7 +38,7 @@ var AudioAPI = ITundraAPI.$extend(
         getDefaultOptions : function()
         {
             return {
-                followActiveCamera  : false,
+                followActiveCamera  : true,
                 masterGain          : 1.0
             };
         }
