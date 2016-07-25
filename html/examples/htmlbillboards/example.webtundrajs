@@ -1,0 +1,97 @@
+define([
+    "lib/three",
+    "core/framework/Tundra",
+    "core/script/IApplication"
+], function(THREE, Tundra, IApplication) {
+
+var HtmlBillboardsExample = IApplication.$extend(
+{
+    __init__ : function()
+    {
+        this.$super("HTML Billboards example");
+
+        this.ui = {};
+        if (!Tundra.client.isConnected())
+           Tundra.client.onConnected(this, this.start);
+        else
+            this.start();
+    },
+
+    start : function()
+    {
+        var sourceEntity1 = Tundra.scene.entityByName("Source1");
+        var sourceEntity2 = Tundra.scene.entityByName("Source2");
+
+        this.ui.element1 = $("<div/>");
+        this.ui.element1.css({
+            "padding" : "5px",
+            "background-color" : "#26a0da"
+        });
+
+        this.ui.element1.append("<div id='stoplabel'>This cube has sound component with sound playing (police siren).<br>Click on the 'Stop' button to stop the siren</div>");
+        this.ui.element1.append("<br>");
+
+        this.ui.element2 = $("<div/>");
+        this.ui.element2.css({
+            "padding" : "5px",
+            "background-color" : "#cbe8f6"
+        });
+        this.ui.element2.append("<div>This sphere has a sound component which is stopped by default.<br>Click on the 'Play' button to start playing the sound</div>");
+        this.ui.element2.append("<br>");
+
+        this.ui.playButton = $("<button/>", {
+            id: "playbutton"
+        });
+        this.ui.playButton.css({
+            "top" : 50,
+            "left" : 20,
+            "font-size" : "16px",
+            "z-index" : 5,
+        });
+
+        this.ui.playButton.html("Play");
+        this.ui.element2.append(this.ui.playButton);
+
+
+        this.ui.stopButton = $("<button/>", {
+            id: "stopbutton"
+        });
+        this.ui.stopButton.css({
+            "top" : 50,
+            "left" : 20,
+            "font-size" : "16px",
+            "z-index" : 5,
+        });
+
+        this.ui.stopButton.html("Stop");
+        this.ui.element1.append(this.ui.stopButton);
+
+        sourceEntity1.htmlBillboard.setElement(this.ui.element1);
+        sourceEntity2.htmlBillboard.setElement(this.ui.element2);
+
+        this.ui.playButton.click(function()
+        {
+            if (this.ui.playButton.html() === "Play")
+            {
+                sourceEntity2.sound.play();
+                this.ui.playButton.html("Stop");
+            }
+            else if (this.ui.playButton.html() === "Stop")
+            {
+                sourceEntity2.sound.stop();
+                this.ui.playButton.html("Play");
+            }
+        }.bind(this));
+
+        this.ui.stopButton.click(function()
+        {
+            sourceEntity1.sound.stop();
+            $("#stoplabel").html("Police siren has stopped");
+            this.ui.stopButton.hide();
+        }.bind(this));
+    }
+});
+
+return HtmlBillboardsExample;
+
+});
