@@ -13,6 +13,6 @@ before_script:
 after_success: scp -i travis -r build/* $DEPLOY_PATH
 env:
   global:
-    secure: ETOw5qtG+rFrHc89jlwrjU2dvNXL0SYyqW0vlMLkokEe+/1/iACxmKjhidlPW9OsVa5VuhrQGQ4YGGj4tR5lrqSjwQxr50BCx6G6xXbTVzXeuEc57TbCgaM6x7zhEMwc8S0L4GhrbRWcI7Qel9PhjqUiDoKae6nphGiEjSfZnOw=
+    secure: RblFpyKY52mD4DwOwqwLJ4/o2LHFree3CzjaIBQcpbcUoKZYepqX4ACWu+yGKybf0AGDzfTtK4iMRNLTl+v/9Z570DxPJ8gyrYYxtz7YY0mUx4tKjWK5Dhs89w+rKp8aCDad+TQxzmiqXJXInL6iGQtN9fqeXCV0j0mz6KgZR9Y=
 addons:
-  ssh_known_hosts: 130.206.124.229
+  ssh_known_hosts: 130.206.113.251
