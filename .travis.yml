@@ -7,7 +7,9 @@ before_install:
 - chmod 600 travis
 - npm install -g grunt-cli
 install: npm install
-before_script: grunt
+before_script:
+- git clone https://github.com/Adminotech/fiware-interface-designer.git src/application/editor
+- grunt
 after_success: scp -i travis -r build/* $DEPLOY_PATH
 env:
   global:
