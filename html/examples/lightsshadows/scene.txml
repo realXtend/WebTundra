@@ -1,0 +1,288 @@
+﻿<scene
+    xmlns="http://www.w3.org/1999/xhtml">
+    <entity id="1" sync="true" temp="false">
+        <component type="Sky" typeid="10" sync="false" temp="false">
+            <attribute id="materialRef" type="AssetReference" value=""></attribute>
+            <attribute id="textureRefs" type="AssetReferenceList" value=""></attribute>
+            <attribute id="distance" type="real" value="999"></attribute>
+            <attribute id="orientation" type="Quat" value="0 0 0 1"></attribute>
+            <attribute id="drawFirst" type="bool" value="true"></attribute>
+            <attribute id="enabled" type="bool" value="true"></attribute>
+        </component>
+        <component type="EnvironmentLight" typeid="8" sync="false" name="EC_Sky Created Light" temp="false"></component>
+    </entity>
+    <entity id="2" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="Cube"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="0.459582,11.739676,-47.801095,0,0,0,3.283059,3.283059,3.283059"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://meshmoon.data.s3.amazonaws.com/asset-library/meshes/primitives/Cube.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value=""></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="true"></attribute>
+        </component>
+    </entity>
+    <entity id="3" sync="true" temp="false">
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="28.004832,0,14.638565,0,0,0,1,1,1"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value="7"></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Light" typeid="16" sync="false" temp="false">
+            <attribute id="type" type="int" value="0"></attribute>
+            <attribute id="diffColor" type="Color" value="1 1 1 1"></attribute>
+            <attribute id="specColor" type="Color" value="0 0 0 1"></attribute>
+            <attribute id="castShadows" type="bool" value="true"></attribute>
+            <attribute id="range" type="real" value="50"></attribute>
+            <attribute id="brightness" type="real" value="1"></attribute>
+            <attribute id="constAtten" type="real" value="0"></attribute>
+            <attribute id="linearAtten" type="real" value="0.01"></attribute>
+            <attribute id="quadraAtten" type="real" value="0.01"></attribute>
+            <attribute id="innerAngle" type="real" value="30"></attribute>
+            <attribute id="outerAngle" type="real" value="40"></attribute>
+        </component>
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="light"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+    </entity>
+    <entity id="4" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="LightsScript"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Script" typeid="5" sync="false" temp="false">
+            <attribute id="scriptRef" type="AssetReferenceList" value="webtundra-examples://lightsshadows/example.webtundrajs"></attribute>
+            <attribute id="runOnLoad" type="bool" value="true"></attribute>
+            <attribute id="runMode" type="int" value="0"></attribute>
+            <attribute id="applicationName" type="string" value=""></attribute>
+            <attribute id="className" type="string" value=""></attribute>
+        </component>
+    </entity>
+    <entity id="5" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="Cube"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="0.628517,-2.214186,-24.007338,0,0,0,1,1,1"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://meshmoon.data.s3.amazonaws.com/asset-library/meshes/primitives/Cube.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value=""></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="true"></attribute>
+        </component>
+    </entity>
+    <entity id="6" sync="true" temp="false">
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="0,0,0,0,0,0,5.541384,5.541384,5.541384"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="examples/assimp/assets/interior/interior.assimp.json"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value=""></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="false"></attribute>
+        </component>
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="interior"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+    </entity>
+    <entity id="7" sync="true" temp="false">
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="0,16.464938,0,0,87253,0,1,1,1"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="lightparent"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+    </entity>
+    <entity id="8" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="Ball"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-29.340529,17.889207,-27.31855,-0.972032,41.023824,0,5.428027,5.428027,5.428027"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://meshmoon.data.s3.amazonaws.com/asset-library/meshes/primitives/Sphere.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value=""></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="true"></attribute>
+        </component>
+    </entity>
+    <entity id="9" sync="true" temp="false">
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-0.756039,7.062794,-24.821104,-156.115483,-4.609574,0,1,1,1"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Light" typeid="16" sync="false" temp="false">
+            <attribute id="type" type="int" value="1"></attribute>
+            <attribute id="diffColor" type="Color" value="1 1 1 1"></attribute>
+            <attribute id="specColor" type="Color" value="0 0 0 1"></attribute>
+            <attribute id="castShadows" type="bool" value="true"></attribute>
+            <attribute id="range" type="real" value="50"></attribute>
+            <attribute id="brightness" type="real" value="1"></attribute>
+            <attribute id="constAtten" type="real" value="0"></attribute>
+            <attribute id="linearAtten" type="real" value="0.01"></attribute>
+            <attribute id="quadraAtten" type="real" value="0.01"></attribute>
+            <attribute id="innerAngle" type="real" value="60"></attribute>
+            <attribute id="outerAngle" type="real" value="60"></attribute>
+        </component>
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="spotlight"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+    </entity>
+    <entity id="10" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="Cone"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-36.964342,10.77011,41.828283,174.832628,47.894535,180,5.038073,5.038073,5.038073"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://meshmoon.data.s3.amazonaws.com/asset-library/meshes/primitives/Cone.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value=""></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="true"></attribute>
+        </component>
+    </entity>
+    <entity id="11" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="Cylinder"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="-7.066981,3.218165,0.53009,0,0,0,4.675402,4.675402,4.675402"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="http://meshmoon.data.s3.amazonaws.com/asset-library/meshes/primitives/Cylinder.mesh"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value=""></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="true"></attribute>
+        </component>
+    </entity>
+    <entity id="12" sync="true" temp="false">
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="10.41323,27.792822,-28.558888,-163.231061,-89.596032,180,1,1,1"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Light" typeid="16" sync="false" temp="false">
+            <attribute id="type" type="int" value="1"></attribute>
+            <attribute id="diffColor" type="Color" value="0 1 0 1"></attribute>
+            <attribute id="specColor" type="Color" value="0 0 0 1"></attribute>
+            <attribute id="castShadows" type="bool" value="true"></attribute>
+            <attribute id="range" type="real" value="75"></attribute>
+            <attribute id="brightness" type="real" value="1"></attribute>
+            <attribute id="constAtten" type="real" value="0"></attribute>
+            <attribute id="linearAtten" type="real" value="0.01"></attribute>
+            <attribute id="quadraAtten" type="real" value="0.01"></attribute>
+            <attribute id="innerAngle" type="real" value="30"></attribute>
+            <attribute id="outerAngle" type="real" value="40"></attribute>
+        </component>
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="greenlight"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+    </entity>
+    <entity id="13" sync="true" temp="false">
+        <component type="Placeable" typeid="20" sync="false" temp="false">
+            <attribute id="transform" type="Transform" value="38.614988,2.784577,35.44403,0,0,0,1,1,1"></attribute>
+            <attribute id="drawDebug" type="bool" value="false"></attribute>
+            <attribute id="visible" type="bool" value="true"></attribute>
+            <attribute id="selectionLayer" type="int" value="1"></attribute>
+            <attribute id="parentRef" type="EntityReference" value=""></attribute>
+            <attribute id="parentBone" type="string" value=""></attribute>
+        </component>
+        <component type="Mesh" typeid="17" sync="false" temp="false">
+            <attribute id="nodeTransformation" type="Transform" value="0,0,0,0,0,0,1,1,1"></attribute>
+            <attribute id="meshRef" type="AssetReference" value="examples/assimp/assets/jeep/jeep.assimp.json"></attribute>
+            <attribute id="skeletonRef" type="AssetReference" value=""></attribute>
+            <attribute id="materialRefs" type="AssetReferenceList" value=""></attribute>
+            <attribute id="drawDistance" type="real" value="0"></attribute>
+            <attribute id="castShadows" type="bool" value="true"></attribute>
+        </component>
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="drawable"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+    </entity>
+</scene>

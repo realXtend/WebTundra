@@ -1,0 +1,38 @@
+define([
+    "lib/three",
+    "core/framework/Tundra",
+    "core/script/IApplication"
+], function(THREE, Tundra, IApplication) {
+
+var RotatingLightsApp = IApplication.$extend(
+{
+    __init__ : function()
+    {
+        this.$super("Rotating lights");
+
+        this.ui = {};
+        if (!Tundra.client.isConnected())
+           Tundra.client.onConnected(this, this.start);
+        else
+            this.start();
+    },
+
+    start : function()
+    {
+        var lightparent = Tundra.scene.entityByName("lightparent");
+        Tundra.frame.onUpdate(this, function(frametime)
+        {
+            lightparent = lightparent || Tundra.scene.entityByName("lightparent");
+            if (!lightparent)
+                return;
+
+            var t = lightparent.placeable.transform;
+            t.rot.y += 1;
+            lightparent.placeable.transform = t;
+        });
+    }
+});
+
+return RotatingLightsApp;
+
+});
