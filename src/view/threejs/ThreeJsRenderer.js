@@ -685,6 +685,8 @@ var ThreeJsRenderer = IRenderSystem.$extend(
                     this.shadowSettings.shadowCastingLights++;
                 else if (object instanceof THREE.DirectionalLight && object.castShadow && !object.shadowCascade)
                     this.shadowSettings.shadowCastingLights++;
+                else if (object instanceof THREE.PointLight && object.castShadow)
+                    this.shadowSettings.shadowCastingLights++;
             }
         }.bind(this));
 

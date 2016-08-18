@@ -71,10 +71,7 @@ var EC_Light_ThreeJs = EC_Light.$extend(
             if (type === EC_Light.Type.PointLight)
                 light = new THREE.PointLight(color, intensity, distance);
             else if (type === EC_Light.Type.SpotLight)
-            {
-                console.warn("[EC_Light]: createLight(): Update spotlights to THREE.js r76");
-                // light = new THREE.SpotLight(color, intensity, distance, true);
-            }
+                light = new THREE.SpotLight(color, intensity, distance);
             else if (type === EC_Light.Type.DirectionalLight)
                 light = new THREE.DirectionalLight(color, intensity, distance);
             else if (type === EC_Light.Type.AmbientLight)
@@ -132,6 +129,12 @@ var EC_Light_ThreeJs = EC_Light.$extend(
         {
             this.lightNode.color = value.toThreeColor();
             this._updateDebugger(name);
+        }
+        else if (index === 3 && this.lightNode != null)
+        {
+            this.lightNode.castShadow = value;
+            this._updateDebugger(name);
+            Tundra.renderer.updateLights(this);
         }
         // range
         else if (index === 4 && this.lightNode != null)

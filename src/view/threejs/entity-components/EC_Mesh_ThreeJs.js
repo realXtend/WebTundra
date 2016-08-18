@@ -109,6 +109,10 @@ var EC_Mesh_ThreeJs = EC_Mesh.$extend(
                 if (submesh === undefined || submesh === null)
                     continue;
                 submesh.castShadow = value;
+                submesh.traverse(function(obj)
+                {
+                    obj.castShadow = value;
+                });
             }
         }
     },
@@ -281,8 +285,15 @@ var EC_Mesh_ThreeJs = EC_Mesh.$extend(
                 else if (!submesh.material)
                     submesh.material = Tundra.renderer.materialWhite;
 
-                submesh.receiveShadow = (submesh.material != null && submesh.material.hasTundraShadowShader !== undefined && submesh.material.hasTundraShadowShader === true);
+                submesh.receiveShadow = true;
                 submesh.castShadow = this.castShadows;
+                submesh.traverse(function(obj)
+                {
+                    obj.receiveShadow = true;
+                    obj.castShadow = this.castShadows;
+                }.bind(this));
+
+
             }
             if (this.materialAssets.length > numSubmeshes)
             {
