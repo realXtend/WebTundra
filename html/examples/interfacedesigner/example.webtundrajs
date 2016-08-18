@@ -1,0 +1,47 @@
+define([
+    "lib/three",
+    "core/framework/Tundra",
+    "core/script/IApplication"
+], function(THREE, Tundra, IApplication) {
+
+var InterfaceDesignerDemo = IApplication.$extend(
+{
+    __init__ : function()
+    {
+        this.$super("Interface designer demo");
+
+        this.subs = undefined;
+        if (!Tundra.client.isConnected())
+           Tundra.client.onConnected(this, this.start);
+        else
+            this.start();
+    },
+
+    start : function(app)
+    {
+        this.intd = app || Tundra.client.findApplication("Editor");
+        if (!this.intd)
+        {
+            if (this.subs)
+                return;
+
+            this.subs = setInterval(function(){
+                var editorApp = Tundra.client.findApplication("Editor");
+                if (editorApp && editorApp.editor)
+                {
+                    this.start(editorApp);
+                    clearInterval(this.subs);
+                }
+            }.bind(this), 250);
+
+            return;
+        }
+
+        if (this.intd && this.intd.editor)
+            this.intd.editor.startIntro();
+    }
+});
+
+return InterfaceDesignerDemo;
+
+});

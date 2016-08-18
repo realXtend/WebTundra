@@ -1,0 +1,17 @@
+<scene
+    xmlns="http://www.w3.org/1999/xhtml">
+    <entity id="1" sync="true" temp="false">
+        <component type="Name" typeid="26" sync="false" temp="false">
+            <attribute id="name" type="string" value="ExampleScript"></attribute>
+            <attribute id="description" type="string" value=""></attribute>
+            <attribute id="group" type="string" value=""></attribute>
+        </component>
+        <component type="Script" typeid="5" sync="false" temp="false">
+            <attribute id="scriptRef" type="AssetReferenceList" value="webtundra-examples://interfacedesigner/example.webtundrajs"></attribute>
+            <attribute id="runOnLoad" type="bool" value="true"></attribute>
+            <attribute id="runMode" type="int" value="0"></attribute>
+            <attribute id="applicationName" type="string" value=""></attribute>
+            <attribute id="className" type="string" value=""></attribute>
+        </component>
+    </entity>
+</scene>
