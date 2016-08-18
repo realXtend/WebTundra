@@ -74,7 +74,6 @@ var AssimpJsonAsset = IAsset.$extend(
             this.mesh = loader.parse(data);
 
             this._emitLoaded();
-            console.log("Assimp: deserializeFromData:", this.mesh);
         }
         catch(e)
         {
