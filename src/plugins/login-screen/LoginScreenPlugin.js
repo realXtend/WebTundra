@@ -21,7 +21,7 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
         /**
             Login properties that will be sent to the server. Application/plugin code can set custom properties to this
             before a connection is made. This property map will be cleared when server connection is disconnected.
-            
+
             Note: 'username' will always be overwritten from the UI controls of this plugin.
 
             @property loginProperties
@@ -40,15 +40,15 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
     {
         /**
             If login controls are enabled and should be shown.
-                
+
             @property LoginControlsEnabled
             @type Boolean
             @static
         */
         LoginControlsEnabled : false,
-        /** 
+        /**
             If loading screen is enabled and should be shown.
-            
+
             @property LoadingScreenEnabled
             @type Boolean
             @static
@@ -58,20 +58,20 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
             Makes the loading screen have a transparent background
         */
         LoadingScreenBackgroundTransparent : false,
-        /** 
+        /**
             If loading screen should auto update asset progress.
-            This does not disable hiding loading screen after all 
+            This does not disable hiding loading screen after all
             asset transfers have completed.
-            
+
             @property LoadingScreenAutoUpdateAssetProgress
             @type Boolean
             @static
         */
         LoadingScreenAutoUpdateAssetProgress : true,
         /**
-            Text that appears to the loading screen while 
+            Text that appears to the loading screen while
             the world assets are being loaded
-            
+
             @property LoadingScreenConnectingText
             @type String
             @static
@@ -79,15 +79,15 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
         LoadingScreenConnectingText : "Loading Scene",
         /**
             Loading screen header text.
-            
+
             @property LoadingScreenHeaderText
             @type String
             @static
         */
         LoadingScreenHeaderText     : "realXtend WebTundra",
-        /** 
+        /**
             Loading screen header link url.
-            
+
             @property LoadingScreenHeaderLinkUrl
             @type String
             @static
@@ -151,6 +151,9 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
         this.ui.loginControls = $("<div/>", {
             id      : "login-controls"
         });
+        this.ui.localControls = $("<div/>", {
+            id      : "local-controls"
+        });
         this.ui.loginHost = $("<input/>", {
             id      : "login-host",
             type    : "text",
@@ -201,6 +204,21 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
             "background-color"  : "transparent"
         });
 
+        this.ui.localControls.css({
+            "position"          : "absolute",
+            "top"               : 60,
+            "left"              : 0,
+            "width"             : "100%",
+            "padding"           : 10,
+            "border"            : 0,
+            "z-index"           : Tundra.ui.topZIndex() + 1,
+            "text-align"        : "center",
+            "font-family"       : "Arial",
+            "font-size"         : 14,
+            "font-weight"       : "bold",
+            "background-color"  : "transparent"
+        });
+
         var inputs = [ this.ui.loginHost, this.ui.loginUsername, this.ui.loginButton, this.ui.localButton ];
         for (var i = 0; i < inputs.length; i++)
         {
@@ -215,11 +233,16 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
             });
         }
 
+        this.ui.localControls.append("<div style='margin-bottom: 5px'>or start a new, empty local scene:</div>");
+        this.ui.localControls.append(this.ui.localButton);
+        this.ui.localControls.fadeIn(1000);
+
+        this.ui.loginControls.append("<div style='margin-bottom: 5px'>Connect to a Tundra server:</div>");
         this.ui.loginControls.append(this.ui.loginHost);
         this.ui.loginControls.append(this.ui.loginUsername);
         this.ui.loginControls.append(this.ui.loginButton);
-        this.ui.loginControls.append(this.ui.localButton);
         this.ui.loginControls.append(this.ui.loginError);
+        this.ui.loginControls.append(this.ui.localControls);
         this.ui.loginControls.fadeIn(1000);
 
         this.framework.ui.addWidgetToScene(this.ui.loginControls);
@@ -406,7 +429,7 @@ var LoginScreenPlugin = ITundraPlugin.$extend(
             "left"              : 5
         });
         this.loadingScreen.hideButton.click(function(e) {
-            /** @todo Evaluate if loading screen can be 
+            /** @todo Evaluate if loading screen can be
                 hidden before server connection open. */
             if (this.loadingScreen.progress.text() != "")
             {
