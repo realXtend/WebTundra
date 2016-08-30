@@ -19,6 +19,7 @@ define([
         "view/threejs/asset/AssimpJsonAsset",
         "view/threejs/gltf/WebTundraGltfWrapper",
         "view/threejs/collada/WebTundraColladaWrapper",
+        "view/threejs/entity-components/EC_EnvironmentLight_ThreeJs",
         "view/threejs/entity-components/EC_Fog_ThreeJs",
         "view/threejs/entity-components/EC_Sky_ThreeJs",
         "view/threejs/entity-components/EC_SkyX_ThreeJs",
@@ -39,6 +40,7 @@ define([
                 AssimpJsonAsset,
                 WebTundraGltfWrapper,
                 WebTundraColladaWrapper,
+                EC_EnvironmentLight_ThreeJs,
                 EC_Fog_ThreeJs,
                 EC_Sky_ThreeJs,
                 EC_SkyX_ThreeJs,
@@ -364,6 +366,7 @@ var ThreeJsRenderer = IRenderSystem.$extend(
 
     registerComponents : function()
     {
+        Scene.registerComponent(EC_EnvironmentLight_ThreeJs);
         Scene.registerComponent(EC_Fog_ThreeJs);
 
         Scene.registerComponent(EC_Sky_ThreeJs);
