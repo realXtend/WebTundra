@@ -29,7 +29,8 @@ define([
         "view/threejs/entity-components/EC_Mesh_ThreeJs",
         "view/threejs/entity-components/EC_Placeable_ThreeJs",
         "view/threejs/entity-components/EC_Billboard_ThreeJs",
-        "view/threejs/entity-components/EC_HtmlBillboard_ThreeJs"
+        "view/threejs/entity-components/EC_HtmlBillboard_ThreeJs",
+        "view/threejs/entity-components/EC_WaterPlane_ThreeJs"
     ], function(THREE, TWEEN, Tundra, TundraLogging, CoreStringUtils,
                 Scene, Color, IRenderSystem, RaycastResult, TransformInterpolator, AssetFactory,
                 ObjMeshAsset,
@@ -50,7 +51,8 @@ define([
                 EC_Mesh_ThreeJs,
                 EC_Placeable_ThreeJs,
                 EC_Billboard_ThreeJs,
-                EC_HtmlBillboard_ThreeJs) {
+                EC_HtmlBillboard_ThreeJs,
+                EC_WaterPlane_ThreeJs) {
 
 var ThreeJsRenderer = IRenderSystem.$extend(
 /** @lends IRenderSystem.prototype */
@@ -379,6 +381,7 @@ var ThreeJsRenderer = IRenderSystem.$extend(
         Scene.registerComponent(EC_Placeable_ThreeJs);
         Scene.registerComponent(EC_Billboard_ThreeJs);
         Scene.registerComponent(EC_HtmlBillboard_ThreeJs);
+        Scene.registerComponent(EC_WaterPlane_ThreeJs);
     },
 
     getCssRenderer : function()
