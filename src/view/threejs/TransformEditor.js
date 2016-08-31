@@ -2,28 +2,35 @@ define([
         "lib/classy",
         "lib/three",
         "lib/three/three-TransformControls",
-        "core/framework/Tundra"
-    ], function(Class, THREE, _tc, Tundra) {
+        "core/framework/Tundra",
+        "core/scene/Entity"
+    ], function(Class, THREE, _tc, Tundra, Entity) {
 
 var TransformEditor = Class.$extend(
 {
-   __init__ : function()
+    __init__ : function()
     {
-        var camera = Tundra.renderer.camera;
-        var domElement = Tundra.renderer.renderer.domElement;
-
         this.targets = [];
         this.previousParentOfTarget = {};
         this.activeNode = undefined;
+        this.visuals = true;
         this.helpers = {};
         this.cameraSubscription = null;
+        this.translationSnap = 0;
+        this.rotationSnap = 0;
 
-        this.transformControl = new THREE.TransformControls(camera, domElement);
-        this.transformControl.setSpace("local");
-        this.transformControl.addEventListener("change", this.onUpdate.bind(this));
-        this.transformControl.addEventListener("mouseDown", this.onDragStarted.bind(this));
-        this.transformControl.addEventListener("mouseUp", this.onDragStopped.bind(this));
+        this.Mode =
+        {
+            Translate : "translate",
+            Rotate    : "rotate",
+            Scale     : "scale"
+        };
+        this.mode = this.Mode.Translate;
 
+        this.gridHelper = new GridHelper(undefined, 100);
+
+        this.configure();
+        this._initTransformControl();
         this.cameraSubscription = Tundra.renderer.onActiveCameraChanged(this, this.onActiveCameraChanged);
         Tundra.frame.onUpdate(this, this.onFrameUpdate);
 
@@ -41,7 +48,22 @@ var TransformEditor = Class.$extend(
             if (Tundra.input.keyboard.pressed["shift"])
                 this.appendTarget(raycastResult.entity);
             else
-                this.setTargetEntity(raycastResult.entity);
+                this.setTargetEntity(raycastResult.entity, {
+                    gridSize: 100,
+                    pos: {
+                        hideAxis: ["XZ", "YZ", "XY", "XYZ"],
+                        snap: 2,
+                    },
+                    rot: {
+                        hideAxis: ["X", "Z", "E"],
+                        useTorus: true,
+                        snap: 45
+                    },
+                    scale: {
+                        hideAxis: ["X", "Y"],
+                        lock: true
+                    }
+                });
         }.bind(this));
 
         Tundra.input.onKeyPress(this, function(e)
@@ -64,10 +86,49 @@ var TransformEditor = Class.$extend(
         */
     },
 
+    __classvars__ :
+    {
+        ModeFromString : function(str)
+        {
+            if (typeof str !== "string")
+                return "";
+            str = str.toLowerCase();
+            if (str === "translate" || str === "position" || str === "pos")
+                return "translate";
+            else if (str === "rotate" || str === "rotation" || str === "rot")
+                return "rotate";
+            else if (str === "scale" || str === "scaling")
+                return "scale";
+            return "";
+        }
+    },
+
+    _initTransformControl: function()
+    {
+        var camera = Tundra.renderer.camera;
+        var domElement = Tundra.renderer.renderer.domElement;
+
+        this.transformControl = new THREE.TransformControls(camera, domElement, this.options)
+        this.transformControl.setSpace("local");
+        this.transformControl.addEventListener("change", this.onUpdate.bind(this));
+        this.transformControl.addEventListener("mouseDown", this.onDragStarted.bind(this));
+        this.transformControl.addEventListener("mouseUp", this.onDragStopped.bind(this));
+
+        // Set last known modes unless overridden in options
+        if (this.options && this.options.mode)
+            this.transformControl.setMode(TransformEditor.ModeFromString(this.options.mode));
+        else
+            this.transformControl.setMode(TransformEditor.ModeFromString(this.mode));
+
+        this.setTranslationSnap(this.options.pos && this.options.pos.snap ? this.options.pos.snap : this.translationSnap);
+        this.setRotationSnap(this.options.rot && this.options.rot.snap ? this.options.rot.snap : this.rotationSnap);
+        this.setGridSize(this.options && this.options.gridSize ? this.options.gridSize : 100);
+    },
+
     _appendTarget : function(target)
     {
         if (!target)
-            return;
+            return false;
 
         if (target.typeId && target.typeId === 20) // EC_Placeable
             target = target.parentEntity;
@@ -75,8 +136,10 @@ var TransformEditor = Class.$extend(
         if (!target.placeable)
         {
             console.error("[TransformEditor]: _appendTarget: Invalid target provided:", target);
-            return;
+            return false;
         }
+        if (this.isTargetEntity(target))
+            return false;
 
         var node = target.placeable.sceneNode;
         var ancestorsOfTarget = this._getAncestors(node);
@@ -98,34 +161,39 @@ var TransformEditor = Class.$extend(
 
         // Wireframes and boxes
         // Mark selected target with yellow box
-        var meshes = [];
-        var targetThreeMesh = this._getThreeMesh(target);
-        if (targetThreeMesh)
-            this._updateHelpers(targetThreeMesh);
-
-        // Mark all ancestors with cyan box
-        for (var i = ancestorsOfTarget.length - 1; i >= 0; i--)
+        if (this.visuals)
         {
-            var entity = Tundra.scene.entityById(ancestorsOfTarget[i].tundraEntityId);
-            if (entity)
+            var meshes = [];
+            var targetThreeMesh = this._getThreeMesh(target);
+            if (targetThreeMesh)
+                this._updateHelpers(targetThreeMesh);
+
+            // Mark all ancestors with cyan box
+            for (var i = ancestorsOfTarget.length - 1; i >= 0; i--)
             {
-                var threeMesh = this._getThreeMesh(entity);
-                if (threeMesh)
-                    this._updateHelpers(threeMesh, 0x00ffff);
+                var entity = Tundra.scene.entityById(ancestorsOfTarget[i].tundraEntityId);
+                if (entity)
+                {
+                    var threeMesh = this._getThreeMesh(entity);
+                    if (threeMesh)
+                        this._updateHelpers(threeMesh, 0x00ffff);
+                }
+            }
+
+            // Mark all descendants with magenta box
+            for (var i = descendatsOfTarget.length - 1; i >= 0; i--)
+            {
+                var entity = Tundra.scene.entityById(descendatsOfTarget[i].tundraEntityId);
+                if (entity)
+                {
+                    var threeMesh = this._getThreeMesh(entity);
+                    if (threeMesh)
+                        this._updateHelpers(threeMesh, 0xff00ff);
+                }
             }
         }
 
-        // Mark all descendants with magenta box
-        for (var i = descendatsOfTarget.length - 1; i >= 0; i--)
-        {
-            var entity = Tundra.scene.entityById(descendatsOfTarget[i].tundraEntityId);
-            if (entity)
-            {
-                var threeMesh = this._getThreeMesh(entity);
-                if (threeMesh)
-                    this._updateHelpers(threeMesh, 0xff00ff);
-            }
-        }
+        return true;
     },
 
     _updateHelpers : function(mesh, color)
@@ -241,12 +309,51 @@ var TransformEditor = Class.$extend(
         return -1;
     },
 
-    setTargetEntity : function(entity)
+    configure: function(options, override)
     {
-        this.setTargetEntities(entity._ptr ? entity._ptr : entity); // InterfaceDesigner compatibility, TODO: remove
+        override = override || false;
+        override = override || $.isEmptyObject(this.options);
+        if (!override)
+            return;
+
+        this.options = $.extend(true, {
+            scale : {
+                lock: false
+            }
+        }, options);
     },
 
-    appendTarget : function(entity)
+    targetEntities : function()
+    {
+        var ents = [];
+        for (var i = 0; i < this.targets.length; i++)
+        {
+            if (this.targets[i] && this.targets[i].parentEntity)
+                ents.push(this.targets[i].parentEntity);
+        }
+        return ents;
+    },
+
+    isTargetEntity : function(entity)
+    {
+        if (!(entity instanceof Entity))
+            return false;
+
+        var ents = this.targetEntities();
+        for (var i = 0; i < ents.length; i++)
+        {
+            if (ents[i].id === entity.id)
+                return true;
+        }
+        return false;
+    },
+
+    setTargetEntity : function(entity, options)
+    {
+        this.setTargetEntities(entity._ptr ? entity._ptr : entity, options);
+    },
+
+    appendTarget : function(entity, options)
     {
         if (!entity || !entity.placeable || this._isAncestorInTargets(entity.placeable.sceneNode))
             return;
@@ -257,31 +364,30 @@ var TransformEditor = Class.$extend(
                 return;
         }
 
-        this.setTargetEntities(this.targets.concat([entity]));
+        this.setTargetEntities(this.targets.concat([entity]), options);
     },
 
-    setTargetEntities : function(entities)
+    setTargetEntities : function(entities, options)
     {
-        this.clearSelection();
-
-        if (!Array.isArray(entities))
-        {
-            if (typeof entities === "object")
-                this._appendTarget(entities);
-            else
-            {
-                console.error("[TransformEditor]: setTargetEntities: Invalid target provided:", entities);
-                return;
-            }
-        }
-        else
-        {
-            for (var i = 0; i < entities.length; ++i)
-                this._appendTarget(entities[i]);
-        }
-
-        if (this.targets.length == 0)
+        if (!entities)
             return;
+
+        this.clearSelection(false);
+        this.configure(options, true);
+
+        var added = false;
+        entities = (Array.isArray(entities) ? entities : [ entities ]);
+        for (var i = 0; i < entities.length; i++)
+        {
+            if (this._appendTarget(entities[i]))
+                added = true;
+        }
+        if (!added || this.targets.length === 0)
+        {
+            if (this.targets.length === 0)
+                Tundra.events.send("TransformEditor.Targets.Change", [], []);
+            return false;
+        }
 
         var node = null;
         if (this.targets.length == 1)
@@ -319,11 +425,16 @@ var TransformEditor = Class.$extend(
 
         this._attachSceneNode(node);
         this.cameraSubscription = Tundra.renderer.onActiveCameraChanged(this, this.onActiveCameraChanged);
+
+        Tundra.events.send("TransformEditor.Targets.Change", this.targets, this.targetEntities());
     },
 
     _attachSceneNode : function(node)
     {
         this.activeNode = node;
+        if (!this.transformControl)
+            this._initTransformControl();
+
         this.transformControl.attach(this.activeNode);
         Tundra.renderer.scene.add(this.transformControl);
     },
@@ -361,11 +472,61 @@ var TransformEditor = Class.$extend(
 
     setMode : function(mode)
     {
-        this.transformControl.setMode(mode);
+        var _mode = TransformEditor.ModeFromString(mode);
+        if (!_mode)
+        {
+            console.warn("TransformEditor.setMode: Invalid mode", mode);
+            return;
+        }
+
+        this.mode = _mode;
+        if (this.transformControl)
+            this.transformControl.setMode(_mode);
+
+        Tundra.events.send("TransformEditor.Mode.Change", _mode);
+    },
+
+    setTranslationSnap: function(snap)
+    {
+        this.translationSnap = snap >= 0 ? snap : 0;
+
+        if (this.gridHelper)
+        {
+            this.gridHelper.setStep(this.translationSnap);
+            if (this.translationSnap > 0)
+                this.gridHelper.show();
+            else
+                this.gridHelper.hide();
+        }
+
+        if (this.transformControl)
+            this.transformControl.setTranslationSnap(this.translationSnap > 0 ? this.translationSnap : null);
+    },
+
+    setRotationSnap: function(snap)
+    {
+        this.rotationSnap = snap >= 0 ? snap : 0;
+        if (this.transformControl)
+            this.transformControl.setRotationSnap(this.rotationSnap > 0 ? THREE.Math.degToRad(this.rotationSnap) : null);
+    },
+
+    setGridSize: function(size)
+    {
+        if (this.gridHelper)
+            this.gridHelper.setSize(size);
+    },
+
+    setGridPosition: function(pos)
+    {
+        if (this.gridHelper)
+            this.gridHelper.setPos(pos);
     },
 
     onFrameUpdate : function(frametime)
     {
+        if (!this.transformControl)
+            return;
+
         if (this.transformControl.isAttached())
             this.transformControl.update();
 
@@ -379,15 +540,15 @@ var TransformEditor = Class.$extend(
 
     onActiveCameraChanged : function(activeCam, previousCam)
     {
+        if (!this.transformControl)
+            return;
+
         this.transformControl.setCamera(activeCam.camera);
     },
 
     onUpdate : function(event)
     {
-        if (this.targets.length == 0)
-            return;
-
-        if (!this.activeNode)
+        if (!this.activeNode || this.targets.length === 0)
             return;
 
         this.activeNode.updateMatrix();
@@ -445,7 +606,7 @@ var TransformEditor = Class.$extend(
                 target.transform = t;
             }
         }
-        else if (this.targets.length == 1)
+        else if (this.targets.length === 1)
         {
             var target = this.targets[0];
             var t = target.transform;
@@ -461,6 +622,8 @@ var TransformEditor = Class.$extend(
             target.transform = t;
         }
 
+        Tundra.events.send("TransformEditor.Transform.Change");
+
         var helpersKeys = Object.keys(this.helpers);
         for (var i = 0; i < helpersKeys.length; ++i)
         {
@@ -472,10 +635,11 @@ var TransformEditor = Class.$extend(
 
         if (states.length == 1)
             Tundra.events.send("TransformEditor.DragEnd", states[0].target.parentEntity);
+
         Tundra.events.send("TransformEditor.MultiTransform", states);
     },
 
-    clearSelection : function()
+    clearSelection : function(emitTargetsChanged)
     {
         if (this.cameraSubscription)
             Tundra.events.unsubscribe(this.cameraSubscription);
@@ -483,8 +647,15 @@ var TransformEditor = Class.$extend(
         if (this.targets.length > 1)
             Tundra.renderer.scene.remove(this.activeNode);
 
-        this.transformControl.detach();
-        Tundra.renderer.scene.remove(this.transformControl);
+        if (this.gridHelper)
+            this.gridHelper.hide();
+
+        if (this.transformControl)
+        {
+            this.transformControl.detach();
+            Tundra.renderer.scene.remove(this.transformControl);
+            delete this.transformControl;
+        }
 
         this.activeNode = undefined;
 
@@ -499,6 +670,82 @@ var TransformEditor = Class.$extend(
 
         this.targets.length = 0;
         this.cameraSubscription = undefined;
+
+        if (emitTargetsChanged !== false)
+            Tundra.events.send("TransformEditor.Targets.Change", [], []);
+    }
+});
+
+var GridHelper = Class.$extend(
+{
+    __init__ : function(pos, size, step)
+    {
+        this.pos = pos || new THREE.Vector3();
+        this.size = size || 10;
+        this.step = step || 1;
+        this.visible = false;
+        this.obj = null;
+    },
+
+    _create : function(pos, size, step)
+    {
+        if (!pos)
+            pos = this.pos;
+        if (!size)
+            size = this.size;
+        if (!step)
+            step = this.step;
+
+        this.pos = pos;
+        this.size = size;
+        this.step = step;
+
+        this.obj = new THREE.GridHelper(this.size, this.step);
+        Tundra.renderer.scene.add(this.obj);
+        this.obj.position.copy(this.pos);
+        this.obj.visible = this.visible;
+    },
+
+    _destroy: function()
+    {
+        if (this.obj)
+        {
+            Tundra.renderer.scene.remove(this.obj);
+            delete this.obj;
+        }
+    },
+
+    show: function()
+    {
+        if (!this.obj)
+            this._create();
+
+        this.obj.visible = this.visible = true;
+    },
+
+    hide: function()
+    {
+        if (this.obj)
+            this.visible = this.obj.visible = false;
+
+    },
+
+    setSize: function(size)
+    {
+        this._destroy();
+        this._create(undefined, size, undefined);
+    },
+
+    setStep: function(step)
+    {
+        this._destroy();
+        this._create(undefined, undefined, step);
+    },
+
+    setPos: function(pos)
+    {
+        this._destroy();
+        this._create(pos, undefined, undefined);
     }
 });
 
