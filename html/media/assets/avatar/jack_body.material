@@ -1,0 +1,44 @@
+material rex_avatars_jack_body
+{
+    technique
+    {
+        pass
+        {
+            vertex_program_ref rex/DiffShadowVP
+            {
+            }
+            fragment_program_ref rex/DiffShadowFP
+            {
+            }
+            texture_unit baseMap
+            {
+                texture jack_body_yellow1.dds
+            }
+            texture_unit shadowMap0
+            {
+                content_type shadow
+                tex_address_mode clamp
+            }
+            texture_unit shadowMap1
+            {
+                content_type shadow
+                tex_address_mode clamp
+            }
+            texture_unit shadowMap2
+            {
+                content_type shadow
+                tex_address_mode clamp
+            }
+        }
+    }
+    technique
+    {
+        pass
+        {
+            texture_unit baseMap
+            {
+                texture jack_body_yellow1.dds
+            }
+        }
+    }
+}
