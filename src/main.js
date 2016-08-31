@@ -34,8 +34,11 @@ require.config({
         "lib/three/assimp/AssimpJSONLoader"             : [ "lib/three" ],
         "view/threejs/gltf/WebTundraGltfWrapper"        : [ "lib/three" ],
         "view/threejs/collada/WebTundraColladaWrapper"  : [ "lib/three" ],
-        "lib/polymer.min"               : { exports : "Polymer" },
-        "lib/ammo"                      : { exports : "Ammo" }
+        "lib/polymer.min"                               : { exports : "Polymer" },
+        "lib/ammo"                                      : { exports : "Ammo" },
+        "lib/benchmark/lodash"                          : { exports : "_" },
+        "lib/benchmark/platform"                        : { exports : "platform" },
+        "lib/benchmark/benchmark"                       : [ "lib/benchmark/lodash", "lib/benchmark/platform" ]
     },
     paths :
     {
@@ -64,6 +67,7 @@ require([
         "plugins/ogre-plugin/OgrePlugin",
         "plugins/script-plugin/ScriptPlugin",
         "plugins/particle-engine/ParticleEnginePlugin",
+        "plugins/benchmark/BenchmarkPlugin"
         //"plugins/physics/AmmoPhysics", // Disabled by default as server typically simulates physics; client-side physics can be performance-heavy
 
     ],
@@ -77,7 +81,8 @@ require([
              LoginScreenPlugin,
              OgrePlugin,
              ScriptPlugin,
-             ParticleEnginePlugin /*, AmmoPhysics*/)
+             ParticleEnginePlugin,
+             BenchmarkPlugin /*, AmmoPhysics*/)
     {
         var createClient = function()
         {
@@ -99,6 +104,7 @@ require([
                 },
                 AssetAPI : {
                     storages : {
+                        "webtundra://" : window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf("/")),
                         "webtundra-applications://" : "../src/application",
                         "webtundra-examples://" : "../html/examples"
                     }

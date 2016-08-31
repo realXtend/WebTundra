@@ -181,7 +181,8 @@ module.exports = function(grunt) {
                         "plugins/ogre-plugin/OgrePlugin",
                         "plugins/script-plugin/ScriptPlugin",
                         "plugins/physics/AmmoPhysics",
-                        "plugins/particle-engine/ParticleEnginePlugin"
+                        "plugins/particle-engine/ParticleEnginePlugin",
+                        "plugins/benchmark/BenchmarkPlugin"
                     ],
 
                     skipProcessingModules : [
@@ -499,6 +500,7 @@ module.exports = function(grunt) {
                                 '        },',
                                 '        AssetAPI : {',
                                 '            storages : {',
+                                '                "webtundra://" : window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf("/")),',
                                 '                "webtundra-applications://" : "./application",',
                                 '                "webtundra-examples://"     : "./examples"',
                                 '            }',
