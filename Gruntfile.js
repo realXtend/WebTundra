@@ -182,7 +182,8 @@ module.exports = function(grunt) {
                         "plugins/script-plugin/ScriptPlugin",
                         "plugins/physics/AmmoPhysics",
                         "plugins/particle-engine/ParticleEnginePlugin",
-                        "plugins/benchmark/BenchmarkPlugin"
+                        "plugins/benchmark/BenchmarkPlugin",
+                        "plugins/avatar/AvatarPlugin"
                     ],
 
                     skipProcessingModules : [

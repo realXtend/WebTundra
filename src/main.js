@@ -67,7 +67,8 @@ require([
         "plugins/ogre-plugin/OgrePlugin",
         "plugins/script-plugin/ScriptPlugin",
         "plugins/particle-engine/ParticleEnginePlugin",
-        "plugins/benchmark/BenchmarkPlugin"
+        "plugins/benchmark/BenchmarkPlugin",
+        "plugins/avatar/AvatarPlugin",
         //"plugins/physics/AmmoPhysics", // Disabled by default as server typically simulates physics; client-side physics can be performance-heavy
 
     ],
@@ -82,7 +83,7 @@ require([
              OgrePlugin,
              ScriptPlugin,
              ParticleEnginePlugin,
-             BenchmarkPlugin /*, AmmoPhysics*/)
+             BenchmarkPlugin, AvatarPlugin /*, AmmoPhysics*/)
     {
         var createClient = function()
         {
