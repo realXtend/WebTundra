@@ -1254,7 +1254,7 @@ var ThreeJsRenderer = IRenderSystem.$extend(
         }*/
 
         var objects = this.raycaster.intersectObjects(options.targets, options.recursive);
-        return this._raycastResults(this.raycaster, objects, this.raycastResult, options.selectionLayer, options.ignoreECModel, options.all);
+        return this._raycastResults(this.raycaster, objects, this.raycastResult, options.selectionLayer, options.ignoreECModel, options.all, options.recursive);
     },
 
     _resetRaycastNearClip : function(camera, lastNearClip)
@@ -1263,9 +1263,10 @@ var ThreeJsRenderer = IRenderSystem.$extend(
         this.camera.updateProjectionMatrix();
     },
 
-    _raycastResults : function(raycaster, objects, raycastResult, selectionLayer, ignoreECModel, all)
+    _raycastResults : function(raycaster, objects, raycastResult, selectionLayer, ignoreECModel, all, recursive)
     {
         var raycastResults = (all ? [] : undefined);
+        recursive = recursive || false;
 
         for (var i = 0, len = objects.length; i < len; ++i)
         {
@@ -1274,9 +1275,21 @@ var ThreeJsRenderer = IRenderSystem.$extend(
             if ((nearestHit.object instanceof THREE.Mesh) || (nearestHit.object instanceof THREE.SkinnedMesh) || (nearestHit.object instanceof THREE.Sprite))
             {
                 // Entity and Component
-                if (!ignoreECModel && nearestHit.object.parent != null && nearestHit.object.parent.tundraEntityId != null)
+                var nearestHitTopmost = nearestHit.object;
+
+                // In recursive, we might have hit something deep into the parent chain, so check the topmost parent that contains tundraEntityId
+                if (recursive)
                 {
-                    var hitEntity = Tundra.scene.entityById(nearestHit.object.parent.tundraEntityId);
+                    while (nearestHitTopmost.parent && nearestHitTopmost.parent.tundraEntityId == null)
+                        nearestHitTopmost = nearestHitTopmost.parent;
+
+                    if (!ignoreECModel && (!nearestHitTopmost.parent || nearestHitTopmost.parent.tundraEntityId == null))
+                        continue;
+                }
+
+                if (!ignoreECModel && nearestHitTopmost.parent != null && nearestHitTopmost.parent.tundraEntityId != null)
+                {
+                    var hitEntity = Tundra.scene.entityById(nearestHitTopmost.parent.tundraEntityId);
                     if (hitEntity != null)
                     {
                         /// @todo Should we ignore entities that do now have EC_Placeable all together?
@@ -1288,23 +1301,23 @@ var ThreeJsRenderer = IRenderSystem.$extend(
                                 continue;
                         }
 
-                        if (nearestHit.object instanceof THREE.Sprite)
-                            nearestHit.point.setFromMatrixPosition(nearestHit.object.matrixWorld);
+                        if (nearestHitTopmost instanceof THREE.Sprite)
+                            nearestHit.point.setFromMatrixPosition(nearestHitTopmost.matrixWorld);
 
-                        raycastResult.object = nearestHit.object;
+                        raycastResult.object = nearestHitTopmost;
                         raycastResult.pos.copy(nearestHit.point);
                         raycastResult.distance = nearestHit.distance;
                         raycastResult.ray.copy(raycaster.ray);
                         raycastResult.copyFace(nearestHit.face);
 
-                        if (nearestHit.object.tundraSubmeshIndex !== undefined)
-                            raycastResult.submeshIndex = nearestHit.object.tundraSubmeshIndex;
+                        if (nearestHitTopmost.tundraSubmeshIndex !== undefined)
+                            raycastResult.submeshIndex = nearestHitTopmost.tundraSubmeshIndex;
 
                         raycastResult.entity = hitEntity;
 
                         // @todo If entity has both, which one was hit, mesh or billboard?
                         raycastResult.component = hitEntity.mesh;
-                        if ((nearestHit.object instanceof THREE.Sprite || !raycastResult.component) && hitEntity.billboard)
+                        if ((nearestHitTopmost instanceof THREE.Sprite || !raycastResult.component) && hitEntity.billboard)
                             raycastResult.component = hitEntity.billboard;
 
                         raycastResult.selectionLayer = hitEntity.placeable.selectionLayer;
