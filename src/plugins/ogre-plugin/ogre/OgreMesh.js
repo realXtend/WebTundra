@@ -40,9 +40,18 @@ var OgreMesh = Class.$extend(
         this.submeshes.push(submesh);
     },
 
-    addBoneAssignment : function(vertBoneAssign)
+    addBoneAssignment : function(ogreVertexBoneAssignment)
     {
-        this.boneAssignments[vertBoneAssign.vertexIndex] = vertBoneAssign;
+        if (this.boneAssignments[ogreVertexBoneAssignment.vertexIndex] === undefined)
+            this.boneAssignments[ogreVertexBoneAssignment.vertexIndex] = [];
+        this.boneAssignments[ogreVertexBoneAssignment.vertexIndex].push(ogreVertexBoneAssignment);
+    },
+
+    getBoneAssignmentsForVertexIndex : function(vertexIndex)
+    {
+        if (this.boneAssignments[vertexIndex] === undefined)
+            this.boneAssignments[vertexIndex] = [];
+        return this.boneAssignments[vertexIndex];
     },
 
     numBoneAssignments : function()

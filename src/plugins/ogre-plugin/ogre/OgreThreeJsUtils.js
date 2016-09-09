@@ -188,6 +188,8 @@ var OgreThreeJsUtils =
         if (vertexUV1ItemCount > 2) vertexUV1ItemCount = 2;
         if (vertexUV2ItemCount > 2) vertexUV2ItemCount = 2;
 
+        var sourceMeshForBones = (ogreSubmesh.useSharedVertices ? ogreMesh : ogreSubmesh);
+
         // Create destination WebGL buffer
         var dsIndexes  =
             new DataSerializer(newIndiceCount, (face32bit === true ? DataSerializer.ArrayType.Uint32 : DataSerializer.ArrayType.Uint16));
@@ -199,9 +201,9 @@ var OgreThreeJsUtils =
             new DataSerializer(newIndexCount * vertexUV1ItemCount, DataSerializer.ArrayType.Float32) : null);
         var dsUVs2     = (vertexData.hasUvLayer(1) === true ?
             new DataSerializer(newIndexCount * vertexUV2ItemCount, DataSerializer.ArrayType.Float32) : null);
-        var dsSkinIndex  = (ogreSubmesh.numBoneAssignments() > 0 ?
+        var dsSkinIndex  = (sourceMeshForBones.numBoneAssignments() > 0 ?
             new DataSerializer(newIndexCount * 4, DataSerializer.ArrayType.Float32) : null);
-        var dsSkinWeight = (ogreSubmesh.numBoneAssignments() > 0 ?
+        var dsSkinWeight = (sourceMeshForBones.numBoneAssignments() > 0 ?
             new DataSerializer(newIndexCount * 4, DataSerializer.ArrayType.Float32) : null);
 
         // Fill buffers
@@ -213,14 +215,14 @@ var OgreThreeJsUtils =
         }
 
         // Write bone assignments
-        if (ogreSubmesh.numBoneAssignments() > 0)
+        if (sourceMeshForBones.numBoneAssignments() > 0)
         {
             for (var vi = 0; vi < newIndexCount; ++vi)
             {
                 var newIndex = this.OLD_TO_NEW_INDEXES[vi];
                 var indexOffset = newIndex * 16;
 
-                var vertexBoneAssignments = ogreSubmesh.getBoneAssignmentsForVertexIndex(newIndex);
+                var vertexBoneAssignments = sourceMeshForBones.getBoneAssignmentsForVertexIndex(newIndex);
 
                 // Remove 0 weight assingments if we have too many for three.js.
                 // Seems three.js can handle up to 3 assignments per boneIndex.
