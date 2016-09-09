@@ -12,3 +12,4 @@ pages:
   - Home: index.md
   - 'Installation & Administration Manual': 'installation_administration.md'
   - 'User & Programmers Manual': 'user_programmers.md'
+google_analytics: ['UA-83869420-1', 'http://webtundra.readthedocs.io/']
