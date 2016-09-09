@@ -209,7 +209,10 @@ module.exports = function(grunt) {
                         "lib/loglevel",
                         "lib/signals",
                         "lib/hammer",
-                        "lib/ammo"
+                        "lib/ammo",
+                        "lib/benchmark/platform",
+                        "lib/benchmark/lodash",
+                        "lib/benchmark/benchmark"
                     ],
 
                     excludeGlobalModules : [
@@ -227,7 +230,10 @@ module.exports = function(grunt) {
                         "lib/loglevel",
                         "lib/signals",
                         "lib/hammer",
-                        "lib/ammo"
+                        "lib/ammo",
+                        "lib/benchmark/platform",
+                        "lib/benchmark/lodash",
+                        "lib/benchmark/benchmark"
                     ],
 
                     shouldSkipProcessing : function(moduleName)
