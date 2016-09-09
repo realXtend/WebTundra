@@ -32,6 +32,10 @@ var EC_Sky_ThreeJs = EC_Sky.$extend(
         this.texturesRequested = false;
         this.texturesLoaded = false;
         this.textures = [];
+
+        // Disabled environment light creation together with Sky, since it makes the screen go black if there are no objects in the scene
+        // @todo: re-enable
+        this.envLightChecked = true;
     },
 
     __classvars__ :
