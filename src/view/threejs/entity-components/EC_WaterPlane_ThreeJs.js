@@ -7,15 +7,14 @@ define([
         "entity-components/EC_WaterPlane",
     ], function(THREE, DDSLoader, Tundra, Transform, EC_WaterPlane) {
 
-/**
-    WaterPlane component implementation for the three.js render system.
-
-    @class EC_WaterPlane_ThreeJs
-    @extends EC_WaterPlane
-    @constructor
-*/
 var EC_WaterPlane_ThreeJs = EC_WaterPlane.$extend(
+/** @lends EC_WaterPlane_ThreeJs.prototype */
 {
+    /**
+        WaterPlane component implementation for the three.js render system.
+
+        @ec_implements EC_WaterPlane
+    */
     __init__ : function(id, typeId, typeName, name)
     {
         this.$super(id, typeId, typeName, name);

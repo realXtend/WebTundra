@@ -6,15 +6,14 @@ define([
         "entity-components/EC_Fog"
     ], function(THREE, Tundra, Color, EC_Fog) {
 
-/**
-    Sky component implementation for the three.js render system.
-
-    @class EC_Fog_ThreeJs
-    @extends EC_Fog
-    @constructor
-*/
 var EC_Fog_ThreeJs = EC_Fog.$extend(
+/** @lends EC_Fog_ThreeJs.prototype */
 {
+    /**
+        Fog component implementation for the three.js render system.
+
+        @ec_implements EC_Fog
+    */
     __init__ : function(id, typeId, typeName, name)
     {
         this.$super(id, typeId, typeName, name);
@@ -53,7 +52,7 @@ var EC_Fog_ThreeJs = EC_Fog.$extend(
 
     _forceMaterialUpdates : function()
     {
-        // All materials need to be updated (shaders reconfigured) now that fog is 
+        // All materials need to be updated (shaders reconfigured) now that fog is
         // either removed or we are about to change the fog type.
         var meshes = Tundra.renderer.getAllMeshes();
         for (var i = 0; i < meshes.length; i++)
@@ -72,7 +71,7 @@ var EC_Fog_ThreeJs = EC_Fog.$extend(
             this._activated = true;
             return;
         }
-        
+
         if (fogMode === EC_Fog.Type.Linear)
             Tundra.renderer.scene.fog = new THREE.Fog(this.color.toThreeColor(), this.startDistance, this.endDistance);
         else

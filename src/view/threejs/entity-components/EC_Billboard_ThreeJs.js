@@ -16,8 +16,7 @@ var EC_Billboard_ThreeJs = EC_Billboard.$extend(
     /**
         Renders a billboard aka sprite from a material or texture reference.
 
-        @constructs
-        @private
+        @ec_implements EC_Billboard
     */
     __init__ : function(id, typeId, typeName, name)
     {

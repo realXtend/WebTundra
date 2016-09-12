@@ -8,7 +8,8 @@
     "source": {
         "include" : [
             "src/core",
-            "src/entity-components"
+            "src/entity-components",
+            "src/view"
         ],
         "exclude" : [
             "src/lib",

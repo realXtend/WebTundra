@@ -6,15 +6,14 @@ define([
         "view/threejs/ThreeJsCombinedCamera"
     ], function(THREE, Tundra, EC_Camera, ThreeJsCombinedCamera) {
 
-/**
-    Camera component implementation for the three.js render system.
-
-    @class EC_Camera_ThreeJs
-    @extends EC_Camera
-    @constructor
-*/
 var EC_Camera_ThreeJs = EC_Camera.$extend(
+/** @lends EC_Camera_ThreeJs.prototype */
 {
+    /**
+        Camera component implementation for the three.js render system.
+
+        @ec_implements EC_Camera
+    */
     __init__ : function(id, typeId, typeName, name)
     {
         this.$super(id, typeId, typeName, name);
@@ -54,7 +53,6 @@ var EC_Camera_ThreeJs = EC_Camera.$extend(
 
         You application can replace this function with its own implementaion.
 
-        @method getWorldFocusPosition
         @return {THREE.Vector3|null}
     */
     getWorldFocusPosition : function()

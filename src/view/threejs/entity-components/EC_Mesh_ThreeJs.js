@@ -13,15 +13,14 @@ define([
     ], function(THREE, Tundra, CoreStringUtils, Scene, EC_Mesh,
                 Attribute, Transform, AssetTransfer, IAsset, DataSerializer) {
 
-/**
-    Mesh component implementation for the three.js render system.
-
-    @class EC_Mesh_ThreeJs
-    @extends EC_Mesh
-    @constructor
-*/
 var EC_Mesh_ThreeJs = EC_Mesh.$extend(
+/** @lends EC_Mesh_ThreeJs.prototype */
 {
+    /**
+        Mesh component implementation for the three.js render system.
+
+        @ec_implements EC_Mesh
+    */
     __init__ : function(id, typeId, typeName, name)
     {
         this.$super(id, typeId, typeName, name);

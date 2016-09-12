@@ -12,9 +12,7 @@ var EC_AnimationController_ThreeJs = EC_AnimationController.$extend(
     /**
         AnimationController component implementation for the three.js render system.
 
-        @class EC_AnimationController_ThreeJs
-        @extends EC_AnimationController
-        @constructs
+        @ec_implements EC_AnimationController
     */
     __init__ : function(id, typeId, typeName, name)
     {

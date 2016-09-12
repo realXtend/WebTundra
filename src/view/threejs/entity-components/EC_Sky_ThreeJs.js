@@ -7,15 +7,14 @@ define([
         "entity-components/EC_Sky"
     ], function(THREE, Tundra, AttributeChange, Transform, EC_Sky) {
 
-/**
-    Sky component implementation for the three.js render system.
-
-    @class EC_Sky_ThreeJs
-    @extends EC_Sky
-    @constructor
-*/
 var EC_Sky_ThreeJs = EC_Sky.$extend(
+/** @lends EC_Sky_ThreeJs.prototype */
 {
+    /**
+        Sky component implementation for the three.js render system.
+
+        @ec_implements EC_Sky
+    */
     __init__ : function(id, typeId, typeName, name)
     {
         this.$super(id, typeId, typeName, name);

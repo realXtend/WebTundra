@@ -14,8 +14,7 @@ var EC_EnvironmentLight_ThreeJs = EC_EnvironmentLight.$extend(
     /**
         EnvironmentLight component implementation for the three.js render system.
 
-        @constructs
-        @private
+        @ec_implements EC_EnvironmentLight
     */
     __init__ : function(id, typeId, typeName, name)
     {

@@ -7,15 +7,14 @@ define([
         "entity-components/EC_Light"
     ], function(THREE, Tundra, Transform, Color, EC_Light) {
 
-/**
-    Light component implementation for the three.js render system.
-
-    @class EC_Light_ThreeJs
-    @extends EC_Light
-    @constructor
-*/
 var EC_Light_ThreeJs = EC_Light.$extend(
+/** @lends EC_Light_ThreeJs.prototype */
 {
+    /**
+        Light component implementation for the three.js render system.
+
+        @ec_implements EC_Light
+    */
     __init__ : function(id, typeId, typeName, name)
     {
         this.$super(id, typeId, typeName, name);

@@ -10,7 +10,7 @@ define([
 var TransformInterpolator = Class.$extend(
 {
     __init__ : function()
-    {       
+    {
         this.jobs = [];
         this.serverUpdateInterval = (1.0 / 20.0);
         this.enabled = true;
@@ -91,7 +91,7 @@ var TransformInterpolator = Class.$extend(
             if (job.target.parentEntity.id === entity.id && job.target.id === placeable.id)
             {
                 this._freeTransform(job);
-                return this.jobs.splice(i,1)[0];   
+                return this.jobs.splice(i,1)[0];
             }
         }
         return undefined;
@@ -139,7 +139,6 @@ var TransformInterpolator = Class.$extend(
                         this.transformCache.push(job.end);
                         this.transformCache.push(job.start);
                     }
-                    delete job;
 
                     this.jobs.splice(i,1);
                 }
