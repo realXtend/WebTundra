@@ -630,10 +630,7 @@ var EC_Mesh_ThreeJs = EC_Mesh.$extend(
             });
 
         @method onMeshLoaded
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if parent entity is not set.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onMeshLoaded : function(context, callback)
     {
@@ -653,10 +650,7 @@ var EC_Mesh_ThreeJs = EC_Mesh.$extend(
             });
 
         @method onSkeletonLoaded
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if parent entity is not set.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onSkeletonLoaded : function(context, callback)
     {
@@ -677,10 +671,7 @@ var EC_Mesh_ThreeJs = EC_Mesh.$extend(
             });
 
         @method onMaterialLoaded
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if parent entity is not set.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onMaterialLoaded : function(context, callback)
     {
@@ -702,10 +693,7 @@ var EC_Mesh_ThreeJs = EC_Mesh.$extend(
             });
 
         @method onMaterialsLoaded
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if parent entity is not set.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onMaterialsLoaded : function(context, callback)
     {

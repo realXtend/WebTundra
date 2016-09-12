@@ -238,10 +238,7 @@ var IComponent = ITundraSerializer.$extend(
         * if (entity != null && entity.mesh != null)
         *     entity.mesh.onAttributeChanged(null, onAttributeChanged);
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if parent entity/component is not set.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onAttributeChanged : function(context, callback)
     {

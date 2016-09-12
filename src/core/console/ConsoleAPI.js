@@ -159,11 +159,7 @@ var ConsoleAPI = ITundraAPI.$extend(
         Subscribe to a existing console command.
 
         @param {String} name Console command name.
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called. There will be single parameter of an Array to your callback when the
-        command is invoked. All the parameters will be of type string. You need to do conversions if needed.
-        @return {null|EventSubscription} Subscription data or null if failed to subscribe to the command.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
 
         * @example
         * Tundra.console.registerCommand("doStuff", null, function() {

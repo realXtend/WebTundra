@@ -6,16 +6,16 @@ define([
         "core/scene/Attribute"
     ], function(Tundra, Scene, IComponent, Attribute) {
 
-/**
-    DynamicComponent is a type of component that differs from static components in that its attributes can be
-    added, manipulated and removed during runtime.
-
-    @class EC_DynamicComponent
-    @extends IComponent
-    @constructor
-*/
 var EC_DynamicComponent = IComponent.$extend(
+/** @lends EC_DynamicComponent */
 {
+    /**
+        DynamicComponent is a type of component that differs from static components in that its attributes can be
+        added, manipulated and removed during runtime.
+
+        @extends IComponent
+        @constructs
+    */
     __init__ : function(id, typeId, typeName, name)
     {
         this.$super(id, typeId, typeName, name);
@@ -29,7 +29,7 @@ var EC_DynamicComponent = IComponent.$extend(
 
     /**
         DynamicComponent always returns true as its structure is not known beforehand.
-        This overrides the {{#crossLink "IComponent/isDynamic:method"}}IComponent.isDynamic(){{/crossLink}} function.
+        This overrides the {@link IComponent#isDynamic} function.
 
         @method isDynamic
         @return {Boolean} Always true for DynamicComponent.
@@ -41,7 +41,6 @@ var EC_DynamicComponent = IComponent.$extend(
 
     /**
         Check if an attribute exists.
-        @method hasAttribute
         @param {String} attributeName Name of the attribute.
         @return {Boolean} If this attribute exists.
     */
@@ -123,7 +122,7 @@ var EC_DynamicComponent = IComponent.$extend(
             if (this[attributeName] !== undefined)
             {
                 var getSet   = {};
-                getSet[attributeName] = 
+                getSet[attributeName] =
                 {
                     get : function ()      { return undefined; },
                     set : function (value) { },
@@ -150,17 +149,13 @@ var EC_DynamicComponent = IComponent.$extend(
 
     /**
         Registers a callback for when new attribute is created.
-        @example
-            ent.dynamicComponent.onAttributeAdded(null, function(component, attribute) {
-                console.log("Attribute added", attribute.name, attribute.typeName, attribute.get().toString(),
-                    "from component", component.id, component.name);
-            });
+        * @example
+        * ent.dynamicComponent.onAttributeAdded(null, function(component, attribute) {
+        *     console.log("Attribute added", attribute.name, attribute.typeName, attribute.get().toString(),
+        *         "from component", component.id, component.name);
+        * });
 
-        @method onAttributeAdded
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if parent entity is not set.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onAttributeAdded : function(context, callback)
     {
@@ -185,16 +180,13 @@ var EC_DynamicComponent = IComponent.$extend(
 
     /**
         Registers a callback for when an existing attribute is about to be removed. Try to avoid querying the actual attribute object from the component.
-        @example
-            ent.dynamicComponent.onAttributeAboutToBeRemoved(null, function(component, attributeIndex, attributeName) {
-                console.log("Attribute about to be removed", attributeIndex, attributeName, "from component", component.id, component.name);
-            });
+        @subscribes
 
-        @method onAttributeAboutToBeRemoved
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if parent entity is not set.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        * @example
+        * ent.dynamicComponent.onAttributeAboutToBeRemoved(null, function(component, attributeIndex, attributeName) {
+        *     console.log("Attribute about to be removed", attributeIndex, attributeName, "from component", component.id, component.name);
+        * });
+
     */
     onAttributeAboutToBeRemoved : function(context, callback)
     {

@@ -665,7 +665,7 @@ var Attribute = ITundraSerializer.$extend(
 
     /**
         Serializes this attribute to the TXML format.
-        @return {Node} - The attribute in XML 
+        @return {Node} - The attribute in XML
     */
     serializeToXml : function()
     {
@@ -804,7 +804,7 @@ var Attribute = ITundraSerializer.$extend(
     /**
         Registers a callback for changed event originating for this attribute.
 
-        Also see {{#crossLink "IComponent/onAttributeChanged:method"}}{{/crossLink}} for a more generic change event on a component.
+        Also see {@link IComponent/onAttributeChanged} for a more generic change event on a component.
 
         * @example
         * var entity = Tundra.scene.entityById(12);
@@ -816,10 +816,7 @@ var Attribute = ITundraSerializer.$extend(
         *     console.log("Transform changed to: " + newAttributeValue.toString());
         * });
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if parent entity or component not set.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onChanged : function(context, callback)
     {

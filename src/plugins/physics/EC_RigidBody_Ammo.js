@@ -19,28 +19,28 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
     __init__ : function(id, typeId, typeName, name)
     {
         this.$super(id, typeId, typeName, name);
-        
+
         /**
             @todo If possible use btMotionState for simulation updates,
             instead of directly polling changes from ammo rigidbody.
         */
         this.updateId_ = Tundra.frame.onUpdate(this, this.update);
-        
+
         this.ignoreTransformChange_ = false;
         this.parentChangedEvent_ = null;
-        
+
         this.collisionShapeAmmo = null;
         this.rigidAmmo = null;
-        
+
         this.pendingMeshAsset_ = false; // Is EC_Mesh assets loaded
         this.dirty_ = false; // If dirty create new isntance of rigidbody
     },
 
-    __classvars__ : 
+    __classvars__ :
     {
         Implementation : "ammo.js",
     },
-    
+
     reset : function()
     {
         Tundra.events.remove("EC_Rigidbody." + this.parentEntity.id + ".PhysicsCollision");
@@ -48,7 +48,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         this.removeCollisionShape();
         this.removeBody();
     },
-    
+
     attributeChanged : function(index, name, value)
     {
         switch(index)
@@ -61,7 +61,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
                 break;
             case 2: // Size
                 this.dirty_ = true;
-                break;    
+                break;
             case 3: // CollisionMeshRef
                 //this.log.warn("Missing implementation of '" + name + "' attribute.");
                 break;
@@ -149,7 +149,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
             return this.rigidAmmo.isActive();
         return false;
     },
-    
+
     /**
         Check whether body mass is more than zero and collision shape is not TriMesh
 
@@ -161,7 +161,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         return this.attributes.mass.get() > 0.0 &&
                this.attributes.shapeType.get() !== EC_RigidBody.ShapeType.TriMesh;
     },
-    
+
     /**
         Force the body to activate (wake up)
 
@@ -172,22 +172,22 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         if (this.rigidAmmo !== null)
             this.rigidAmmo.activate(true);
     },
-    
+
     setParent : function(entity)
     {
         this.$super(entity);
-        
+
         if (this.rigidAmmo === null)
             this.createBody();
-        
+
         if (this.parentChangedEvent_ !== null)
             Tundra.events.unsubscribe(this.parentChangedEvent_.channel,
                                                    this.parentChangedEvent_.id);
-        
+
         if (this.parentEntity !== undefined && this.parentEntity !== null)
             this.parentChangedEvent_ = this.parentEntity.placeable.onAttributeChanged(this, this.onPlaceableUpdated);
     },
-    
+
     /**
         Apply a force to the body.
 
@@ -200,7 +200,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         if (this.rigidAmmo === null ||
             force.lengthSq() < EC_RigidBody.ForceThresholdSq)
             return;
-        
+
         this.activate();
         var f = new Ammo.btVector3(force.x, force.y, force.z);
         if (typeof position === "number" &&
@@ -218,7 +218,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         Ammo.destroy(f);
         f = null;
     },
-    
+
     /**
         Apply a torque to the body.
 
@@ -231,14 +231,14 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         if (this.rigidAmmo === null ||
             torgue.lengthSq() < EC_RigidBody.TorqueThresholdSq)
             return;
-        
+
         this.activate();
         var f = new Ammo.btVector3(torgue.x, torgue.y, torgue.z);
         this.rigidAmmo.applyTorque(f);
         Ammo.destroy(f);
         f = null;
     },
-    
+
     /**
         Apply an impulse to the body
 
@@ -251,7 +251,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         if (this.rigidAmmo === null ||
             impulse.lengthSq() < EC_RigidBody.ImpulseThresholdSq)
             return;
-        
+
         this.activate();
         var f = new Ammo.btVector3(impulse.x, impulse.y, impulse.z);
         if (typeof position === "number" &&
@@ -269,7 +269,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         Ammo.destroy(f);
         f = null;
     },
-    
+
     /**
         Apply a torque impulse to the body
 
@@ -282,7 +282,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         if (this.rigidAmmo === null ||
             torgueImpulse.lengthSq() < EC_RigidBody.TorqueThresholdSq)
             return;
-        
+
         this.activate();
         var f = new Ammo.btVector3(torgueImpulse.x, torgueImpulse.y, torgueImpulse.z);
         this.rigidAmmo.applyTorqueImpulse(f);
@@ -296,10 +296,10 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
             this.rigidAmmo === null ||
             attributeIndex !== 0)
             return;
-        
+
         this.setRigidbodyTransform(this.parentEntity.placeable.worldPosition(), this.parentEntity.placeable.worldOrientation());
     },
-    
+
     /**
         Returns true if the currently used shape is a primitive shape (box et al.), false otherwise.
 
@@ -319,10 +319,10 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
                 return true;
         }
     },
-    
+
     /**
         Create the body. No-op if the scene is not associated with a physics world.
-        
+
         @method createBody
     */
     createBody : function()
@@ -332,7 +332,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
             return;
 
         this.dirty_ = false;
-        
+
         // Realase the old body
         this.removeCollisionShape();
         this.removeBody();
@@ -340,7 +340,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         this.createCollisionShape();
         if (this.collisionShapeAmmo === null)
             return;
-        
+
         // Read component's attribute values
         var mass           = this.attributes.mass.get();
         var linDamping     = this.attributes.linearDamping.get();
@@ -359,7 +359,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         var drawDebug      = this.attributes.drawDebug.get();
 
         var isDynamicBody = this.isDynamicBody();
-        
+
         // Read placeables position and rotation
         var pos = this.parentEntity.placeable.worldPosition();
         var rot = this.parentEntity.placeable.worldOrientation();
@@ -368,12 +368,12 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         var quat = new Ammo.btQuaternion(rot.x, rot.y, rot.z, rot.w);
         transform.setOrigin(position);
         transform.setRotation(quat);
-        
+
 
         var localInertia = new Ammo.btVector3(0.0, 0.0, 0.0);
         if (isDynamicBody)
             this.collisionShapeAmmo.calculateLocalInertia(mass, localInertia);
-        
+
         var myMotionState = new Ammo.btDefaultMotionState(transform);
         var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass,
                                                           myMotionState,
@@ -381,7 +381,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
                                                           localInertia);
         rbInfo.set_m_linearDamping(linDamping);
         rbInfo.set_m_angularDamping(angDamping);
-        
+
         this.rigidAmmo = new Ammo.btRigidBody(rbInfo);
 
         var collisionFlags = 0;
@@ -394,7 +394,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         if (!drawDebug)
             collisionFlags |= EC_RigidBody.CollisionFlags.DISABLE_VISUALIZE_OBJECT;
         this.rigidAmmo.setCollisionFlags(collisionFlags);
-        
+
         if (collisionLayer > -1 && collisionMask > -1)
         {
             Tundra.physicsWorld.addRigidBody(this,
@@ -403,46 +403,46 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         }
         else
             Tundra.physicsWorld.addRigidBody(this);
-        
+
         // Push attribute values to rigidbody.
         this.rigidAmmo.setFriction(friction);
         if (!isNaN(rolFri))
             this.rigidAmmo.setRollingFriction(rolFri);
-        
+
         var v = new Ammo.btVector3(linVel.x, linVel.y, linVel.z);
         this.rigidAmmo.setLinearVelocity(v);
-        
+
         angVel.multiplyScalar(Math.PI / 180);
         v.setValue(angVel.x, angVel.y, angVel.z);
         this.rigidAmmo.setAngularVelocity(v);
-        
+
         v.setValue(linFactor.x, linFactor.y, linFactor.z);
         this.rigidAmmo.setLinearFactor(v);
-        
+
         v.setValue(angFactor.x, angFactor.y, angFactor.z);
         this.rigidAmmo.setAngularFactor(v);
-        
+
         Ammo.destroy(v);
         v = null;
-        
+
         Ammo.destroy(rbInfo);
         Ammo.destroy(localInertia);
         Ammo.destroy(transform);
         Ammo.destroy(position);
         Ammo.destroy(quat);
-        
+
         rbInfo = null;
         localInertia = null;
         transform = null;
         position = null;
         quat = null;
-        
+
         this.pendingMeshAsset_ = false;
     },
-    
+
     /**
         Destroy the body
-        
+
         @method removeBody
     */
     removeBody : function()
@@ -457,10 +457,10 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
 
         this.pendingMeshAsset_ = false;
     },
-    
+
     /**
         Create the collision shape
-        
+
         @method createCollisionShape
         @return Ammo.btCollisionShape
     */
@@ -468,7 +468,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
     {
         var shape = this.attributes.shapeType.get();
         var size = this.attributes.size.get();
-        
+
         // Sanitate the size
         if (size.x < 0.0)
             size.x = 0.0;
@@ -476,7 +476,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
             size.y = 0.0;
         if (size.z < 0.0)
             size.z = 0.0;
-        
+
         if (shape === EC_RigidBody.ShapeType.Box)
         {
             var s = new Ammo.btVector3(size.x * 0.5, size.y * 0.5, size.z * 0.5);
@@ -507,10 +507,10 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
             this.log.warn("ConvexHull collsion shape is not supported");
         else if (shape === EC_RigidBody.ShapeType.Cone)
             this.collisionShapeAmmo = new Ammo.btConeShape(size.x * 0.5, size.y);
-        
+
         this.updateScale();
     },
-    
+
     updateScale : function()
     {
         if (this.collisionShapeAmmo === null ||
@@ -527,7 +527,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
             sizeVec.y = 0.0;
         if (sizeVec.z < 0.0)
             sizeVec.z = 0.0;
-        
+
         var newSize = new Ammo.btVector3();
         if (this.shapeType === EC_RigidBody.ConvexHull ||
             this.shapeType === EC_RigidBody.TriMesh)
@@ -535,23 +535,23 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         else
             newSize.setValue(sizeVec.x * scale.x, sizeVec.y * scale.y, sizeVec.z * scale.z);
         this.collisionShapeAmmo.setLocalScaling(newSize);
-        
+
         Ammo.destroy(newSize);
         newSize = null;
     },
-    
+
     _createTriangleMeshCollider: function()
     {
         if ( !this.hasParentEntity() ||
              this.parentEntity.mesh == null ||
              this.parentEntity.mesh.meshAsset == null )
             return null;
-        
+
         triangleMesh = new Ammo.btTriangleMesh();
         var threeMesh = this.parentEntity.mesh.meshAsset.getSubmesh(0);
         var vertices = threeMesh.geometry.vertices;
         var faces = threeMesh.geometry.faces;
-        
+
         var btVer = [];
         var v = null;
         for(var i = 0; i < vertices.length; ++i)
@@ -559,7 +559,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
             v = vertices[i];
             btVer.push(new Ammo.btVector3(v.x, v.y, v.z));
         }
-        
+
         var face = null;
         for(var i = 0; i < faces.length; ++i)
         {
@@ -574,37 +574,37 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
                 triangleMesh.addTriangle(btVer[face.b], btVer[face.c], btVer[face.d]);
             }
         }
-        
+
         var collisionShape = new Ammo.btBvhTriangleMeshShape(triangleMesh, true, true);
-        
+
         for(var i = 0; i < btVer.length; ++i)
             Ammo.destroy(btVer[i]);
         btVer = null;
-        
+
         return collisionShape;
     },
-    
+
     /**
         Remove the collision shape.
-        
+
         @method removeCollisionShape
     */
     removeCollisionShape : function() {
         if (this.collisionShapeAmmo === undefined ||
             this.collisionShapeAmmo === null)
             return;
-        
+
         Ammo.destroy(this.collisionShapeAmmo);
         this.collisionShapeAmmo = null;
     },
-    
+
     update : function()
     {
         this.updateTransformPosition();
 
         if (this.dirty_)
             this.createBody();
-        
+
         if (this.pendingMeshAsset_)
         {
             var shape = this.attributes.shapeType.get();
@@ -615,7 +615,7 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
             }
         }
     },
-    
+
     updateTransformPosition : function()
     {
         if (this.ignoreTransformChange_ ||
@@ -624,25 +624,25 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
             this.parentEntity.placeable === null ||
             !this.isActive())
             return;
-        
+
         this.ignoreTransformChange_ = true;
-        
+
         var transform = new Ammo.btTransform();
         this.rigidAmmo.getMotionState().getWorldTransform(transform);
         var origin = transform.getOrigin();
-        
+
         var quat = new THREE.Quaternion();
         var rot = transform.getRotation();
         quat.set(rot.x(), rot.y(), rot.z(), rot.w());
-        
+
         var t = this.parentEntity.placeable.transform;
         t.setPosition(origin.x(), origin.y(), origin.z());
         t.setRotation(quat);
         this.parentEntity.placeable.transform = t;
-        
+
         Ammo.destroy(transform);
         transform = null;
-        
+
         if (this.rigidAmmo !== null)
         {
             // set linear- and angularVelocities attribute values.
@@ -659,13 +659,13 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
             if (!this.attributes.angularVelocity.get().equals(value))
                 this.attributes.angularVelocity.set(value);
         }
-        
+
         this.ignoreTransformChange_ = false;
     },
-    
+
     /**
         Change rigidbody position in physics world.
-        
+
         @method setRigidbodyPosition
         @param {THREE.Vector3} position
     */
@@ -717,33 +717,29 @@ var EC_RigidBody_Ammo = EC_RigidBody.$extend(
         worldTrans = null;
     },
 
-    
+
     /**
         Registers a callback for physics collision.
 
-        @example
-            Tundra.scene.onPhysicsCollision(null, function(self, other, position, normal,
-                                                                        distance, impulse, newCollision)
-            {
-                console.log("on collision: " + self.name);
-            });
+        * @example
+        * Tundra.scene.onPhysicsCollision(null, function(self, other, position, normal,
+        *                                                             distance, impulse, newCollision)
+        * {
+        *     console.log("on collision: " + self.name);
+        * });
 
-        @method onPhysicsCollision
-        @param {Object} context Context of in which the callback function is executed. Can be null.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        @subscribes
     */
     onPhysicsCollision : function(context, callback)
     {
         return Tundra.events.subscribe("EC_Rigidbody." + this.parentEntity.id + ".PhysicsCollision", context, callback);
     },
-    
+
     emitPhysicsCollision : function(entity, position, normal, distance, impulse, newCollision)
     {
         if (this.parentEntity === null)
             return;
-        
+
         Tundra.events.send("EC_Rigidbody." + this.parentEntity.id + ".PhysicsCollision",
                                         this.parentEntity,
                                         entity,

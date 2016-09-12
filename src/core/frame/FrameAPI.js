@@ -172,17 +172,15 @@ var FrameAPI = ITundraAPI.$extend(
 
     /**
         Registers a callback for frame updates.
+        @subscribes
 
-            function onFrameUpdate(frametime)
-            {
-                // frametime == time since last frame update in seconds
-            }
-            Tundra.frame.onUpdate(null, onFrameUpdate);
+        * @example
+        * function onFrameUpdate(frametime)
+        * {
+        *     // frametime == time since last frame update in seconds
+        * }
+        * Tundra.frame.onUpdate(null, onFrameUpdate);
 
-        @param {Object} context Context of in which the callback function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onUpdate : function(context, callback)
     {
@@ -191,17 +189,14 @@ var FrameAPI = ITundraAPI.$extend(
 
     /**
         Registers a callback for pre render frame updates.
+        @subscribes
 
-            function onPreRender(frametime)
-            {
-                // frametime == time since last frame update in seconds
-            }
-            Tundra.frame.onPreRender(null, onFrameUpdate);
-
-        @param {Object} context Context of in which the callback function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        * @example
+        * function onPreRender(frametime)
+        * {
+        *    // frametime == time since last frame update in seconds
+        * }
+        * Tundra.frame.onPreRender(null, onFrameUpdate);
     */
     onPreRender : function(context, callback)
     {
@@ -212,16 +207,14 @@ var FrameAPI = ITundraAPI.$extend(
         Registers a callback for post frame updates. Meaning that the normal update has been fired,
         all APIs and the renderer has been updated for this frame.
 
-            function onPostFrameUpdate(frametime)
-            {
-                // frametime == time since last frame update in seconds
-            }
-            Tundra.frame.onPostFrameUpdate(null, onPostFrameUpdate);
+        @subscribes
 
-        @param {Object} context Context of in which the callback function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        * @example
+        * function onPostFrameUpdate(frametime)
+        * {
+        *     // frametime == time since last frame update in seconds
+        * }
+        * Tundra.frame.onPostFrameUpdate(null, onPostFrameUpdate);
     */
     onPostFrameUpdate : function(context, callback)
     {
@@ -231,25 +224,28 @@ var FrameAPI = ITundraAPI.$extend(
     /**
         Registers a delayed callback invocation with context.
 
-            function onDelayedExecute(param)
-            {
-                // this.test == 12
-                // param == 101
-            }
-            var context = { test : 12 };
-            Tundra.frame.delayedExecute(1.0, context, onDelayedExecute, 101);
 
         @param {Number} afterSeconds Time in seconds when the after the callback is invoked.
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
+        @param {Object} context Context of in which the <code>callback</code> function is executed. Can be <code>null</code>.
         @param {Function} callback Function to be called.
         @param {Object} [param=undefined] Optional parameter to to the callback.
+
+        * @example
+        * function onDelayedExecute(param)
+        * {
+        *     // this.test == 12
+        *     // param == 101
+        * }
+        * var context = { test : 12 };
+        * Tundra.frame.delayedExecute(1.0, context, onDelayedExecute, 101);
     */
     /**
         Registers a delayed callback invocation.
 
-            Tundra.frame.delayedExecute(1.0, function(param) {
-                console.log(param); // 101
-            }, 101);
+        * @example
+        * Tundra.frame.delayedExecute(1.0, function(param) {
+        *     console.log(param); // 101
+        * }, 101);
 
         @param {Number} afterSeconds Time in seconds when the after the callback is invoked.
         @param {Function} callback Function to be called.

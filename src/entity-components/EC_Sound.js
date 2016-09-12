@@ -4,55 +4,42 @@ define([
         "core/scene/Attribute"
     ], function(IComponent, Attribute) {
 
-/**
-    This base implementation does not do anything. It declared the static attribute structure of EC_Sound
-    in the Tundra protocol.
-
-    Renderer implementations need to provide this components functionality, preferably by extending this object.
-
-    @class EC_Sound
-    @extends IComponent
-    @constructor
-*/
 var EC_Sound = IComponent.$extend(
+/** @lends EC_Sound.prototype */
 {
+    /**
+        @ec_declare
+    */
     __init__ : function(id, typeId, typeName, name)
     {
         this.$super(id, typeId, typeName, name);
 
         /**
-            @property soundRef (attribute)
-            @type Attribute
+            @ec_attribute {string} soundRef ""
         */
         this.declareAttribute(0, "soundRef", "", Attribute.AssetReference, "Sound ref");
         /**
-            @property soundInnerRadius (attribute)
-            @type Attribute
+            @ec_attribute {number} soundInnerRadius 0.0
         */
         this.declareAttribute(1, "soundInnerRadius", 0.0, Attribute.Real, "Sound radius inner");
         /**
-            @property soundOuterRadius (attribute)
-            @type Attribute
+            @ec_attribute {number} soundOuterRadius 20.0
         */
         this.declareAttribute(2, "soundOuterRadius", 20.0, Attribute.Real, "Sound radius outer");
         /**
-            @property soundGain (attribute)
-            @type Attribute
+            @ec_attribute {number} soundGain 1.0
         */
         this.declareAttribute(3, "soundGain", 1.0, Attribute.Real, "Sound gain");
         /**
-            @property playOnLoad (attribute)
-            @type Attribute
+            @ec_attribute {boolean} playOnLoad false
         */
         this.declareAttribute(4, "playOnLoad", false, Attribute.Bool, "Play on load");
         /**
-            @property loopSound (attribute)
-            @type Attribute
+            @ec_attribute {boolean} loopSound false
         */
         this.declareAttribute(5, "loopSound", false, Attribute.Bool, "Loop sound");
         /**
-            @property spatial (attribute)
-            @type Attribute
+            @ec_attribute {boolean} spatial true
         */
         this.declareAttribute(6, "spatial", true, Attribute.Bool, "Spatial");
     },

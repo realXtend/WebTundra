@@ -7,45 +7,34 @@ define([
         "core/math/Color"
     ], function(THREE, Tundra, IComponent, Attribute, Color) {
 
-/**
-    This base implementation does not do anything. It declared the static attribute structure of EC_EnvironmentLight
-    in the Tundra protocol.
-
-    Renderer implementations need to provide this components functionality, preferably by extending this object.
-
-    @class EC_EnvironmentLight
-    @extends IComponent
-    @constructor
-*/
 var EC_EnvironmentLight = IComponent.$extend(
+/** @lends EC_EnvironmentLight.prototype */
 {
+    /**
+        @ec_declare
+    */
     __init__ : function(id, typeId, typeName, name)
     {
         this.$super(id, typeId, typeName, name);
 
         /**
-            @property sunColor (attribute)
-            @type Attribute
+            @ec_attribute {Color} sunColor Color(0.639, 0.639, 0.639)
         */
         this.declareAttribute(0, "sunColor", new Color(0.639, 0.639, 0.639), Attribute.Color, "Sunlight color");
         /**
-            @property ambientColor (attribute)
-            @type Attribute
+            @ec_attribute {Color} ambientColor
         */
         this.declareAttribute(1, "ambientColor", Tundra.renderer.defaultSceneAmbientLightColor(), Attribute.Color, "Ambient light color");
         /**
-            @property sunDirection (attribute)
-            @type Attribute
+            @ec_attribute {THREE.Vector3} sunDirection THREE.Vector3(-1.0,-1.0,-1.0)
         */
         this.declareAttribute(2, "sunDirection", new THREE.Vector3(-1.0,-1.0,-1.0), Attribute.Float3, "Sunlight direction vector");
         /**
-            @property sunCastShadows (attribute)
-            @type Attribute
+            @ec_attribute {boolean} sunCastShadows true
         */
         this.declareAttribute(3, "sunCastShadows", true, Attribute.Bool, "Sunlight cast shadows");
         /**
-            @property brightness (attribute)
-            @type Attribute
+            @ec_attribute {number} brightness 1.0
         */
         this.declareAttribute(4, "brightness", 1.0, Attribute.Real, "Brightness");
     },

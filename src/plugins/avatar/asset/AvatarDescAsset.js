@@ -157,8 +157,7 @@ var AvatarAttachement = Class.$extend(
         *         attachToSomething(attachement);
         * });
 
-        @param {Object} context Context of in which the <code>callback</code> function is executed. Can be <code>null</code>.
-        @param {Function} callback Function to be called.
+        @subscribes
     */
     onCompleted : function(context, func)
     {

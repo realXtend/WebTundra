@@ -730,15 +730,13 @@ var TundraClient = Class.$extend(
 
     /**
         Registers a callback for when client connects to the server.
+        @subscribes
 
-            Tundra.client.onConnected(null, function() {
-                console.log("The eagle has landed!");
-            });
+        * @example
+        * Tundra.client.onConnected(null, function() {
+        *     console.log("The eagle has landed!");
+        * });
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onConnected : function(context, callback)
     {
@@ -748,14 +746,11 @@ var TundraClient = Class.$extend(
     /**
         Registers a callback for client connection errors.
 
-            Tundra.client.onConnectionError(null, function(event) {
-                console.error("RED ALERT: " + event);
-            });
+        *  Tundra.client.onConnectionError(null, function(event) {
+        *      console.error("RED ALERT: " + event);
+        *  });
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onConnectionError : function(context, callback)
     {
@@ -764,15 +759,13 @@ var TundraClient = Class.$extend(
 
     /**
         Registers a callback for when client disconnects from the server.
+        @subscribes
 
-            Tundra.client.onDisconnected(null, function() {
-                console.log("Elvis has left the building!");
-            });
+        * @example
+        * Tundra.client.onDisconnected(null, function() {
+        *     console.log("Elvis has left the building!");
+        * });
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onDisconnected : function(context, callback)
     {
@@ -782,15 +775,13 @@ var TundraClient = Class.$extend(
     /**
         Registers a callback for log info prints. Note: Important messages is ones are already
         logged to `console.log()` and the UI console if one has been created.
+        @subscribes
 
-            Tundra.client.onLogInfo(null, function(message) {
-                console.log("LogInfo:", message);
-            });
+        * @example
+        * Tundra.client.onLogInfo(null, function(message) {
+        *     console.log("LogInfo:", message);
+        * });
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onLogInfo : function(context, callback)
     {
@@ -800,15 +791,13 @@ var TundraClient = Class.$extend(
     /**
         Registers a callback for log warning prints. Note: Important messages is ones are already
         logged to `console.warn()` and the UI console if one has been created.
+        @subscribes
 
-            Tundra.client.onLogWarning(null, function(message) {
-                console.warn("LogWarning:", message);
-            });
+        * @example
+        * Tundra.client.onLogWarning(null, function(message) {
+        *     console.warn("LogWarning:", message);
+        * });
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onLogWarning : function(context, callback)
     {
@@ -817,16 +806,14 @@ var TundraClient = Class.$extend(
 
     /**
         Registers a callback for log error prints. Note: Important messages is ones are already
-        logged to `console.error()` and the UI console if one has been created.
+        logged to <code>console.error()</code> and the UI console if one has been created.
+        @subscribes
 
-            Tundra.client.onLogError(null, function(message) {
-                console.log("LogError:", message);
-            });
+        * @example
+        * Tundra.client.onLogError(null, function(message) {
+        *     console.log("LogError:", message);
+        * });
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
     */
     onLogError : function(context, callback)
     {
@@ -948,8 +935,8 @@ var TundraClient = Class.$extend(
 
         @param {String} host Host with port
         @param {Object} loginProperties This object will get serialized into JSON and sent to the server.
-        @example
-            client.connect("ws://localhost:2345", { username  : "WebTundra user" });
+        * @example
+        * client.connect("ws://localhost:2345", { username  : "WebTundra user" });
         @return {Object} Result object
         <pre>{
             success   : Boolean,

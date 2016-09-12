@@ -371,14 +371,11 @@ var InputAPI = ITundraAPI.$extend(
     },
 
     /**
-        Registers a callback for all mouse events. See {{#crossLink "InputEventMouse"}}{{/crossLink}} for event data.
+        Registers a callback for all mouse events. See {@link InputEventMouse} for event data.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
+        @subscribes
         @param {Number} [priority] The priority level of the event listener (default 0). Listeners with higher priority will
             be executed before listeners with lower priority. Listeners with same priority level will be executed at the same order as they were added.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
 
         * @example
         * Tundra.input.onMouseEvent(function(event) {
@@ -391,12 +388,9 @@ var InputAPI = ITundraAPI.$extend(
     },
 
     /**
-        Registers a callback for mouse move events. See {{#crossLink "InputEventMouse"}}{{/crossLink}} for event data.
+        Registers a callback for mouse move events. See See {@link InputEventMouse} for event data.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
 
         * @example
         * Tundra.input.onMouseMove(function(event) {
@@ -411,10 +405,7 @@ var InputAPI = ITundraAPI.$extend(
     /**
         Registers a callback for mouse press and release events. See {{#crossLink "InputEventMouse"}}{{/crossLink}} for event data.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
 
         * @example
         * Tundra.input.onMouseClick(function(event) {
@@ -430,10 +421,7 @@ var InputAPI = ITundraAPI.$extend(
         Registers a callback for mouse press events. See {{#crossLink "InputEventMouse"}}{{/crossLink}} for event data.
 
         @method onMousePress
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
 
         * @example
         * Tundra.input.onMousePress(function(event) {
@@ -448,10 +436,7 @@ var InputAPI = ITundraAPI.$extend(
     /**
         Registers a callback for mouse release events. See {{#crossLink "InputEventMouse"}}{{/crossLink}} for event data.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
 
         * @example
         * Tundra.input.onMouseRelease(function(event) {
@@ -466,10 +451,7 @@ var InputAPI = ITundraAPI.$extend(
     /**
         Registers a callback for mouse wheel events. See {{#crossLink "InputEventMouse"}}{{/crossLink}} for event data.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
 
         * @example
         * Tundra.input.onMouseWheel(function(event) {
@@ -484,10 +466,7 @@ var InputAPI = ITundraAPI.$extend(
     /**
         Registers a callback for a mouse (left button) double-click event. See {{#crossLink "InputEventMouse"}}{{/crossLink}} for event data.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
 
         * @example
         * Tundra.input.onMouseDoubleClicked(function(event) {
@@ -502,12 +481,9 @@ var InputAPI = ITundraAPI.$extend(
     /**
         Registers a callback for all key events. See {{#crossLink "InputAPI/KeyEvent:event"}}{{/crossLink}} for event data.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
+        @subscribes
         @param {Number} [priority] The priority level of the event listener (default 0). Listeners with higher priority will
             be executed before listeners with lower priority. Listeners with same priority level will be executed at the same order as they were added.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
 
         * @example
         * Tundra.input.onKeyEvent(function(event) {
@@ -522,10 +498,7 @@ var InputAPI = ITundraAPI.$extend(
     /**
         Registers a callback for key press events. See {{#crossLink "InputAPI/KeyEvent:event"}}{{/crossLink}} for event data.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
 
         * @example
         * Tundra.input.onKeyPress(function(event) {
@@ -540,10 +513,7 @@ var InputAPI = ITundraAPI.$extend(
     /**
         Registers a callback for key release events. See {{#crossLink "InputAPI/KeyEvent:event"}}{{/crossLink}} for event data.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
 
         * @example
         * Tundra.input.onKeyRelease(function(event) {

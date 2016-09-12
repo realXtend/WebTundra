@@ -128,10 +128,7 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
         Event that is fired when the scene node is created. Useful if you want to parent something to this placeable.
 
         @method onSceneNodeCreated
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if this entity is not yes initialized correctly.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onSceneNodeCreated : function(context, callback)
     {
@@ -148,10 +145,7 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
         Useful if you are currently parented to this placeable to remove the parenting and restore it to the root scene.
 
         @method onAboutToBeDestroyed
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if this entity is not yes initialized correctly.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onAboutToBeDestroyed : function(context, callback)
     {

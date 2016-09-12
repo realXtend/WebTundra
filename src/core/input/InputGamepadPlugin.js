@@ -208,10 +208,7 @@ var InputGamepadPlugin = IInputPlugin.$extend(
     /**
         Registers a callback for all gamepad events. See {{#crossLink "InputGamepadPlugin/GamepadEvent:event"}}{{/crossLink}} for event data.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
 
         * @example
         * Tundra.input.onGamepadEvent(function(event) {
@@ -226,10 +223,7 @@ var InputGamepadPlugin = IInputPlugin.$extend(
     /**
         Registers a callback for gamepad status change. If there is no gamepad status is null See {{#crossLink "InputGamepadPlugin/GamepadEvent:event"}}{{/crossLink}} for event data.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
 
         * @example
         * Tundra.input.onGamepadStatusEvent(function(event) {

@@ -226,9 +226,7 @@ var InputTouchPlugin = IInputPlugin.$extend(
     /**
         Register handler for all touch events.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
+        @subscribes
     */
     onTouchEvent : function(context, callback)
     {
@@ -238,9 +236,7 @@ var InputTouchPlugin = IInputPlugin.$extend(
     /**
         Register handler for all touch events.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
+        @subscribes
     */
     onTouchPan : function(context, callback)
     {

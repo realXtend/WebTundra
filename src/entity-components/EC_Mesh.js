@@ -5,50 +5,38 @@ define([
         "core/math/Transform"
     ], function(IComponent, Attribute, Transform) {
 
-/**
-    This base implementation does not do anything. It declared the static attribute structure of EC_Mesh
-    in the Tundra protocol.
-
-    Renderer implementations need to provide this components functionality, preferably by extending this object.
-
-    @class EC_Mesh
-    @extends IComponent
-    @constructor
-*/
 var EC_Mesh = IComponent.$extend(
+/** @lends EC_Mesh.prototype */
 {
+    /**
+        @ec_declare
+    */
     __init__ : function(id, typeId, typeName, name)
     {
         this.$super(id, typeId, typeName, name);
 
         /**
-            @property nodeTransformation (attribute)
-            @type Attribute
+            @ec_attribute {Transform} nodeTransformation
         */
         this.declareAttribute(0, "nodeTransformation", new Transform(), Attribute.Transform, "Transform");
         /**
-            @property meshRef (attribute)
-            @type Attribute
+            @ec_attribute {string} meshRef ""
         */
         this.declareAttribute(1, "meshRef", "", Attribute.AssetReference, "Mesh ref");
         /**
-            @property skeletonRef (attribute)
-            @type Attribute
+            @ec_attribute {string} skeletonRef ""
         */
         this.declareAttribute(2, "skeletonRef", "", Attribute.AssetReference, "Skeleton ref");
         /**
-            @property materialRefs (attribute)
-            @type Attribute
+            @ec_attribute {Array.<string>} materialRefs []
         */
         this.declareAttribute(3, "materialRefs", [], Attribute.AssetReferenceList, "Mesh materials");
         /**
-            @property drawDistance (attribute)
-            @type Attribute
+            @ec_attribute {number} drawDistance 0
         */
         this.declareAttribute(4, "drawDistance", 0, Attribute.Real, "Draw distance");
         /**
-            @property castShadows (attribute)
-            @type Attribute
+            @ec_attribute {boolean} castShadows false
         */
         this.declareAttribute(5, "castShadows", false, Attribute.Bool, "Cast shadows");
     },

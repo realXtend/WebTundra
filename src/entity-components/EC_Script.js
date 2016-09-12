@@ -7,14 +7,12 @@ define([
         "core/scene/Attribute"
     ], function(Tundra, TundraLogging, Scene, IComponent, Attribute) {
 
-/**
-    Script component.
-    @class EC_Script
-    @extends IComponent
-    @constructor
-*/
 var EC_Script = IComponent.$extend(
+/** @lends EC_Script.prototype */
 {
+    /**
+        @ec_declare
+    */
     __init__ : function(id, typeId, typeName, name)
     {
         this.$super(id, typeId, typeName, name);
@@ -24,35 +22,30 @@ var EC_Script = IComponent.$extend(
         this.scriptAsset = null;
 
         /**
-            @property scriptRef (attribute)
-            @type Attribute
+            @ec_attribute {Array.<string>} scriptRef []
         */
         this.declareAttribute(0, "scriptRef", [], Attribute.AssetReferenceList, "Script ref");
         /**
-            @property runOnLoad (attribute)
-            @type Attribute
+            @ec_attribute {boolean} runOnLoad false
         */
         this.declareAttribute(1, "runOnLoad", false, Attribute.Bool, "Run on load");
         /**
+            @ec_attribute {EC_Script.RunMode} runMode EC_Script.RunMode.Both
             @example
-                if (ent.script.runMode === EC_Script.RunMode.Both)
-                    ...;
-                else if (ent.script.runMode === EC_Script.RunMode.Client)
-                    ...;
-                else if (ent.script.runMode === EC_Script.RunMode.Server)
-                    ...;
-            @property runMode (attribute)
-            @type Attribute
+            *   if (ent.script.runMode === EC_Script.RunMode.Both)
+            *       ...;
+            *   else if (ent.script.runMode === EC_Script.RunMode.Client)
+            *       ...;
+            *   else if (ent.script.runMode === EC_Script.RunMode.Server)
+            *       ...;
         */
         this.declareAttribute(2, "runMode", EC_Script.RunMode.Both, Attribute.Int, "Run mode");
         /**
-            @property applicationName (attribute)
-            @type Attribute
+            @ec_attribute {string} applicationName ""
         */
         this.declareAttribute(3, "applicationName", "", Attribute.String, "Script application name");
         /**
-            @property className (attribute)
-            @type Attribute
+            @ec_attribute {string} className ""
         */
         this.declareAttribute(4, "className", "", Attribute.String, "Script class name");
     },
@@ -156,13 +149,10 @@ var EC_Script = IComponent.$extend(
     /**
         Get a callback when the script asset has been loaded. Does not mean script execution, for that see onScriptStarted.
 
-        @method onScriptLoaded
-        @param {Object} context Context of in which the callback function is executed. Can be null.
-        @param {Function} callback Function to be called.
+        @subscribes
         @param {Number} [priority] The priority level of the event listener (default 0). Listeners with higher priority will
             be executed before listeners with lower priority. Listeners with same priority level will be executed at the same order as they were added.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+
     */
     onScriptLoaded : function(context, callback)
     {
@@ -178,18 +168,15 @@ var EC_Script = IComponent.$extend(
         Get a callback when the script is started. This is a convinient way to get hold of the instance object.
         Which allows you to directly call functions in the application and interact with it locally without using Entity actions.
 
-        @method onScriptStarted
-        @example
-            ent.script.onScriptStarted(function(parentEntity, component, scriptAsset, app) {
-                console.log(app.name, "started!");
-                app.greet("hello world");
-            }.bind(this));
-        @param {Object} context Context of in which the callback function is executed. Can be null.
-        @param {Function} callback Function to be called.
+        * @example
+        * ent.script.onScriptStarted(function(parentEntity, component, scriptAsset, app) {
+        *     console.log(app.name, "started!");
+        *     app.greet("hello world");
+        * }.bind(this));
+
+        @subscribes
         @param {Number} [priority] The priority level of the event listener (default 0). Listeners with higher priority will
             be executed before listeners with lower priority. Listeners with same priority level will be executed at the same order as they were added.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
     */
     onScriptStarted : function(context, callback, priority)
     {
@@ -238,7 +225,7 @@ var EC_Script = IComponent.$extend(
                     }
 
                     // onScriptStarted event
-                    Tundra.events.send("EC_Script." + this.parentEntity.id + "." + this.id + ".ScriptStarted", 
+                    Tundra.events.send("EC_Script." + this.parentEntity.id + "." + this.id + ".ScriptStarted",
                             this.parentEntity, this, this.scriptAsset, app);
                 });
             }

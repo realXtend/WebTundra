@@ -67,7 +67,7 @@ var AssetAPI = ITundraAPI.$extend(
         this.cache = new AssetCache();
         /**
             Active asset transfers.
-            @type Array.<AssetTransfer>
+            @var {Array.<AssetTransfer>}
         */
         this.transfers = [];
         /**
@@ -160,16 +160,15 @@ var AssetAPI = ITundraAPI.$extend(
         /**
             Current HTTP proxy resolver implementation used by AssetAPI.
 
+            @memberof AssetAPI
             @static
-            @default undefined
-            @var {IHttpProxyResolver}
         */
         httpProxyResolver : undefined,
 
         /**
             Activate a HTTP proxy resolver implementation.
 
-            @static
+            @function AssetAPI.setHttpProxyResolver
             @param {IHttpProxyResolver}
         */
         setHttpProxyResolver : function(resolver)
@@ -335,10 +334,7 @@ var AssetAPI = ITundraAPI.$extend(
     /**
         Registers a callback for http proxy resolved changes.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if parent entity is not set.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onHttpProxyResolvedChanged : function(context, callback)
     {
@@ -1321,11 +1317,7 @@ var AssetAPI = ITundraAPI.$extend(
     /**
         Registers a callback for when asset transfer count changes
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if parent entity is not set.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
-
+        @subscribes
         * @example
         * Tundra.asset.onActiveAssetTransferCountChanged(null, function(num) {
         *     console.log("Transfers remaining:", num);
@@ -1340,10 +1332,7 @@ var AssetAPI = ITundraAPI.$extend(
         Registers a callback for when a new asset is created.
         This allows code to track asset creations and hook to IAsset events.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if parent entity is not set.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onAssetCreated : function(context, callback)
     {
@@ -1352,12 +1341,9 @@ var AssetAPI = ITundraAPI.$extend(
 
     /**
         Registers a callback for when asset has been deserialized from data.
-        See {{#crossLink "IAsset/onDeserializedFromData:method"}}IAsset.onDeserializedFromData(){{/crossLink}}.
+        See {@link IAsset#onDeserializedFromData}.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if parent entity is not set.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onAssetDeserializedFromData : function(context, callback)
     {
@@ -1374,10 +1360,7 @@ var AssetAPI = ITundraAPI.$extend(
         Registers a callback for when a asset is about to be removed from the asset system
         and under usual conditions implying that the asset is also being unloaded.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if parent entity is not set.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onAssetAboutToBeRemoved : function(context, callback)
     {

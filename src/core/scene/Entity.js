@@ -364,10 +364,7 @@ var Entity = ITundraSerializer.$extend(
     /**
         Registers a callback for when this Entitys parent changed.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if this entity is not yes initialized correctly.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onParentChanged : function(context, callback)
     {
@@ -382,10 +379,7 @@ var Entity = ITundraSerializer.$extend(
     /**
         Registers a callback for when this Entitys child array changed.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if this entity is not yes initialized correctly.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onChildrenChanged : function(context, callback)
     {
@@ -489,10 +483,7 @@ var Entity = ITundraSerializer.$extend(
         Registers a callback for when this Entity is about to be removed. You can query components
         and other Entity data but changing any state has no effect as the entity will be removed.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if this entity is not yes initialized correctly.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onAboutToBeRemoved : function(context, callback)
     {
@@ -508,10 +499,7 @@ var Entity = ITundraSerializer.$extend(
     /**
         Registers a callback for component created event originating from this entity.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if this entity is not yes initialized correctly.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
 
         * @example
         * var entity = Tundra.scene.entityById(12);
@@ -538,10 +526,7 @@ var Entity = ITundraSerializer.$extend(
     /**
         Registers a callback for component removed event originating from this entity.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if this entity is not yes initialized correctly.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
 
         * @example
         * var entity = Tundra.scene.entityById(12);
@@ -567,10 +552,7 @@ var Entity = ITundraSerializer.$extend(
     /**
         Registers a callback for entity actions originating from this entity. See {{#crossLink "Scene/EntityAction:event"}}{{/crossLink}} for event data.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if this entity is not yes initialized correctly.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
 
         * @example
         * var entity = Tundra.scene.entityById(12);

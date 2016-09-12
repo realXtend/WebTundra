@@ -6,45 +6,34 @@ define([
         "core/scene/Attribute"
     ], function(THREE, Tundra, IComponent, Attribute) {
 
-/**
-    This base implementation does not do anything. It declared the static attribute structure of EC_Camera
-    in the Tundra protocol.
-
-    Renderer implementations need to provide this components functionality, preferably by extending this object.
-
-    @class EC_Camera
-    @extends IComponent
-    @constructor
-*/
 var EC_Camera = IComponent.$extend(
+/** @lends EC_Camera.prototype */
 {
+    /**
+        @ec_declare
+    */
     __init__ : function(id, typeId, typeName, name)
     {
         this.$super(id, typeId, typeName, name);
 
         /**
-            @property upVector (attribute)
-            @type Attribute
+            @ec_attribute {THREE.Vector3} upVector THREE.Vector3(0,1,0)
         */
         this.declareAttribute(0, "upVector", new THREE.Vector3(0,1,0), Attribute.Float3); /// @todo Make our own vec class to remove the dependency
         /**
-            @property nearPlane (attribute)
-            @type Attribute
+            @ec_attribute {number} nearPlane 0.1
         */
         this.declareAttribute(1, "nearPlane", 0.1, Attribute.Real);
         /**
-            @property farPlane (attribute)
-            @type Attribute
+            @ec_attribute {number} farPlane 5000.0
         */
         this.declareAttribute(2, "farPlane", (Tundra.browser.isMobile() ? 3000 : 5000.0), Attribute.Real); /// @todo Should we increase this default?
         /**
-            @property verticalFov (attribute)
-            @type Attribute
+            @ec_attribute {number} verticalFov 45.0
         */
         this.declareAttribute(3, "verticalFov", 45.0, Attribute.Real); // Ignored for now, taken from browser window size.
         /**
-            @property aspectRatio (attribute)
-            @type Attribute
+            @ec_attribute {string} aspectRatio ""
         */
         this.declareAttribute(4, "aspectRatio", "", Attribute.String);
 

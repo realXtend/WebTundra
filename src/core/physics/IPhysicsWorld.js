@@ -9,42 +9,42 @@ define(["lib/classy",
 
 /**
     Interface class for physics world.
-    
+
     @class IPhysicsWorld
     @constructor
 */
 var IPhysicsWorld = Class.$extend(
 {
     __init__ : function()
-    {        
+    {
         /**
             Physics update period (= length of each simulation step.)
             @property physicsUpdatePeriod
             @type Number
         */
         this.physicsUpdatePeriod = 1.0 / 60.0;
-        
+
         /**
             Max number of sub steps per simulation step
             @property maxSubSteps
             @type Number
         */
         this.maxSubSteps = 6;
-        
+
         /**
             Enable physical world step simulation
             @property runPhysics
             @type Bool
         */
         this.runPhysics = true;
-        
+
         /**
             Use variable timestep if enabled, and if frame timestep exceeds the single physics simulation substep
             @property useVariableTimestep
             @type Bool
         */
         this.useVariableTimestep = false;
-        
+
         /**
             Collisions that occurred during the previous frame.
             @property previousCollisions
@@ -52,12 +52,12 @@ var IPhysicsWorld = Class.$extend(
         */
         this.previousCollisions = [];
     },
-    
+
     simulate: function(frametime)
     {
         TundraLogging.getLogger("IPhysicsWorld").warn("simulate(frametime) not implemented.");
     },
-    
+
     /**
         Process collision from an internal sub-step
 
@@ -68,41 +68,33 @@ var IPhysicsWorld = Class.$extend(
     {
         TundraLogging.getLogger("IPhysicsWorld").warn("processPostTick(subStepTime) not implemented.");
     },
-    
+
     /**
         Registers a callback for physics collision.
 
-        @example
-            Tundra.physicsWorld.onPhysicsCollision(null, function(info)
-            {
-                console.log("on collision: " + info.bodyA.id + " " + info.bodyB.id);
-            });
+        * @example
+        * Tundra.physicsWorld.onPhysicsCollision(null, function(info)
+        * {
+        *     console.log("on collision: " + info.bodyA.id + " " + info.bodyB.id);
+        * });
 
-        @method onPhysicsCollision
-        @param {Object} context Context of in which the callback function is executed. Can be null.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        @subscribes
     */
     onPhysicsCollision : function(context, callback)
     {
         return Tundra.events.subscribe("PhysicsWorld.PhysicsCollision", context, callback);
     },
-    
+
     /**
         Registers a callback for post simulate.
 
-        @method onAboutToUpdate
-        @param {Object} context Context of in which the callback function is executed. Can be null.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} how to unsubscribe from this event.
+        @subscribes
     */
     onAboutToUpdate : function(context, callback)
     {
         return Tundra.events.subscribe("PhysicsWorld.AboutToUpdate", context, callback);
     },
-    
+
     /**
         Set physics update period (= length of each simulation step.) By default 1/60th of a second.
 
@@ -116,7 +108,7 @@ var IPhysicsWorld = Class.$extend(
             updatePeriod = 0.001;
         this.physicsUpdatePeriod = updatePeriod;
     },
-    
+
     /**
         Set maximum physics substeps to perform on a single frame. Once this maximum is reached, time will appear to slow down if framerate is too low.
 
@@ -128,7 +120,7 @@ var IPhysicsWorld = Class.$extend(
         if (steps > 0)
             this.maxSubSteps = steps;
     },
-    
+
     /**
         Enable/disable physics simulationsetRunning
 
@@ -139,7 +131,7 @@ var IPhysicsWorld = Class.$extend(
     {
         this.runPhysics_ = enable;
     },
-    
+
     /**
         Return whether simulation is on
 
@@ -150,10 +142,10 @@ var IPhysicsWorld = Class.$extend(
     {
         return this.runPhysics_;
     },
-    
-    /** 
+
+    /**
         Raycast to the world. Returns only a single (the closest) result.
-        
+
         @example
             var origin = new THREE.Vector3(0.0, 10.0, 0.0);
             var dir = new THREE.Vector3(0.0, -1.0, 0.0);
@@ -162,7 +154,7 @@ var IPhysicsWorld = Class.$extend(
             if (result) {
                 console.log(result.entity.name);
             }
-        
+
         @method raycast
         @param {THREE.Vector3} origin World origin position
         @param {THREE.Vector3} direction Direction to raycast to. Will be normalized automatically

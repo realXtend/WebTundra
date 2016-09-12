@@ -6,102 +6,78 @@ define([
         "core/math/Color"
     ], function(THREE, IComponent, Attribute, Color) {
 
-/**
-    This base implementation does not do anything. It declared the static attribute structure of EC_WaterPlane
-    in the Tundra protocol.
-
-    Renderer implementations need to provide this components functionality, preferably by extending this object.
-
-    @class EC_WaterPlane
-    @extends IComponent
-    @constructor
-*/
 var EC_WaterPlane = IComponent.$extend(
+/** @lends EC_WaterPlane.prototype */
 {
+    /**
+        @ec_declare
+    */
     __init__ : function(id, typeId, typeName, name)
     {
         this.$super(id, typeId, typeName, name);
 
         /**
-            @property xSize (attribute)
-            @type Attribute
+            @ec_attribute {number} xSize 5000
         */
         this.declareAttribute(0, "xSize", 5000, Attribute.Int);
         /**
-            @property ySize (attribute)
-            @type Attribute
+            @ec_attribute {number} ySize 5000
         */
         this.declareAttribute(1, "ySize", 5000, Attribute.Int);
         /**
-            @property depth (attribute)
-            @type Attribute
+            @ec_attribute {number} depth 10000
         */
         this.declareAttribute(2, "depth", 10000, Attribute.Int);
         /**
-            @property position (attribute)
-            @type Attribute
+            @ec_attribute {THREE.Vector3} position THREE.Vector3(0,0,0)
         */
         this.declareAttribute(3, "position", new THREE.Vector3(0,0,0), Attribute.Float3);
         /**
-            @property rotation (attribute)
-            @type Attribute
+            @ec_attribute {THREE.Quaternion} rotation THREE.Quaternion(0,0,0,1)
         */
         this.declareAttribute(4, "rotation", new THREE.Quaternion(0,0,0,1), Attribute.Quat);
         /**
-            @property scaleUfactor (attribute)
-            @type Attribute
+            @ec_attribute {number} scaleUfactor 0.0002
         */
         this.declareAttribute(5, "scaleUfactor", 0.0002, Attribute.Real);
         /**
-            @property scaleVfactor (attribute)
-            @type Attribute
+            @ec_attribute {number} scaleVfactor 0.0002
         */
         this.declareAttribute(6, "scaleVfactor", 0.0002, Attribute.Real);
         /**
-            @property xSegments (attribute)
-            @type Attribute
+            @ec_attribute {number} xSegments 10
         */
         this.declareAttribute(7, "xSegments", 10, Attribute.Int);
         /**
-            @property ySegments (attribute)
-            @type Attribute
+            @ec_attribute {number} ySegments 10
         */
         this.declareAttribute(8, "ySegments", 10, Attribute.Int);
         /**
-            @property materialName (attribute)
-            @type Attribute
-
-            @deprecated
+            @ec_attribute {string} materialName ""
         */
-        this.declareAttribute(9, "materialName", "", Attribute.String); 
+        this.declareAttribute(9, "materialName", "", Attribute.String);
         /**
-            @property materialRef (attribute)
-            @type Attribute
+            @ec_attribute {string} materialRef ""
         */
         this.declareAttribute(10, "materialRef", "", Attribute.AssetReference);
         /**
-            @property fogColor (attribute)
-            @type Attribute
+            @ec_attribute {Color} fogColor Color(0.2, 0.4, 0.35)
         */
         this.declareAttribute(11, "fogColor", new Color(0.2, 0.4, 0.35), Attribute.Color);
         /**
-            @property fogStartDistance (attribute)
-            @type Attribute
+            @ec_attribute {number} fogStartDistance 100.0
         */
         this.declareAttribute(12, "fogStartDistance", 100.0, Attribute.Real);
         /**
-            @property fogEndDistance (attribute)
-            @type Attribute
+            @ec_attribute {number} fogEndDistance 2000.0
         */
         this.declareAttribute(13, "fogEndDistance", 2000.0, Attribute.Real);
         /**
-            @property fogMode (attribute)
-            @type Attribute
+            @ec_attribute {EC_WaterPlane.FogMode} fogMode EC_WaterPlane.FogMode.Linear
         */
         this.declareAttribute(14, "fogMode", EC_WaterPlane.FogMode.Linear, Attribute.Int);
         /**
-            @property fogExpDensity (attribute)
-            @type Attribute
+            @ec_attribute {number} fogExpDensity 999.0
         */
         this.declareAttribute(15, "fogExpDensity", 999.0, Attribute.Real);
     },

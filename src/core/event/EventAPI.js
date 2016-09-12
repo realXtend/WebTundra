@@ -114,9 +114,9 @@ var EventAPI = ITundraAPI.$extend(
     /**
         Subscribes a callback to an event identified by `channel`.
 
-        @param {String} channel Subscription channel name. Preferred naming is `ClassName.EventName`
-        @param {Object} context Context of in which the callback function is executed. Can be `null`.
-        @param {Function} callback Function to be called. Return `false` inside the function to suppress the event.
+        @param {String} channel Subscription channel name. Preferred naming is <code>ClassName.EventName</code>
+        @param {Object} context Context of in which the callback function is executed. Can be <code>null</code>.
+        @param {Function} callback Function to be called. Return <code>false</code> inside the function to suppress the event.
         @param {Number} [priority] The priority level of the event listener (default 0). Listeners with higher priority will
             be executed before listeners with lower priority. Listeners with same priority level will be executed at the same order as they subscribed.
         @return {EventSubscription} Subscription data.

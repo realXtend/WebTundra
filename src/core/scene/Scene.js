@@ -468,10 +468,7 @@ var Scene = ITundraAPI.$extend(
         *     console.log("Scene reseted: " + scene.id);
         * });
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onReset : function(context, callback)
     {
@@ -487,10 +484,7 @@ var Scene = ITundraAPI.$extend(
         *     console.log("Entity", entity.id, entity.name, "created");
         * });
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onEntityCreated : function(context, callback)
     {
@@ -505,10 +499,7 @@ var Scene = ITundraAPI.$extend(
         *     // entity == Entity
         * });
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onEntityRemoved : function(context, callback)
     {
@@ -525,10 +516,7 @@ var Scene = ITundraAPI.$extend(
         *     console.log("Entity", entity.id, entity.name, "got a new component: " + component.typeName);
         * });
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onComponentCreated : function(context, callback)
     {
@@ -544,10 +532,7 @@ var Scene = ITundraAPI.$extend(
         *     // component == IComponent or one of its implementations.
         * });
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onComponentRemoved : function(context, callback)
     {
@@ -562,10 +547,7 @@ var Scene = ITundraAPI.$extend(
         *     console.log(entity.name, component.id, attributeName, "=", newValue);
         * });
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onAttributeChanged : function(context, callback)
     {
@@ -580,10 +562,7 @@ var Scene = ITundraAPI.$extend(
         *     // entityAction == EntityAction
         * });
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onEntityAction : function(context, callback)
     {
@@ -1532,7 +1511,7 @@ var Scene = ITundraAPI.$extend(
             var scaleSendType = sendTypes[2];
             var velSendType = sendTypes[3];
             var angVelSendType = sendTypes[4];
-            
+
             if (posSendType == 1)
                 t.setPosition(ds.readSignedFixedPoint(11, 8), ds.readSignedFixedPoint(11, 8), ds.readSignedFixedPoint(11, 8));
             else if (posSendType == 2)

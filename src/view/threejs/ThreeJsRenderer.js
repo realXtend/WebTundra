@@ -724,31 +724,29 @@ var ThreeJsRenderer = IRenderSystem.$extend(
     /**
         Registers a callback for when renderer's shadow settings changed. Below is the settings
         object that you will receive as the parameter when the event is fired.
-        @example
-            {
-                enabled     : true,
-                softShadows : true,
-                drawDebug   : false,
-                clip : {
-                    near    : 50,
-                    far     : 1000
-                },
-                textureSize : {
-                    width   : 2048,
-                    height  : 2048
-                },
-                bounds : {
-                    right   :  50,
-                    left    : -50,
-                    top     :  50,
-                    bottom  : -50
-                }
-            }
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if parent entity is not set.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        * @example
+        * {
+        *     enabled     : true,
+        *     softShadows : true,
+        *     drawDebug   : false,
+        *     clip : {
+        *         near    : 50,
+        *         far     : 1000
+        *     },
+        *     textureSize : {
+        *         width   : 2048,
+        *         height  : 2048
+        *     },
+        *     bounds : {
+        *         right   :  50,
+        *         left    : -50,
+        *         top     :  50,
+        *         bottom  : -50
+        *     }
+        * }
+
+        @subscribes
     */
     onShadowSettingsChanged : function(context, callback)
     {
@@ -1387,18 +1385,15 @@ var ThreeJsRenderer = IRenderSystem.$extend(
 
     /**
         Registers a callback for when the active camera that is used for rendering changes.
-        @example
-            // 'deactivatedCameraComponent' can be undefined if no camera was set when the new camera was activated
-            Tundra.renderer.onActiveCameraChanged(null, function(activeCameraComponent, deactivatedCameraComponent) {
-                console.log("Current active camera is", activeCameraComponent.parentEntity.name);
-                if (deactivatedCameraComponent !== undefined)
-                    console.log("Last active camera was", deactivatedCameraComponent.parentEntity.name);
-            });
+        * @example
+        * // 'deactivatedCameraComponent' can be undefined if no camera was set when the new camera was activated
+        * Tundra.renderer.onActiveCameraChanged(null, function(activeCameraComponent, deactivatedCameraComponent) {
+        *     console.log("Current active camera is", activeCameraComponent.parentEntity.name);
+        *     if (deactivatedCameraComponent !== undefined)
+        *         console.log("Last active camera was", deactivatedCameraComponent.parentEntity.name);
+        * });
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if parent entity is not set.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onActiveCameraChanged : function(context, callback)
     {

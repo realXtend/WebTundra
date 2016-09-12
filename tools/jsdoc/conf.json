@@ -7,7 +7,8 @@
     },
     "source": {
         "include" : [
-            "src/core"
+            "src/core",
+            "src/entity-components"
         ],
         "exclude" : [
             "src/lib",
@@ -37,5 +38,7 @@
     "tags" : {
         "allowUnknownTags": true
     },
-    "plugins" : []
+    "plugins" : [
+        "tools/jsdoc/plugins/webtundra"
+    ]
 }

@@ -346,10 +346,7 @@ var UiAPI = ITundraAPI.$extend(
     /**
         Registers a callback for rendering surface resize.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
 
         * @example
         * Tundra.ui.onWindowResize(function(width, height) {
@@ -364,10 +361,7 @@ var UiAPI = ITundraAPI.$extend(
     /**
         Registers a callback for tab focus changes.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
 
         * @example
         * Tundra.ui.onTabFocusChanged(this, function(focused) {
@@ -382,10 +376,7 @@ var UiAPI = ITundraAPI.$extend(
     /**
         Registers a callback for clear focus events. This event is fired when we want to clear focus from all DOM elements e.g. input fields.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
 
         * @example
         * Tundra.ui.onWindowResize(null, function() {

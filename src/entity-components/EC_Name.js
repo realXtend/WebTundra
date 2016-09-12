@@ -6,32 +6,28 @@ define([
         "core/scene/Attribute"
     ], function(Tundra, Scene, IComponent, Attribute) {
 
-/**
-    Name component provides functionality for Entity indenfication, description and grouping.
-
-    @class EC_Name
-    @extends IComponent
-    @constructor
-*/
 var EC_Name = IComponent.$extend(
+/** @lends EC_Name.prototype */
 {
+    /**
+        Name component provides functionality for Entity indenfication, description and grouping.
+
+        @ec_declare
+    */
     __init__ : function(id, typeId, typeName, name)
     {
         this.$super(id, typeId, typeName, name);
 
         /**
-            @property name (attribute)
-            @type Attribute
+            @ec_attribute {string} name ""
         */
         this.declareAttribute(0, "name", "", Attribute.String, "name");
         /**
-            @property description (attribute)
-            @type Attribute
+            @ec_attribute {string} description ""
         */
         this.declareAttribute(1, "description", "", Attribute.String, "description");
         /**
-            @property group (attribute)
-            @type Attribute
+            @ec_attribute {string} group ""
         */
         this.declareAttribute(2, "group", "", Attribute.String);
     },
@@ -45,13 +41,9 @@ var EC_Name = IComponent.$extend(
     /**
         Event that is fired every time the Entitys name changes.
 
-        @method onNameChanged
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if this entity is not yes initialized correctly.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
-    onNameChanged : function()
+    onNameChanged : function(context, callback)
     {
         if (!this.hasParentEntity())
         {
@@ -63,7 +55,7 @@ var EC_Name = IComponent.$extend(
 
     /**
         Set name.
-        @method setName
+
         @param {String} name New name.
         @param {AttributeChange} [change=AttributeChange.Default] Attribute change signaling mode.
     */
@@ -86,7 +78,7 @@ var EC_Name = IComponent.$extend(
 
     /**
         Get name.
-        @method getName
+
         @return {String}
     */
     getName : function()
@@ -96,7 +88,7 @@ var EC_Name = IComponent.$extend(
 
     /**
         Set description.
-        @method setDescription
+
         @param {String} description New description.
         @param {AttributeChange} [change=AttributeChange.Default] Attribute change signaling mode.
     */
@@ -108,7 +100,7 @@ var EC_Name = IComponent.$extend(
 
     /**
         Get description.
-        @method getDescription
+
         @return {String}
     */
     getDescription : function()
@@ -118,7 +110,7 @@ var EC_Name = IComponent.$extend(
 
     /**
         Set group.
-        @method setGroup
+
         @param {String} group New group.
         @param {AttributeChange} [change=AttributeChange.Default] Attribute change signaling mode.
     */
@@ -130,7 +122,7 @@ var EC_Name = IComponent.$extend(
 
     /**
         Get group.
-        @method getGroup
+
         @return {String}
     */
     getGroup : function()

@@ -5,18 +5,12 @@ define([
         "core/scene/Attribute"
     ], function(THREE, IComponent, Attribute) {
 
-/**
-    This base implementation does not do anything. It declared the static attribute structure of EC_Sky
-    in the Tundra protocol.
-
-    Renderer implementations need to provide this components functionality, preferably by extending this object.
-
-    @class EC_Sky
-    @extends IComponent
-    @constructor
-*/
 var EC_Sky = IComponent.$extend(
+/** @lends EC_Sky.prototype */
 {
+    /**
+        @ec_declare
+    */
     __init__ : function(id, typeId, typeName, name)
     {
         this.$super(id, typeId, typeName, name);
@@ -29,33 +23,27 @@ var EC_Sky = IComponent.$extend(
             return;
 
         /**
-            @property materialRef (attribute)
-            @type Attribute
+            @ec_attribute {string} materialRef ""
         */
         this.declareAttribute(0, "materialRef", "", Attribute.AssetReference, "Material");
         /**
-            @property textureRefs (attribute)
-            @type Attribute
+            @ec_attribute {Array.<string>} textureRefs []
         */
         this.declareAttribute(1, "textureRefs", [], Attribute.AssetReferenceList, "Texture");
         /**
-            @property distance (attribute)
-            @type Attribute
+            @ec_attribute {number} distance 999.0
         */
         this.declareAttribute(2, "distance", 999.0, Attribute.Real, "Distance");
         /**
-            @property orientation (attribute)
-            @type Attribute
+            @ec_attribute {THREE.Quaternion} orientation THREE.Quaternion(0,0,0,1)
         */
         this.declareAttribute(3, "orientation", new THREE.Quaternion(0,0,0,1), Attribute.Quat, "Orientation");
         /**
-            @property drawFirst (attribute)
-            @type Attribute
+            @ec_attribute {boolean} drawFirst true
         */
         this.declareAttribute(4, "drawFirst", true, Attribute.Bool, "Draw first");
         /**
-            @property enabled (attribute)
-            @type Attribute
+            @ec_attribute {boolean} enabled true
         */
         this.declareAttribute(5, "enabled", true, Attribute.Bool, "Enabled");
     },

@@ -153,16 +153,12 @@ var EC_Camera_ThreeJs = EC_Camera.$extend(
 
     /**
         Registers a callback for when a camera active state changes
-        @example
-            ent.camera.onActiveStateChanged(null, function(parentEntity, cameraComponent, active) {
-                console.log("Camera active state changes", parentEntity.name, active);
-            });
+        * @example
+        * ent.camera.onActiveStateChanged(null, function(parentEntity, cameraComponent, active) {
+        *    console.log("Camera active state changes", parentEntity.name, active);
+        * });
 
-        @method onActiveStateChanged
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription|null} Subscription data or null if parent entity is not set.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onActiveStateChanged : function(context, callback)
     {
@@ -182,7 +178,6 @@ var EC_Camera_ThreeJs = EC_Camera.$extend(
 
     /**
         Activates this camera to be used for rendering.
-        @method setActive
     */
     setActive : function(active)
     {
@@ -208,7 +203,6 @@ var EC_Camera_ThreeJs = EC_Camera.$extend(
 
     /**
         Returns if this camera is currently active. You can also use the 'active' property directly.
-        @method isActive
     */
     isActive : function()
     {

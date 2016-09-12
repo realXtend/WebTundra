@@ -10,15 +10,15 @@ var EC_Avatar = IComponent.$extend(
 /** @lends EC_Avatar.prototype */
 {
     /**
-        EC_Avatar component
-
-        @constructs
-        @private
+        @ec_declare
     */
     __init__ : function(id, typeId, typeName, name)
     {
         this.$super(id, typeId, typeName, name);
 
+        /**
+            @ec_attribute {string} appearanceRef ""
+        */
         this.declareAttribute(0, "appearanceRef", "", Attribute.AssetReference);
 
         this.useAvatarAsset = true;

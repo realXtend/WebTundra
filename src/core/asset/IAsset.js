@@ -129,10 +129,7 @@ var IAsset = Class.$extend(
         does not equal the asset being loaded. Data has been processed and potential dependencies should have
         been resolved and possibly requested.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onDeserializedFromData : function(context, callback)
     {
@@ -142,10 +139,7 @@ var IAsset = Class.$extend(
     /**
         Registers a callback for asset loaded event. See {{#crossLink "IAsset/isLoaded:method"}}isLoaded(){{/crossLink}}.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onLoaded : function(context, callback)
     {
@@ -155,10 +149,7 @@ var IAsset = Class.$extend(
     /**
         Registers a callback for asset load failure event. See {{#crossLink "IAsset/isLoaded:method"}}isLoaded(){{/crossLink}}.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onFailed : function(context, callback)
     {
@@ -171,10 +162,7 @@ var IAsset = Class.$extend(
         Code outside of AssetAPI internals requesting assets do not need to use this event.
         Use {@link AssetTransfer#onFailed} instead.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
     */
     onDependencyFailed : function(context, callback)
     {
@@ -184,10 +172,7 @@ var IAsset = Class.$extend(
     /**
         Registers a callback for asset unloaded event. See {{#crossLink "IAsset/isLoaded:method"}}isLoaded(){{/crossLink}}.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
-        @return {EventSubscription} Subscription data.
-        See {{#crossLink "EventAPI/unsubscribe:method"}}EventAPI.unsubscribe(){{/crossLink}} on how to unsubscribe from this event.
+        @subscribes
 
         * @example
         * var asset = Tundra.asset.getAsset(assetRef);

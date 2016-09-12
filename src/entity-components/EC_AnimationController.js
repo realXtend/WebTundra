@@ -4,30 +4,22 @@ define([
         "core/scene/Attribute"
     ], function(IComponent, Attribute) {
 
-/**
-    This base implementation does not do anything. It declared the static attribute structure of EC_Camera
-    in the Tundra protocol.
-
-    Renderer implementations need to provide this components functionality, preferably by extending this object.
-
-    @class EC_AnimationController
-    @extends IComponent
-    @constructor
-*/
 var EC_AnimationController = IComponent.$extend(
+/** @lends EC_AnimationController.prototype */
 {
+    /**
+        @ec_declare
+    */
     __init__ : function(id, typeId, typeName, name)
     {
         this.$super(id, typeId, typeName, name);
 
         /**
-            @property animationState (attribute)
-            @type Attribute
+            @ec_attribute {string} animationState ""
         */
         this.declareAttribute(0, "animationState", "", Attribute.String, "Animation state");
         /**
-            @property drawDebug (attribute)
-            @type Attribute
+            @ec_attribute {boolean} drawDebug false
         */
         this.declareAttribute(1, "drawDebug", false, Attribute.Bool, "Draw debug");
     },

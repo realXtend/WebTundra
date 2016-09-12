@@ -307,8 +307,7 @@ var AssetTransfer = Class.$extend(
     /**
         Registers a callback for asset transfer and asset load completion.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
+        @subscribes
         @param {Object} [metadata=undefined] Metadata you want to receive into the callback.
 
         * @example
@@ -353,8 +352,7 @@ var AssetTransfer = Class.$extend(
     /**
         Registers a callback for asset transfer and asset load completion.
 
-        @param {Object} context Context of in which the `callback` function is executed. Can be `null`.
-        @param {Function} callback Function to be called.
+        @subscribes
         @param {Object} [metadata=undefined] Metadata you want to receive into the callback.
 
         * @example
