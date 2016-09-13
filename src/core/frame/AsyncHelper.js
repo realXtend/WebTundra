@@ -30,14 +30,16 @@ var AsyncHelper = Class.$extend(
     __classvars__ :
     {
         /**
-            Static version accessible from {{#crossLink "AsyncHelper/async:method"}}AsyncHelper.async(){{/crossLink}}
+            Static version accessible from {@link AsyncHelper.async}
 
             @static
+            @memberof AsyncHelper
             @param {Function} callback
             @param {Object} [data=undefined] If a number and timeout is omitted, this will become the timeout.
             @param {Number} [timeout=undefined] If omitted or zero requestAnimationFrame is used to schedule the event
             at the next 'paint' event of the browser.
-            @return {Number} Handle that can be used to cancel via {{#crossLink "AsyncHelper/cancel:method"}}AsyncHelper.cancel(){{/crossLink}}
+            @return {Number} - Handle that can be used to cancel via {@link AsyncHelper.cancel}
+            @see AsyncHelper#async
         */
         async : function(callback, data, timeout)
         {
@@ -67,10 +69,10 @@ var AsyncHelper = Class.$extend(
         },
 
         /**
-            Static version accessible from {{#crossLink "AsyncHelper/cancel:method"}}AsyncHelper.cancel(){{/crossLink}}
+            Static version accessible from {@link AsyncHelper/cancel}
 
             @static
-            @param {Number} handle Handle previously returned by static {{#crossLink "AsyncHelper/async:method"}}AsyncHelper.async(){{/crossLink}}
+            @param {Number} handle Handle previously returned by static {@link AsyncHelper.async}
         */
         cancel : function(handle)
         {
@@ -122,10 +124,10 @@ var AsyncHelper = Class.$extend(
 
         @param {String} name Event name
         @param {Function} callback
-        @param {Object} [data=undefined] If a `number` and `timeout` is omitted, this will become the `timeout`.
-        @param {Number} [timeout=undefined] If omitted or zero, `requestAnimationFrame` is used to schedule the event
-        at the next `paint` event of the browser.
-        @return {Boolean} `true` if the operation was scheduled.
+        @param {Object} [data=undefined] If a <code>number</code> and <code>timeout</code> is omitted, this will become the <code>timeout</code>.
+        @param {Number} [timeout=undefined] If omitted or zero, <code>requestAnimationFrame</code> is used to schedule the event
+        at the next <code>paint</code> event of the browser.
+        @return {Boolean} - <code>true</code> if the operation was scheduled.
     */
     async : function(name, callback, data, timeout)
     {
@@ -357,30 +359,30 @@ var AsyncHelper = Class.$extend(
     },
 
     /**
-        Makes one `master` deferred from given arbitrary number of deferres / promises that:
+        Makes one <code>master</code> deferred from given arbitrary number of deferres / promises that:
         will be resolved when all the promises are resolved, and
         will be rejected if any of the promises is rejected
 
         <b>Note:</b> Arguments can be mix of both promises and deferred names.
               If a deferred does not exist for a given name, it will be created.
 
-        @example
-            // This snipped demonstrates how 'when()' should be used
-            var helper = new AsyncHelper("myAppAsyncHelper", this);
-            helper.defer("fetchData1");
-            helper.defer("fetchData2");
+        * @example
+        * // This snipped demonstrates how 'when()' should be used
+        * var helper = new AsyncHelper("myAppAsyncHelper", this);
+        * helper.defer("fetchData1");
+        * helper.defer("fetchData2");
+        *
+        * var allDataFetched = helper.when("fetchData1", "fetchData2");
+        * allDataFetched.done(function(data1, data2)
+        * {
+        *     // This is called after both defers are resolved
+        *     console.log(data1); // prints 'fetchedData1'
+        *     console.log(data2); // prints 'fetchedData2'
+        * })
+        * .fail(function());
 
-            var allDataFetched = helper.when("fetchData1", "fetchData2");
-            allDataFetched.done(function(data1, data2)
-            {
-                // This is called after both defers are resolved
-                console.log(data1); // prints 'fetchedData1'
-                console.log(data2); // prints 'fetchedData2'
-            })
-            .fail(function());
-
-            helper.resolve("fetchData1", true, "fetchedData1");
-            helper.resolve("fetchData2", true, "fetchedData2");
+        * helper.resolve("fetchData1", true, "fetchedData1");
+        * helper.resolve("fetchData2", true, "fetchedData2");
 
         @param {...deferNames}
         @return {jQuery.Promise}

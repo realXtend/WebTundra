@@ -10,6 +10,7 @@ var ClientLeftMessage = INetworkMessage.$extend(
         Clien left message.
 
         @constructs
+        @private
         @extends INetworkMessage
     */
     __init__ : function()

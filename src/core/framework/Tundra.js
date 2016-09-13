@@ -164,7 +164,7 @@ var Tundra =
         Returns a registered plugin by name.
 
         @param {String} name Name of the plugin.
-        @return {ITundraPlugin|null} The plugin or null if not found.
+        @return {ITundraPlugin|null} - The plugin or null if not found.
     */
     plugin : function(name)
     {
@@ -188,7 +188,7 @@ var Tundra =
     /**
         Returns currently registered plugin names.
 
-        @return {Array<String>}
+        @return {Array.<String>}
     */
     pluginNames : function()
     {

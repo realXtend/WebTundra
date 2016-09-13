@@ -11,10 +11,10 @@ var EventAPI = ITundraAPI.$extend(
     /**
         In the WebTundra naming convention, objects in WebTundra that provide events have methods, whose names start with the preposition "on" (for example `object.onSomeEvent()`). Use those if provided by the class,
         and if creating new ones, be sure to name your methods with an appropriate description of what has happened or what is about to happen (for example `onEventAboutToHappen` or `onEventHappened`)
-        These functions will return you an {{#crossLink "EventSubscription"}}{{/crossLink}} object that you can use to manage the subscription.
+        These functions will return you an {@link EventSubscription} object that you can use to manage the subscription.
 
         When implementing your own event via the `EventAPI`, be sure to return the `EventSubscription` object to the
-        caller that gets returned from  {{#crossLink "EventAPI/subscribe:method"}}{{/crossLink}}.
+        caller that gets returned from  {@link EventAPI#subscribe}.
 
         When subscribing you can optionally specify a priority to control the order in which the handler functions are invoked.
         If wanting to suppress the event you are handling in an event callback, return `false` from the callback.

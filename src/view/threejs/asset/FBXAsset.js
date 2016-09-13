@@ -6,15 +6,16 @@ define([
         "view/threejs/asset/AnimationProviderAsset"
     ], function(THREE, FBXLoader, Tundra, AnimationProviderAsset) {
 
-/**
-    Represents a Ogre rendering engine mesh asset. This asset is processed and Three.js rendering engine meshes are generated.
-    @class FBXAsset
-    @extends IAsset
-    @constructor
-    @param {String} name Unique name of the asset, usually this is the asset reference.
-*/
 var FBXAsset = AnimationProviderAsset.$extend(
+/** @lends FBXAsset.prototype */
 {
+    /**
+        Represents a FBX (text) mesh asset. This asset is processed and Three.js rendering engine meshes are generated.
+
+        @extends AnimationProviderAsset
+        @constructs
+        @param {String} name Unique name of the asset, usually this is the asset reference.
+    */
     __init__ : function(name)
     {
         this.$super(name, "FBXAsset", AnimationProviderAsset.Type.SkinnedMesh);

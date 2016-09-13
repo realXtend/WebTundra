@@ -13,6 +13,7 @@ var EntityActionMessage = INetworkMessage.$extend(
         Entity action message.
 
         @constructs
+        @private
         @extends INetworkMessage
     */
     __init__ : function()

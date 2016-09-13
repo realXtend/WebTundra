@@ -6,15 +6,16 @@ define([
         "view/threejs/gltf/WebTundraGltfWrapper"
     ], function(THREE, Tundra, IAsset, WebTundraGltfWrapper) {
 
-/**
-    Represents a Ogre rendering engine mesh asset. This asset is processed and Three.js rendering engine meshes are generated.
-    @class GltfAsset
-    @extends IAsset
-    @constructor
-    @param {String} name Unique name of the asset, usually this is the asset reference.
-*/
 var GltfAsset = IAsset.$extend(
+/** @lends GltfAsset.prototype */
 {
+    /**
+        Represents a Ogre rendering engine mesh asset. This asset is processed and Three.js rendering engine meshes are generated.
+
+        @extends IAsset
+        @constructs
+        @param {String} name Unique name of the asset, usually this is the asset reference.
+    */
     __init__ : function(name)
     {
         this.$super(name, "GltfAsset");

@@ -166,7 +166,9 @@ var InputEventTouch = IInputEvent.$extend(
     {
         /**
             @static
-            @var {Object}
+            @readonly
+            @memberof InputEventTouch
+            @enum {number}
         */
         Type :
         {
@@ -181,7 +183,9 @@ var InputEventTouch = IInputEvent.$extend(
 
         /**
             @static
-            @var {Object}
+            @readonly
+            @memberof InputEventTouch
+            @enum {number}
         */
         Event :
         {
@@ -193,7 +197,9 @@ var InputEventTouch = IInputEvent.$extend(
 
         /**
             @static
-            @var {Object}
+            @readonly
+            @memberof InputEventTouch
+            @enum {number}
         */
         Direction :
         {

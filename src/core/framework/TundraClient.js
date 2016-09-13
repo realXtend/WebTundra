@@ -114,58 +114,58 @@ var TundraClient = Class.$extend(
         this.APIs = [];
 
         /**
-            @property audio
             @var {AudioAPI}
+            @see Tundra.audio
         */
         this.audio = Tundra.audio = this.loadAPI("AudioAPI", AudioAPI);
         /**
-            @property config
             @var {ConfigAPI}
+            @see Tundra.config
         */
         this.config = Tundra.config = this.loadAPI("ConfigAPI", ConfigAPI);
         /**
-            @property events
             @var {EventAPI}
+            @see Tundra.events
         */
         this.events = Tundra.events = this.loadAPI("EventAPI", EventAPI);
         /**
-            @property network
             @var {Network}
+            @see Tundra.network
         */
         this.network = Tundra.network = this.loadAPI("Network", Network);
         /**
-            @property frame
             @var {FrameAPI}
+            @see Tundra.frame
         */
         this.frame = Tundra.frame = this.loadAPI("FrameAPI", FrameAPI);
         /**
-            @property console
             @var {ConsoleAPI}
+            @see Tundra.console
         */
         this.console = Tundra.console = this.loadAPI("ConsoleAPI", ConsoleAPI);
         /**
-            @property asset
             @var {AssetAPI}
+            @see Tundra.asset
         */
         this.asset = Tundra.asset = this.loadAPI("AssetAPI", AssetAPI);
         /**
-            @property input
             @var {InputAPI}
+            @see Tundra.input
         */
         this.input = Tundra.input = this.loadAPI("InputAPI", InputAPI);
         /**
-            @property ui
             @var {UiAPI}
+            @see Tundra.ui
         */
         this.ui = Tundra.ui = this.loadAPI("UiAPI", UiAPI);
         /**
-            @property scene
             @var {Scene}
+            @see Tundra.scene
         */
         this.scene = Tundra.scene = this.loadAPI("Scene", Scene);
         /**
-            @property renderer
             @var {IRenderSystem}
+            @see Tundra.renderer
         */
         this.renderer = Tundra.renderer = this.loadRenderer();
 
@@ -185,21 +185,21 @@ var TundraClient = Class.$extend(
         /**
             If verbose network message debug info should be printed to browsers console.
             Can be passed in the TundraClient contructor parameters or toggled during runtime.
-            @property networkDebugLogging
-            @type Boolean
+
+            @var {Boolean}
         */
         this.networkDebugLogging = this.options.networkDebugLogging;
         /**
             Network protocol version supported by the server
-            @property protocolVersion
-            @type Number
+
+            @var {Number}
         */
         this.protocolVersion = Network.protocolVersion.Original;
         /**
             Id for entity that reflects the client's observer position for interest management.
             Set to nonzero to enable sending the observer position & orientation regularly
-            @property observerEntityId
-            @type Number
+
+            @var {Number}
         */
         this.observerEntityId = 0;
 
@@ -373,7 +373,7 @@ var TundraClient = Class.$extend(
         renderSystems : [],
 
         /**
-            Registers a render system which should be a subclass of {{#crossLink "IRenderSystem"}}{{/crossLink}}
+            Registers a render system which should be a subclass of {@link IRenderSystem}
             @memberof TundraClient
             @static
             @param {IRenderSystem} renderSystem
@@ -657,7 +657,7 @@ var TundraClient = Class.$extend(
         Runs a client side application by creating a local entity.
         Useful for startup apps after the client has been instantiated on a page.
 
-        This function is called automatically with {{#crossLink "TundraClient"}}{{/crossLink}} 'applications' constructor parameters.
+        This function is called automatically with {@link TundraClient} 'applications' constructor parameters.
 
         @param {String} applicationName Application name. This will be used as the local entitys name that will hold the script component.
         @param {String} scriptRef Application script URL or relative path.
@@ -745,12 +745,12 @@ var TundraClient = Class.$extend(
 
     /**
         Registers a callback for client connection errors.
-
-        *  Tundra.client.onConnectionError(null, function(event) {
-        *      console.error("RED ALERT: " + event);
-        *  });
-
         @subscribes
+
+        * @example
+        * Tundra.client.onConnectionError(null, function(event) {
+        *     console.error("RED ALERT: " + event);
+        * });
     */
     onConnectionError : function(context, callback)
     {
@@ -857,7 +857,7 @@ var TundraClient = Class.$extend(
     },
 
     /**
-        Logs a info message. Always sends the event to {{#crossLink "TundraClient/onLogInfo:method"}}{{/crossLink}}
+        Logs a info message. Always sends the event to {@link TundraClient#onLogInfo}
         callbacks and optionally logs to the browsers console.
 
         @param {String} message Log message.
@@ -874,7 +874,7 @@ var TundraClient = Class.$extend(
     },
 
     /**
-        Logs a warning message. Always sends the event to {{#crossLink "TundraClient/onLogWarning:method"}}{{/crossLink}}
+        Logs a warning message. Always sends the event to {@link TundraClient#onLogWarning}
         callbacks and optionally logs to the browsers console.
 
         @param {String} message Log message.
@@ -891,7 +891,7 @@ var TundraClient = Class.$extend(
     },
 
     /**
-        Logs a error message. Always sends the event to {{#crossLink "TundraClient/onLogWarning:method"}}{{/crossLink}}
+        Logs a error message. Always sends the event to {@link TundraClient#onLogWarning}
         callbacks and optionally logs to the browsers console.
 
         @param {String} message Log message.
@@ -937,11 +937,11 @@ var TundraClient = Class.$extend(
         @param {Object} loginProperties This object will get serialized into JSON and sent to the server.
         * @example
         * client.connect("ws://localhost:2345", { username  : "WebTundra user" });
-        @return {Object} Result object
-        <pre>{
-            success   : Boolean,
-            reason    : String      // Only defined if success == false
-        }</pre>
+        @return {Object} - Result object
+<pre>{
+    success   : Boolean,
+    reason    : String      // Only defined if success == false
+}</pre>
     */
     connect : function(host, loginProperties)
     {

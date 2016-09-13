@@ -12,6 +12,7 @@ var LoginMessage = INetworkMessage.$extend(
         Login message.
 
         @constructs
+        @private
         @extends INetworkMessage
     */
     __init__ : function()

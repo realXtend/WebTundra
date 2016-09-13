@@ -5,16 +5,16 @@ define([
         "core/asset/IAsset"
     ], function(THREE, Tundra, IAsset) {
 
-/**
-    Represents a three.js json mesh asset. The input data is processed and Three.js rendering engine meshes are generated.
-
-    @class ThreeJsonAsset
-    @extends IAsset
-    @constructor
-    @param {String} name Unique name of the asset, usually this is the asset reference.
-*/
 var ThreeJsonAsset = IAsset.$extend(
+/** @lends ThreeJsonAsset.prototype */
 {
+    /**
+        Represents a three.js json mesh asset. The input data is processed and Three.js rendering engine meshes are generated.
+
+        @extends IAsset
+        @constructs
+        @param {String} name Unique name of the asset, usually this is the asset reference.
+    */
     __init__ : function(name)
     {
         this.$super(name, "ThreeJsonAsset");

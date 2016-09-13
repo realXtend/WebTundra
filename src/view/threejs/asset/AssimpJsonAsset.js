@@ -6,15 +6,16 @@ define([
         "core/asset/IAsset"
     ], function(THREE, FBXLoader, Tundra, IAsset) {
 
-/**
-    Represents a Ogre rendering engine mesh asset. This asset is processed and Three.js rendering engine meshes are generated.
-    @class AssimpJsonAsset
-    @extends IAsset
-    @constructor
-    @param {String} name Unique name of the asset, usually this is the asset reference.
-*/
 var AssimpJsonAsset = IAsset.$extend(
+/** @lends AssimpJsonAsset.prototype */
 {
+    /**
+        Represents a WebAssimp asset. This asset is processed and Three.js rendering engine meshes are generated.
+
+        @extends IAsset
+        @constructs
+        @param {String} name Unique name of the asset, usually this is the asset reference.
+    */
     __init__ : function(name)
     {
         this.$super(name, "AssimpJsonAsset");

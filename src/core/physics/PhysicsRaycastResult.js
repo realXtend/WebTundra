@@ -3,18 +3,18 @@ define(["lib/classy",
         "lib/three"
     ], function(Class, THREE) {
 
-/**
-    PhysicsWorld raycast result object
-    @class PhysicsRaycastResult
-    @constructor
-    
-    @param {Entity} entity
-    @param {THREE.Vector3} position
-    @param {THREE.Vector3} normal
-    @param {Number} distance
-*/
 var PhysicsRaycastResult = Class.$extend(
+/** @lends PhysicsRaycastResult.prototype */
 {
+    /**
+        PhysicsWorld raycast result object
+
+        @constructs
+        @param {Entity} entity
+        @param {THREE.Vector3} position
+        @param {THREE.Vector3} normal
+        @param {Number} distance
+    */
     __init__ : function(entity, position, normal, distance)
     {
         this.entity = entity ? entity : null;

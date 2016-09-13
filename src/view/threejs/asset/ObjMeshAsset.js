@@ -6,16 +6,16 @@ define([
         "core/asset/IAsset"
     ], function(THREE, OBJLoader, Tundra, IAsset) {
 
-/**
-    Represents a OBJ mesh asset. This asset is processed and Three.js rendering engine meshes are generated.
-
-    @class ObjMeshAsset
-    @extends IAsset
-    @constructor
-    @param {String} name Unique name of the asset, usually this is the asset reference.
-*/
 var ObjMeshAsset = IAsset.$extend(
+/** @lends ObjMeshAsset.prototype */
 {
+    /**
+        Represents a OBJ mesh asset. This asset is processed and Three.js rendering engine meshes are generated.
+
+        @extends IAsset
+        @constructs
+        @param {String} name Unique name of the asset, usually this is the asset reference.
+    */
     __init__ : function(name)
     {
         this.$super(name, "ObjMeshAsset");
@@ -23,8 +23,7 @@ var ObjMeshAsset = IAsset.$extend(
         this.requiresCloning = true;
         /**
             THREE.Object3D scene node where all the submeshes with the actual geometry are parented to.
-            @property mesh
-            @type THREE.Object3D
+            @property {THREE.Object3D} mesh
         */
         this.mesh = undefined;
     },

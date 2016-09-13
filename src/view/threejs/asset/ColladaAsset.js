@@ -7,15 +7,16 @@ define([
         "view/threejs/collada/ColladaThreeJsUtils"
     ], function(THREE, Tundra, AnimationProviderAsset, WebTundraColladaWrapper, ColladaThreeJsUtils) {
 
-/**
-    Represents a Ogre rendering engine mesh asset. This asset is processed and Three.js rendering engine meshes are generated.
-    @class ColladaAsset
-    @extends AnimationProviderAsset
-    @constructor
-    @param {String} name Unique name of the asset, usually this is the asset reference.
-*/
 var ColladaAsset = AnimationProviderAsset.$extend(
+/** @lends ColladaAsset.prototype */
 {
+    /**
+        Represents a Collada mesh asset. This asset is processed and Three.js rendering engine meshes are generated.
+
+        @extends AnimationProviderAsset
+        @constructs
+        @param {String} name Unique name of the asset, usually this is the asset reference.
+    */
     __init__ : function(name)
     {
         this.$super(name, "ColladaAsset", AnimationProviderAsset.Type.SkinnedMesh);

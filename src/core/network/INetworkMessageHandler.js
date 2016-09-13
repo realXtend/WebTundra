@@ -8,9 +8,10 @@ var INetworkMessageHandler = Class.$extend(
 {
     /**
         Interface for a network message handler. Implementations can be registered
-        with {{#crossLink "Network/registerMessageHandler:method"}}Tundra.network.registerMessageHandler(){{/crossLink}}.
+        with {@link Network#registerMessageHandler}.
 
         @constructs
+        @private
     */
     __init__ : function(name)
     {

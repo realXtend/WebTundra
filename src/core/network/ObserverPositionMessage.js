@@ -5,15 +5,14 @@ define([
         "core/data/DataSerializer"
     ], function(INetworkMessage, Network, DataSerializer) {
 
-/**
-    Login message.
-
-    @class ObserverPositionMessage
-    @extends INetworkMessage
-    @constructor
-*/
 var ObserverPositionMessage = INetworkMessage.$extend(
+/** @lends ObserverPositionMessage.prototype */
 {
+    /**
+        @extends INetworkMessage
+        @private
+        @constructs
+    */
     __init__ : function()
     {
         this.$super(ObserverPositionMessage.id, "ObserverPositionMessage");
@@ -28,7 +27,6 @@ var ObserverPositionMessage = INetworkMessage.$extend(
     /**
         Serializes observer position & orientation to this message.
 
-        @method serialize
         @param {THREE.Vector3} position Observer position
         @param {THREE.Quaternion} orientation Observer orientation
     */
@@ -43,7 +41,7 @@ var ObserverPositionMessage = INetworkMessage.$extend(
         this.ds.writeFloat32(position.x);
         this.ds.writeFloat32(position.y);
         this.ds.writeFloat32(position.z);
-        
+
         // Angle-axis decompose from MathGeoLib
         var angle = Math.acos(orientation.w) * 2;
         var sinz = Math.sin(angle/2);

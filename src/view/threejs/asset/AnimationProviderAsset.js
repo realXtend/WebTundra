@@ -4,18 +4,17 @@ define([
         "core/asset/IAsset"
     ], function(Tundra, IAsset) {
 
-/**
-    Animation provider asset interface
-    @class AnimationProviderAsset
-    @extends IAsset
-    @constructor
-    @param {String} name Unique name of the asset, usually this is the asset reference.
-    @param {String} type Asset type.
-*/
 var AnimationProviderAsset = IAsset.$extend(
+/** @lends AnimationProviderAsset.prototype */
 {
     __classvars__ :
     {
+        /**
+            @static
+            @readonly
+            @memberof AnimationProviderAsset
+            @enum {Number}
+        */
         Type:
         {
             SkinnedMesh: 0,
@@ -23,6 +22,14 @@ var AnimationProviderAsset = IAsset.$extend(
         }
     },
 
+    /**
+        Animation provider asset interface
+
+        @extends IAsset
+        @constructs
+        @param {String} name Unique name of the asset, usually this is the asset reference.
+        @param {String} type Asset type.
+    */
     __init__ : function(name, type, animationType)
     {
         this.$super(name, type);

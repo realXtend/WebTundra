@@ -8,19 +8,6 @@ define([
         "core/input/InputEventMouse"
     ], function(jqueryMouseWheel, Tundra, ITundraAPI, TundraLogging, AsyncHelper, InputEventMouse) {
 
-/* @todo Implement InputEventKey and remove this!
-    Event object description for {{#crossLink "InputAPI/onKeyEvent:method"}}{{/crossLink}}, {{#crossLink "InputAPI/onKeyPress:method"}}{{/crossLink}} and {{#crossLink "InputAPI/onKeyRelease:method"}}{{/crossLink}} callbacks.
-    @event KeyEvent
-    @param {String} type "press" | "release"
-    @param {Number} keyCode Key as number
-    @param {String} key Key as string
-    @param {Object} pressed Currently held down keys. Maps key as string to boolean.
-    @param {String} targetId DOM element id that the mouse event occurred on
-    @param {String} targetNodeName HTML node name e.g. 'canvas' and 'div'. Useful for detected
-    when on 'body' element aka the mouse event occurred on the "3D scene" and not on top of another input UI widget.
-    @param {Object} originalEvent Original jQuery key event
-*/
-
 var InputAPI = ITundraAPI.$extend(
 /** @lends InputAPI.prototype */
 {
@@ -48,32 +35,31 @@ var InputAPI = ITundraAPI.$extend(
         this._resetMouseWheelDirBinded = this._resetMouseWheelDir.bind(this);
         this._lastMouseWheelDir = 0;
 
-        /*
+        /**
             Current keyboard state.
-            @var {Object}
+
+            @property {Object} keyboard
+            @property {string} keyboard.type Event type: 'press', 'release'
+            @property {number} keyboard.keyCode Event key code
+            @property {string} keyboard.key Event key as string
+            @property {boolean} keyboard.repeat If this is a repeat, meaning the key was already in the pressed state
+            @property {object} keyboard.pressed Currently held down keys: maps key as string to <code>true</code> boolean. Example usage: <code>Tundra.input.keyboard.pressed["w"]</code> or <code>keyEvent.pressed["f"]</code>
+            @property {string} keyboard.targetId HTML element id that the mouse event occurred on
+            @property {string} keyboard.targetNodeName HTML node name e.g. <code>canvas</code> and <code>div</code>. Useful for detected when on <code>body</code> element the mouse event occurred on the "3D scene" and not on top of another input UI widget.
+            @property {jQuery} keyboard.originalEvent Original jQuery mouse event
+            @property {function} keyboard.supress Supress a key event. Accepts two parameters: <code>preventDefault</code> and <code>preventPropagition</code>. Either being set to <code>true</code> will call <code>preventDefault()</code> or <code>stopPropagition()</code> on the <code>originalEvent</code> respectively.
         */
         this.keyboard =
         {
-            // Event type: press, release
             type : "",
-            // Event key code
             keyCode : 0,
-            // Event key as string
             key : "",
-            // If this is a repeat. Meaning the key was already in the pressed state.
             repeat : false,
-            // Currently held down keys: maps key as string to 'true' boolean
-            // Check with inputApi.keyboard.pressed["w"] or keyEvent.pressed["f"]
             pressed : {},
-            // HTML element id that the mouse event occurred on
             targetId : "",
-            // HTML node name e.g. 'canvas' and 'div'. Useful for detected
-            // when on 'body' element aka the mouse event occurred on the "3D scene" and not on top of another input UI widget.
             targetNodeName : "",
-            // Original jQuery mouse event
             originalEvent : null,
 
-            /// @todo Document this whole object better!
             suppress : function(preventDefault, preventPropagation)
             {
                 if (this.originalEvent != null)
@@ -403,7 +389,7 @@ var InputAPI = ITundraAPI.$extend(
     },
 
     /**
-        Registers a callback for mouse press and release events. See {{#crossLink "InputEventMouse"}}{{/crossLink}} for event data.
+        Registers a callback for mouse press and release events. See {@link InputEventMouse} for event data.
 
         @subscribes
 
@@ -418,7 +404,7 @@ var InputAPI = ITundraAPI.$extend(
     },
 
     /**
-        Registers a callback for mouse press events. See {{#crossLink "InputEventMouse"}}{{/crossLink}} for event data.
+        Registers a callback for mouse press events. See {@link InputEventMouse} for event data.
 
         @method onMousePress
         @subscribes
@@ -434,7 +420,7 @@ var InputAPI = ITundraAPI.$extend(
     },
 
     /**
-        Registers a callback for mouse release events. See {{#crossLink "InputEventMouse"}}{{/crossLink}} for event data.
+        Registers a callback for mouse release events. See {@link InputEventMouse} for event data.
 
         @subscribes
 
@@ -449,7 +435,7 @@ var InputAPI = ITundraAPI.$extend(
     },
 
     /**
-        Registers a callback for mouse wheel events. See {{#crossLink "InputEventMouse"}}{{/crossLink}} for event data.
+        Registers a callback for mouse wheel events. See {@link InputEventMouse} for event data.
 
         @subscribes
 
@@ -464,7 +450,7 @@ var InputAPI = ITundraAPI.$extend(
     },
 
     /**
-        Registers a callback for a mouse (left button) double-click event. See {{#crossLink "InputEventMouse"}}{{/crossLink}} for event data.
+        Registers a callback for a mouse (left button) double-click event. See {@link InputEventMouse} for event data.
 
         @subscribes
 
@@ -479,7 +465,7 @@ var InputAPI = ITundraAPI.$extend(
     },
 
     /**
-        Registers a callback for all key events. See {{#crossLink "InputAPI/KeyEvent:event"}}{{/crossLink}} for event data.
+        Registers a callback for all key events.
 
         @subscribes
         @param {Number} [priority] The priority level of the event listener (default 0). Listeners with higher priority will
@@ -496,7 +482,7 @@ var InputAPI = ITundraAPI.$extend(
     },
 
     /**
-        Registers a callback for key press events. See {{#crossLink "InputAPI/KeyEvent:event"}}{{/crossLink}} for event data.
+        Registers a callback for key press events.
 
         @subscribes
 
@@ -511,7 +497,7 @@ var InputAPI = ITundraAPI.$extend(
     },
 
     /**
-        Registers a callback for key release events. See {{#crossLink "InputAPI/KeyEvent:event"}}{{/crossLink}} for event data.
+        Registers a callback for key release events.
 
         @subscribes
 

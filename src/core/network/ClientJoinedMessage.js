@@ -10,6 +10,7 @@ var ClientJoinedMessage = INetworkMessage.$extend(
         Clien joined message.
 
         @constructs
+        @private
         @extends INetworkMessage
     */
     __init__ : function()

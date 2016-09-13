@@ -154,18 +154,12 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
     },
 
     /**
-        Parents another Placeable component to this components scene node.
+        Parents another Placeable component or a <code>THREE.Object3D</code> object to this components scene node.
         If the scene node in this component is not created, the parenting
         will be automatically done when it is created.
 
-        @param {EC_Placeable} placeable The child Placeable component.
-    */
-    /**
-        Parents a THREE.Object3D to this components scene node.
-        If the scene node in this component is not created, the parenting
-        will be automatically done when it is created.
-
-        @param {THREE.Object3D} object3d The child object.
+        @param {EC_Placeable|THREE.Object3D} object3d The child object.
+        @return {boolean}
     */
     addChild : function(child)
     {
@@ -213,7 +207,7 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
         Returns Entity of parent node, if applicable. This will return a valid
         scene entity if Placeable level parenting is used (parentRef/addChild).
 
-        @return {Entity}
+        @return {Entity|null}
     */
     getParentEntity : function()
     {
@@ -280,17 +274,11 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
     },
 
     /**
-        Sets the translation part of this placeable's transform.
+        Sets the translation part of this placeable's transform, given with THREE.Vector3, or each component separately
         @note This function sets the Transform attribute of this component, and synchronizes to network.
-        @param {THREE.Vector3} vector Position vector.
-        @param {AttributeChange} [change=AttributeChange.Default] Attribute change signaling mode.
-        @return {Boolean} If set was successful.
-    */
-    /**
-        Set position.
-        @param {Number} x
-        @param {Number} y
-        @param {Number} z
+        @param {Number|THREE.Vector3} x <code>THREE.Vector3</code>, or X axis
+        @param {Number} [y] Y axis, or left out if <code>THREE.Vector3</code> is passed to <code>x</code>
+        @param {Number} [z] Z axis, or left out if <code>THREE.Vector3</code> is passed to <code>x</code>
         @param {AttributeChange} [change=AttributeChange.Default] Attribute change signaling mode.
         @return {Boolean} If set was successful.
     */
@@ -306,7 +294,7 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
         Returns clone of the position of this placeable node in world space.
 
         @param {Three.Vector3} [dest] Optional destination vector.
-        @return {THREE.Vector3} Position vector.
+        @return {THREE.Vector3} - Position vector.
     */
     worldPosition : function(dest)
     {
@@ -334,7 +322,7 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
 
     /**
         Returns the scale of this placeable node in the space of its parent.
-        @return {THREE.Vector3} Scale vector.
+        @return {THREE.Vector3} - Scale vector.
     */
     scale : function()
     {
@@ -351,9 +339,9 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
     /**
         Sets the scale of this placeable's transform.
         @note This function preserves the previous translation and rotation of this placeable.
-        @param {Number} x
-        @param {Number} y
-        @param {Number} z
+        @param {Number|THREE.Vector3} x X axis or THREE.Vector3
+        @param {Number} [y] y-axis, or left out if <code>THREE.Vector3</code> is passed to <code>x</code>
+        @param {Number} [z] z-axis, or left out if <code>THREE.Vector3</code> is passed to <code>x</code>
         @param {AttributeChange} [change=AttributeChange.Default] Attribute change signaling mode.
         @return {Boolean} If set was successful.
     */
@@ -570,7 +558,7 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
     /**
         Returns the orientation of this placeable node in world space.
         @param {THREE.Quaternion} [dest] Destination where the world orientation should be written, if provided.
-        @return {THREE.Quaternion} Position vector.
+        @return {THREE.Quaternion} - Position vector.
     */
     worldOrientation : function(dest)
     {
@@ -584,7 +572,7 @@ var EC_Placeable_ThreeJs = EC_Placeable.$extend(
 
     /**
         Sets the world orientation of this placeable node
-        @param THREE.Quaternion worldOrientation The orientation in world space
+        @param {THREE.Quaternion} worldOrientation The orientation in world space
     */
     setWorldOrientation : function(worldOrientation)
     {

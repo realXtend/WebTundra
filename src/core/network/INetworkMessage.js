@@ -11,6 +11,7 @@ var INetworkMessage = Class.$extend(
         Interface for a network message.
 
         @constructs
+        @private
     */
     __init__ : function(id, name)
     {
@@ -29,21 +30,26 @@ var INetworkMessage = Class.$extend(
         /**
             Message id.
             @static
+            @readonly
+            @memberof INetworkMessage
             @var {Number}
         */
         id   : 0,
         /**
             Message name.
             @static
+            @readonly
+            @memberof INetworkMessage
             @var {String}
         */
         name : "",
 
         /**
             Map for Tundra protocol message ids to message names.
-            @property Ids
-            @var {Object}
             @static
+            @readonly
+            @memberof INetworkMessage
+            @enum {String}
 
             * @example
             * {

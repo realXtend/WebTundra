@@ -24,7 +24,9 @@ var InputEventMouse = IInputEvent.$extend(
         /*
             How much a button press to release event has translated
             the X and Y axis as pixels. Zero if not a button release event.
-            @type {Object}
+            @property {Object} translated
+            @property {number} translated.x
+            @property {number} translated.y
         */
         this.translated  = { x : 0, y : 0 };
         this._pressPos   = { x : 0, y : 0 };
@@ -54,7 +56,9 @@ var InputEventMouse = IInputEvent.$extend(
     {
         /**
             @static
-            @var {Object}
+            @readonly
+            @memberof InputEventMouse
+            @enum {number}
         */
         Type :
         {
@@ -67,7 +71,9 @@ var InputEventMouse = IInputEvent.$extend(
 
         /**
             @static
-            @var {Object}
+            @readonly
+            @memberof InputEventMouse
+            @enum {number}
         */
         Button :
         {
@@ -181,7 +187,6 @@ var InputEventMouse = IInputEvent.$extend(
     },
 
     /**
-        @param {Number|String} id
         @return {Boolean}
     */
     wasAnyButtonDown : function()

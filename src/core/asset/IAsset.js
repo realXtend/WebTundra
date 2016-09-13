@@ -137,7 +137,7 @@ var IAsset = Class.$extend(
     },
 
     /**
-        Registers a callback for asset loaded event. See {{#crossLink "IAsset/isLoaded:method"}}isLoaded(){{/crossLink}}.
+        Registers a callback for asset loaded event. See {@link IAsset#isLoaded}.
 
         @subscribes
     */
@@ -147,7 +147,7 @@ var IAsset = Class.$extend(
     },
 
     /**
-        Registers a callback for asset load failure event. See {{#crossLink "IAsset/isLoaded:method"}}isLoaded(){{/crossLink}}.
+        Registers a callback for asset load failure event. See {@link IAsset#isLoaded}.
 
         @subscribes
     */
@@ -170,7 +170,7 @@ var IAsset = Class.$extend(
     },
 
     /**
-        Registers a callback for asset unloaded event. See {{#crossLink "IAsset/isLoaded:method"}}isLoaded(){{/crossLink}}.
+        Registers a callback for asset unloaded event. See {@link IAsset#isLoaded}.
 
         @subscribes
 

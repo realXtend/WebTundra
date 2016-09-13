@@ -20,6 +20,7 @@ var TundraMessageHandler = INetworkMessageHandler.$extend(
         Network handler for the Tundra protocol messages.
 
         @constructs
+        @private
         @extends INetworkMessageHandler
     */
     __init__ : function()

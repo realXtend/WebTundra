@@ -7,48 +7,43 @@ define(["lib/classy",
         "core/framework/TundraLogging"
     ], function(Class, THREE, PhysicsRaycastResult, CollisionInfo, Tundra, TundraLogging) {
 
-/**
-    Interface class for physics world.
-
-    @class IPhysicsWorld
-    @constructor
-*/
 var IPhysicsWorld = Class.$extend(
+/** @lends IPhysicsWorld.prototype */
 {
+    /**
+        Interface class for physics world.
+
+        @constructs
+    */
     __init__ : function()
     {
         /**
             Physics update period (= length of each simulation step.)
-            @property physicsUpdatePeriod
-            @type Number
+            @var {Number}
         */
         this.physicsUpdatePeriod = 1.0 / 60.0;
 
         /**
             Max number of sub steps per simulation step
-            @property maxSubSteps
-            @type Number
+            @var {Number}
         */
         this.maxSubSteps = 6;
 
         /**
             Enable physical world step simulation
-            @property runPhysics
-            @type Bool
+            @var {boolean}
         */
         this.runPhysics = true;
 
         /**
             Use variable timestep if enabled, and if frame timestep exceeds the single physics simulation substep
-            @property useVariableTimestep
-            @type Bool
+            @var {boolean}
         */
         this.useVariableTimestep = false;
 
         /**
             Collisions that occurred during the previous frame.
-            @property previousCollisions
-            @type Array
+            @var {Array.<any>}
         */
         this.previousCollisions = [];
     },
@@ -61,7 +56,6 @@ var IPhysicsWorld = Class.$extend(
     /**
         Process collision from an internal sub-step
 
-        @method processPostTick
         @param {Number} subStepTime
     */
     processPostTick : function(subStepTime)
@@ -98,7 +92,6 @@ var IPhysicsWorld = Class.$extend(
     /**
         Set physics update period (= length of each simulation step.) By default 1/60th of a second.
 
-        @method setUpdatePeriod
         @param updatePeriod
     */
     setUpdatePeriod: function(updatePeriod)
@@ -112,8 +105,7 @@ var IPhysicsWorld = Class.$extend(
     /**
         Set maximum physics substeps to perform on a single frame. Once this maximum is reached, time will appear to slow down if framerate is too low.
 
-        @method setMaxSubSteps
-        @param steps Maximum physics substeps
+        @param {number} steps Maximum physics substeps
     */
     setMaxSubSteps: function(steps)
     {
@@ -124,8 +116,7 @@ var IPhysicsWorld = Class.$extend(
     /**
         Enable/disable physics simulationsetRunning
 
-        @method setRunning
-        @param enable
+        @param {boolean} enable
     */
     setRunning: function(enable)
     {
@@ -135,8 +126,7 @@ var IPhysicsWorld = Class.$extend(
     /**
         Return whether simulation is on
 
-        @method setRunning
-        @return boolean
+        @return {boolean}
     */
     isRunning: function()
     {
@@ -146,22 +136,21 @@ var IPhysicsWorld = Class.$extend(
     /**
         Raycast to the world. Returns only a single (the closest) result.
 
-        @example
-            var origin = new THREE.Vector3(0.0, 10.0, 0.0);
-            var dir = new THREE.Vector3(0.0, -1.0, 0.0);
-            var dist = 100;
-            var result = Tundra.physicsWorld.raycast(origin, dir, dist);
-            if (result) {
-                console.log(result.entity.name);
-            }
+        * @example
+        * var origin = new THREE.Vector3(0.0, 10.0, 0.0);
+        * var dir = new THREE.Vector3(0.0, -1.0, 0.0);
+        * var dist = 100;
+        * var result = Tundra.physicsWorld.raycast(origin, dir, dist);
+        * if (result) {
+        *     console.log(result.entity.name);
+        * }
 
-        @method raycast
         @param {THREE.Vector3} origin World origin position
         @param {THREE.Vector3} direction Direction to raycast to. Will be normalized automatically
         @param {Number} maxDistance Length of ray
         @param {Number} collisionGroup Collision layer. Default has all bits set.
         @param {Number} collisionMask Collision mask. Default has all bits set.
-        @return {PhysicsRaycastResult | Null} function returs PhysicsRaycastResult object or null
+        @return {PhysicsRaycastResult|null} - PhysicsRaycastResult object or null
     */
     raycast: function(origin, direction, maxDistance, collisionGroup, collisionMask)
     {

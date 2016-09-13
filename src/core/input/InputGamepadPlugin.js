@@ -4,16 +4,6 @@ define([
         "core/input/IInputPlugin"
     ], function(Tundra, IInputPlugin) {
 
-/* @todo fix this for jsdoc
-    Event object description for
-    {{#crossLink "InputGamepadPlugin/onGamepadEvent:method"}}{{/crossLink}},
-    and {{#crossLink "InputGamepadPlugin/onGamepadStatusEvent:method"}}{{/crossLink}} callbacks.
-    @event GamepadEvent
-    @param {String} gamepadid Gamepad id. e.g. XBOX 360...
-    @param {String[]} button Array of current button values
-    @param {String[]} axis Array of current axis values
-*/
-
 var InputGamepadPlugin = IInputPlugin.$extend(
 /** @lends InputGamepadPlugin.prototype */
 {
@@ -37,31 +27,30 @@ var InputGamepadPlugin = IInputPlugin.$extend(
     {
         this.gamepadSupportAvailable = null;
 
+        /**
+            Current gamepad state.
+
+            @property {Object} gamepad
+            @property {number} gamepad.gamepadid Gamepad ID
+            @property {Array.<Object>} gamepad.button Button values. Typical count 16. 8 additional added.
+            @property {Array.<any>} gamepad.axis stick: x, x: value, y: value
+            @property {Array.<any>} gamepad.gamepads The list of attached gamepads
+            @property {Array.<any>} gamepad.prevRawGamepadTypes Remembers the connected gamepads at the last check; used in Chrome to figure out when gamepads get connected or disconnected, since no events are fired.
+            @property {Array.<any>} gamepad.prevTimestamps Previous timestamps for gamepad state; used in Chrome to not bother with analyzing the polled data if nothing changed (timestamp is the same as last time).
+            @property {number} gamepad.AXIS_THRESHOLD Threshold for axis indicating it is moving.
+            @property {number} gamepad.TYPICAL_BUTTON_COUNT A number of typical buttons recognized by Gamepad API and mapped to standard controls. Any extraneous buttons will have larger indexes.
+            @property {number} gamepad.TYPICAL_AXIS_COUNT A number of typical axes recognized by Gamepad API and mapped to standard controls. Any extraneous buttons will have larger indexes.
+        */
         this.gamepad =
         {
-            //Gamepad id
             gamepadid : null,
-            // Button values. Typical count 16. 8 additional added.
-            button : [], //"button: x, pressed: true/false"
-            // Axis values. Typical count 4. 4 additional added.
-            axis : [], //stick: x, x: value, y: value
-            // The list of attached gamepads
+            button : [],
+            axis : [],
             gamepads: [],
-            // Remembers the connected gamepads at the last check; used in Chrome
-            // to figure out when gamepads get connected or disconnected, since no
-            // events are fired.
             prevRawGamepadTypes: [],
-            // Previous timestamps for gamepad state; used in Chrome to not bother with
-            // analyzing the polled data if nothing changed (timestamp is the same
-            // as last time).
             prevTimestamps: [],
-            // Threshold for axis indicating it is moving.
             AXIS_THRESHOLD:  .1,
-            // A number of typical buttons recognized by Gamepad API and mapped to
-            // standard controls. Any extraneous buttons will have larger indexes.
             TYPICAL_BUTTON_COUNT: 16,
-            // A number of typical axes recognized by Gamepad API and mapped to
-            // standard controls. Any extraneous buttons will have larger indexes.
             TYPICAL_AXIS_COUNT: 4
         };
 

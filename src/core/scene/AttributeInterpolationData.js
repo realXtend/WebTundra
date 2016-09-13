@@ -3,11 +3,12 @@ define([
         "lib/classy"
     ], function(Class, TundraLogging, Transform) {
 
-/**
-    @class AttributeInterpolationData
-*/
 var AttributeInterpolationData = Class.$extend(
+/** @lends AttributeInterpolationData.prototype */
 {
+    /**
+        @constructs
+    */
     __init__ : function(data)
     {
         this.previous = undefined;

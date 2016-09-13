@@ -22,11 +22,6 @@ var InputTouchPlugin = IInputPlugin.$extend(
 
         this.suppressing = { "pan" : false };
         this.hammers = [];
-
-        /**
-            Current touch state.
-            @var {InputEventTouch} touch
-        */
     },
 
     __classvars__ :
@@ -49,6 +44,10 @@ var InputTouchPlugin = IInputPlugin.$extend(
 
     start : function()
     {
+        /**
+            Current touch state.
+            @property {InputEventTouch} touch
+        */
         this.touch = new InputEventTouch();
 
         this.registerTouchEvents(Tundra.client.container);

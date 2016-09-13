@@ -4,9 +4,6 @@ define([
         "core/math/Transform"
     ], function(Class, Transform) {
 
-/**
-    @class TransformInterpolator
-*/
 var TransformInterpolator = Class.$extend(
 {
     __init__ : function()

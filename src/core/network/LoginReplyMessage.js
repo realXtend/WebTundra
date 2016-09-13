@@ -11,6 +11,7 @@ var LoginReplyMessage = INetworkMessage.$extend(
         Login reply message.
 
         @constructs
+        @private
         @extends INetworkMessage
     */
     __init__ : function()

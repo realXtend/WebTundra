@@ -45,20 +45,75 @@ var Color = Class.$extend(
     __classvars__ :
     {
         // Convenience shortcuts for common colors.
+        /**
+            Convenience function for getting red color
+            @static
+            @memberof Color
+            @return {Color}
+        */
         red     : function() { return new Color(1, 0, 0, 1); },
+        /**
+            Convenience function for getting green color
+            @static
+            @memberof Color
+            @return {Color}
+        */
         green   : function() { return new Color(0, 1, 0, 1); },
+        /**
+            Convenience function for getting blue color
+            @static
+            @memberof Color
+            @return {Color}
+        */
         blue    : function() { return new Color(0, 0, 1, 1); },
+        /**
+            Convenience function for getting white color
+            @static
+            @memberof Color
+            @return {Color}
+        */
         white   : function() { return new Color(1, 1, 1, 1); },
+        /**
+            Convenience function for getting black color
+            @static
+            @memberof Color
+            @return {Color}
+        */
         black   : function() { return new Color(0, 0, 0, 1); },
+        /**
+            Convenience function for getting yellow color
+            @static
+            @memberof Color
+            @return {Color}
+        */
         yellow  : function() { return new Color(1, 1, 0, 1); },
+        /**
+            Convenience function for getting cyan color
+            @static
+            @memberof Color
+            @return {Color}
+        */
         cyan    : function() { return new Color(0, 1, 1, 1); },
+        /**
+            Convenience function for getting magenta color
+            @static
+            @memberof Color
+            @return {Color}
+        */
         magenta : function() { return new Color(1, 0, 1, 1); },
+        /**
+            Convenience function for getting gray color
+            @static
+            @memberof Color
+            @return {Color}
+        */
         gray    : function() { return new Color(0.5, 0.5, 0.5, 1); },
 
         /**
             Constructs a color from string. Supports "rgb(x,x,x)" and "#xxxxxx" and Tundra's color string formats.
 
             @static
+            @memberof Color
             @param {String} str
             @return {Color}
         */
@@ -118,6 +173,7 @@ var Color = Class.$extend(
             Constructs a color from RGB uint/hex number value.
 
             @static
+            @memberof Color
             @param {Number} uint number value
             @return {Color}
         */
@@ -134,6 +190,7 @@ var Color = Class.$extend(
             Constructs a color from RGB hex number value.
 
             @static
+            @memberof Color
             @param {Number} hex number value
             @return {Color}
         */
@@ -143,6 +200,7 @@ var Color = Class.$extend(
             Constructs a color from RGBA uint/hex number value.
 
             @static
+            @memberof Color
             @param {Number} uint number value
             @return {Color}
         */
@@ -159,6 +217,7 @@ var Color = Class.$extend(
         /** Linearly interpolates between color a and color b.
 
             @static
+            @memberof Color
             @param {Color} a
             @param {Color} b
             @return {Color} Color a as interpolated. */

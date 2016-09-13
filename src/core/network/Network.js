@@ -21,6 +21,7 @@ var Network = ITundraAPI.$extend(
         Network contains utilities and properties for the handling of the Tundra protocol.
 
         @constructs
+        @private
         @extends ITundraAPI
     */
     __init__ : function(name, options, globalOptions)

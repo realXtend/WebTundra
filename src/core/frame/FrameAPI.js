@@ -15,7 +15,7 @@ var FrameAPI = ITundraAPI.$extend(
         FrameAPI provides frame updates and single shot callbacks.
         Use the events provided from this API if your application requires updating every frame update
 
-        FrameAPI is a singleton and available from {@link Tundra.frame}}
+        FrameAPI is a singleton and available from {@link Tundra.frame}
 
         @constructs
         @extends ITundraAPI
@@ -222,15 +222,11 @@ var FrameAPI = ITundraAPI.$extend(
     },
 
     /**
-        Registers a delayed callback invocation with context.
-
-
-        @param {Number} afterSeconds Time in seconds when the after the callback is invoked.
-        @param {Object} context Context of in which the <code>callback</code> function is executed. Can be <code>null</code>.
-        @param {Function} callback Function to be called.
-        @param {Object} [param=undefined] Optional parameter to to the callback.
+        Registers a delayed callback invocation with or without given <code>context</code>.
 
         * @example
+
+        * // with provided context
         * function onDelayedExecute(param)
         * {
         *     // this.test == 12
@@ -238,17 +234,15 @@ var FrameAPI = ITundraAPI.$extend(
         * }
         * var context = { test : 12 };
         * Tundra.frame.delayedExecute(1.0, context, onDelayedExecute, 101);
-    */
-    /**
-        Registers a delayed callback invocation.
-
-        * @example
+        *
+        * // Anonymous method
         * Tundra.frame.delayedExecute(1.0, function(param) {
         *     console.log(param); // 101
         * }, 101);
 
         @param {Number} afterSeconds Time in seconds when the after the callback is invoked.
-        @param {Function} callback Function to be called.
+        @param {Object|Function} context Context of in which the <code>callback</code> function is executed, a callback function if no context, or <code>null</code>.
+        @param {Function} [callback] Function to be called.
         @param {Object} [param=undefined] Optional parameter to to the callback.
     */
     delayedExecute : function(afterSeconds, context, callback, param)

@@ -9,7 +9,7 @@ var EventSubscription = Class.$extend(
 /** @lends EventSubscription.prototype */
 {
     /**
-        Event subscription returned from {{#crossLink "EventAPI/subscribe:method"}}{{/crossLink}}.
+        Event subscription returned from {@link EventAPI#subscribe}.
         This object is read only, modifying it has not effect on the prior subscribtion.
 
         @constructs

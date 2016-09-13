@@ -6,16 +6,16 @@ define([
         "lib/three",
     ], function(Class, Tundra, IAsset, THREE) {
 
-/**
-    Represents a WebTundra Audio asset.
-
-    @class AudioAsset
-    @extends IAsset
-    @constructor
-    @param {String} name Unique name of the asset, usually this is the asset reference.
-*/
 var AudioAsset = IAsset.$extend(
+/** @lends AudioAsset.prototype */
 {
+    /**
+        Represents a WebTundra Audio asset.
+
+        @extends IAsset
+        @param {String} name Unique name of the asset, usually this is the asset reference.
+        @constructs
+    */
     __init__ : function(name)
     {
         this.$super(name, "AudioAsset");
