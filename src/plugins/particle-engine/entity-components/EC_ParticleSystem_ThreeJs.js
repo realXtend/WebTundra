@@ -81,6 +81,9 @@ var EC_ParticleSystem_ThreeJs = EC_ParticleSystem.$extend(
     _onParticleLoaded: function(asset)
     {
         this.system = this.engine.createSystem(this.systemId, asset.data);
+        if (!this.system)
+            return;
+
         this.properties = this.system.exportProperties();
         this.checkAndUpdatePlaceable();
     },
