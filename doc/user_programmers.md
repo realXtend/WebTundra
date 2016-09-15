@@ -10,7 +10,7 @@ Developer documentation for the underlying parts from the Synchronization GE [is
 
 WebTundra and Three.js in general allow the whole application to be developed with software code, even generating the 3d geometry etc. However 3D models, animations and full scenes are often created in modelling applications, such as open source Blender or Autodesk's Max. Therefore a key part of 3D-UI is the asset pipeline from modelling applications, or possible other sources, to the runtime engine. Exporting of 3d creations from Blender is documented in detail in the User Guide section of this manual.
 
-Meshmoon Rocket and its web client counterpart Meshmoon WebRocket are commercially available solutions, which are based on realXtend Tundra and WebTundra respectively, are targeted towards the end-user, offering hosting for virtual worlds, as well as applications for those worlds. There are over 10 000 hosted virtual worlds on Meshmoon. To check the worlds out, go to https://rocket.meshmoon.com
+Meshmoon Rocket and its web client counterpart Meshmoon WebRocket are commercially available solutions, which are based on realXtend Tundra and WebTundra respectively, are targeted towards the end-user, offering hosting for virtual worlds, as well as applications for those worlds. There are over 10 000 hosted virtual worlds on Meshmoon. [You can check the worlds out here.](https://rocket.meshmoon.com)
 
 ### Background and Detail
 
@@ -55,7 +55,7 @@ We can now create an application that will simply add a button in the upper-left
 
 ## Examples
 
-Example scenes that demonstrate the usage and functionality of WebTundra are available here: http://webtundra.lab.fiware.org/nightly/examples.html
+Example scenes that demonstrate [the usage and functionality of WebTundra are available here.](http://webtundra.lab.fiware.org/nightly/examples.html)
 
 # Programmer's Guide
 
