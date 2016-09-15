@@ -10,7 +10,7 @@ Developer documentation for the underlying parts from the Synchronization GE [is
 
 WebTundra and Three.js in general allow the whole application to be developed with software code, even generating the 3d geometry etc. However 3D models, animations and full scenes are often created in modelling applications, such as open source Blender or Autodesk's Max. Therefore a key part of 3D-UI is the asset pipeline from modelling applications, or possible other sources, to the runtime engine. Exporting of 3d creations from Blender is documented in detail in the User Guide section of this manual.
 
-Meshmoon Rocket and its web client counterpart Meshmoon WebRocket are commercially available solutions targeted towards the end-user that 
+Meshmoon Rocket and its web client counterpart Meshmoon WebRocket are commercially available solutions, which are based on realXtend Tundra and WebTundra respectively, are targeted towards the end-user, offering hosting for virtual worlds, as well as applications for those worlds. There are over 10 000 hosted virtual worlds on Meshmoon. To check the worlds out, go to https://rocket.meshmoon.com
 
 ### Background and Detail
 
@@ -18,7 +18,7 @@ These guides relate to the 3D-UI-WebTundra implementation of the 3D-UI Generic E
 
 # User Guide
 
-User-made applications are up to the application developer to define their functionality. Therefore, the usage of this GE varies from application to application. 
+User-made applications are up to the application developer to define their functionality. Therefore, the usage of this GE varies from application to application.
 
 To create applications one typically needs to program the functionality in Javascript as in all Web development. That is covered in the Programmer's guide section of this manual. But it is possible to use WebTundra also to just publish 3d models from other 3D engines such as Ogre, or scenes on the web without any programming. Basic functionality can be introduced by using existing components such as a free-flying camera or the interface designer GE.
 
@@ -26,7 +26,7 @@ On exporting said Ogre 3d models from Blender, refer to the [Meshmoon documentat
 
 ## Preparing own scenes
 
-First, run WebTundra in development mode. Refer to the "Installation and administration guide" on how to run it in development mode. Running it in development mode will automatically open up a tab in your browser with address pointing to `http://localhost:8082/client.html`.
+First, run WebTundra in development mode. Refer to the "Installation and administration guide" on how to run it in development mode. Running it in development mode will automatically open up a tab in your browser with address pointing to `http://localhost:8082/html/client.html`.
 
 Second, clone the Interface Designer repository in `WEBTUNDRA_ROOT/src/application` in a folder named `editor`:
 
@@ -43,15 +43,19 @@ If you want to continue from an existing scene in a TXML file, install and run a
 
 It will start listening to a port 2345.
 
-Return to the tab that opened in your browser and hit the `Connect` button. 
+Return to the tab that opened in your browser and hit the `Connect` button.
 
-You will be now brought to a black scene. 
+You will be now brought to a black scene.
 
 Open up the Interface Designer by pressing "Shift + S". Create a sky box, by clicking "Create entity", and drag the "SkyX" component in the dialog, so that we are not surrounded by darkness. Refer to the Interface Designer user guide for adding content with it.
 
 Add a single cube from the "Create" menu, and add a light by again clicking on "Create entity" and dragging "Light" and "Placeable" components. Put a name "Light" in the "Create new entity" dialog. Cube and light will be created into the 0,0,0 position in the world, so move around with the camera by using the WSAD keys and right-click-drag with your mouse to turn around. You can move the light and the cube with the interface designer.
 
 We can now create an application that will simply add a button in the upper-left corner of the scene, that upon clicking will simply rotate the created cube.
+
+## Examples
+
+Example scenes that demonstrate the usage and functionality of WebTundra are available here: http://webtundra.lab.fiware.org/nightly/examples.html
 
 # Programmer's Guide
 
@@ -174,7 +178,7 @@ We define a new method called `rotateCube` that will simply get the "Placeable" 
 		var cubeEntity = Tundra.scene.entityByName("Cube");
 		if (cubeEntity)
 		{
-			var t = cubeEntity.placeable.transform; 
+			var t = cubeEntity.placeable.transform;
 			t.rot.x += 1;
 			t.rot.y += 1;
 			t.rot.z += 1;
@@ -185,7 +189,7 @@ We define a new method called `rotateCube` that will simply get the "Placeable" 
 ### Running the application
 
 Following above steps, the app body should looks like this:
-	
+
 	define([
 	    "lib/three",
 	    "core/framework/Tundra",
@@ -242,7 +246,7 @@ Following above steps, the app body should looks like this:
 			var cubeEntity = Tundra.scene.entityByName("Cube");
 			if (cubeEntity)
 			{
-				var t = cubeEntity.placeable.transform; 
+				var t = cubeEntity.placeable.transform;
 				t.rot.x += 1;
 				t.rot.y += 1;
 				t.rot.z += 1;
