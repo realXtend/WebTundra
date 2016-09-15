@@ -12,7 +12,7 @@ var InterfaceDesignerDemo = IApplication.$extend(
 
         this.subs = undefined;
         if (!Tundra.client.isConnected())
-           Tundra.client.onConnected(this, this.start);
+            Tundra.client.onConnected(this, this.start);
         else
             this.start();
     },
@@ -20,7 +20,7 @@ var InterfaceDesignerDemo = IApplication.$extend(
     start : function(app)
     {
         this.intd = app || Tundra.client.findApplication("Editor");
-        if (!this.intd)
+        if (!this.intd || !this.intd.editor)
         {
             if (this.subs)
                 return;
@@ -38,7 +38,12 @@ var InterfaceDesignerDemo = IApplication.$extend(
         }
 
         if (this.intd && this.intd.editor)
-            this.intd.editor.startIntro();
+        {
+            setTimeout(function()
+            {
+                this.intd.editor.startIntro();
+            }.bind(this), 250);
+        }
     }
 });
 
