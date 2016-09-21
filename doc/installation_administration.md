@@ -71,7 +71,7 @@ The resulting library will reside in the `build/` folder. Feel free to host it o
 
 		grunt dev
 
-This will open up a local server on port 8082, and also automatically pop-up `http://localhost:8082/client.html` URL in your default browser. You can now connect to the empty server.
+This will open up a local server on port 8082, and also automatically pop-up `http://localhost:8082/html/client.html` URL in your default browser. You can now connect to the empty server.
 
 # Sanity check procedures
 
