@@ -12,4 +12,6 @@ pages:
   - Home: index.md
   - 'Installation & Administration Manual': 'installation_administration.md'
   - 'User & Programmers Manual': 'user_programmers.md'
+  - 'Virtual Characters Installation Manual: 'vc_installation.md'
+  - 'Virtual Characters User Manual: 'vc_users.md'
 google_analytics: ['UA-83869420-1', 'http://webtundra.readthedocs.io/']
